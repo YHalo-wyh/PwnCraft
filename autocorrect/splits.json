@@ -33,8 +33,8 @@
       "cluster": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026|pwn/The Emptiness Machine|exp-semantics"
     },
     {
-      "case_id": "memory_write-asis-ctf-quals-2026-arena-snapshots-d4276d86",
-      "cluster": "https://github.com/hax1ng/ASIS-CTF-Quals-2026|pwn/arena-snapshots|exploit-semantics"
+      "case_id": "integer-sekaictf-2026-echo-chamber-99fc2e72",
+      "cluster": "https://github.com/project-sekai-ctf/sekaictf-2026|pwn/echo-chamber|official-source-solution"
     },
     {
       "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
@@ -85,6 +85,10 @@
     {
       "case_id": "heap-ctf-wiki-zerostorage-c06ff06c",
       "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage"
+    },
+    {
+      "case_id": "memory_write-asis-ctf-quals-2026-arena-snapshots-d4276d86",
+      "cluster": "https://github.com/hax1ng/ASIS-CTF-Quals-2026|pwn/arena-snapshots|community-archive-validation"
     },
     {
       "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2013-PlaidCTF-ropasaur-fec23fd9",
