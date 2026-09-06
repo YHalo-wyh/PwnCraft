@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 from pwncraft.features.audit.extract import extract_exploit_ir
 from pwncraft.features.audit.model import ExploitIR, SymbolRef
+from pwncraft.features.audit.outbound_payload import extract_outbound_literal_payloads
 
 if TYPE_CHECKING:
     from pwncraft.core.workspace import PwnWorkspace
@@ -82,8 +83,15 @@ def analyze_exp_semantics(source: str) -> dict:
             "line": syntax_error.lineno or 0,
             "message": syntax_error.msg,
             "symbol_refs": [],
+            "outbound_literal_payloads": [],
             "primitives": [],
         }
+    payloads, payload_error = extract_outbound_literal_payloads(source)
+    # Both extractors consume the same Python grammar.  Keep this defensive
+    # branch explicit rather than silently dropping payload evidence if they ever
+    # diverge in supported syntax.
+    if payload_error is not None:
+        payloads = []
     return {
         "status": "ok",
         "reason": "",
@@ -97,6 +105,7 @@ def analyze_exp_semantics(source: str) -> dict:
             }
             for ref in ir.symbol_refs
         ],
+        "outbound_literal_payloads": [payload.to_dict() for payload in payloads],
         "primitives": infer_exp_primitives(ir),
     }
 
