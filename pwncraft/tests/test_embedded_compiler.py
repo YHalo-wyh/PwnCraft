@@ -88,8 +88,8 @@ def test_non_void_loop_call_is_not_omitted() -> None:
 function main() : vec a, str b -> int {
   a := vec_new(0);
   do {
-    use(a);
     b := make_str();
+    use(a);
   } while (1);
   return 0;
 }
