@@ -234,6 +234,7 @@ class ElectronBridge:
         """
         binary = Path(str(params.get("path") or "") or self._target_binary())
         reports: dict[str, str] = {}
+        diagnostics: dict[str, dict] = {}
         for key, callback in (
             ("checksec", lambda: self._runner.checksec(binary)),
             ("file", lambda: self._runner.file(binary)),
@@ -241,10 +242,42 @@ class ElectronBridge:
         ):
             try:
                 result = callback()
-                reports[key] = result.combined_output()
+                # Some tools (notably checksec) legitimately report on stderr.
+                # ldd dependencies and Windows/WSL startup notices stay separate.
+                reports[key] = (result.stdout.strip() if key == "ldd" and result.ok
+                                else result.combined_output())
+                diagnostics[key] = {"returncode": result.returncode,
+                                    "notice": result.stderr.strip() if key == "ldd" and result.ok else ""}
             except Exception as error:
                 reports[key] = f"ERROR: {error}"
-        return {"reports": reports, "binary": str(binary)}
+        return {"reports": reports, "diagnostics": diagnostics, "binary": str(binary)}
+
+    def rpc_code_analysis(self, params: dict) -> dict:
+        """Static disassembly and existing audit diagnostics for the selected workspace."""
+        from pwnbao.core.code_analysis import parse_disassembly
+        from pwnbao.features.audit.audit import audit_exp
+
+        binary = Path(str(params.get("path") or "") or self._target_binary())
+        facts = BinaryInspector().inspect(binary)
+        response = {"binary": str(binary), "functions": [], "function_count": 0,
+                    "truncated": False, "assembly_error": "", "notice": "",
+                    "stripped": facts.security.get("STRIPPED") != "OFF"}
+        # The source belongs to the requesting workspace, not bridge-global state.
+        response["diagnostics"] = audit_exp(str(params.get("source") or ""),
+                                            bits=facts.bits,
+                                            pie=facts.security.get("PIE") == "ON")
+        if params.get("include_assembly", True):
+            try:
+                result = self._runner.run_tool("objdump", ["-d", "--",
+                                                          self._runner.to_wsl_path(binary)])
+                if result.ok:
+                    response.update(parse_disassembly(result.stdout))
+                    response["notice"] = result.stderr.strip()
+                else:
+                    response["assembly_error"] = result.combined_output() or f"objdump 退出码 {result.returncode}"
+            except Exception as error:
+                response["assembly_error"] = str(error)
+        return response
 
     def rpc_workspace_get(self, params: dict) -> dict:
         return {

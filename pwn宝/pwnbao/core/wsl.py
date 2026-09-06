@@ -30,6 +30,33 @@ ALLOWED_TOOLS = {
 _WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 
 
+def decode_wsl_output(data: bytes | str) -> str:
+    """Decode Linux UTF-8 and Windows UTF-16 diagnostics, including mixed lines."""
+    if isinstance(data, str):
+        return data
+    parts: list[str] = []
+    while data:
+        sample = data[:32]
+        odd = sample[1::2]
+        even = sample[::2]
+        encoding = None
+        if data.startswith(b"\xff\xfe") or (odd and odd.count(0) / len(odd) > 0.4):
+            encoding = "utf-16-le"
+        elif data.startswith(b"\xfe\xff") or (even and even.count(0) / len(even) > 0.4):
+            encoding = "utf-16-be"
+        if encoding:
+            newline = "\n".encode(encoding)
+            end = next((i + 2 for i in range(0, len(data) - 1, 2)
+                        if data[i:i + 2] == newline), len(data))
+        else:
+            encoding = "utf-8-sig"
+            index = data.find(b"\n")
+            end = index + 1 if index >= 0 else len(data)
+        parts.append(data[:end].decode(encoding, errors="replace").lstrip("\ufeff"))
+        data = data[end:]
+    return "".join(parts)
+
+
 @dataclass(frozen=True)
 class ToolResult:
     command: list[str]
@@ -83,13 +110,11 @@ class WslToolRunner:
         proc = subprocess.run(
             command,
             capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
             timeout=timeout,
             **hidden_windows_process_kwargs(),
         )
-        return ToolResult(command, proc.returncode, proc.stdout, proc.stderr)
+        return ToolResult(command, proc.returncode,
+                          decode_wsl_output(proc.stdout), decode_wsl_output(proc.stderr))
 
     def file(self, path: str | Path) -> ToolResult:
         return self.run_tool("file", [self.to_wsl_path(path)])

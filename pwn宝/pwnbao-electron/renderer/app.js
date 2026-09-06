@@ -141,6 +141,12 @@
     const page = $(`#page-${key}`);
     if (page) page.hidden = false;
     if (key === 'binary') window.PwnPages.renderBinary();
+    if (key === 'analysis') window.PwnAnalysis.render();
+    for (const button of $$('.activity-item')) {
+      button.classList.toggle('active', button.dataset.key === key);
+      if (button.dataset.key === key) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    }
     if (key === 'rop') window.PwnPages.renderRop();
     if (key === 'debug') window.PwnPages.renderDebug();
     if (key === 'format') window.PwnPages.renderFormat();
@@ -167,6 +173,7 @@
   const ACTIVITIES = [
     { key: 'welcome', title: '概览 / 导入 Target', icon: 'home' },
     { key: 'binary', title: 'Binary 概览', icon: 'box' },
+    { key: 'analysis', title: '代码分析 · 汇编函数 / 漏洞建议', icon: 'scan-search' },
     { key: 'exp', title: 'EXP 编辑器', icon: 'file-code' },
     { key: 'heap', title: 'Heap 物理堆画布', icon: 'cpu' },
     { key: 'rop', title: 'ROP / Gadget', icon: 'zap' },
@@ -180,7 +187,7 @@
   function renderActivity() {
     const bar = $('#activitybar');
     bar.innerHTML = ACTIVITIES.map((item) => `
-      <button class="activity-item" data-key="${item.key}" title="${item.title}">${icon(item.icon)}</button>
+      <button class="activity-item" data-key="${item.key}" title="${item.title}" aria-label="${item.title}">${icon(item.icon)}</button>
     `).join('');
     bar.querySelectorAll('.activity-item').forEach((button) => {
       button.addEventListener('click', () => switchPage(button.dataset.key));
@@ -380,8 +387,8 @@
     state.patchSummary = entry.patchSummary;
     state.patchError = entry.patchError;
     state.reports = entry.reports || null;
-    state.reportsFor = entry.reportsFetched ? entry.path : '';
-    state.reportsInFlight = false;
+    state.reportsFor = entry.reportsFetched ? entry.context.working_binary : '';
+    state.reportsInFlight = !!entry.reportsLoading;
     state.arch = entry.arch;
     state.bits = entry.bits;
     state.activePath = entry.path;
@@ -395,7 +402,7 @@
       await restartShellTerminal(entry.project && entry.project.project_path || '');
     }
     // 数据页跟着新 Target 重渲染；Heap 画布是独立仿真沙盘，保持原状
-    if (['binary', 'rop', 'debug', 'format', 'syscall', 'stack', 'tools'].includes(state.page)) {
+    if (['binary', 'analysis', 'rop', 'debug', 'format', 'syscall', 'stack', 'tools'].includes(state.page)) {
       switchPage(state.page);
     }
   }
@@ -901,6 +908,38 @@
     log(`已写入终端：${command}`);
   }
 
+  // ---- 命令历史 (VNext.3.1D) ----
+  const debugCommandHistory = [];
+
+  function pushCommandHistory(command) {
+    const trimmed = command.trim();
+    if (!trimmed) return;
+    debugCommandHistory.unshift(trimmed);
+    if (debugCommandHistory.length > 100) debugCommandHistory.pop();
+    renderCommandHistory();
+  }
+
+  function renderCommandHistory() {
+    const container = document.getElementById('debug-cmd-history');
+    if (!container) return;
+    if (!debugCommandHistory.length) {
+      container.innerHTML = '<div class="hint-dim" style="padding:6px">尚未发送命令</div>';
+      return;
+    }
+    container.innerHTML = debugCommandHistory.map((cmd, i) =>
+      `<div class="cmd-history-item" data-cmd="${cmd.replace(/"/g, '&quot;')}" title="点击重新执行">
+         <span class="cmd-history-idx">${debugCommandHistory.length - i}</span>
+         <span class="cmd-history-text">${cmd.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</span>
+       </div>`
+    ).join('');
+    container.querySelectorAll('.cmd-history-item').forEach((el) => {
+      el.addEventListener('click', () => {
+        const cmd = el.getAttribute('data-cmd');
+        if (cmd) sendToDebugTerminal(cmd);
+      });
+    });
+  }
+
   async function sendToDebugTerminal(command) {
     let debugId = null;
     for (const [id, entry] of terminals) {
@@ -911,6 +950,7 @@
       switchPage('debug');
       return;
     }
+    pushCommandHistory(command);
     activateTerminal(debugId);
     await window.pwnbao.terminalInput(debugId, `${command}\r`);
   }
@@ -1149,6 +1189,9 @@
     log('调试会话已结束。');
   }
 
+  window.PwnExpDnD = window.PwnExpDnD || {};
+  window.PwnExpDnD.renderCommandHistory = renderCommandHistory;
+
   window.pwnbao.onTerminalData(({ id, data }) => {
     const entry = terminals.get(id);
     if (!entry) return;
@@ -1197,6 +1240,7 @@
     { id: 'debug-start', label: '启动 pwndbg-mogai 调试终端（自动加载 ELF）', icon: 'terminal', run: startDebugFromSidebar },
     { id: 'welcome', label: '转到概览', icon: 'home', run: () => switchPage('welcome') },
     { id: 'binary', label: '转到 Binary 概览', icon: 'box', run: () => switchPage('binary') },
+    { id: 'analysis', label: '转到代码分析：汇编函数 / 漏洞建议', icon: 'scan-search', run: () => switchPage('analysis') },
     { id: 'exp', label: '转到 EXP 编辑器', icon: 'file-code', run: () => switchPage('exp') },
     { id: 'heap', label: '转到 Heap 物理堆画布', icon: 'cpu', run: () => switchPage('heap') },
     { id: 'rop', label: '转到 ROP / Gadget', icon: 'zap', run: () => switchPage('rop') },

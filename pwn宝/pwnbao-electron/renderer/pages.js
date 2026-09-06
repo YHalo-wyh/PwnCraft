@@ -636,11 +636,9 @@
         </div>
         <div class="debug-cmd-col">
           <div class="card">
-            <div class="card-title">常用命令</div>
-            <div class="debug-cmd-grid">
-              ${['context', 'starti', 'continue', 'ni', 'si', 'finish', 'heap', 'tcachebins', 'fastbins',
-    'bins', 'arena', 'top_chunk', 'vis-heap-chunks', 'vmmap', 'checksec', 'bt', 'nearpc']
-    .map((command) => `<button class="btn cmd-chip" data-cmd="${command}">${command}</button>`).join('')}
+            <div class="card-title">命令历史</div>
+            <div id="debug-cmd-history" class="debug-cmd-history">
+              <div class="hint-dim" style="padding:6px">尚未发送命令</div>
             </div>
           </div>
           <div class="card">
@@ -673,6 +671,7 @@
       if (value) { sendToDebug(value); $('#debug-custom').value = ''; }
     });
     $('#debug-snapshot').addEventListener('click', () => sendToDebug('pwnbao-snapshot'));
+    if (window.PwnExpDnD) window.PwnExpDnD.renderCommandHistory();
     $('#debug-cheatsheet').addEventListener('click', () => {
       if (!app().debugSheetToggle || !app().debugSheetToggle()) {
         log('调试终端未开启：先点「启动调试终端」。', 'warn');
