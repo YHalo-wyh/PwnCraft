@@ -1,0 +1,56 @@
+name: Recognizer training gate
+
+on:
+  push:
+    branches:
+      - "training/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "pwncraft/pwncraft/features/heapviz/**"
+      - "pwncraft/tests/**"
+      - "autocorrect/**"
+      - ".github/workflows/recognizer-training.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pwncraft/requirements.txt
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r pwncraft/requirements.txt
+          python -m pip install pytest
+
+      - name: Project regression
+        working-directory: pwncraft
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -q tests
+
+      - name: Training infrastructure regression
+        env:
+          PYTHONPATH: pwncraft
+        run: python -m pytest -q autocorrect/tests
+
+      - name: Accepted truth regression
+        env:
+          PYTHONPATH: pwncraft
+        run: python autocorrect/truthregress_ci.py

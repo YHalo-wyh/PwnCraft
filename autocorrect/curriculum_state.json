@@ -1,25 +1,28 @@
 {
-  "updated": "2026-09-05 (post cycle-2)",
+  "updated": "2026-09-06 (post cycle-4)",
   "completed_cases": [
     {
       "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
-      "role": "cycle-0-bootstrap-invalidated (Analyst 污染, 不作 held-out; 仅作泛化 witness)",
+      "role": "cycle-0-bootstrap-invalidated (Analyst 污染, 不作 held-out; cycle-4 仅作泛化 witness)",
       "cycles": [
-        "cycle-0(作废)"
+        "cycle-0(作废)",
+        "cycle-4 generalization witness"
       ]
     },
     {
       "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
-      "role": "cycle-1 正式训练",
+      "role": "cycle-1 正式训练 + 后续 accepted-truth regression",
       "cycles": [
-        "cycle-1 ACCEPTED"
+        "cycle-1 ACCEPTED",
+        "cycle-4 regression MATCH"
       ]
     },
     {
       "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
-      "role": "cycle-2 正式训练 (py2 方言网关维度)",
+      "role": "cycle-2 正式训练 (py2 方言网关维度) + 后续 accepted-truth regression",
       "cycles": [
-        "cycle-2 ACCEPTED (待 owner 确认)"
+        "cycle-2 ACCEPTED",
+        "cycle-4 regression MATCH"
       ]
     }
   ],
@@ -41,38 +44,48 @@
       "statement": "EXP 模块级解析失败时, tokenize 引导的语句级 print 改写 (字符串安全/行号保持) 后重解析; py3 路径不变",
       "synthetic_tests": "tests/test_source_compat_py2_print.py (8)",
       "generalization": "wheelofrobots + hacklu-bookstore 自动解锁 (SyntaxError→完整识别); stkof(py3 对照)不变"
+    },
+    {
+      "rule_id": "R-SIZE-ONLY-ALLOC-STRUCTURAL-PROMOTION",
+      "cycle": "cycle-4",
+      "patch_id": "cycle-4",
+      "recognizer_revision": "recognizer-2026.09-r6",
+      "statement": "单参数 helper 只有在参数真实流入 outbound send/write，且 SIZE 角色由 size/length/bytes prompt 或独立 control-send + 约定 size 参数形状证明后，ALLOC-like 名称才允许负责消歧；裸 allocate(size): sendline(size) 仍保持 UNKNOWN。",
+      "synthetic_tests": "pwncraft/tests/test_contract_size_only_alloc.py (7)",
+      "generalization": "babyheap allocate(size) 与 stkof alloc(size) 同一规则自动提升为 ALLOC(size)；近似 bare/name-only/token/resize 反例不提升。",
+      "acceptance_gate": "GitHub current-head: 471 passed, 1 skipped, 6 subtests passed; autocorrect 8 passed; accepted truth regression lab13 MATCH + note2 MATCH"
     }
   ],
   "coverage": {
     "semantic": {
-      "alloc": "lab13(create)/babyheap(allocate)",
+      "alloc": "lab13(create)/babyheap(allocate)/stkof(alloc)",
       "free": "lab13(delete)/babyheap(free)",
       "edit": "lab13(edit)/babyheap(fill)",
-      "show": "lab13(show, 契约级仍 unknown—cycle-2 目标)/babyheap(dump 同)",
+      "show": "lab13(show)/babyheap(dump)/note2(shownote) 已有后续调用点证据路径",
       "copy": null
     },
     "role_shapes": {
-      "size": "babyheap allocate(size) [契约级仍未证明]",
+      "size": "babyheap allocate(size) + stkof alloc(size) (cycle-4 已证明)",
       "index,size,data": "lab13 fill / babyheap fill",
       "size,data": "lab13 create(size,content)",
       "index": "lab13 free/dump",
       "data_only_derived_size": null,
-      "index_choice_data": "note2 editnote (契约仍 unknown—后续 cycle)",
+      "index_choice_data": "note2 editnote (已有 CALLSITE_ARGUMENT_BINDING 路径)",
       "src_dst": null,
       "default_param": null,
       "index_arithmetic_callsite": null
     },
     "wrapper_shapes": {
-      "direct_wrapper": "lab13/babyheap 全部",
+      "direct_wrapper": "lab13/babyheap/stkof",
       "wrapper_of_wrapper": null,
       "helper_alias": null,
       "no_arg_helper": null,
       "conditional_inside_helper": null,
-      "promptless_sends": null,
+      "promptless_sends": "stkof alloc(size): control-send + parameter-bound size (cycle-4)",
       "module_level_entry": "note2 (顶层调用全部识别)"
     },
     "control_flow": {
-      "sequential": "lab13/babyheap",
+      "sequential": "lab13/babyheap/stkof",
       "for_loop": null,
       "conditional": null,
       "repeated_calls": "lab13(多次 create/delete)",
@@ -83,7 +96,7 @@
       "ack_sync_discarded": null,
       "output_dataflow_in_body": null,
       "recv_result_returned": null,
-      "callsite_leak_calc": "lab13(L58-61)/babyheap(L87) [识别器尚无调用点级分析—cycle-2 目标]"
+      "callsite_leak_calc": "lab13(L58-61)/babyheap(L87)/note2 shownote 已有调用点级 promotion"
     },
     "target_behavior": {
       "one_to_one": null,
@@ -100,16 +113,15 @@
       "corruption": "lab13(size 伪造)/babyheap(fd 改写)"
     },
     "exp_dialect": {
-      "python3": "lab13/babyheap",
+      "python3": "lab13/babyheap/stkof",
       "python2_print": "note2 (cycle-2)"
     }
   },
   "capability_queue": [
-    "调用点级 OUTPUT_DATA_FLOW — 双 case 共同需要 (lab13 show + note2 shownote), cycle-3 首选",
-    "size-only alloc 契约 (babyheap allocate 有提示词 / stkof alloc 无提示词 两种形状)",
-    "TARGET_BEHAVIOR 1:N 事件展开 (lab13)",
-    "editnote 型三参 (choice+无提示词 data) 契约",
+    "TARGET_BEHAVIOR 1:N 事件展开 (lab13) — 当前最早的高价值结构缺口",
     "wheelofrobots 引擎 MemoryError (2.23 profile, _changed_byte_mask 巨长写) — allocator 层健壮性",
-    "loop expansion"
+    "wrapper-of-wrapper / helper alias 泛化",
+    "loop expansion",
+    "copy/src-dst 角色形状"
   ]
 }
