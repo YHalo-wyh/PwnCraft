@@ -1,0 +1,103 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-StarCTF2018-not-97cad9a0",
+  "domain": "stack",
+  "subdomains": [
+    "leak",
+    "control_flow",
+    "format_string"
+  ],
+  "source_repository": "https://github.com/ctf-wiki/ctf-challenges",
+  "source_commit": "18d67d158d0729fca20597723c763f475f7968cd",
+  "source_challenge_path": "pwn/linux/user-mode/stackoverflow/fake_frame/StarCTF2018-note",
+  "arch": {
+    "value": "amd64",
+    "bits": 64,
+    "provenance": "MANIFEST"
+  },
+  "truth_layers": {
+    "EXP_LEAK_INPUT": {
+      "status": "PROVEN",
+      "facts": [
+        {
+          "kind": "unpack",
+          "function": "u64",
+          "argument_expression": "io.recvn(6) + '\\x00\\x00'",
+          "required_width": 8,
+          "provenance": "SOLUTION_EXP"
+        },
+        {
+          "kind": "exact_input_width",
+          "value": 8,
+          "derivation": [
+            "recvn(6) = 6 bytes",
+            "literal '\\x00\\x00' = 2 bytes",
+            "binary concatenation = 8 bytes"
+          ],
+          "provenance": "SOLUTION_EXP_AST"
+        },
+        {
+          "kind": "padding_present",
+          "value": 2,
+          "padding_byte": "0x00",
+          "provenance": "SOLUTION_EXP_AST"
+        }
+      ],
+      "expected_auditor_semantics": {
+        "short_read_error": false,
+        "unknown_length_suggestion": false,
+        "reason": "u64 输入表达式总宽度可由 AST 确定为 8 字节"
+      }
+    },
+    "LEAK_BASE_DERIVATION": {
+      "status": "EXP_SUPPORTED",
+      "facts": [
+        {
+          "kind": "libc_base_formula",
+          "expression": "u64(io.recvn(6) + '\\x00\\x00') - libc.sym['puts']",
+          "provenance": "SOLUTION_EXP"
+        }
+      ],
+      "limitations": [
+        "本层证明 EXP 的解析/基址计算意图，不将远程输出冒充本轮 observed runtime"
+      ]
+    },
+    "CONTROL_FLOW_EXP_INTENT": {
+      "status": "EXP_SUPPORTED",
+      "facts": [
+        {
+          "kind": "cyclic_prefix",
+          "length": 100,
+          "n": 8,
+          "provenance": "SOLUTION_EXP"
+        },
+        {
+          "kind": "target_expression",
+          "expression": "libc.address + one_gadget",
+          "one_gadget_offset": "0x4526a",
+          "provenance": "SOLUTION_EXP"
+        }
+      ],
+      "limitations": [
+        "没有本轮 GDB/pwndbg RIP 观测，不能升级为 OBSERVED_RUNTIME saved-RIP control"
+      ]
+    }
+  },
+  "unknown": [
+    "本轮未重新运行远程服务验证 leak bytes",
+    "本轮未以 runtime observation 证明 RIP 覆盖",
+    "one_gadget 约束是否在每次目标环境中满足"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-e69e8305bc975376",
+    "content_sha256": "e69e8305bc97537648810aaaa09b8decccff12b7bd254154f309e2dcc2284378",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "binary_sha256": "97cad9a0cdc971be9ce7a6854c3cb13d0bc5f0b3cc679e05bed11b156ce8333d",
+      "exp_git_blob_sha1": "f03ba3784b0d188b317c2e9f3ad212fa3c599c21"
+    },
+    "truth_revision": 1,
+    "superseded_by": null
+  }
+}
