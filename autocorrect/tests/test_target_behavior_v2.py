@@ -34,9 +34,16 @@ def test_create_lowers_one_canonical_call_to_two_mallocs(tmp_path: Path) -> None
         "helper": "create",
         "binary_handler": "create_heap",
         "parameters": ["size", "content"],
+        "handle_policy": {
+            "kind": "lowest_free_index",
+            "limit": 10,
+            "evidence": "reviewed slot scan",
+        },
         "effects": [
-            {"kind": "alloc", "request_size": "0x10", "role": "management_struct"},
-            {"kind": "alloc", "request_size": "size", "role": "content"},
+            {"kind": "alloc", "request_size": "0x10", "role": "management_struct",
+             "bind_handle": False},
+            {"kind": "alloc", "request_size": "size", "role": "content",
+             "bind_handle": True},
         ],
         "bindings_provenance": "binary/source reviewed",
     }])
@@ -46,9 +53,12 @@ def test_create_lowers_one_canonical_call_to_two_mallocs(tmp_path: Path) -> None
     ], bindings)
     entry = target["per_op"][0]
     assert entry["internals_not_modeled"] is False
+    assert entry["handle_policy"]["kind"] == "lowest_free_index"
+    assert entry["handle_policy"]["limit"] == 10
     assert [item["action"] for item in entry["actions"]] == ["malloc", "malloc"]
     assert [item["request"]["value"] for item in entry["actions"]] == [0x10, 0x18]
     assert [item.get("role") for item in entry["actions"]] == ["management_struct", "content"]
+    assert [item.get("bind_handle") for item in entry["actions"]] == [False, True]
 
 
 def test_delete_lowers_to_two_distinct_free_actions(tmp_path: Path) -> None:
@@ -116,3 +126,30 @@ def test_keyword_arguments_are_bound_without_execution(tmp_path: Path) -> None:
     request = target["per_op"][0]["actions"][0]["request"]
     assert request["kind"] == "concrete"
     assert request["value"] == 0x30
+
+
+def test_invalid_handle_policy_and_bind_handle_type_are_rejected(tmp_path: Path) -> None:
+    bad_policy = _write_bindings(tmp_path, [{
+        "helper": "create",
+        "parameters": ["size"],
+        "handle_policy": {"kind": "guess_next", "limit": 10},
+        "effects": [{"kind": "alloc", "request_size": "size"}],
+    }])
+    try:
+        T.load_bindings(bad_policy)
+    except ValueError as error:
+        assert "handle_policy" in str(error)
+    else:
+        raise AssertionError("unknown handle policy must be rejected")
+
+    bad_bind = _write_bindings(tmp_path, [{
+        "helper": "create",
+        "parameters": ["size"],
+        "effects": [{"kind": "alloc", "request_size": "size", "bind_handle": "false"}],
+    }])
+    try:
+        T.load_bindings(bad_bind)
+    except TypeError as error:
+        assert "bind_handle" in str(error)
+    else:
+        raise AssertionError("bind_handle must remain a real boolean")
