@@ -187,6 +187,18 @@
   function renderLddRows(reports) {
     const host = $('#ldd-rows');
     if (!host) return;
+    const detail = reports.diagnostics && reports.diagnostics.ldd;
+    const notice = detail && detail.notice;
+    if (notice) {
+      const details = document.createElement('details');
+      details.className = 'analysis-notice';
+      const summary = document.createElement('summary');
+      summary.textContent = '环境提示';
+      const text = document.createElement('pre');
+      text.textContent = notice;
+      details.append(summary, text);
+      host.after(details);
+    }
     const raw = String(reports.ldd || '').trim();
     if (!raw) { host.innerHTML = '<div class="hint-dim">（无输出）</div>'; return; }
     if (/^ERROR:/i.test(raw)) {
@@ -301,29 +313,31 @@
 
   async function fetchBinaryReports(working, force) {
     const state = app().state;
-    if (state.reportsInFlight) return;
+    const entry = state.workspaces && state.workspaces.get(state.activePath);
+    if (entry ? entry.reportsLoading : state.reportsInFlight) return;
+    if (entry) entry.reportsLoading = true;
     state.reportsInFlight = true;
+    let reports;
     const rowsHost = $('#sec-rows');
     if (rowsHost && !force) {
       rowsHost.innerHTML = '<div class="hint-dim">WSL 检测中…</div>';
     }
     try {
       const result = await window.pwnbao.request('binary_reports', { path: working });
-      state.reports = result.reports || {};
-      state.reportsFor = working;
-      if (state.context && state.context.working_binary === working) {
-        state.reportsFetched = true;
-      }
+      reports = { ...result.reports, diagnostics: result.diagnostics || {} };
     } catch (error) {
-      state.reports = { checksec: `ERROR: ${error.message}`, file: '', ldd: '' };
-      state.reportsFor = working;
+      reports = { checksec: `ERROR: ${error.message}`, file: `ERROR: ${error.message}`, ldd: `ERROR: ${error.message}` };
       log(`checksec/file/ldd 检测失败：${error.message}`, 'error');
     } finally {
-      state.reportsInFlight = false;
-      // 写回当前工作区，切换回来时不重跑
-      const entry = state.workspaces && state.activePath ? state.workspaces.get(state.activePath) : null;
-      if (entry) { entry.reports = state.reports; entry.reportsFetched = true; }
-      if (state.page === 'binary') renderBinary();
+      if (entry) { entry.reports = reports; entry.reportsFetched = true; entry.reportsLoading = false; }
+      // A delayed WSL result must never overwrite another target's reports.
+      if (state.context && state.context.working_binary === working &&
+          (!entry || state.workspaces.get(state.activePath) === entry)) {
+        state.reports = reports;
+        state.reportsFor = working;
+        state.reportsInFlight = false;
+        if (state.page === 'binary') renderBinary();
+      }
     }
   }
 
@@ -332,15 +346,41 @@
     return `<span class="chip ${info.cls}">${label} ${info.mark}</span>`;
   }
 
-  async function runCliTool(toolId, values) {
+  async function runCliTool(toolId, values, hostSelector) {
+    const host = hostSelector ? $(hostSelector) : $('#page-binary .report-pre');
+    if (host) host.innerHTML = `<div class="hint-dim">⏳ WSL 执行 ${esc(toolId)} 中…</div>`;
     try {
       const result = await window.pwnbao.request('cli_run', { tool_id: toolId, values });
-      const host = $('#page-binary .report-pre');
       if (host) host.textContent = `$ ${result.command}\n\n${result.stdout || '(no output)'}`;
       log(`$ ${result.command}`);
     } catch (error) {
+      if (host) host.innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
       log(`${toolId} 失败：${error.message}`, 'error');
     }
+  }
+
+  // 导入时 seccomp-tools dump（WSL）的自动结果：结构化事实 + 原始 dump。
+  function renderSeccompAuto() {
+    const triage = app().state && app().state.triage;
+    const info = triage && triage.stages ? triage.stages.seccomp : null;
+    if (!info && triage && triage.running) {
+      return '<div class="hint-dim">⏳ 正在 WSL 里执行 seccomp-tools dump…</div>';
+    }
+    if (!info) return '<div class="hint-dim">尚未检测：导入 ELF 后会自动在 WSL 里执行 seccomp-tools dump。</div>';
+    if (info.status === 'failed') {
+      return `<div class="warn-line error">自动检测失败：${esc(info.error || '未知错误')}</div>`;
+    }
+    if (!info.found) {
+      return `<div class="hint-dim">${esc(info.error || '未捕获到 seccomp 过滤器：程序可能在安装过滤器前退出，或没有 seccomp（观察结论）。')}</div>`;
+    }
+    const compared = (info.compared || []).map((item) => item.name || item.nr).filter(Boolean);
+    const timedOut = info.timed_out ? '（程序超时被截停，dump 为部分输出）' : '';
+    return `
+      <div class="explain-line">✓ 发现 seccomp 过滤器 · 架构 <b>${esc(info.arch || '?')}</b>
+        · 默认动作 <b>${esc(info.default_action || '?')}</b>${esc(timedOut)}</div>
+      <div class="explain-line">dump 中出现比较的 syscall（观察，通常为过滤白名单，需人工复核）：
+        <span class="mono">${esc(compared.length ? compared.join(', ') : '（无显式比较）')}</span></div>
+      ${info.raw ? `<details><summary style="cursor:pointer">seccomp-tools dump 原文</summary><pre class="report-pre" style="max-height:260px;overflow:auto">${esc(info.raw)}</pre></details>` : ''}`;
   }
 
   // =====================================================================
@@ -348,12 +388,38 @@
 
   const ropState = { gadgets: [], shelf: {} };
 
+  // 导入时自动分析（WSL）的状态条：三个页面共用同一份 state.triage。
+  function triageStrip(stage, label) {
+    const triage = app().state && app().state.triage;
+    const info = triage && triage.stages ? triage.stages[stage] : null;
+    if (!info && triage && triage.running) {
+      return `<div class="hint-dim">⏳ ELF 导入后自动执行${label}（WSL 后台）…</div>`;
+    }
+    if (!info) return '';
+    if (info.status === 'running') return `<div class="hint-dim">⏳ WSL 正在执行${label}…</div>`;
+    if (info.status === 'failed') {
+      return `<div class="warn-line error">自动${label}失败：${esc(info.error || '未知错误')}（仍可手动运行）</div>`;
+    }
+    return '';
+  }
+
   function renderRop() {
     const host = $('#page-rop');
+    const triage = app().state && app().state.triage;
+    const ropAuto = triage && triage.stages ? triage.stages.ropgadget : null;
+    if (ropAuto && ropAuto.status === 'done' && Array.isArray(ropAuto.gadgets)) {
+      ropState.gadgets = ropAuto.gadgets;
+    }
+    const ropDone = ropAuto && ropAuto.status === 'done';
+    const autoStrip = triageStrip('ropgadget', 'ROPgadget 扫描')
+      || (ropDone ? `
+        <div class="explain-line">✓ 导入时已自动执行（WSL）：<span class="mono">${esc(ropAuto.command || 'ROPgadget')}</span>
+          · <b>${ropAuto.count}</b> 条 gadget${ropAuto.truncated ? '（结果截断至前 800 条，可用下方参数重扫）' : ''}</div>` : '');
     host.innerHTML = `
       <div class="rop-grid">
         <div class="card">
           <div class="card-title">Gadget Explorer · 真实 ROPgadget（WSL 执行）</div>
+          ${autoStrip}
           <div class="form-grid">
             <label class="form-row"><span>--only</span><input id="rop-only" class="input" placeholder="pop|ret" value="pop|ret" /></label>
             <label class="form-row"><span>--badbytes</span><input id="rop-badbytes" class="input" placeholder="000a" /></label>
@@ -418,10 +484,16 @@
     $('#r2l-build').addEventListener('click', buildR2l);
     $('#srop-plan').addEventListener('click', planSrop);
     refreshShelf();
+    // 导入时自动扫描的 gadget 直接落表，无需任何点击
+    renderGadgets(filterGadgets($('#rop-search').value.trim()));
   }
 
   async function runRopgadget() {
     if (!app().state.context) { log('先绑定 Target，再运行 ROPgadget。', 'warn'); return; }
+    const runButton = $('#rop-run');
+    const originalLabel = runButton.textContent;
+    runButton.disabled = true;
+    runButton.textContent = '运行中…（WSL）';
     const values = {};
     for (const [id, key] of [['rop-only', 'only'], ['rop-badbytes', 'badbytes'], ['rop-depth', 'depth']]) {
       const value = $(`#${id}`).value.trim();
@@ -434,6 +506,9 @@
       log(`ROPgadget 完成：${ropState.gadgets.length} 条 gadget`);
     } catch (error) {
       log(`ROPgadget 失败：${error.message}`, 'error');
+    } finally {
+      runButton.disabled = false;
+      runButton.textContent = originalLabel;
     }
   }
 
@@ -446,6 +521,9 @@
   function renderGadgets(gadgets) {
     const host = $('#rop-results');
     if (!host) return;
+    const triage = app().state && app().state.triage;
+    const ropAuto = triage && triage.stages ? triage.stages.ropgadget : null;
+    const waiting = !ropAuto && triage && triage.running;
     host.innerHTML = gadgets.length ? `
       <table class="data-table">
         <thead><tr><th>分数</th><th>地址</th><th>Gadget</th><th></th></tr></thead>
@@ -459,7 +537,10 @@
             </tr>`).join('')}
         </tbody>
       </table>`
-      : '<div class="hint-dim">还没有结果：先「运行 ROPgadget」。</div>';
+      : waiting ? '<div class="hint-dim">⏳ 导入时自动扫描（WSL）进行中，稍候自动出结果…</div>'
+      : (ropAuto && ropAuto.status === 'failed')
+        ? `<div class="hint-dim">自动扫描未成功：${esc(ropAuto.error || '')}（可用上方参数手动重试）</div>`
+        : '<div class="hint-dim">没有匹配的 gadget：调整 --only / 过滤词后重新运行。</div>';
     $$('button[data-pin]', host).forEach((button) => {
       button.addEventListener('click', async () => {
         const gadget = gadgets[Number(button.dataset.pin)];
@@ -740,8 +821,37 @@
 
   function renderFormat() {
     const host = $('#page-format');
+    const triage = app().state && app().state.triage;
+    const fmtAuto = triage && triage.stages ? triage.stages.fmt : null;
+    const running = !fmtAuto && triage && triage.running;
+    let autoBody = '';
+    if (running) {
+      autoBody = '<div class="hint-dim">⏳ 正在 WSL 里执行 fmt 探针（AAAAAAAA.%p×24 喂入 stdin）…</div>';
+    } else if (!fmtAuto) {
+      autoBody = '<div class="hint-dim">尚未探测：导入 ELF 后会自动在 WSL 里运行探针。</div>';
+    } else if (fmtAuto.status === 'failed') {
+      autoBody = `<div class="warn-line error">自动探测失败：${esc(fmtAuto.error || '未知错误')}</div>`;
+    } else {
+      const probe = fmtAuto.probe || {};
+      const offset = probe.offset;
+      const sinkLine = (fmtAuto.sinks || []).length
+        ? `<div class="explain-line">导入的格式化函数（观察）：<span class="mono">${esc(fmtAuto.sinks.join(', '))}</span></div>`
+        : '<div class="hint-dim">动态符号表中未见 printf 族导入（观察，不代表不存在漏洞）。</div>';
+      const offsetLine = offset
+        ? `<div class="explain-line">✓ 格式化偏移（自动定位）= <b>${offset}</b>，已填入下方 Write Planner。</div>`
+        : `<div class="hint-dim">${esc(probe.note || '探针回显中未发现标记值。')}</div>`;
+      autoBody = `
+        ${sinkLine}
+        <div class="explain-line">探针命令（WSL 真实执行）：<span class="mono">${esc(fmtAuto.command || '')}</span></div>
+        ${offsetLine}
+        ${(probe.output || '').trim() ? `<details><summary style="cursor:pointer">探针回显（前 4000 字符）</summary><pre class="report-pre" style="max-height:220px;overflow:auto">${esc(probe.output)}</pre></details>` : '<div class="hint-dim">程序无回显（可能等待菜单输入后直接退出）。</div>'}`;
+    }
     host.innerHTML = `
       <div class="rop-grid">
+        <div class="card">
+          <div class="card-title">自动探测（ELF 导入时 · WSL 执行）</div>
+          ${autoBody}
+        </div>
         <div class="card">
           <div class="card-title">Offset Finder（%p 探针 → 格式化偏移）</div>
           <textarea id="fmt-probe" class="input area" rows="5"
@@ -800,6 +910,9 @@
         "p.sendline(payload)",
       ].join('\n'));
     });
+    // 自动探测到的偏移直接填进 Write Planner（导入时 WSL 探针的结果）
+    const autoOffset = fmtAuto && fmtAuto.probe && fmtAuto.probe.offset;
+    if (autoOffset && $('#fmt-offset')) $('#fmt-offset').value = autoOffset;
   }
 
   // =====================================================================
@@ -807,6 +920,7 @@
 
   function renderSyscall() {
     const host = $('#page-syscall');
+    const seccompAutoBody = renderSeccompAuto();
     host.innerHTML = `
       <div class="rop-grid">
         <div class="card">
@@ -818,6 +932,8 @@
             <button id="sys-load" class="btn">加载</button>
             <button id="sys-seccomp" class="btn" title="seccomp-tools dump（WSL）">解析 Seccomp</button>
           </div>
+          <div class="card-title" style="margin-top:8px">Seccomp 自动检测（ELF 导入时 · WSL）</div>
+          <div id="sys-seccomp-report">${seccompAutoBody}</div>
           <div id="sys-table" class="rop-results"></div>
         </div>
         <div class="card">
@@ -833,7 +949,7 @@
         </div>
       </div>`;
     $('#sys-load').addEventListener('click', loadSyscalls);
-    $('#sys-seccomp').addEventListener('click', () => runCliTool('seccomp-tools', {}));
+    $('#sys-seccomp').addEventListener('click', () => runCliTool('seccomp-tools', {}, '#sys-seccomp-report'));
     $('#orw-plan').addEventListener('click', async () => {
       try {
         const result = await window.pwnbao.request('orw_plan', {

@@ -29,11 +29,27 @@ ALLOWED_TOOLS = {
 }
 _WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 
+# Canonical on-disk executable names inside WSL.  The pip console script is
+# ``ROPgadget`` (capital letters); the allowlist keeps the lowercase tool id
+# so lookups stay case-insensitive but the spawned argv stays correct.
+_TOOL_EXECUTABLE_ALIASES = {"ropgadget": "ROPgadget"}
+
+
+def _resolve_allowed_tool(tool: str) -> str:
+    """Map a tool name (any case) to its allowlisted, on-disk executable."""
+    needle = str(tool).strip().casefold()
+    for name in ALLOWED_TOOLS:
+        if name.casefold() == needle:
+            return _TOOL_EXECUTABLE_ALIASES.get(name.casefold(), name)
+    raise ValueError(f"不允许调用工具: {tool}")
+
 
 def decode_wsl_output(data: bytes | str) -> str:
     """Decode Linux UTF-8 and Windows UTF-16 diagnostics, including mixed lines."""
     if isinstance(data, str):
         return data
+    if b"\x00" not in data and not data.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return data.decode("utf-8-sig", errors="replace")
     parts: list[str] = []
     while data:
         sample = data[:32]
@@ -100,13 +116,12 @@ class WslToolRunner:
         return "/mnt/" + drive + "/" + "/".join(parts)
 
     def run_tool(self, tool: str, args: list[str], timeout: int = 30) -> ToolResult:
-        if tool not in ALLOWED_TOOLS:
-            raise ValueError(f"不允许调用工具: {tool}")
+        resolved = _resolve_allowed_tool(tool)
         # ``wsl.exe command args`` is parsed through WSL's legacy command-line
         # compatibility layer and drops/expands values such as ``$ORIGIN``.
         # ``--exec`` preserves argv exactly, which is mandatory for patchelf.
         prepare_windows_system_process()
-        command = [self.wsl_exe, "--exec", tool, *args]
+        command = [self.wsl_exe, "--exec", resolved, *args]
         proc = subprocess.run(
             command,
             capture_output=True,
@@ -115,6 +130,46 @@ class WslToolRunner:
         )
         return ToolResult(command, proc.returncode,
                           decode_wsl_output(proc.stdout), decode_wsl_output(proc.stderr))
+
+    def run_target_capture(
+        self,
+        argv: list[str],
+        stdin_data: bytes = b"",
+        timeout: int = 15,
+    ) -> tuple[ToolResult, bool]:
+        """Launch the *target program itself* under WSL with a bounded lifetime.
+
+        Unlike :meth:`run_tool` (allowlisted query tools), this exists for
+        target-behaviour probes — ``seccomp-tools dump`` and the format-string
+        leak probe — which must run the binary the same way the terminal
+        would.  ``timeout(1)`` bounds the process tree inside WSL (TERM at
+        ``timeout`` seconds, KILL three seconds later); output printed before
+        the program blocks is still captured, which is exactly how seccomp
+        dumps survive interactive binaries.
+        """
+        if not argv:
+            raise ValueError("target 探测需要程序 argv")
+        prepare_windows_system_process()
+        command = [self.wsl_exe, "--exec", "timeout", "-k", "3", str(timeout), *argv]
+        proc = subprocess.Popen(
+            command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            **hidden_windows_process_kwargs(),
+        )
+        try:
+            out, err = proc.communicate(input=stdin_data or b"", timeout=timeout + 10)
+        except subprocess.TimeoutExpired:
+            # Safety net only: timeout(1) inside WSL normally reaps the tree.
+            try:
+                proc.kill()
+            except OSError:
+                pass
+            out, err = proc.communicate()
+        result = ToolResult(command, proc.returncode if proc.returncode is not None else -1,
+                            decode_wsl_output(out), decode_wsl_output(err))
+        return result, result.returncode == 124
 
     def file(self, path: str | Path) -> ToolResult:
         return self.run_tool("file", [self.to_wsl_path(path)])

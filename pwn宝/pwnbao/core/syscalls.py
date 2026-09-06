@@ -151,3 +151,77 @@ def seccomp_verdict(policy: Mapping[str, str], name: str) -> str:
     if value:
         return "ALLOWED" if str(value).upper() == "ALLOWED" else "BLOCKED"
     return "UNKNOWN"
+
+
+# ---------------------------------------------------------------------------
+# seccomp-tools dump table (real BPF disassembly, observed facts only)
+
+_SECCOMP_DUMP_ROW_RE = re.compile(
+    r"^\s*\d+:\s+[0-9a-fA-Fx]+\s+[0-9a-fA-Fx]+\s+[0-9a-fA-Fx]+\s+[0-9a-fA-Fx]+\s*(.*)$"
+)
+# seccomp-tools prints ``A = arch`` and ``if (arch != 0xc000003e)``; the
+# constant lives on the comparison row, not on the load row.
+_SECCOMP_ARCH_EQ_RE = re.compile(r"\bA\s*=\s*(0x[0-9a-fA-F]+)\b")
+_SECCOMP_ARCH_NE_RE = re.compile(r"\barch\s*!=\s*(0x[0-9a-fA-F]+)\b")
+_SECCOMP_NR_CMP_RE = re.compile(r"\bA\s*(?:==|!=)\s*(0x[0-9a-fA-F]+|[a-zA-Z_][a-zA-Z0-9_]*)\b")
+_SECCOMP_RET_RE = re.compile(r"\breturn\s+(KILL_PROCESS|KILL|TRAP|ERRNO|USER_NOTIF|TRACE|LOG|ALLOW)\b", re.IGNORECASE)
+_AUDIT_ARCH = {
+    0x40000003: "i386",
+    0xC000003E: "amd64",
+    0xC00000B7: "aarch64",
+}
+
+
+def parse_seccomp_tools_dump(text: str) -> dict[str, object]:
+    """Parse ``seccomp-tools dump`` output into observed facts.
+
+    Only what the BPF disassembly literally shows is reported: the audit
+    arch constant, every ``A == 0xNN`` syscall-number comparison, the final
+    return action (the default action) and the raw rows.  Whether a compared
+    syscall ends up allowed or killed depends on the jump targets, so the
+    model records them as "compared" — never as an allow/deny claim.
+    """
+    rows: list[str] = []
+    arch = ""
+    return_actions: list[str] = []
+    compared: list[str] = []
+    for raw_line in str(text).splitlines():
+        if not _SECCOMP_DUMP_ROW_RE.match(raw_line):
+            continue
+        rows.append(raw_line.rstrip())
+        line = raw_line.strip()
+        arch_match = _SECCOMP_ARCH_EQ_RE.search(line) or _SECCOMP_ARCH_NE_RE.search(line)
+        if arch_match and not arch:
+            arch = _AUDIT_ARCH.get(int(arch_match.group(1), 16), arch_match.group(1))
+        nr_match = _SECCOMP_NR_CMP_RE.search(line)
+        if nr_match:
+            number = nr_match.group(1).lower()
+            if number not in compared:
+                compared.append(number)
+        ret_match = _SECCOMP_RET_RE.search(line)
+        if ret_match:
+            return_actions.append(ret_match.group(1).upper())
+    named: list[dict[str, str]] = []
+    if compared and arch in ("amd64", "i386", "aarch64"):
+        try:
+            table = syscall_table(arch)
+            by_number = {int(spec.number): spec.name for spec in table.values()}
+        except Exception:
+            table = {}
+            by_number = {}
+        for number in compared:
+            if number.startswith("0x"):
+                named.append({"nr": number, "name": by_number.get(int(number, 16), "")})
+            else:
+                named.append({"nr": number, "name": number})
+    else:
+        named = [{"nr": number, "name": "" if number.startswith("0x") else number} for number in compared]
+    return {
+        "tool": "seccomp-tools dump",
+        "rows": len(rows),
+        "arch": arch,
+        "default_action": return_actions[-1].lower() if return_actions else "",
+        "return_actions": return_actions,
+        "compared": named,
+        "raw": str(text).rstrip(),
+    }

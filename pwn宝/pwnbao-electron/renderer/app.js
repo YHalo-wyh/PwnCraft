@@ -33,6 +33,8 @@
     reports: null,                  // {checksec, file, ldd} — Binary 页三卡片
     reportsFor: '',
     reportsInFlight: false,
+    triage: null,                   // 导入时自动 WSL 扫描（ropgadget/seccomp/fmt）
+    triageFor: '',                  // 隶属的 working_binary，防止跨工作区串写
     terminalCwd: '',
     arch: 'amd64',
     bits: 64,
@@ -155,6 +157,7 @@
     if (key === 'tools') window.PwnPages.renderTools();
     // 调试页聚焦模式：侧栏收起、EXP 从左滑入占 1/4、命令栏贴右
     document.getElementById('app').classList.toggle('debug-focus', key === 'debug');
+    document.getElementById('app').classList.toggle('analysis-focus', key === 'analysis');
     if (key === 'exp') {
       mountExpEditor('#monaco-host');
       setTimeout(() => monacoEditor && monacoEditor.layout(), 0);
@@ -389,6 +392,8 @@
     state.reports = entry.reports || null;
     state.reportsFor = entry.reportsFetched ? entry.context.working_binary : '';
     state.reportsInFlight = !!entry.reportsLoading;
+    state.triage = entry.triage || null;
+    state.triageFor = entry.context.working_binary || entry.path;
     state.arch = entry.arch;
     state.bits = entry.bits;
     state.activePath = entry.path;
@@ -404,6 +409,84 @@
     // 数据页跟着新 Target 重渲染；Heap 画布是独立仿真沙盘，保持原状
     if (['binary', 'analysis', 'rop', 'debug', 'format', 'syscall', 'stack', 'tools'].includes(state.page)) {
       switchPage(state.page);
+    }
+    // ELF 拖入即自动分析：ROPgadget / seccomp-tools / fmt 探测在 WSL 后台
+    // 执行，triage_stage 事件逐段回填页面（有缓存则直接命中）。
+    startAutoTriage(entry);
+  }
+
+  // ------------------------------------------------------------------
+  // Auto triage — ELF 绑定后无需任何点击：WSL 里真实执行 ROPgadget /
+  // seccomp-tools / fmt 探针，triage_stage 事件把结果逐段推回页面。
+
+  const TRIAGE_PAGE = { ropgadget: 'rop', seccomp: 'syscall', fmt: 'format' };
+
+  function triageStagePage(stage) {
+    return TRIAGE_PAGE[stage] || null;
+  }
+
+  function applyTriageStage(payload) {
+    const entry = state.workspaces.get(state.activePath);
+    if (!entry || !entry.context) return;
+    const working = entry.context.working_binary || entry.path;
+    if (payload.binary && payload.binary.replace(/\\/g, '/') !== String(working).replace(/\\/g, '/')) {
+      return; // 延迟到达的 WSL 结果绝不串写别的 Target
+    }
+    if (!entry.triage) entry.triage = { running: true, stages: {} };
+    entry.triage.stages = entry.triage.stages || {};
+    if (payload.stage === 'done') {
+      entry.triage.running = false;
+    } else {
+      entry.triage.stages[payload.stage] = Object.assign(
+        { status: payload.status }, payload.result || payload.summary || {}
+      );
+      if (payload.status === 'failed') entry.triage.running = false;
+    }
+    state.triage = entry.triage;
+    state.triageFor = working;
+    const stage = payload.stage;
+    if (stage === 'ropgadget' && payload.status === 'done' && payload.result) {
+      log(`ROPgadget 自动扫描完成：${payload.result.count} 条 gadget（WSL）`);
+    } else if (stage === 'seccomp' && payload.status === 'done') {
+      log(payload.result && payload.result.found
+        ? `seccomp 检测完成：发现过滤器（默认 ${payload.result.default_action || '?'}）`
+        : 'seccomp 检测完成：未见过滤器输出');
+    } else if (stage === 'fmt' && payload.status === 'done' && payload.result) {
+      const probeOffset = payload.result.probe && payload.result.probe.offset;
+      log(probeOffset
+        ? `fmt 探针定位格式化偏移 = ${probeOffset}（WSL 真实执行）`
+        : 'fmt 探针未定位到偏移（可在 Format 页手动粘贴输出计算）');
+    } else if (payload.status === 'failed') {
+      log(`自动分析 ${stage} 失败：${(payload.result && payload.result.error) || '未知错误'}`, 'error');
+    }
+    // 只有受影响的页面在当前可见时才重渲染，避免打断别的页输入
+    const targetPage = triageStagePage(stage);
+    if (targetPage && state.page === targetPage && window.PwnPages) {
+      const renderer = { rop: 'renderRop', syscall: 'renderSyscall', format: 'renderFormat' }[targetPage];
+      if (renderer && typeof window.PwnPages[renderer] === 'function') window.PwnPages[renderer]();
+    }
+  }
+
+  async function startAutoTriage(entry) {
+    if (!entry || !entry.context) return;
+    if (!entry.triage) entry.triage = { running: true, stages: {} };
+    state.triage = entry.triage;
+    state.triageFor = entry.context.working_binary || entry.path;
+    try {
+      const result = await window.pwnbao.request('auto_triage', {});
+      if (result && result.cached && result.result) {
+        entry.triage = { running: false, stages: result.result.stages || {} };
+        state.triage = entry.triage;
+        log('导入时自动分析（WSL）结果命中缓存，已直接回填。');
+        const renderer = { rop: 'renderRop', syscall: 'renderSyscall', format: 'renderFormat' }[state.page];
+        if (renderer && typeof window.PwnPages[renderer] === 'function') window.PwnPages[renderer]();
+      } else if (result && result.started) {
+        log('已启动导入时自动分析：ROPgadget / seccomp-tools / fmt 探针（WSL 后台执行）…');
+      }
+    } catch (error) {
+      entry.triage.running = false;
+      state.triage = entry.triage;
+      log(`自动分析启动失败：${error.message}`, 'error');
     }
   }
 
@@ -1399,6 +1482,8 @@
       else if (payload.event === 'hello') {
         log(`Python 桥已连接 · ${payload.app} ${payload.version}`);
         $('#status-right').textContent = `WSL · ${payload.version} · Electron`;
+      } else if (payload.event === 'triage_stage') {
+        applyTriageStage(payload);
       } else if (payload.event === 'bridge_exit') {
         log(`Python 桥已退出（code=${payload.code}）${payload.stderr ? ' · ' + payload.stderr : ''}`, 'error');
       }

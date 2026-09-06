@@ -9,10 +9,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import shlex
+import subprocess
 from typing import Callable, Mapping, Protocol
 
 from .cli_registry import CliToolRegistry, default_cli_tools
-from .wsl import WslToolRunner
+from .wsl import ToolResult, WslToolRunner
 from .gadgets import parse_ropgadget_output
 from .static_facts import (
     SymbolFacts,
@@ -53,7 +54,21 @@ class WslCliExecutor:
         self.runner = runner or WslToolRunner()
 
     def execute(self, executable: str, argv: list[str]) -> CliExecution:
-        result = self.runner.run_tool(executable, argv)
+        timeout = _TOOL_TIMEOUTS.get(executable, 60)
+        try:
+            if executable == "seccomp-tools":
+                # seccomp-tools 会把目标程序跑起来：菜单循环的程序必须靠
+                # timeout(1) 截停并回收已打印的部分输出；run_tool 的裸
+                # subprocess 超时会抛 TimeoutExpired、丢失全部输出。
+                result, _timed_out = self.runner.run_target_capture(
+                    [executable, *argv], stdin_data=b"", timeout=12
+                )
+            else:
+                result = self.runner.run_tool(executable, argv, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            result = ToolResult(
+                [executable, *argv], -1, "", f"{executable} 执行超时（> {timeout}s）"
+            )
         return CliExecution(
             "",
             executable,
@@ -87,6 +102,9 @@ _TOOL_FAMILIES: dict[str, str] = {
     "seccomp-tools": "seccomp",
     "one_gadget": "one_gadget",
 }
+
+# 静态查询工具里最慢的几个允许跑更久；其余 60s 上限。
+_TOOL_TIMEOUTS: dict[str, int] = {"ROPgadget": 300, "ropper": 300, "one_gadget": 90}
 
 
 class CliToolService:

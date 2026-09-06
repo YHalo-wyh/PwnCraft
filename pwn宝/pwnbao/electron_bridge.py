@@ -14,7 +14,7 @@ Surface map (v0.29):
 - target/workspace: ping / import_target / workspace_get / workspace_save /
   workspace_open / recent_dirs / variable_set / exp_get / exp_set / exp_save
 - cli tools: cli_run (ROPgadget / ropper / one_gadget / seccomp-tools …),
-  cli_env_doctor
+  cli_env_doctor, auto_triage（导入时后台 WSL 扫描，triage_stage 事件推送）
 - rop: rop_build / srop_plan / orw_plan / syscall_table
 - libc/fmt/stack: leak_derive / cyclic_pattern / cyclic_find / fmt_offset /
   fmt_plan / convert
@@ -29,7 +29,9 @@ from __future__ import annotations
 import json
 import shlex
 import sys
+import threading
 import traceback
+from datetime import datetime
 from pathlib import Path
 
 from pwnbao import APP_NAME, APP_VERSION
@@ -43,7 +45,7 @@ from pwnbao.core.gadgets import Gadget, GadgetShelf, parse_ropgadget_output, sea
 from pwnbao.core.rop_builder import RopChainBuilder, chain_to_pwntools
 from pwnbao.core.srop import SROPBuilder
 from pwnbao.core.orw import ORWBuilder
-from pwnbao.core.syscalls import syscall_table, normalize_architecture
+from pwnbao.core.syscalls import syscall_table, normalize_architecture, parse_seccomp_tools_dump
 from pwnbao.core.leaks import derive_base
 from pwnbao.core.cyclic import cyclic_pattern, cyclic_find
 from pwnbao.core.fmtlab import find_fmt_offset, plan_fmt_writes
@@ -77,6 +79,9 @@ class ElectronBridge:
         self._gadgets: tuple[Gadget, ...] = ()
         self._shelf = GadgetShelf()
         self._import_cache: dict[str, dict] = {}
+        self._triage_lock = threading.Lock()
+        self._triage_running: set[str] = set()
+        self._triage_cache: dict[str, dict] = {}
 
     # ------------------------------------------------------------------
     def handle(self, request: dict) -> dict:
@@ -409,8 +414,13 @@ class ElectronBridge:
         if not tool_id:
             raise ValueError("tool_id 为空")
         binary = str(self._target_binary())
-        if tool_id in {"ropgadget", "ropper", "seccomp-tools", "checksec"} and not values.get("binary"):
-            values["binary"] = binary
+        # 目标路径按各工具真实参数名注入（ropgadget 是 binary，其余是 file），
+        # 之前统一塞 "binary" 导致 seccomp-tools/checksec 空参只打印 usage。
+        if tool_id in {"ropgadget", "ropper", "seccomp-tools", "checksec"}:
+            tool = self._cli.registry.get(tool_id)
+            path_names = [str(p.get("name")) for p in tool.parameters if p.get("path")]
+            if path_names and not values.get(path_names[0]):
+                values[path_names[0]] = binary
         if tool_id == "one_gadget" and not values.get("libc"):
             values["libc"] = str(self._context_libc() or binary)
         command = self._cli.build_command_line(tool_id, values)
@@ -418,16 +428,17 @@ class ElectronBridge:
         outcome = self._cli.execute_only(
             tool_id, values, parser_options={"bits": int(self._bits()), "source": command}
         )
-        if outcome.error:
+        # seccomp-tools 对菜单循环的程序必然被 timeout(1) 截停（rc=124），
+        # 但 dump 早已打印——有输出就是有效观察，不算失败。
+        if outcome.error and not (
+            tool_id == "seccomp-tools" and outcome.execution.stdout.strip()
+        ):
             raise RuntimeError(outcome.error)
         parsed = []
         if tool_id == "ropgadget":
             gadgets = outcome.parsed if isinstance(outcome.parsed, tuple) else ()
             self._gadgets = tuple(gadgets) or self._gadgets
-            self.workspace.set_gadgets(
-                {"discovered": [_gadget_to_dict(item) for item in gadgets]},
-                event="gadgets_changed",
-            )
+            self.workspace.set_gadgets(gadgets, source=command)
             parsed = [_gadget_to_dict(item) for item in gadgets]
         elif outcome.parsed is not None:
             items = outcome.parsed
@@ -460,6 +471,225 @@ class ElectronBridge:
                 "install": f"pip install --user {'ropgadget' if tool == 'ROPgadget' else tool.lower()}",
             })
         return {"tools": report}
+
+    # ------------------------------------------------------------------
+    # Auto triage — import-time WSL analysis (ROPgadget / seccomp / fmt)
+
+    _FMT_SINKS = (
+        "printf", "fprintf", "dprintf", "sprintf", "snprintf",
+        "vprintf", "vfprintf", "vdprintf", "vsprintf", "vsnprintf", "syslog",
+    )
+    _TRIAGE_GADGET_CAP = 800
+
+    def rpc_auto_triage(self, params: dict) -> dict:
+        """Kick off import-time WSL triage in a worker thread.
+
+        The JSON-RPC loop is single-threaded and serialises requests, so the
+        long-running scans run in a daemon thread and publish progress via
+        ``triage_stage`` events; this call returns immediately.  Results are
+        cached per ELF (path + mtime + size) so workspace switches are free.
+        """
+        binary = Path(params.get("path") or self._target_binary())
+        if not is_elf_file(binary):
+            raise ValueError(f"不是有效的 ELF 文件: {binary}")
+        binary = binary.resolve()
+        try:
+            target = self.workspace.target or {}
+            working = str(target.get("working_binary") or target.get("original_binary") or "")
+        except Exception:
+            working = ""
+        run_binary = Path(working) if working else binary
+        key = self._import_cache_key(binary)
+        cached = self._triage_cache.get(key)
+        if cached:
+            return {"cached": True, "result": cached, "binary": str(run_binary)}
+        with self._triage_lock:
+            if key in self._triage_running:
+                return {"started": False, "reason": "already_running", "binary": str(run_binary)}
+            self._triage_running.add(key)
+        bits = self._bits()
+        arch = "i386" if bits == 32 else "amd64"
+        thread = threading.Thread(
+            target=self._auto_triage_worker,
+            args=(run_binary, key, bits, arch),
+            daemon=True,
+            name="auto-triage",
+        )
+        thread.start()
+        return {"started": True, "binary": str(run_binary), "bits": bits}
+
+    def _triage_event(self, stage: str, status: str, binary: Path, **payload) -> None:
+        emit({
+            "event": "triage_stage",
+            "stage": stage,
+            "status": status,
+            "binary": str(binary),
+            **payload,
+        })
+
+    def _auto_triage_worker(self, binary: Path, key: str, bits: int, arch: str) -> None:
+        stages: dict[str, dict] = {}
+        try:
+            stages["ropgadget"] = self._triage_ropgadget(binary, bits)
+        except Exception as error:
+            stages["ropgadget"] = {"status": "failed", "error": str(error)}
+        try:
+            stages["seccomp"] = self._triage_seccomp(binary)
+        except Exception as error:
+            stages["seccomp"] = {"status": "failed", "error": str(error)}
+        try:
+            stages["fmt"] = self._triage_fmt(binary, bits)
+        except Exception as error:
+            stages["fmt"] = {"status": "failed", "error": str(error)}
+        result = {
+            "binary": str(binary),
+            "bits": bits,
+            "arch": arch,
+            "stages": stages,
+            "generated_at": datetime.now().isoformat(timespec="seconds"),
+        }
+        self._triage_cache[key] = result
+        with self._triage_lock:
+            self._triage_running.discard(key)
+        self._triage_event("done", "done", binary, summary={
+            stage: info.get("status") for stage, info in stages.items()
+        })
+
+    def _triage_ropgadget(self, binary: Path, bits: int) -> dict:
+        wsl_path = self._runner.to_wsl_path(binary)
+        self._triage_event("ropgadget", "running", binary)
+        args = ["--binary", wsl_path, "--only", "pop|ret|syscall", "--depth", "10"]
+        command = "ROPgadget " + " ".join(shlex.quote(part) for part in args)
+        result = self._runner.run_tool("ropgadget", args, timeout=300)
+        text = result.stdout or ""
+        if not text.strip() and result.stderr.strip():
+            text = result.stderr
+        gadgets = parse_ropgadget_output(text, source=command, bits=bits)
+        if gadgets:
+            # Mirror rpc_cli_run persistence so Shelf/Chain Builder see them.
+            self._gadgets = tuple(gadgets)
+            self.workspace.set_gadgets(gadgets, source=command)
+        summary = {
+            "status": "done" if (result.ok or gadgets) else "failed",
+            "command": command,
+            "returncode": result.returncode,
+            "count": len(gadgets),
+            "gadgets": [_gadget_to_dict(item) for item in gadgets[: self._TRIAGE_GADGET_CAP]],
+            "truncated": len(gadgets) > self._TRIAGE_GADGET_CAP,
+        }
+        if not result.ok and not gadgets:
+            missing = "not found" in result.stderr.lower() or "No such file" in result.stderr
+            summary["error"] = (
+                "WSL 中未找到 ROPgadget（pip install --user ropgadget）"
+                if missing else (result.stderr.strip() or f"返回码 {result.returncode}")
+            )
+        self._triage_event("ropgadget", summary["status"], binary, result={
+            key: summary[key] for key in ("command", "count", "status", "error", "gadgets")
+            if key in summary
+        })
+        return summary
+
+    def _triage_seccomp(self, binary: Path) -> dict:
+        wsl_path = self._runner.to_wsl_path(binary)
+        self._triage_event("seccomp", "running", binary)
+        argv = ["seccomp-tools", "dump", wsl_path]
+        command = "seccomp-tools dump " + wsl_path
+        result, timed_out = self._runner.run_target_capture(argv, stdin_data=b"", timeout=12)
+        text = result.stdout or ""
+        dump = parse_seccomp_tools_dump(text)
+        found = int(dump.get("rows") or 0) > 0
+        summary: dict = {
+            "status": "done",
+            "command": command,
+            "returncode": result.returncode,
+            "timed_out": timed_out,
+            "found": found,
+            "arch": dump.get("arch", ""),
+            "default_action": dump.get("default_action", ""),
+            "compared": dump.get("compared", []),
+            "rows": dump.get("rows", 0),
+            "raw": text[:6000],
+        }
+        if not text.strip():
+            stderr = result.stderr.strip()
+            if "not found" in stderr.lower() or "No such file" in stderr:
+                summary["status"] = "failed"
+                summary["error"] = "WSL 中未找到 seccomp-tools（gem install seccomp-tools）"
+            else:
+                summary["error"] = stderr or "程序退出且未安装 seccomp 过滤器（未见 dump 输出）"
+        elif found:
+            # Flat policy for downstream verdicts: compared syscalls pass the
+            # filter when the default action is a deny; anything else stays
+            # UNKNOWN — absence is never claimed as blocked.
+            default_action = str(dump.get("default_action") or "")
+            if default_action in ("kill", "kill_process", "trap", "errno"):
+                policy = {item["name"]: "ALLOWED" for item in dump.get("compared", []) if item.get("name")}
+                if policy:
+                    policy_text = command
+                    self.workspace.set_seccomp_policy(policy, source=policy_text)
+                    self.workspace.update_section(
+                        "syscalls",
+                        {
+                            "seccomp_default_action": default_action,
+                            "seccomp_dump_source": policy_text,
+                            "seccomp_dump_raw": text[:6000],
+                        },
+                        event="seccomp_changed",
+                    )
+        # 事件载荷即完整 summary（raw 已截断）：live 首扫与缓存命中走同一
+        # 渲染路径，页面不需要二次拉取。
+        self._triage_event("seccomp", summary["status"], binary, result=summary)
+        return summary
+
+    def _triage_fmt(self, binary: Path, bits: int) -> dict:
+        wsl_path = self._runner.to_wsl_path(binary)
+        self._triage_event("fmt", "running", binary)
+        sinks: list[str] = []
+        try:
+            dynsyms = self._runner.run_tool("readelf", ["-sW", wsl_path], timeout=60)
+            for line in dynsyms.stdout.splitlines():
+                parts = line.split()
+                if len(parts) >= 8 and parts[6] == "UND":
+                    name = parts[7].split("@")[0]
+                    if name in self._FMT_SINKS and name not in sinks:
+                        sinks.append(name)
+        except Exception:
+            pass
+        marker = "A" * (8 if bits == 64 else 4)
+        probe = marker + ".%p" * 24
+        # 探针行喂三遍：第一行常被 name/菜单读走（如 CCTF-pwn3），后续行
+        # 才到达 fmt 汇点；对一次 read 全量进缓冲的题也无害。
+        stdin_data = ((probe + "\n") * 3).encode()
+        command = f"printf {shlex.quote((probe + chr(10)) * 3)} | {wsl_path}"
+        result, timed_out = self._runner.run_target_capture([wsl_path], stdin_data=stdin_data, timeout=12)
+        output = result.stdout or ""
+        # Only the text after the echoed probe is %p output; banner hex
+        # addresses before it would shift find_fmt_offset's token count.
+        probe_echo = output.find(marker)
+        leak_text = output[probe_echo:] if probe_echo >= 0 else output
+        offset = find_fmt_offset(leak_text, bits=bits) if leak_text.strip() else None
+        summary = {
+            "status": "done",
+            "command": command,
+            "returncode": result.returncode,
+            "timed_out": timed_out,
+            "sinks": sinks,
+            "probe": {
+                "input": probe,
+                "offset": offset,
+                "output": output[:4000],
+            },
+        }
+        if offset is None:
+            note = (
+                "未从探针回显中定位到标记值：程序可能未把 stdin 直接喂给 printf，"
+                "或菜单需要先选择选项；可在本页粘贴探针输出手动计算。"
+            )
+            if not timed_out and result.returncode not in (0, 124):
+                note += f"（程序异常退出 rc={result.returncode}：缺配套 libc/ld 时跑不到 fmt 汇点）"
+            summary["probe"]["note"] = note
+        self._triage_event("fmt", summary["status"], binary, result=summary)
+        return summary
 
     def _bits(self) -> int:
         target = self.workspace.target or {}
@@ -1117,9 +1347,15 @@ class ElectronBridge:
         }
 
 
+_EMIT_LOCK = threading.Lock()
+
+
 def emit(payload: dict) -> None:
-    sys.stdout.write(json.dumps(payload, ensure_ascii=False, default=str) + "\n")
-    sys.stdout.flush()
+    # Worker threads (auto triage) emit alongside the stdin loop, so writes
+    # must stay line-atomic or the renderer would parse split JSON.
+    with _EMIT_LOCK:
+        sys.stdout.write(json.dumps(payload, ensure_ascii=False, default=str) + "\n")
+        sys.stdout.flush()
 
 
 def main() -> int:
