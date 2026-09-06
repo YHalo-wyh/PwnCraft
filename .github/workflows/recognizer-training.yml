@@ -49,3 +49,8 @@ jobs:
         env:
           PYTHONPATH: pwncraft
         run: python -m pytest -q autocorrect/tests
+
+      - name: Accepted truth regression
+        env:
+          PYTHONPATH: pwncraft
+        run: python autocorrect/loop.py truthregress
