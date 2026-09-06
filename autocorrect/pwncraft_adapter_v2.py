@@ -11,8 +11,9 @@ TargetBehavior 1:N actions authoritative for allocator replay:
            -> all formal artifacts
 
 The initial identity replay performed inside ``HeapSession.load`` is provisional
-and discarded when reviewed allocator actions exist.  Source analysis is never
-run twice.  Unbound cases retain the original adapter behavior.
+and discarded only when reviewed allocator truth actually contains a 1:N
+malloc/free expansion.  Source analysis is never run twice.  Reviewed 1:1 and
+unbound cases retain the already-accepted identity replay behavior.
 """
 from __future__ import annotations
 
@@ -61,8 +62,8 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
     exp_source = exp_path.read_text(encoding="utf-8")
     glibc = manifest.get("glibc", {}).get("version")
 
-    # ONE source analysis. HeapSession.load performs a provisional identity
-    # replay too; reviewed cases replace that replay below without re-analysis.
+    # ONE source analysis. HeapSession.load performs the established identity
+    # replay too; genuine reviewed 1:N cases replace only that replay below.
     session = HeapSession()
     allocator = {"version": glibc} if glibc else None
     state = session.load(source=exp_source, allocator=allocator)
@@ -78,7 +79,7 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
     )
 
     replay_plan = None
-    if reviewed_bindings:
+    if reviewed_bindings and allocator_replay_v2.requires_grouped_replay(target_behavior):
         state, replay_plan = allocator_replay_v2.replay_session(session, target_behavior)
 
     allocator_info = state.get("allocator") or {}
