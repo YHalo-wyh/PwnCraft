@@ -1,0 +1,145 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
+  "domain": "memory_write",
+  "subdomains": [
+    "control_flow",
+    "type_confusion",
+    "compiler"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/slang",
+  "source_class": "official_challenge_archive",
+  "event": {
+    "name": "SCTF 2026",
+    "challenge": "slang",
+    "region": "China",
+    "difficulty": "advanced"
+  },
+  "materials": {
+    "exp_wrapper_git_blob_sha1": "a31e8aa066aab023f58750923652f3f40fbbb874",
+    "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+    "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+  },
+  "reviewed_compiler_policy": {
+    "name": "sctf-slang-loop-void-arg-scan-omission",
+    "skip_loop_void_call_arguments_in_liveness": true,
+    "codegen_preserves_call_arguments": true,
+    "slot_allocator": "first_fit_nonoverlap",
+    "provenance": "OFFICIAL_WRITEUP_REVIEWED_POLICY"
+  },
+  "truth_layers": {
+    "EMBEDDED_PROGRAM_STRUCTURE": {
+      "status": "PROVEN_EXP",
+      "facts": [
+        {
+          "kind": "loop_call_before_reassignment",
+          "function": "main",
+          "relation": "pwn(round, vec_slot) occurs before forged_header := forge() in the same do/while body",
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        },
+        {
+          "kind": "loop_progression",
+          "function": "main",
+          "relation": "round starts at 0, increments by 1, and the loop condition is round < 2",
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        }
+      ]
+    },
+    "COMPILER_SLOT_REUSE": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_AND_DERIVABLE_FROM_REVIEWED_POLICY",
+      "facts": [
+        {
+          "kind": "slot_reuse",
+          "from_variable": "vec_slot",
+          "from_type": "vec",
+          "to_variable": "forged_header",
+          "to_type": "str",
+          "slot": 0,
+          "provenance": "OFFICIAL_WRITEUP_PLUS_REVIEWED_POLICY"
+        }
+      ]
+    },
+    "LOOP_ITERATION_VALUE_FLOW": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_AND_DERIVABLE_STATICALLY",
+      "facts": [
+        {
+          "kind": "second_iteration_reachable",
+          "relation": "after first iteration round is 1, therefore round < 2 is true and the loop executes again",
+          "provenance": "OFFICIAL_EMBEDDED_SLANG_PLUS_STATIC_INTEGER_EVAL"
+        },
+        {
+          "kind": "cross_iteration_slot_value_flow",
+          "relation": "forged_header writes the reused slot after the first pwn call; no same-slot assignment refreshes it before the next iteration reaches pwn(round, vec_slot)",
+          "provenance": "REVIEWED_SLOT_REUSE_PLUS_STATIC_LOOP_STATE"
+        }
+      ]
+    },
+    "TYPE_CONFUSION": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_AND_DERIVABLE_STATICALLY_NOT_RUNTIME_OBSERVED",
+      "facts": [
+        {
+          "kind": "runtime_type_confusion",
+          "relation": "on the second iteration, storage resident with the forged_header str value is consumed through the source-level vec_slot argument as vec",
+          "provenance": "OFFICIAL_WRITEUP_PLUS_REVIEWED_POLICY_PLUS_STATIC_LOOP_STATE"
+        }
+      ],
+      "limitations": [
+        "the relation is statically derived from source structure, reviewed compiler policy and deterministic loop state; it is not a GDB/runtime observation",
+        "type confusion alone does not prove the exact forged vec fields or any memory-write primitive"
+      ]
+    },
+    "FORGED_VEC_AND_WRITE_CHAIN": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_NOT_YET_AUTOMATIC",
+      "facts": [
+        {
+          "kind": "forged_vec_layout",
+          "relation": "forge returns bytes interpreted by the runtime vec representation as data=0 and size=INT64_MAX",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "derived_additive_write",
+          "relation": "scribble on the forged vec yields a constrained additive 64-bit write primitive",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "DO_WHILE_ITERATION_STATE",
+      "CROSS_ITERATION_SLOT_VALUE_FLOW",
+      "RUNTIME_TYPE_CONFUSION_RELATION"
+    ],
+    "required_relations": [
+      "round=0 -> first iteration -> round=1 -> round<2 true -> second iteration",
+      "reviewed vec_slot/forged_header slot reuse + first-iteration forge assignment -> resident str survives loop backedge",
+      "second-iteration codegen-preserved pwn(round, vec_slot) consumes resident str through vec type"
+    ],
+    "forbidden_shortcuts": [
+      "do not infer second-iteration consumption when the loop condition is unknown or false after the first iteration",
+      "do not infer resident-value survival when the reused slot is refreshed before the next consumer call",
+      "do not claim runtime observation from static derivation",
+      "do not infer forged vec fields or an arbitrary/additive write from type confusion alone"
+    ]
+  },
+  "unknown": [
+    "automatic exact forge return-byte decoding into target vec fields is not implemented in this cycle",
+    "automatic scribble index/delta semantics are not implemented in this cycle",
+    "the constrained additive-write primitive and GOT-control plan remain for later cycles",
+    "runtime slot contents are not observed by GDB/pwndbg in this cycle"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-slang-cross-iteration-type-confusion-v4",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "analyst_input_hashes": {
+      "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+      "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+    },
+    "truth_revision": 4,
+    "supersedes": "truth-sctf2026-slang-compiler-liveness-slot-reuse-v3",
+    "superseded_by": null
+  }
+}
