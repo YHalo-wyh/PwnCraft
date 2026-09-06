@@ -14,7 +14,7 @@ from __future__ import annotations
 import ast
 
 from pwncraft.features.audit.model import (
-    ExploitIR, Hardcode, HelperCall, Interaction, PackOp,
+    ExploitIR, Hardcode, HelperCall, Interaction, PackOp, SymbolRef,
 )
 
 _RECV_WAIT = {"recvuntil", "recvuntilrepeat", "recvuntil_then", "recvuntil_regex"}
@@ -103,6 +103,50 @@ def _exact_unpack_input_width(node: ast.AST) -> tuple[int | None, list[dict]]:
     return None, []
 
 
+def _attribute_parts(node: ast.AST) -> list[str]:
+    if isinstance(node, ast.Name):
+        return [node.id]
+    if isinstance(node, ast.Attribute):
+        base = _attribute_parts(node.value)
+        return base + [node.attr] if base else []
+    return []
+
+
+def _symbol_reference(node: ast.AST, *, scope: str) -> SymbolRef | None:
+    """Recognize pwntools-style ``ELF.sym`` references without resolving them.
+
+    Both ``libc.sym.system`` and legacy ``libc.sym['puts']`` forms are kept as
+    source facts.  A symbol reference proves only that the EXP names a symbol;
+    address existence, target reachability and runtime success stay outside
+    this extractor.
+    """
+    expression = _arg_text(node)
+    line = int(getattr(node, "lineno", 0) or 0)
+    if isinstance(node, ast.Attribute):
+        parts = _attribute_parts(node)
+        if len(parts) >= 3 and parts[-2] == "sym":
+            return SymbolRef(
+                expression=expression,
+                namespace=".".join(parts[:-2]),
+                symbol=parts[-1],
+                line=line,
+                scope=scope,
+            )
+    if isinstance(node, ast.Subscript):
+        parts = _attribute_parts(node.value)
+        key = node.slice
+        if parts and parts[-1] == "sym" and isinstance(key, ast.Constant) \
+                and isinstance(key.value, str):
+            return SymbolRef(
+                expression=expression,
+                namespace=".".join(parts[:-1]),
+                symbol=key.value,
+                line=line,
+                scope=scope,
+            )
+    return None
+
+
 class _Extractor(ast.NodeVisitor):
     ENTRY_NAMES = {"main", "exp", "pwn", "solve", "attack"}
 
@@ -110,6 +154,18 @@ class _Extractor(ast.NodeVisitor):
         self.helpers = helpers
         self.ir = ir
         self._walked_bodies: set[int] = set()
+        self._symbol_ref_seen: set[tuple[str, int, str]] = set()
+
+    def _collect_symbol_refs(self, root: ast.AST, *, scope: str) -> None:
+        for node in ast.walk(root):
+            ref = _symbol_reference(node, scope=scope)
+            if ref is None:
+                continue
+            key = (ref.expression, ref.line, ref.scope)
+            if key in self._symbol_ref_seen:
+                continue
+            self._symbol_ref_seen.add(key)
+            self.ir.symbol_refs.append(ref)
 
     # -- module pass: module-level statements + entry function bodies only.
     # Helper definition bodies are intentionally NOT walked here — they are
@@ -123,12 +179,14 @@ class _Extractor(ast.NodeVisitor):
                 if statement.name in self.ENTRY_NAMES and \
                         id(statement) not in self._walked_bodies:
                     self._walked_bodies.add(id(statement))
+                    self._collect_symbol_refs(statement, scope=statement.name)
                     for child in ast.walk(statement):
                         if isinstance(child, ast.Call):
                             self._record_call(child)
                         elif isinstance(child, ast.Assign):
                             self._record_assign_facts(child)
             else:
+                self._collect_symbol_refs(statement, scope="main")
                 self.visit(statement)
 
     # -- statement pass: assignments seed leak dataflow + hardcode detection
