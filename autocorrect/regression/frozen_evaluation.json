@@ -1,0 +1,13 @@
+{
+  "milestone": "M5 封存评测 (阶段 0.1+0.3)",
+  "frozen_count": 1,
+  "results": [
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc3-f3683777",
+      "verdict": "INCONCLUSIVE",
+      "reason": "frozen_test 案例无独立金标准真值 (expected_truth.json 尚未建立); 封存集样本数不足以支持统计结论",
+      "truth_id": null
+    }
+  ],
+  "note": "封存集样本数不足以支持统计结论; 逐案例结果如实记录"
+}

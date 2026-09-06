@@ -300,6 +300,14 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
     allocator_info = state.get("allocator") or {}
     recognition = (state.get("analysis") or {}).get("recognition") or {}
 
+    # 阶段 0.3: 真值版本 + 比较器版本
+    truth_lock_path = case_dir / "expected_truth.json"
+    truth_id = ""
+    if truth_lock_path.exists():
+        tl = json.loads(truth_lock_path.read_text(encoding="utf-8"))
+        truth_id = (tl.get("truth_lock") or {}).get("truth_id") or ""
+    comparator_version = "4.1"
+
     run_manifest = {
         "run_id": None,  # filled below
         "case_id": manifest["case_id"],
@@ -310,6 +318,8 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
         "libc_sha256": (manifest.get("target") or {}).get("libc_sha256"),
         "glibc_version_claimed": glibc,
         "recognizer_revision": recognition.get("recognizer_revision"),
+        "truth_id": truth_id,
+        "comparator_version": comparator_version,
         "allocator_profile_id": allocator_info.get("profile_id"),
         "allocator_profile_revision": allocator_info.get("profile_revision"),
         "allocator_requested_version": allocator_info.get("requested_version"),

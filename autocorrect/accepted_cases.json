@@ -7,6 +7,13 @@
       "layer": "HELPER_CONTRACT",
       "note": "create/edit/show/delete 语义+角色+证据全部 MATCH (r5)",
       "date": "2026-09-06T14:33:14"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "kind": "assertion",
+      "layer": "HELPER_CONTRACT",
+      "note": "newnote/shownote/editnote/deletenote 语义+角色+证据全部 MATCH (r5 CALLSITE_ARGUMENT_BINDING)",
+      "date": "2026-09-06T15:00:12"
     }
   ],
   "case_acceptances": [
@@ -37,6 +44,13 @@
       "layer": "",
       "note": "r6 全层 MATCH (py2 方言 + 模块级入口 + 三参 editnote 识别)",
       "date": "2026-09-06T14:49:06"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "kind": "case",
+      "layer": "",
+      "note": "r5 全层 MATCH (py2 方言 + 模块级入口 + CALLSITE_ARGUMENT_BINDING editnote 三参识别); oracle_scope: 解析+值流+对象同一性",
+      "date": "2026-09-06T15:00:11"
     }
   ]
 }

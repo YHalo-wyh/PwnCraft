@@ -70,6 +70,37 @@ def main() -> None:
             continue
         canary_fns = [f["function"] for f in layout["functions"]
                       if any(s["kind"] == "canary" for s in f["slots"])]
+        # M3 字节范围 + 给定状态: 从 EXP ExploitIR 提取 recv/send 交互字节范围
+        exp_path = next((case_dir / "original" / "solution").glob("*.py"), None)
+        byte_ranges = []
+        given_state = []
+        if exp_path and exp_path.exists():
+            sys.path.insert(0, str(ROOT / "pwn宝"))
+            from pwnbao.features.audit.extract import extract_exploit_ir
+            ir, _err = extract_exploit_ir(exp_path.read_text(encoding="utf-8"))
+            for i, interaction in enumerate(ir.interactions):
+                if interaction.action in ("RECV", "RECVN", "RECVLINE") and interaction.length:
+                    byte_ranges.append({
+                        "kind": "recv_range",
+                        "interaction": f"#{i}",
+                        "length": interaction.length,
+                        "source": "ExploitIR interaction",
+                    })
+                elif interaction.action in ("SEND", "SENDLINE") and interaction.value:
+                    byte_ranges.append({
+                        "kind": "send_range",
+                        "interaction": f"#{i}",
+                        "value_preview": interaction.value[:60],
+                        "source": "ExploitIR interaction",
+                    })
+            # 给定状态: 寄存器/栈槽布局摘要 (objdump 已有)
+            given_state = [
+                {"function": f["function"],
+                 "frame_size": f["frame_size"],
+                 "slots": [{"offset": s["offset"], "size": s["size"],
+                            "kind": s["kind"]} for s in f["slots"]]}
+                for f in layout["functions"]
+            ]
         assertions.append({
             "case_id": material["case_id"],
             "status": "OK",
@@ -78,7 +109,9 @@ def main() -> None:
             "canary_protected_functions": canary_fns,
             "frame_sizes": {f["function"]: f["frame_size"]
                             for f in layout["functions"]},
-            "provenance": "OBSERVED (objdump)",
+            "byte_ranges": byte_ranges,
+            "given_state": given_state,
+            "provenance": "OBSERVED (objdump + ExploitIR)",
         })
     OUT.write_text(json.dumps(assertions, ensure_ascii=False, indent=2),
                    encoding="utf-8")
