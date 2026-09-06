@@ -53,6 +53,56 @@ def _literal_int(node: ast.AST) -> int | None:
     return None
 
 
+def _literal_byte_width(node: ast.AST) -> int | None:
+    """Return an exact byte width only when a literal is byte-countable.
+
+    Python2-era pwntools exploits often use ``'\\0\\0'`` rather than a bytes
+    literal.  Counting latin-1-range str literals keeps those historical EXPs
+    analyzable without pretending arbitrary Unicode text has a byte width.
+    """
+    if not isinstance(node, ast.Constant):
+        return None
+    value = node.value
+    if isinstance(value, bytes):
+        return len(value)
+    if isinstance(value, str) and all(ord(ch) <= 0xFF for ch in value):
+        return len(value)
+    return None
+
+
+def _exact_unpack_input_width(node: ast.AST) -> tuple[int | None, list[dict]]:
+    """Derive exact byte width for a small, deterministic EXP expression set.
+
+    Supported facts are intentionally narrow:
+      * fixed bytes / latin-1-range string literals;
+      * ``tube.recvn(N)`` with literal non-negative N (recvn is exact-length);
+      * concatenation where both sides are independently exact.
+
+    ``recv(N)`` is deliberately NOT treated as exact here because pwntools may
+    return fewer than N bytes.  Unknown subexpressions keep the whole result
+    UNKNOWN instead of guessing.
+    """
+    literal = _literal_byte_width(node)
+    if literal is not None:
+        return literal, [{"kind": "LITERAL_WIDTH", "bytes": literal}]
+
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+        if node.func.attr == "recvn" and node.args:
+            length = _literal_int(node.args[0])
+            if length is not None and length >= 0:
+                return length, [{"kind": "RECVN_EXACT", "bytes": length}]
+
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left, left_evidence = _exact_unpack_input_width(node.left)
+        right, right_evidence = _exact_unpack_input_width(node.right)
+        if left is not None and right is not None:
+            return left + right, left_evidence + right_evidence + [
+                {"kind": "CONCAT_WIDTH", "bytes": left + right}
+            ]
+
+    return None, []
+
+
 class _Extractor(ast.NodeVisitor):
     ENTRY_NAMES = {"main", "exp", "pwn", "solve", "attack"}
 
@@ -66,7 +116,7 @@ class _Extractor(ast.NodeVisitor):
     # recorded through inlined expansion at their call sites.
     def visit_Module(self, node: ast.Module) -> None:  # noqa: N802
         for node_any in ast.walk(node):
-            if isinstance(node_any, ast.Constant) and                     isinstance(node_any.value, str):
+            if isinstance(node_any, ast.Constant) and isinstance(node_any.value, str):
                 self.ir.strings.append(node_any.value)
         for statement in node.body:
             if isinstance(statement, ast.FunctionDef):
@@ -114,11 +164,14 @@ class _Extractor(ast.NodeVisitor):
                 name = func.id
                 if name in _PACK:
                     # u64/p64 are imported from pwn — plain Name calls
+                    arg_node = node.args[0] if node.args else None
                     op = PackOp(fn=name,
-                                arg=_arg_text(node.args[0]) if node.args else "",
+                                arg=_arg_text(arg_node) if arg_node is not None else "",
                                 line=node.lineno)
                     if name[0] == "u":
                         self.ir.unpacks.append(op)
+                        if arg_node is not None:
+                            self._attach_inline_unpack_width(op, arg_node)
                         self._link_leak(op)
                     else:
                         self.ir.packs.append(op)
@@ -150,17 +203,33 @@ class _Extractor(ast.NodeVisitor):
                 value=_arg_text(node.args[0]) if node.args else "",
                 line=node.lineno))
         elif verb in _PACK:
-            op = PackOp(fn=verb, arg=_arg_text(node.args[0]) if node.args else "",
+            arg_node = node.args[0] if node.args else None
+            op = PackOp(fn=verb,
+                        arg=_arg_text(arg_node) if arg_node is not None else "",
                         line=node.lineno)
             if verb[0] == "u":
                 self.ir.unpacks.append(op)
+                if arg_node is not None:
+                    self._attach_inline_unpack_width(op, arg_node)
                 self._link_leak(op)
             else:
                 self.ir.packs.append(op)
 
+    def _attach_inline_unpack_width(self, op: PackOp, arg_node: ast.AST) -> None:
+        width, evidence = _exact_unpack_input_width(arg_node)
+        if width is None:
+            return
+        # Dynamic metadata intentionally stays out of PackOp serialization for
+        # now, avoiding a schema/baseline churn while the evaluator consumes it.
+        op.meta_input_width = width  # type: ignore[attr-defined]
+        op.meta_input_width_evidence = evidence  # type: ignore[attr-defined]
+
     def _link_leak(self, op: PackOp) -> None:
         """Attach the feeding recv length to an unpack when the argument is a
         tracked variable (u64(leak) with leak <- recv(6))."""
+        # Inline exact-width evidence is stronger than variable-name linkage.
+        if getattr(op, "meta_input_width", None) is not None:
+            return
         arg_name = op.arg.split(".")[0].strip()
         if arg_name in self.ir.var_recv_length:
             op.meta_recv_length = self.ir.var_recv_length[arg_name]  # type: ignore[attr-defined]
@@ -210,7 +279,7 @@ class _Extractor(ast.NodeVisitor):
         def substitute(text: str) -> str:
             result = text or ""
             for param, value in bindings.items():
-                # repl 用 lambda: 值里的 \x00 等序列不会被当作模板转义
+                # repl 用 lambda: 值里的 \\x00 等序列不会被当作模板转义
                 result = re.sub(rf"\b{re.escape(param)}\b",
                                 lambda _m: value, result)
             return result
