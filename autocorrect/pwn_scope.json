@@ -8,7 +8,9 @@
     "没有证据时保持 unknown；不得因为 GOT/PLT、函数名或页面存在就推断某类漏洞存在。",
     "项目级 capability/readiness 必须至少区分 stack、heap、format_string、control_flow、leak、syscall_sandbox；其他域按证据增量接入。",
     "后续 curriculum 采用多 lane 交错推进；heap 可以继续做深，但不能长期垄断全部训练 cycle。",
-    "真实题目在任何 PwnCraft 输出产生之前必须先注册唯一 split；train 可驱动 patch，validation 只评估，frozen_test 禁止参与规则选择。"
+    "真实题目在任何 PwnCraft 输出产生之前必须先注册唯一 split；train 可驱动 patch，validation 只评估，frozen_test 禁止参与规则选择。",
+    "真实题目选择采用 latest-first + evidence-gated：优先最新 CTFtime 高质量赛事，但材料不完整或来源可信度不足时宁可 BLOCKED/validation-first，也不得为追新降低真值标准。",
+    "heap/allocator 事实必须携带 allocator family；未知 allocator 不得自动套用 glibc chunk/bin 语义。"
   ],
   "challenge_intake": {
     "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
@@ -29,9 +31,9 @@
       "truth_goal": "输入长度/偏移 -> 栈帧/保存寄存器影响 -> 控制流能力，区分静态推导与运行时观测"
     },
     "heap": {
-      "examples": ["UAF", "double free", "off-by-one", "tcache/fastbin/bin transitions", "overlap"],
+      "examples": ["UAF", "double free", "off-by-one", "tcache/fastbin/bin transitions", "overlap", "custom allocator/type confusion"],
       "existing_components": ["HeapViz", "GlibcHeapEngine", "PhysicalMemory", "allocator profiles"],
-      "truth_goal": "allocator/physical-memory/bin/canvas 多层真值闭环"
+      "truth_goal": "先证明 allocator family，再进入对应 allocator/physical-memory/bin/object-state 真值；非 glibc 目标不得伪装成 glibc chunk"
     },
     "format_string": {
       "examples": ["argument offset", "arbitrary read", "format write"],
@@ -65,19 +67,24 @@
     },
     "io_file": {
       "examples": ["FILE corruption", "FSOP", "stdio state"],
-      "existing_components": ["libc/runtime facts", "Workspace.exploit.primitives"],
-      "truth_goal": "FILE/stdio 对象状态与 libc 版本约束单独建模，不混进通用 heap chunk"
+      "existing_components": ["libc/runtime facts", "Workspace.exploit.primitives", "EXP symbol-reference facts"],
+      "truth_goal": "FILE/stdio 对象状态与 libc 版本约束单独建模；EXP intent、target primitive、runtime reachability 分层，不混进通用 heap chunk"
     }
   },
   "scheduler": {
-    "policy": "cross_domain_interleave",
+    "policy": "latest_first_evidence_gated_cross_domain_interleave",
     "active_lanes": [
+      "io_file_exp_intent_truth",
       "stack_runtime_control_truth",
       "heap_physical_memory_truth"
     ],
     "real_challenge_training": "READY",
+    "latest_completed": [
+      "Cyber Apocalypse 2026 / The Emptiness Machine: EXP-only FSOP intent truth"
+    ],
     "next_lanes": [
-      "train stack case: clean-room truth -> stack/control-flow first divergence",
+      "ASIS CTF Quals 2026: freshest candidate; participant materials enter validation-first until provenance/material trust is sufficient",
+      "SekaiCTF 2026 echo-chamber: official source-rich integer + memory_write + heap candidate",
       "heap: PHYSICAL_MEMORY -> BINS continuation for accepted lab13",
       "format_string: explicit offset/read/write evidence lane",
       "control_flow: gadget-role + chain validation lane",
