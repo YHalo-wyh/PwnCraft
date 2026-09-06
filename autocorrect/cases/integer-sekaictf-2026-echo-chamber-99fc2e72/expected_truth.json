@@ -1,0 +1,119 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "integer-sekaictf-2026-echo-chamber-99fc2e72",
+  "domain": "integer",
+  "subdomains": [
+    "memory_write",
+    "heap"
+  ],
+  "source_repository": "https://github.com/project-sekai-ctf/sekaictf-2026",
+  "source_commit": "e35651f972e1c4f355c18427b3063a9ac98fb2cd",
+  "source_challenge_path": "pwn/echo-chamber",
+  "source_class": "official_challenge_archive",
+  "event": {
+    "name": "SekaiCTF 2026",
+    "challenge": "echo-chamber",
+    "difficulty": "Hard",
+    "solves": 6
+  },
+  "materials": {
+    "source_git_blob_sha1": "99fc2e7230831ec5970b0a8540936bbac7a7c23c",
+    "binary_git_blob_sha1": "ac12ce674f9f3b1a9b5c4ba8cf772f02d7cd1544",
+    "official_solution_git_blob_sha1": "ce9aeef6fdf962468adb624202ff45fd621ec367"
+  },
+  "truth_layers": {
+    "SIGNEDNESS_SOURCE_RELATION": {
+      "status": "PROVEN_SOURCE",
+      "facts": [
+        {
+          "kind": "signed_parse",
+          "function": "handle_connection",
+          "expression": "strtoll(content_length->val, &end, 10)",
+          "result_type": "signed long long",
+          "provenance": "OFFICIAL_SOURCE"
+        },
+        {
+          "kind": "unsigned_destination",
+          "function": "handle_connection",
+          "variable": "body_len",
+          "destination_type": "size_t",
+          "provenance": "OFFICIAL_SOURCE"
+        },
+        {
+          "kind": "conversion_relation",
+          "variable": "body_len",
+          "relation": "negative signed parser result converts modulo destination unsigned width",
+          "provenance": "C_INTEGER_SEMANTICS + OFFICIAL_SOURCE"
+        }
+      ]
+    },
+    "ALLOCATION_AND_COPY_RELATION": {
+      "status": "PROVEN_SOURCE",
+      "facts": [
+        {
+          "kind": "allocation_expression",
+          "function": "handle_connection",
+          "expression": "malloc(body_len + 1)",
+          "provenance": "OFFICIAL_SOURCE"
+        },
+        {
+          "kind": "copy_bound_expression",
+          "function": "handle_connection",
+          "expression": "readn(self->fd, body, body_len)",
+          "provenance": "OFFICIAL_SOURCE"
+        },
+        {
+          "kind": "shared_unsigned_length",
+          "variable": "body_len",
+          "consumers": ["allocation expression", "readn length argument"],
+          "provenance": "OFFICIAL_SOURCE_DATAFLOW"
+        }
+      ],
+      "limitations": [
+        "source relation alone does not prove a negative Content-Length is delivered at runtime",
+        "source relation alone does not claim a successful overwrite target or final control-flow primitive"
+      ]
+    },
+    "OFFICIAL_SOLUTION_INPUT": {
+      "status": "EXP_SUPPORTED",
+      "facts": [
+        {
+          "kind": "negative_content_length",
+          "value": -1,
+          "request_fragment": "Content-Length: -1",
+          "provenance": "OFFICIAL_SOLUTION"
+        }
+      ],
+      "meaning": "The official solution supplies an explicit negative input reaching the Content-Length parser; this can be combined with the source conversion relation without inventing runtime observations."
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "SIGNED_PARSE_TO_UNSIGNED",
+      "UNSIGNED_LENGTH_ALLOCATION_USE",
+      "UNSIGNED_LENGTH_COPY_BOUND_USE"
+    ],
+    "forbidden_shortcuts": [
+      "do not label strtoll dangerous by name alone",
+      "do not claim runtime heap corruption without runtime evidence",
+      "do not infer allocator-bin transitions merely from this integer flow"
+    ]
+  },
+  "unknown": [
+    "the exact runtime heap overwrite extent for a specific request is not observed in this cycle",
+    "the later allocator exploitation chain in the official solution is not fully modeled by this integer sublayer",
+    "no GDB/pwndbg runtime observation is promoted by this truth file"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sekaictf2026-echo-chamber-integer-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "source_git_blob_sha1": "99fc2e7230831ec5970b0a8540936bbac7a7c23c",
+      "binary_git_blob_sha1": "ac12ce674f9f3b1a9b5c4ba8cf772f02d7cd1544",
+      "official_solution_git_blob_sha1": "ce9aeef6fdf962468adb624202ff45fd621ec367"
+    },
+    "truth_revision": 1,
+    "superseded_by": null
+  }
+}
