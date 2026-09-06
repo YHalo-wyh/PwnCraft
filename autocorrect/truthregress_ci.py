@@ -7,16 +7,18 @@ This is the CI-safe closure for the accepted-case gate:
 - require a valid locked truth;
 - perform one fresh authoritative run per case;
 - write sidecars into generated/truthregress/;
+- lower reviewed behavior bindings into the TargetBehavior stage without a
+  second source analysis;
 - compare with the case evaluation contract so deferred layers stay deferred;
 - apply the real contract gate only after the fresh artifact directory exists.
 
 The comparator currently invokes evaluation_contract.enforce() internally before
-it can be told where the fresh sidecars live.  During the semantic comparison we
+it can be told where the fresh sidecars live. During the semantic comparison we
 therefore replace only that final enforcement call with a pass-through, while
 still passing the contract into comparator_v4 so layer applicability is honored.
 The original deterministic enforcement function is restored immediately and is
 then applied to the report with _case_dir pinned to the fresh artifact directory.
-No truth or recognizer semantics are modified here.
+No truth is modified by this gate.
 """
 from __future__ import annotations
 
@@ -36,6 +38,7 @@ if str(HERE) not in sys.path:
 import comparator_v4  # noqa: E402
 import evaluation_contract  # noqa: E402
 import pwncraft_adapter  # noqa: E402
+import target_behavior_v2  # noqa: E402
 import loop as loop_cli  # noqa: E402
 
 
@@ -110,6 +113,13 @@ def run_gate() -> int:
                 case_dir,
                 out_path=gen_dir / "pwncraft_output.json",
             )
+
+            # Cycle-5 TargetBehavior stage.  This consumes only canonical_ops
+            # from the fresh authoritative result and a reviewed binding file;
+            # it does not rerun the source analyzer and does not alter replay.
+            if target_behavior_v2.apply_case_bindings(actual, cdir):
+                target_behavior_v2.persist_target_behavior(actual, gen_dir)
+
             contract = evaluation_contract.load_contract(cdir)
             report = _compare_after_fresh_artifacts(
                 expected,
@@ -127,6 +137,9 @@ def run_gate() -> int:
                 "assertions": report.get("assertion_counts"),
                 "run_id": (actual.get("run_manifest") or {}).get("run_id"),
                 "artifact_dir": str(gen_dir),
+                "target_behavior_revision": (
+                    (actual.get("target_behavior") or {}).get("revision") or ""
+                ),
             }
             results.append(row)
             print(
