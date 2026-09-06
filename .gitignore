@@ -1,17 +1,17 @@
 # ---- PwnCraft workspace .gitignore ----
 # 第三方克隆与体积大户 (语料仓库本体在 heap-corpus/corpus, 克隆缓存不入库)
 heap-corpus/_repos/
-pwn宝/pwnbao-electron/node_modules/
-pwn宝/pwnbao-electron/package-lock.json
+pwncraft/pwncraft-electron/node_modules/
+pwncraft/pwncraft-electron/package-lock.json
 
 # 训练审查快照 (内容与 corpus/autocorrect 重复, 可随时由 build_review_bundle.py 重建)
 PwnCraft_training_review/
 PwnCraft_training_review_*.zip
 
 # 工作区生成物
-.pwnbao/
-**/.pwnbao/
-crash_elf/.pwnbao/
+.pwncraft/
+**/.pwncraft/
+crash_elf/.pwncraft/
 __pycache__/
 **/__pycache__/
 *.pyc

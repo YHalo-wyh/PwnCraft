@@ -6,9 +6,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "pwn宝"))
+sys.path.insert(0, str(ROOT / "pwncraft"))
 
-from pwnbao.features.audit.audit import audit_exp
+from pwncraft.features.audit.audit import audit_exp
 
 case = ROOT / "heap-corpus" / "corpus" / "heap-ctf-wiki-hitcontraning-lab13-bae716d5"
 exp = next((case / "original" / "solution").glob("*.py")).read_text(encoding="utf-8")

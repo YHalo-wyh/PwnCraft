@@ -1,0 +1,184 @@
+{
+  "run_id": "run_de5d235081ca461aa553c54b5811a7dd",
+  "case_id": "local.ctfshow.pwn178",
+  "source_hash": "6c6d2147025a9ceee151747b6fc3ae1ded393895263e9ec35ca19d64a300a9be",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-178-6c6d2147025a.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "0x450",
+        "data": "'0'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x450, '0')",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "alloc",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "0x10",
+        "data": "'1'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x10, '1')",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "free",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(0)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_004",
+        "kind": "show",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show(0)",
+        "meta": {
+          "function": "show",
+          "expression": "show(0)",
+          "result_var": "leak"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_68d563ec1c7652b0",
+        "start": 765,
+        "end": 780,
+        "line": 26,
+        "end_line": 26,
+        "fingerprint": "4c5ba850bac8fbcb",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_8e75dd6b8ce10ce6",
+        "start": 781,
+        "end": 795,
+        "line": 27,
+        "end_line": 27,
+        "fingerprint": "ab92fed42fca2bfa",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_68ddb78c396da4d9",
+        "start": 796,
+        "end": 805,
+        "line": 28,
+        "end_line": 28,
+        "fingerprint": "3ec7da9fc208557d",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_47a834b61ab84c56",
+        "start": 806,
+        "end": 813,
+        "line": 29,
+        "end_line": 29,
+        "fingerprint": "64429c787f5d15fc",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {
+      "menu": "'Input your choice:'"
+    }
+  },
+  "snapshot": {
+    "step": 4,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "chunk_size": "0x460",
+        "lifecycle": "freed",
+        "bin_location": "unsorted",
+        "fd": "main_arena",
+        "bk": "main_arena",
+        "provenance": "derived"
+      },
+      "B": {
+        "address": "heap_base+0x6f0",
+        "user_address": "heap_base+0x700",
+        "chunk_size": "0x20",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": [
+        "A"
+      ]
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 4,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 4,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "feedback_compilation": [],
+  "elapsed_s": 0.015
+}

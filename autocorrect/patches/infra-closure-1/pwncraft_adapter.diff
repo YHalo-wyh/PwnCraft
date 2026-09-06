@@ -16,9 +16,9 @@
 -import sys
 -from pathlib import Path
 -
--# Project root contains the `pwnbao` package: C:\...\pwn宝\pwn宝\
+-# Project root contains the `pwncraft` package: C:\...\pwncraft\pwncraft\
 -_OUTER = Path(__file__).resolve().parents[1]
--_PROJECT_ROOT = _OUTER / "pwn宝"
+-_PROJECT_ROOT = _OUTER / "pwncraft"
 -if str(_PROJECT_ROOT) not in sys.path:
 -    sys.path.insert(0, str(_PROJECT_ROOT))
 -
@@ -45,7 +45,7 @@
 -
 -
 -def run_analyzer(exp_source: str) -> dict:
--    from pwnbao.features.heapviz import analyze_heap_source
+-    from pwncraft.features.heapviz import analyze_heap_source
 -
 -    result = analyze_heap_source(exp_source)
 -
@@ -111,7 +111,7 @@
 -
 -def run_replay(exp_source: str, glibc_version: str | None) -> dict:
 -    """Full session load: recognition + glibc replay -> per-step heap facts."""
--    from pwnbao.features.heapviz.bridge_session import HeapSession
+-    from pwncraft.features.heapviz.bridge_session import HeapSession
 -
 -    session = HeapSession()
 -    allocator = {"version": glibc_version} if glibc_version else None
@@ -207,8 +207,8 @@
 -    exp_source = exp_path.read_text(encoding="utf-8")
 -    glibc = manifest.get("glibc", {}).get("version")
 -
--    from pwnbao.features.heapviz.bridge_session import HeapSession
--    from pwnbao.features.heapviz.canvas_model import (
+-    from pwncraft.features.heapviz.bridge_session import HeapSession
+-    from pwncraft.features.heapviz.canvas_model import (
 -        build_canvas_semantic_model, check_canvas_invariants,
 -    )
 -    session = HeapSession()
@@ -274,7 +274,7 @@
 +from pathlib import Path
 +
 +_OUTER = Path(__file__).resolve().parents[1]
-+_PROJECT_ROOT = _OUTER / "pwn宝"
++_PROJECT_ROOT = _OUTER / "pwncraft"
 +if str(_PROJECT_ROOT) not in sys.path:
 +    sys.path.insert(0, str(_PROJECT_ROOT))
 +
@@ -501,8 +501,8 @@
 +# ---------------------------------------------------------------- authoritative run
 +
 +def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
-+    from pwnbao.features.heapviz.bridge_session import HeapSession
-+    from pwnbao.features.heapviz.canvas_model import (
++    from pwncraft.features.heapviz.bridge_session import HeapSession
++    from pwncraft.features.heapviz.canvas_model import (
 +        build_canvas_semantic_model, check_canvas_invariants,
 +    )
 +
@@ -618,7 +618,7 @@
 +# ---------------------------------------------------------------- atomic artifact write (P1-4)
 +
 +def _write_artifacts(out: dict, out_path: Path):
-+    from pwnbao.features.heapviz.canvas_model import build_canvas_semantic_model  # noqa: F401
++    from pwncraft.features.heapviz.canvas_model import build_canvas_semantic_model  # noqa: F401
 +
 +    out_path = Path(out_path)
 +    final_dir = out_path.parent                      # generated/<label>/

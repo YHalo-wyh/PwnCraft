@@ -106,7 +106,7 @@
     "CANVAS"
   ],
   "root_cause": {
-    "component": "pwnbao/features/heapviz/contracts/resolver.py::_structural_contract (recv 判定) + 契约证据分级",
+    "component": "pwncraft/features/heapviz/contracts/resolver.py::_structural_contract (recv 判定) + 契约证据分级",
     "reason": "recv 标志未区分 PROMPT_SYNC 与 OUTPUT_DATA_FLOW (v1.2 §H): show(idx) 函数体仅含 recvuntil(常量提示词) 且返回值丢弃 (provenance_recheck: prompt_syncs=2, output_flows=0), 但 index+recv→SHOW 规则仍以 STRUCTURAL_BODY 证据给出 show。语义碰巧正确 (SEMANTIC_MATCH), 证据/来源错误 (EVIDENCE_DIVERGED)。注: FREE/DELETE 不依赖 OUTPUT_DATA_FLOW (§H), 本偏差只涉及 SHOW 的证据来源; delete(idx) 被同一缺陷判成 show 属后续表现, 由其自身证据路径另行处理。"
   },
   "evidence": [
@@ -121,8 +121,8 @@
   "confidence": 0.95,
   "reviewer_reason_hint": "show 的函数体无任何输出数据流 (prompt_syncs=2, output_flows=0), 但契约以 STRUCTURAL_BODY 证据判定 show; 该证据只能来自 prompt-sync 误判 (index+recvuntil(prompt))",
   "compared_artifacts": {
-    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
-    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\pre-patch-v3\\pwncraft_output.json",
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\pre-patch-v3\\pwncraft_output.json",
     "comparator": "v3"
   },
   "reviewer": {

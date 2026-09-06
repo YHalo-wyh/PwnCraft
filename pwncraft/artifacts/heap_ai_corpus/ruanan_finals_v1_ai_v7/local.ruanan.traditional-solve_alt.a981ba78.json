@@ -1,0 +1,12 @@
+{
+  "run_id": "run_fc01bd91142e406095df8da78bae73f7",
+  "case_id": "local.ruanan.traditional-solve_alt.a981ba78",
+  "source_hash": "a981ba78dd389b2663bed2517c92841e8f99a4629bcb8ba0fbcf3dbde46d01c7",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "over_budget",
+  "error": "预计输入 4060 tokens，超过当前可用 3584；请精简 EXP/本题指令，或在 LM Studio 和 pwncraft中同时提高上下文。",
+  "retryable": false,
+  "details": {},
+  "elapsed_s": 0.438
+}

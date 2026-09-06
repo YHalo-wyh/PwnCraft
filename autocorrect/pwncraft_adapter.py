@@ -20,7 +20,7 @@ import uuid
 from pathlib import Path
 
 _OUTER = Path(__file__).resolve().parents[1]
-_PROJECT_ROOT = _OUTER / "pwn宝"
+_PROJECT_ROOT = _OUTER / "pwncraft"
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
@@ -256,7 +256,7 @@ def _bin_summary(v):
 def run_analyzer(exp_source: str) -> dict:
     """Analysis-only view (no session/replay). Used by tests and probes that
     need the recognizer's contracts/ops without a full authoritative run."""
-    from pwnbao.features.heapviz import analyze_heap_source
+    from pwncraft.features.heapviz import analyze_heap_source
 
     result = analyze_heap_source(exp_source)
     contracts = [_contract_view(c) for c in (result.helper_contracts or ())]
@@ -275,8 +275,8 @@ def run_analyzer(exp_source: str) -> dict:
 
 
 def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
-    from pwnbao.features.heapviz.bridge_session import HeapSession
-    from pwnbao.features.heapviz.canvas_model import (
+    from pwncraft.features.heapviz.bridge_session import HeapSession
+    from pwncraft.features.heapviz.canvas_model import (
         build_canvas_semantic_model, check_canvas_invariants,
     )
 
@@ -304,7 +304,7 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
     if bindings_path.exists():
         try:
             bd = json.loads(bindings_path.read_text(encoding="utf-8"))
-            from pwnbao.features.heapviz.semantics.challenge_profile import (
+            from pwncraft.features.heapviz.semantics.challenge_profile import (
                 ChallengeBehaviorProfile,
             )
             behavior_profile = ChallengeBehaviorProfile.from_dict({
@@ -433,7 +433,7 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
 # ---------------------------------------------------------------- atomic artifact write (P1-4)
 
 def _write_artifacts(out: dict, out_path: Path):
-    from pwnbao.features.heapviz.canvas_model import build_canvas_semantic_model  # noqa: F401
+    from pwncraft.features.heapviz.canvas_model import build_canvas_semantic_model  # noqa: F401
 
     out_path = Path(out_path)
     final_dir = out_path.parent                      # generated/<label>/

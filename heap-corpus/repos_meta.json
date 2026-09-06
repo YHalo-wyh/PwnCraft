@@ -15,7 +15,7 @@
       "source_class": "curator_archive",
       "kind": "technique_demo_collection",
       "staged_units": 17,
-      "staging_path": "C:/Users/WYH/Desktop/pwn宝/heap-corpus/_repos/how2heap"
+      "staging_path": "C:/Users/WYH/Desktop/pwncraft/heap-corpus/_repos/how2heap"
     },
     {
       "url": "https://github.com/ctf-wiki/ctf-challenges",
@@ -28,7 +28,7 @@
       "source_class": "curator_archive",
       "kind": "ctf_example_collection",
       "staged_units": 162,
-      "staging_path": "C:/Users/WYH/Desktop/pwn宝/heap-corpus/_repos/ctf-challenges"
+      "staging_path": "C:/Users/WYH/Desktop/pwncraft/heap-corpus/_repos/ctf-challenges"
     }
   ],
   "scan_scope": [

@@ -51,8 +51,8 @@
   },
   "confidence": 0.9,
   "compared_artifacts": {
-    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
-    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\after\\pwncraft_output.json"
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\after\\pwncraft_output.json"
   },
   "reviewer": {
     "model": "GLM-5.3-Flash (ZCode reviewer role)",

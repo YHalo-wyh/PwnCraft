@@ -17,14 +17,14 @@ echo [PwnCraft] 正在定位项目目录...
 echo launch_dir=%LAUNCH_DIR%>>"%LOG%"
 
 set "ROOT="
-if exist "%LAUNCH_DIR%pwnbao-electron\package.json" set "ROOT=%LAUNCH_DIR%."
+if exist "%LAUNCH_DIR%pwncraft-electron\package.json" set "ROOT=%LAUNCH_DIR%."
 if not defined ROOT (
   for /d %%D in ("%LAUNCH_DIR%*") do (
-    if exist "%%~fD\pwnbao-electron\package.json" set "ROOT=%%~fD"
+    if exist "%%~fD\pwncraft-electron\package.json" set "ROOT=%%~fD"
   )
 )
 if not defined ROOT (
-  echo [错误] 找不到 pwnbao-electron\package.json。
+  echo [错误] 找不到 pwncraft-electron\package.json。
   echo [错误] 找不到 package.json>>"%LOG%"
   goto fail
 )
@@ -54,7 +54,7 @@ if errorlevel 1 (
   )
 )
 
-cd /d "%ROOT%\pwnbao-electron" || goto fail
+cd /d "%ROOT%\pwncraft-electron" || goto fail
 
 echo [PwnCraft] 当前目录: %CD%
 echo electron_dir=%CD%>>"%LOG%"

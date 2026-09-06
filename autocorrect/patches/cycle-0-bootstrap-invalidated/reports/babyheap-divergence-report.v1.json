@@ -1,8 +1,8 @@
 {
   "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
   "compared_artifacts": {
-    "expected_analysis": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\expected_analysis.json",
-    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\pwncraft_output.json",
+    "expected_analysis": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\expected_analysis.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\pwncraft_output.json",
     "pwncraft_recognizer_revision": "recognizer-2026.09-r2"
   },
   "verdict": "DIVERGED",
@@ -41,7 +41,7 @@
     "exp.py:62-66: allocate 调用点实参均为尺寸字面量; exp.py:66 注释 'idx 4, 0x80'",
     "pwncraft_output.json: allocate contract = {operation: unknown, confidence: candidate, evidence_sources: [NAME_CANDIDATE], roles: {}}",
     "pwncraft_output.json: canonical_ops L62-110 全部 alloc 的 allocator_request = UnknownValue('menu request is not proof of allocator request')",
-    "pwnbao/features/heapviz/contracts/resolver.py:392-407 _structural_contract 决策链无 size-only 分支; :404 'index+recv → SHOW' 与 :405-406 delete/free 提示词分支的先后顺序问题 (次级偏差, 下一轮处理)"
+    "pwncraft/features/heapviz/contracts/resolver.py:392-407 _structural_contract 决策链无 size-only 分支; :404 'index+recv → SHOW' 与 :405-406 delete/free 提示词分支的先后顺序问题 (次级偏差, 下一轮处理)"
   ],
   "suggested_recognizer_improvement": {
     "target_component": "HelperContract inference (contracts/resolver.py: _structural_contract + prompt-role 绑定)",

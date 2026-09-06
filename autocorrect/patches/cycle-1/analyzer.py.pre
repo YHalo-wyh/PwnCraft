@@ -7,16 +7,16 @@ import textwrap
 from dataclasses import dataclass, field, replace
 from typing import Any, Iterable, Mapping
 
-from pwnbao.features.heapviz.api_profile import infer_api_profile_from_source
-from pwnbao.features.heapviz.contracts import HelperContract, HelperContractResolver, lower_source_calls
-from pwnbao.features.heapviz.models import HeapApiProfile
-from pwnbao.features.heapviz.operations import HeapOperation, HeapOperationKind
+from pwncraft.features.heapviz.api_profile import infer_api_profile_from_source
+from pwncraft.features.heapviz.contracts import HelperContract, HelperContractResolver, lower_source_calls
+from pwncraft.features.heapviz.models import HeapApiProfile
+from pwncraft.features.heapviz.operations import HeapOperation, HeapOperationKind
 
 # 识别器行为修订号：进入训练样本 engine.recognizer_revision。任何影响
 # 识别结果的改动（语义表/规则消费/报告结构）都必须递增 —— 三个月后旧
 # 样本是哪个识别器生成的，靠它回答。
 RECOGNIZER_REVISION = "recognizer-2026.09-r2"
-from pwnbao.features.heapviz.semantics import (
+from pwncraft.features.heapviz.semantics import (
     BehaviorEffectExpander,
     CallTarget,
     ChallengeBehaviorProfile,

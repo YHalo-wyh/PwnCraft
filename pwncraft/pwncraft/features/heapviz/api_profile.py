@@ -1,0 +1,519 @@
+from __future__ import annotations
+
+import ast
+import re
+from dataclasses import replace
+
+from pwncraft.features.heapviz.models import HeapApiProfile
+from pwncraft.features.heapviz.source_compat import parse_module_source
+
+
+ROLE_ALIASES = {
+    "index": {
+        "idx",
+        "index",
+        "i",
+        "pos",
+        "key",
+        "id",
+        "no",
+        "num",
+        "slot",
+        "slot_id",
+        "entry",
+        "entry_id",
+        "sid",
+        "uid",
+        "choice",
+        "chunk_idx",
+        "chunk_index",
+        "note_idx",
+        "note_index",
+        "heap_idx",
+        "heap_index",
+        "choice",
+    },
+    "size": {
+        "size",
+        "sz",
+        "length",
+        "len",
+        "n",
+        "cnt",
+        "count",
+        "bytes",
+        "request",
+        "request_size",
+        "malloc_size",
+        "chunk_size",
+        "s",
+        "malloc_len",
+        "content_size",
+        "name_size",
+    },
+    "offset": {
+        "offset",
+        "off",
+        "start",
+        "position",
+        "seek",
+        "write_offset",
+        "edit_offset",
+    },
+    "data": {
+        "data",
+        "content",
+        "contents",
+        "ctx",
+        "payload",
+        "text",
+        "msg",
+        "message",
+        "value",
+        "val",
+        "buf",
+        "buffer",
+        "src",
+        "body",
+        "chunk",
+        "name",
+        "desc",
+        "description",
+        "note",
+        "payload_data",
+    },
+}
+
+COPY_ROLE_ALIASES = {
+    "src": {
+        "src",
+        "source",
+        "from",
+        "from_idx",
+        "source_idx",
+        "src_idx",
+        "old",
+        "old_idx",
+    },
+    "dst": {
+        "dst",
+        "dest",
+        "destination",
+        "to",
+        "to_idx",
+        "target",
+        "target_idx",
+        "dst_idx",
+        "new",
+        "new_idx",
+    },
+    "length": {
+        "length",
+        "len",
+        "n",
+        "size",
+        "sz",
+        "count",
+        "cnt",
+        "bytes",
+    },
+}
+
+KIND_NAME_HINTS = {
+    "alloc": (
+        "add", "alloc", "allocate", "malloc", "new", "create", "insert",
+        "append", "build", "make", "buy", "register", "signup",
+        "create_note", "add_note", "capture", "cap",
+    ),
+    "free": ("free", "delete", "del", "remove", "rm", "drop", "destroy", "release", "erase", "wipe", "forget", "discard"),
+    "edit": ("edit", "update", "write", "change", "modify", "fill", "rename", "set", "change_note", "edit_note", "rewrite"),
+    "show": ("show", "view", "read", "print", "display", "leak", "list", "dump", "puts", "see", "view_note", "recall", "reveal"),
+    "copy": ("copy", "copy_chunk", "clone", "duplicate", "dup", "move", "memcpy", "memmove", "copy_note"),
+}
+
+DEFAULT_ROLE_ORDER = {
+    "alloc": ("size", "data"),
+    "free": ("index",),
+    "edit": ("index", "data"),
+    "show": ("index",),
+    "copy": ("src", "dst", "length"),
+}
+
+PROMPT_ROLE_HINTS = {
+    "index": (
+        "idx",
+        "index",
+        "id",
+        "slot",
+        "number",
+        "num",
+        "delete",
+        "free",
+        "remove",
+        "edit",
+        "show",
+        "view",
+        "note",
+    ),
+    "size": ("size", "length", "len", "malloc", "bytes", "content size", "name size"),
+    "data": ("content", "data", "payload", "text", "name", "desc", "message", "input"),
+}
+
+MENU_KIND_WORDS = {
+    "alloc": ("add", "create", "new", "malloc", "alloc", "buy", "insert"),
+    "free": ("delete", "free", "remove", "drop", "destroy"),
+    "edit": ("edit", "update", "write", "change", "modify"),
+    "show": ("show", "view", "print", "display", "leak", "dump"),
+}
+
+MENU_CHOICE_HINTS = {
+    "1": "alloc",
+    "2": "edit",
+    "3": "free",
+    "4": "show",
+}
+
+_RECV_CALLS = {"recv", "recvn", "recvline", "recvuntil", "clean", "read", "readline"}
+
+
+def infer_api_profile_from_source(
+    source: str,
+    base: HeapApiProfile | None = None,
+    preferred_kind: str = "",
+) -> tuple[HeapApiProfile, dict[str, str]]:
+    """Infer add/free/edit/show call templates from pasted helper definitions.
+
+    The parser is intentionally conservative: it never executes pasted code, and
+    only reads Python function names, argument names and literal strings.
+    """
+    base = base or HeapApiProfile()
+    text = (source or "").strip()
+    if not text:
+        return base, {}
+    tree, _parse_error = parse_module_source(text)
+    if tree is None:
+        return base, {}
+
+    updates: dict[str, str] = {"definitions": text + "\n"}
+    found: dict[str, str] = {}
+    for node in tree.body:
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        kind = preferred_kind if preferred_kind in DEFAULT_ROLE_ORDER else _classify_function(node)
+        if not kind or kind in found:
+            continue
+        args = _function_arg_names(node)
+        if args and args[0] in {"self", "cls"}:
+            args = args[1:]
+        body_roles = _body_role_hints(node, args)
+        template = _template_for_function(node.name, args, kind, body_roles)
+        updates[f"{kind}_function"] = node.name
+        updates[f"{kind}_template"] = template
+        found[kind] = node.name
+    if not found:
+        return replace(base, definitions=text + "\n"), {}
+    return replace(base, **updates), found
+
+
+def render_api_call(template: str, func: str, **values: str) -> str:
+    context = {
+        "func": func,
+        "index": values.get("index", "0"),
+        "size": values.get("size", "0x20"),
+        "data": values.get("data", "payload"),
+        "chunk": values.get("chunk", ""),
+        "target": values.get("target", ""),
+        "src": values.get("src", values.get("target", "src")),
+        "dst": values.get("dst", values.get("index", values.get("chunk", "dst"))),
+        "length": values.get("length", values.get("size", "length")),
+    }
+    selected = (template or "").strip()
+    if not selected:
+        selected = "{func}()"
+    try:
+        return selected.format(**context)
+    except (KeyError, ValueError):
+        # Bad custom templates should not break HeapViz; fall back to function().
+        return f"{func}()"
+
+
+def _classify_function(node: ast.FunctionDef) -> str:
+    name = node.name.lower()
+    if name in {"reg", "register", "signup", "sign_up"}:
+        return "alloc"
+    # Function names in real EXPs contain many *incidental* substrings such as
+    # ``free_size_for_count``, ``user_off_for_alloc_num`` and
+    # ``build_prompt``.  Treating any occurrence of "free"/"alloc"/"build"
+    # as a menu helper poisoned the whole API profile.  A semantic verb must be
+    # the leading snake-case token (or the complete compact helper name).
+    # This still accepts add_note/deleteNote/read_note style helpers while
+    # rejecting arithmetic, parser and orchestration functions.
+    tokens = tuple(item for item in re.split(r"_+", name) if item)
+    prefixed_semantic = bool(len(tokens) > 1 and tokens[0] in {"j", "api", "do", "op"})
+    semantic_tokens = tokens[1:] if prefixed_semantic else tokens
+    semantic_name = "_".join(semantic_tokens)
+    compact_prefixes = {
+        "create_note": "alloc", "add_note": "alloc",
+        "delete_note": "free", "remove_note": "free",
+        "edit_note": "edit", "update_note": "edit",
+        "show_note": "show", "view_note": "show", "read_note": "show",
+        "copy_chunk": "copy", "copy_note": "copy",
+    }
+    for prefix, kind in compact_prefixes.items():
+        if semantic_name == prefix or semantic_name.startswith(prefix + "_"):
+            return kind
+    has_menu_io = any(
+        isinstance(child, ast.Call)
+        and _is_outbound_call(_call_name(child.func))
+        for child in ast.walk(node)
+    )
+    semantic_object_words = {
+        "note", "chunk", "item", "entry", "record", "student", "user",
+        "session", "book", "message", "bio", "desc", "data", "content",
+    }
+    for kind, hints in KIND_NAME_HINTS.items():
+        if semantic_name in hints or (
+            semantic_tokens
+            and semantic_tokens[0] in hints
+            and (
+                prefixed_semantic
+                or has_menu_io
+                or (len(semantic_tokens) == 2 and semantic_tokens[1] in semantic_object_words)
+            )
+        ):
+            return kind
+    prompt_roles = _body_prompt_roles(node)
+    if "size" in prompt_roles:
+        return "alloc"
+    if "data" in prompt_roles and "index" in prompt_roles:
+        return "edit"
+    menu_choice = _first_literal_menu_choice(node)
+    args = _function_arg_names(node)
+    if args and args[0] in {"self", "cls"}:
+        args = args[1:]
+    menu_io_kind = _classify_menu_io(node, args, prompt_roles, menu_choice)
+    if menu_io_kind:
+        return menu_io_kind
+    if menu_choice in MENU_CHOICE_HINTS:
+        guessed = MENU_CHOICE_HINTS[menu_choice]
+        if guessed == "alloc" and ("size" in prompt_roles or "data" in prompt_roles):
+            return guessed
+        if guessed in {"free", "show"} and "index" in prompt_roles:
+            return guessed
+        if guessed == "edit" and ("data" in prompt_roles or "index" in prompt_roles):
+            return guessed
+    return ""
+
+
+def _template_for_function(func: str, args: list[str], kind: str, body_roles: dict[str, str] | None = None) -> str:
+    if not args:
+        return f"{func}()"
+    body_roles = body_roles or {}
+    roles = [_role_for_arg(arg, kind) or body_roles.get(arg) or _role_for_arg(arg) for arg in args]
+    if kind == "copy" and len(args) >= 3:
+        fallback_roles = DEFAULT_ROLE_ORDER["copy"]
+        roles = [
+            role or (fallback_roles[index] if index < len(fallback_roles) else "")
+            for index, role in enumerate(roles)
+        ]
+    used: set[str] = set()
+    pieces: list[str] = []
+    fallback = list(DEFAULT_ROLE_ORDER[kind])
+    has_explicit_role = any(roles)
+    for index, role in enumerate(roles):
+        selected = role
+        if not selected and not has_explicit_role:
+            while fallback and fallback[0] in used:
+                fallback.pop(0)
+            selected = fallback.pop(0) if fallback else ""
+        if not selected:
+            continue
+        if selected in used and selected != "data":
+            continue
+        used.add(selected)
+        pieces.append("{" + selected + "}")
+    if not pieces:
+        fallback = DEFAULT_ROLE_ORDER[kind]
+        pieces = ["{" + role + "}" for role in fallback[: max(1, min(len(args), len(fallback)))]]
+    return f"{func}(" + ", ".join(pieces) + ")"
+
+
+def _role_for_arg(arg: str, kind: str = "") -> str:
+    name = arg.lower().strip("_")
+    if kind == "copy":
+        for role, aliases in COPY_ROLE_ALIASES.items():
+            if name in aliases or any(name.endswith("_" + alias) for alias in aliases):
+                return role
+    for role, aliases in ROLE_ALIASES.items():
+        if name in aliases or any(name.endswith("_" + alias) for alias in aliases):
+            return role
+    return ""
+
+
+def _function_arg_names(node: ast.FunctionDef) -> list[str]:
+    return [arg.arg for arg in [*getattr(node.args, "posonlyargs", []), *node.args.args]]
+
+
+def _body_prompt_roles(node: ast.FunctionDef) -> set[str]:
+    roles: set[str] = set()
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call) or not _is_outbound_call(_call_name(child.func)):
+            continue
+        for argument in child.args:
+            if not isinstance(argument, ast.Constant) or not isinstance(argument.value, (str, bytes)):
+                continue
+            role = _role_from_text(_literal_text(argument.value))
+            if role:
+                roles.add(role)
+    return roles
+
+
+def _is_transport_call(name: str) -> bool:
+    key = str(name or "").lower()
+    return bool(
+        "send" in key
+        or "recv" in key
+        or key in {"sa", "sla", "sl", "s", "ru", "rl", "rn", "write", "writeline"}
+    )
+
+
+def _is_outbound_call(name: str) -> bool:
+    key = str(name or "").lower()
+    return bool("send" in key or key in {"sa", "sla", "sl", "s", "write", "writeline"})
+
+
+def _body_role_hints(node: ast.FunctionDef, arg_names: list[str]) -> dict[str, str]:
+    arg_set = set(arg_names)
+    hints: dict[str, str] = {}
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call):
+            continue
+        call_args = list(child.args)
+        if not call_args:
+            continue
+        prompt_role = ""
+        if isinstance(call_args[0], ast.Constant) and isinstance(call_args[0].value, (str, bytes)):
+            prompt_role = _role_from_text(_literal_text(call_args[0].value))
+        if not prompt_role:
+            continue
+        for argument in call_args[1:] or call_args[:1]:
+            for name in _names_in_expr(argument):
+                if name in arg_set:
+                    hints.setdefault(name, prompt_role)
+    for arg in arg_names:
+        role = _role_for_arg(arg)
+        if role:
+            hints.setdefault(arg, role)
+    return hints
+
+
+def _role_from_text(value: str) -> str:
+    text = re.sub(r"[^a-zA-Z0-9_]+", " ", value.lower())
+    for role, words in PROMPT_ROLE_HINTS.items():
+        if any(re.search(rf"\b{re.escape(word)}\b", text) for word in words):
+            return role
+    for kind, words in MENU_KIND_WORDS.items():
+        if any(re.search(rf"\b{re.escape(word)}\b", text) for word in words):
+            if kind in {"free", "show"}:
+                return "index"
+            if kind == "edit":
+                return "data"
+            if kind == "alloc":
+                return "size"
+    return ""
+
+
+def _call_name(node: ast.AST) -> str:
+    if isinstance(node, ast.Name):
+        return node.id
+    if isinstance(node, ast.Attribute):
+        return node.attr
+    return ""
+
+
+def _names_in_expr(node: ast.AST) -> set[str]:
+    return {child.id for child in ast.walk(node) if isinstance(child, ast.Name)}
+
+
+def _literal_text(value: str | bytes) -> str:
+    if isinstance(value, bytes):
+        try:
+            return value.decode("latin1", errors="ignore")
+        except AttributeError:
+            return str(value)
+    return str(value)
+
+
+def _first_literal_menu_choice(node: ast.FunctionDef) -> str:
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call):
+            continue
+        call_name = _call_name(child.func).lower()
+        if "send" not in call_name and call_name not in {"menu", "choose", "cmd", "command", "choice"}:
+            continue
+        for argument in child.args:
+            if not isinstance(argument, ast.Constant) or not isinstance(argument.value, (str, bytes, int)):
+                continue
+            value = str(argument.value).strip() if isinstance(argument.value, int) else _literal_text(argument.value).strip()
+            if value in MENU_CHOICE_HINTS or value == "7":
+                return value
+    return ""
+
+
+def _classify_menu_io(
+    node: ast.FunctionDef,
+    arg_names: list[str],
+    prompt_roles: set[str],
+    menu_choice: str,
+) -> str:
+    if not menu_choice:
+        return ""
+    sent_parameters = _outbound_parameter_order(node, arg_names)
+    sent_roles = [_role_for_arg(name) for name in sent_parameters]
+    has_recv = _has_recv_call(node)
+    if menu_choice == "7" and len(sent_parameters) >= 3:
+        return "copy"
+    copy_roles = {_role_for_arg(name, "copy") for name in sent_parameters}
+    if menu_choice == "4" and len(sent_parameters) >= 2 and {"src", "dst"}.issubset(copy_roles):
+        return "copy"
+    if menu_choice == "4" and len(sent_parameters) == 1 and (sent_roles[0] == "index" or not prompt_roles):
+        return "show" if has_recv else "free"
+    if menu_choice == "3" and len(sent_parameters) == 1 and (sent_roles[0] == "index" or has_recv):
+        return "show" if has_recv else "free"
+    if menu_choice == "2" and (
+        "data" in prompt_roles
+        or "data" in sent_roles
+        or (len(sent_parameters) >= 2 and any(role in {"index", ""} for role in sent_roles[:1]))
+    ):
+        return "edit"
+    if menu_choice == "1" and ("size" in prompt_roles or "data" in prompt_roles or len(sent_parameters) >= 2):
+        return "alloc"
+    return ""
+
+
+def _outbound_parameter_order(node: ast.FunctionDef, arg_names: list[str]) -> list[str]:
+    arg_set = set(arg_names)
+    result: list[str] = []
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call):
+            continue
+        call_name = _call_name(child.func).lower()
+        if "send" not in call_name:
+            continue
+        for argument in child.args:
+            if isinstance(argument, ast.Constant) and isinstance(argument.value, (str, bytes)):
+                value = _literal_text(argument.value).strip()
+                if value in MENU_CHOICE_HINTS or value == "7":
+                    continue
+            names = [name for name in _names_in_expr(argument) if name in arg_set]
+            for name in names:
+                if name not in result:
+                    result.append(name)
+    return result
+
+
+def _has_recv_call(node: ast.FunctionDef) -> bool:
+    for child in ast.walk(node):
+        if isinstance(child, ast.Call) and _call_name(child.func).lower() in _RECV_CALLS:
+            return True
+    return False

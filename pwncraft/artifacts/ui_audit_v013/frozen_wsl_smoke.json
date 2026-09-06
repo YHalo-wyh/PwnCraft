@@ -1,0 +1,6 @@
+{
+  "returncode": 0,
+  "stdout": "PWNCRAFT_WSL_OK\n/home/wyh/bin/pwndbg\n/home/wyh/.local/bin/pwndbg-mogai\n",
+  "stderr": "",
+  "ok": true
+}

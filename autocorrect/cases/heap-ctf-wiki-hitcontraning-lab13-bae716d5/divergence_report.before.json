@@ -43,7 +43,7 @@
     "CANVAS"
   ],
   "root_cause": {
-    "component": "pwnbao/features/heapviz/contracts/resolver.py::_structural_contract (recv 判定)",
+    "component": "pwncraft/features/heapviz/contracts/resolver.py::_structural_contract (recv 判定)",
     "reason": "recv 标志把 PROMPT_SYNC (recvuntil 常量提示词且返回值丢弃) 与 OUTPUT_DATA_FLOW (读回数据) 混为一谈。pwntools 菜单 helper 必然 recvuntil 提示词, 于是 'index+recv→SHOW' (原 L391-392) 对所有单 index helper 先行命中; 而后置的 delete 消歧分支 (原 L407) 要求 not recv, 对任何正常菜单 helper 不可达 → delete(idx) 被判 SHOW。"
   },
   "evidence": [
@@ -57,8 +57,8 @@
   },
   "confidence": 0.95,
   "compared_artifacts": {
-    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
-    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\before\\pwncraft_output.json"
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\before\\pwncraft_output.json"
   },
   "reviewer": {
     "model": "GLM-5.3-Flash (ZCode reviewer role)",

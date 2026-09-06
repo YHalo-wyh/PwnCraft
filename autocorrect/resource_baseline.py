@@ -47,8 +47,8 @@ def assign_splits(manifests: list[dict], ratios: dict[str, float] | None = None)
 def resource_baseline(cases: list[Path]) -> dict:
     """对每个案例计时 audit_exp (EXP 语义) 与 analyze_heap_source (识别)。"""
     sys_path_setup()
-    from pwnbao.features.audit.audit import audit_exp
-    from pwnbao.features.heapviz import analyze_heap_source
+    from pwncraft.features.audit.audit import audit_exp
+    from pwncraft.features.heapviz import analyze_heap_source
 
     timings = {"audit_ms": [], "analyze_ms": [], "cases": []}
     for case in cases:
@@ -79,7 +79,7 @@ def resource_baseline(cases: list[Path]) -> dict:
 
 
 def sys_path_setup() -> None:
-    project = Path(__file__).resolve().parents[1] / "pwn宝"
+    project = Path(__file__).resolve().parents[1] / "pwncraft"
     if str(project) not in sys.path:
         sys.path.insert(0, str(project))
 

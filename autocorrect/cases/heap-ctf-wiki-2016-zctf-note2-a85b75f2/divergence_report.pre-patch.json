@@ -31,7 +31,7 @@
     "CANVAS"
   ],
   "root_cause": {
-    "component": "pwnbao/features/heapviz (analyzer.py / contracts/resolver.py / api_profile.py 的模块级 ast.parse 入口)",
+    "component": "pwncraft/features/heapviz (analyzer.py / contracts/resolver.py / api_profile.py 的模块级 ast.parse 入口)",
     "reason": "EXP 为 Python 2 方言 (print 语句), py3 ast.parse 直接 SyntaxError → valid=False, 0 契约 0 操作, 全下游层不可用。真实公开 CTF EXP 大量为 py2 写法, 这是 Static Recognition 的第 0 层网关能力缺失。"
   },
   "evidence": [
@@ -44,8 +44,8 @@
   "confidence": 0.95,
   "reviewer_reason_hint": "EXP 无法解析 (py2 print 语句等方言), 全下游层不可用",
   "compared_artifacts": {
-    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\expected_truth.json",
-    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\generated\\pre-patch\\pwncraft_output.json",
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\generated\\pre-patch\\pwncraft_output.json",
     "comparator": "v3"
   },
   "reviewer": {

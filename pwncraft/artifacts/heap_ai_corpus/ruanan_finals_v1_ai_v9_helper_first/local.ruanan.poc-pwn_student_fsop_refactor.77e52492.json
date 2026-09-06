@@ -1,0 +1,12 @@
+{
+  "run_id": "run_6f587509feff46dd993e2c7b12948bd7",
+  "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+  "source_hash": "77e52492812ffe265cf0696b3d12c1d70b75ff7e4666a9b5e19fb93675df6a83",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "over_budget",
+  "error": "预计输入 3683 tokens，超过当前可用 3584；请精简 EXP/本题指令，或在 LM Studio 和 pwncraft中同时提高上下文。",
+  "retryable": false,
+  "details": {},
+  "elapsed_s": 0.078
+}

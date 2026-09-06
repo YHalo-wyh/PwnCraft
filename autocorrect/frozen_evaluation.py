@@ -18,7 +18,7 @@ CORPUS = ROOT / "heap-corpus" / "corpus"
 
 def main() -> None:
     sys.path.insert(0, str(AC))
-    sys.path.insert(0, str(ROOT / "pwn宝"))
+    sys.path.insert(0, str(ROOT / "pwncraft"))
     import comparator_v4
     import evaluation_contract
     import pwncraft_adapter

@@ -9,9 +9,9 @@ import shutil
 import zipfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]          # .../pwn宝
+ROOT = Path(__file__).resolve().parents[1]          # .../pwncraft
 AC = ROOT / "autocorrect"
-PROJ = ROOT / "pwn宝"                                # recognizer sources
+PROJ = ROOT / "pwncraft"                                # recognizer sources
 CORPUS = ROOT / "heap-corpus"
 STAGE = ROOT / "PwnCraft_training_review"
 LAB13 = "heap-ctf-wiki-hitcontraning-lab13-bae716d5"
@@ -80,18 +80,18 @@ def main():
 
     # ---------------- recognizer core (recently trained modules only)
     rc = STAGE / "recognizer"
-    cp(PROJ / "pwnbao/features/heapviz/contracts/resolver.py", rc / "contracts/resolver.py")
-    cp(PROJ / "pwnbao/features/heapviz/contracts/model.py", rc / "contracts/model.py")
-    cp(PROJ / "pwnbao/features/heapviz/contracts/aliases.py", rc / "contracts/aliases.py")
-    cp(PROJ / "pwnbao/features/heapviz/analyzer.py", rc / "analyzer.py")
-    cp(PROJ / "pwnbao/features/heapviz/api_profile.py", rc / "api_profile.py")
-    cp(PROJ / "pwnbao/features/heapviz/source_compat.py", rc / "source_compat.py")
-    cp(PROJ / "pwnbao/features/heapviz/semantics/canonical_ir.py", rc / "semantics/canonical_ir.py")
-    cp(PROJ / "pwnbao/features/heapviz/semantics/challenge_profile.py",
+    cp(PROJ / "pwncraft/features/heapviz/contracts/resolver.py", rc / "contracts/resolver.py")
+    cp(PROJ / "pwncraft/features/heapviz/contracts/model.py", rc / "contracts/model.py")
+    cp(PROJ / "pwncraft/features/heapviz/contracts/aliases.py", rc / "contracts/aliases.py")
+    cp(PROJ / "pwncraft/features/heapviz/analyzer.py", rc / "analyzer.py")
+    cp(PROJ / "pwncraft/features/heapviz/api_profile.py", rc / "api_profile.py")
+    cp(PROJ / "pwncraft/features/heapviz/source_compat.py", rc / "source_compat.py")
+    cp(PROJ / "pwncraft/features/heapviz/semantics/canonical_ir.py", rc / "semantics/canonical_ir.py")
+    cp(PROJ / "pwncraft/features/heapviz/semantics/challenge_profile.py",
        rc / "semantics/challenge_profile.py")
-    cp(PROJ / "pwnbao/features/heapviz/canvas_model.py", rc / "canvas_model.py")
-    cp(PROJ / "pwnbao/features/heapviz/grid/physical_grid.py", rc / "grid/physical_grid.py")
-    cp(PROJ / "pwnbao/features/heapviz/presentation/scene_model.py",
+    cp(PROJ / "pwncraft/features/heapviz/canvas_model.py", rc / "canvas_model.py")
+    cp(PROJ / "pwncraft/features/heapviz/grid/physical_grid.py", rc / "grid/physical_grid.py")
+    cp(PROJ / "pwncraft/features/heapviz/presentation/scene_model.py",
        rc / "presentation/scene_model.py")
     # synthetic tests proving one-cycle discipline
     cp(PROJ / "tests/test_contract_output_dataflow_evidence.py",
@@ -204,7 +204,7 @@ def main():
     readme = f"""# PwnCraft Training — Current Status (2026-09-05)
 
 ## 训练管线位置
-- 识别器源码: pwnbao/features/heapviz (本包 recognizer/ 为近两 cycle 实改模块副本)
+- 识别器源码: pwncraft/features/heapviz (本包 recognizer/ 为近两 cycle 实改模块副本)
 - 训练框架: autocorrect/ (loop.py = run/generate/diverge/baseline/regress/explain)
 - 语料: heap-corpus/corpus (8 GOLD; provenance 见 corpus/)
 

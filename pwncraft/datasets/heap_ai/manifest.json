@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "description": "Hash-locked pwncraft Heap AI corpus. Local EXP sources remain outside the repository.",
+  "public_source": {
+    "repository": "https://github.com/shellphish/how2heap",
+    "commit": "02da6aa26a44e5af2a67057876d7c6669a207f56",
+    "license": "MIT"
+  },
+  "cases": [
+    {
+      "case_id": "local.traditional.exp",
+      "split": "train",
+      "technique": "local-traditional-menu",
+      "source_uri": "C:/Users/WYH/Desktop/软安决赛/traditional/exp.py",
+      "source_hash": "b3583b20cecc9ca9a03a3de16f0a4530d9a6c43a471540df8c073d675944aaeb",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-private",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"},
+      "note": "Private source is read in place and is never copied into the repository."
+    },
+    {
+      "case_id": "local.traditional.solve",
+      "split": "train",
+      "technique": "local-traditional-menu",
+      "source_uri": "C:/Users/WYH/Desktop/软安决赛/traditional/solve.py",
+      "source_hash": "fda16261d1a12d584a5f0e0452bb358532c919c60c26be247aeebb92055d69fe",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-private",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"}
+    },
+    {
+      "case_id": "local.traditional.solve-alt",
+      "split": "train",
+      "technique": "local-traditional-menu",
+      "source_uri": "C:/Users/WYH/Desktop/软安决赛/traditional/solve_alt.py",
+      "source_hash": "a981ba78dd389b2663bed2517c92841e8f99a4629bcb8ba0fbcf3dbde46d01c7",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-private",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"}
+    },
+    {
+      "case_id": "local.student.exp",
+      "split": "dev",
+      "technique": "local-student-management",
+      "source_uri": "C:/Users/WYH/Desktop/软安决赛/Studentmanagement/题目附件/exp.py",
+      "source_hash": "ee6db083c42fb582946ef65309d997543c213f29d1e6fbbbb7f3f9e95635e741",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-private",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"}
+    },
+    {
+      "case_id": "local.student.solve-local",
+      "split": "dev",
+      "technique": "local-student-management",
+      "source_uri": "C:/Users/WYH/Desktop/软安决赛/Studentmanagement/题目附件/solve_local.py",
+      "source_hash": "11811d293b09df109100233a76fb0c7b0a3405dc4476bf0840f000211198523f",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-private",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.223.fastbin-dup",
+      "split": "train",
+      "technique": "fastbin-dup",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.23/fastbin_dup.c",
+      "source_hash": "7059aa98999a9f4c824908b1629c6e5518921fbb0886cb658ae471b22b278a45",
+      "source_language": "c",
+      "purpose": "allocator_truth",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.23", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.223.fastbin-dup-consolidate",
+      "split": "train",
+      "technique": "fastbin-dup-consolidate",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.23/fastbin_dup_consolidate.c",
+      "source_hash": "67c988d86bfa8234809a51a228e789cd0d973b54d79e2c0460b44bb347939097",
+      "source_language": "c",
+      "purpose": "allocator_truth",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.23", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.223.overlapping-chunks",
+      "split": "dev",
+      "technique": "overlapping-chunks",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.23/overlapping_chunks.c",
+      "source_hash": "e16a08ca12de95221064ab180dbe236e8832acce7a6ee2aa9d353264ab379f70",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.23", "arch": "amd64"},
+      "note": "Advanced corruption remains intent-only until an operation oracle is reviewed."
+    },
+    {
+      "case_id": "how2heap.223.poison-null-byte",
+      "split": "dev",
+      "technique": "poison-null-byte",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.23/poison_null_byte.c",
+      "source_hash": "5294a7d0b26b78ddb22ce67c20c6b5bf34496f025f719cdeae45b0f00e6fbfa7",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.23", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.223.unsafe-unlink",
+      "split": "train",
+      "technique": "unsafe-unlink",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.23/unsafe_unlink.c",
+      "source_hash": "84be5e372606625178c5a073cfd27e6c99f480a809a0b80ee957da48c883db3f",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.23", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.223.unsorted-bin-attack",
+      "split": "train",
+      "technique": "unsorted-bin-attack",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.23/unsorted_bin_attack.c",
+      "source_hash": "5fb302ee1c7b24e91f59e61becc915bc61b725c9ab4447eae106e727779fc876",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.23", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.227.tcache-poisoning",
+      "split": "train",
+      "technique": "tcache-poisoning",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.27/tcache_poisoning.c",
+      "source_hash": "fe7531d3224784a5babf1ce0aef9916434ae3f2a5e40d2806545d38008684945",
+      "source_language": "c",
+      "purpose": "allocator_truth",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.27", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.227.house-of-botcake",
+      "split": "train",
+      "technique": "house-of-botcake",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.27/house_of_botcake.c",
+      "source_hash": "3681ce6c9c936583b87f36e406ad16ab52c6ad8df8e43c49807b07188d1c363b",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.27", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.227.fastbin-reverse-into-tcache",
+      "split": "train",
+      "technique": "fastbin-reverse-into-tcache",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.27/fastbin_reverse_into_tcache.c",
+      "source_hash": "985157c8316fb3de41fd6ce34d04563726c81e11fbe27c89228b19c7a14e6974",
+      "source_language": "c",
+      "purpose": "allocator_truth",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.27", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.227.tcache-stashing-unlink",
+      "split": "dev",
+      "technique": "tcache-stashing-unlink",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.27/tcache_stashing_unlink_attack.c",
+      "source_hash": "27b154e2ccaf54917b3e9232fe6b20625c661508689bb9b8ab1de1deea1e94b5",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.27", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.231.large-bin-attack",
+      "split": "dev",
+      "technique": "large-bin-attack",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.31/large_bin_attack.c",
+      "source_hash": "54a56227dbd8bcfc7488a65514ca6dc2c43511c174cce3a52b7edd78d1369d8e",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.31", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.231.house-of-lore",
+      "split": "holdout",
+      "technique": "house-of-lore",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.31/house_of_lore.c",
+      "source_hash": "238ee0e9210467c4f5f67443358d8e515e47da5f71947f3cdb0f8856647be367",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.31", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.231.overlapping-chunks",
+      "split": "dev",
+      "technique": "overlapping-chunks",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.31/overlapping_chunks.c",
+      "source_hash": "a2cbd49aba8cdcb1727da111a47814ee7ab5135ccadd3bd09dfd970f3074ccff",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.31", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.235.safe-link-double-protect",
+      "split": "holdout",
+      "technique": "safe-link-double-protect",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.35/safe_link_double_protect.c",
+      "source_hash": "896f45cabf5b84b073ee8284749a78259079e1cf3a690a15525032b0b397b56f",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.235.tcache-poisoning",
+      "split": "train",
+      "technique": "tcache-poisoning",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.35/tcache_poisoning.c",
+      "source_hash": "89a222ac9dd94bcbd4fb7c0a197d163f5b73d1b2c95a5bd3437c28bcedf09379",
+      "source_language": "c",
+      "purpose": "allocator_truth",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.235.house-of-water",
+      "split": "holdout",
+      "technique": "house-of-water",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.35/house_of_water.c",
+      "source_hash": "3f869b261f05a1df66e52d1fbb7077c5b4f8e08abd07a9d53ce7d4acabd57ddc",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.35", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.239.tcache-poisoning",
+      "split": "train",
+      "technique": "tcache-poisoning",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.39/tcache_poisoning.c",
+      "source_hash": "89a222ac9dd94bcbd4fb7c0a197d163f5b73d1b2c95a5bd3437c28bcedf09379",
+      "source_language": "c",
+      "purpose": "allocator_truth",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.39", "arch": "amd64"}
+    },
+    {
+      "case_id": "how2heap.239.house-of-botcake",
+      "split": "train",
+      "technique": "house-of-botcake",
+      "source_uri": "https://raw.githubusercontent.com/shellphish/how2heap/02da6aa26a44e5af2a67057876d7c6669a207f56/glibc_2.39/house_of_botcake.c",
+      "source_hash": "0ce30b695db26d3d27c6b4174388100002b30858b2851612c6acc81492a177b6",
+      "source_language": "c",
+      "purpose": "intent_only",
+      "license": "MIT",
+      "allocator": {"family": "glibc", "version": "2.39", "arch": "amd64"}
+    }
+  ]
+}

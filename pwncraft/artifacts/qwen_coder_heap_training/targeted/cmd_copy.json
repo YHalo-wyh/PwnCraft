@@ -1,0 +1,51 @@
+{
+  "job": "cmd_copy",
+  "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\exp.py",
+  "result": {
+    "generation": 300,
+    "source_hash": "b3583b20cecc9ca9a03a3de16f0a4530d9a6c43a471540df8c073d675944aaeb",
+    "proposals": [
+      {
+        "proposal_id": "rule_candidate",
+        "action": "rule_candidate",
+        "source_start": 458,
+        "source_end": 489,
+        "source_text": "if args.GDB:\n    gdb.attach(io)",
+        "ast_fingerprint": "fc33e1176cdfa40f",
+        "confidence": 0.95,
+        "rationale": "The GDB attachment guard does not affect heap semantics, but confirms the dispatcher's choice=7 is copy(src,dst,length).",
+        "operation": {},
+        "helper_mapping": {},
+        "branch_choice": {},
+        "memory_annotation": {},
+        "rule": {
+          "rule_id": "copy_dispatch_7",
+          "semantic": "copy",
+          "matcher": {
+            "function": "cmd",
+            "argument_equals": {
+              "0": 7
+            }
+          },
+          "output": {
+            "arg_offset": 1,
+            "roles": [
+              "src",
+              "dst",
+              "length"
+            ],
+            "semantic": "copy"
+          },
+          "enabled": true,
+          "source": "L63@1547:1587"
+        }
+      }
+    ],
+    "diagnostics": [],
+    "elapsed_ms": 16438,
+    "model": "qwen3-coder-30b-a3b-instruct",
+    "cached": false,
+    "prompt_version": "pwncraft-heap-ai-v3-qwen-coder"
+  },
+  "elapsed_s": 16.438
+}

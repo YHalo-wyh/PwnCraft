@@ -28,4 +28,4 @@
 ## checkpoint / revert 路径
 
 - resolver.py.pre / analyzer.py.pre (本目录)
-- revert: cp resolver.py.pre ../pwn宝/pwnbao/features/heapviz/contracts/resolver.py 等
+- revert: cp resolver.py.pre ../pwncraft/pwncraft/features/heapviz/contracts/resolver.py 等

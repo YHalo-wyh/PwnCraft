@@ -1,5 +1,5 @@
 --- patches/cycle-1/resolver.py.pre	2026-09-03 19:32:19.442109600 +0800
-+++ ../pwn宝/pwnbao/features/heapviz/contracts/resolver.py	2026-09-03 19:32:39.692990100 +0800
++++ ../pwncraft/pwncraft/features/heapviz/contracts/resolver.py	2026-09-03 19:32:39.692990100 +0800
 @@ -336,6 +336,19 @@
      recv = False
      literals: list[str] = []

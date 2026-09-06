@@ -1,0 +1,81 @@
+{
+  "job": "cmd_alloc_free",
+  "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\exp.py",
+  "result": {
+    "generation": 310,
+    "source_hash": "b3583b20cecc9ca9a03a3de16f0a4530d9a6c43a471540df8c073d675944aaeb",
+    "proposals": [
+      {
+        "proposal_id": "rule_candidate_1",
+        "action": "rule_candidate",
+        "source_start": 0,
+        "source_end": 0,
+        "source_text": "",
+        "ast_fingerprint": "",
+        "confidence": 0.95,
+        "rationale": "Matches alloc dispatcher with size=0x100 and index=i; inferred from heap operation sequence.",
+        "operation": {},
+        "helper_mapping": {},
+        "branch_choice": {},
+        "memory_annotation": {},
+        "rule": {
+          "rule_id": "alloc_size_index",
+          "semantic": "alloc",
+          "matcher": {
+            "function": "cmd",
+            "argument_equals": {
+              "0": 1
+            }
+          },
+          "output": {
+            "roles": [
+              "size",
+              "index"
+            ],
+            "semantic": "alloc"
+          },
+          "enabled": true,
+          "source": "L52@1261:1306"
+        }
+      },
+      {
+        "proposal_id": "rule_candidate_2",
+        "action": "rule_candidate",
+        "source_start": 1100,
+        "source_end": 1109,
+        "source_text": "cmd(4, i)",
+        "ast_fingerprint": "1a6fdd7ed822a918",
+        "confidence": 0.95,
+        "rationale": "Matches free dispatcher with index=i; inferred from heap operation sequence.",
+        "operation": {},
+        "helper_mapping": {},
+        "branch_choice": {},
+        "memory_annotation": {},
+        "rule": {
+          "rule_id": "free_index",
+          "semantic": "free",
+          "matcher": {
+            "function": "cmd",
+            "argument_equals": {
+              "0": 4
+            }
+          },
+          "output": {
+            "roles": [
+              "index"
+            ],
+            "semantic": "free"
+          },
+          "enabled": true,
+          "source": "L63@1547:1587"
+        }
+      }
+    ],
+    "diagnostics": [],
+    "elapsed_ms": 25250,
+    "model": "qwen3-coder-30b-a3b-instruct",
+    "cached": false,
+    "prompt_version": "pwncraft-heap-ai-v3-qwen-coder"
+  },
+  "elapsed_s": 25.25
+}

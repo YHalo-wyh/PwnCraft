@@ -148,8 +148,8 @@
   "_expected_op_count": 8,
   "_machine_check_count": 3,
   "compared_artifacts": {
-    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
-    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\r5-check\\pwncraft_output.json",
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwncraft\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\r5-check\\pwncraft_output.json",
     "renderer_plan": null,
     "run_id": "run-1d058890c9ca9833",
     "comparator": "v4"

@@ -218,7 +218,7 @@ EXP → HelperContract → Canonical IR → TargetBehavior → AllocatorEvents
 ## J. CANVAS_SEMANTIC_MODEL 中间真值层
 
 - renderer 绘制前，每个 heap state change step 导出 `canvas_semantic_model.json`
-  （实现: `pwnbao/features/heapviz/canvas_model.py`，来源 = bridge step 载荷 +
+  （实现: `pwncraft/features/heapviz/canvas_model.py`，来源 = bridge step 载荷 +
   PhysicalGrid 行模型 + HeapSceneLayout 常量；禁止从截图 OCR 反推）。
 - 比较层序追加: ... PHYSICAL_MEMORY → SNAPSHOT → **CANVAS_SEMANTIC_MODEL**。
 - 14 条 invariant 由 `check_canvas_invariants` 执行；判据语义化:

@@ -4,7 +4,7 @@
 
 ## 变更 (最小集)
 
-1. 新增 pwnbao/features/heapviz/source_compat.py:
+1. 新增 pwncraft/features/heapviz/source_compat.py:
    parse_module_source() — 常规解析失败时, tokenize 引导的语句级改写
    (仅语句首 print 词法单元; 字符串字面量永不触碰; 行号保持) 后重解析;
    仍失败返回原始错误。rewrite_py2_print_statements() 为纯词法规则。

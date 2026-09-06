@@ -1,17 +1,17 @@
 --- patches/cycle-2/analyzer.py.pre	2026-09-05 16:22:49.108811300 +0800
-+++ ../pwn宝/pwnbao/features/heapviz/analyzer.py	2026-09-05 16:24:42.356010000 +0800
++++ ../pwncraft/pwncraft/features/heapviz/analyzer.py	2026-09-05 16:24:42.356010000 +0800
 @@ -11,11 +11,12 @@
- from pwnbao.features.heapviz.contracts import HelperContract, HelperContractResolver, lower_source_calls
- from pwnbao.features.heapviz.models import HeapApiProfile
- from pwnbao.features.heapviz.operations import HeapOperation, HeapOperationKind
-+from pwnbao.features.heapviz.source_compat import parse_module_source
+ from pwncraft.features.heapviz.contracts import HelperContract, HelperContractResolver, lower_source_calls
+ from pwncraft.features.heapviz.models import HeapApiProfile
+ from pwncraft.features.heapviz.operations import HeapOperation, HeapOperationKind
++from pwncraft.features.heapviz.source_compat import parse_module_source
  
  # 识别器行为修订号：进入训练样本 engine.recognizer_revision。任何影响
  # 识别结果的改动（语义表/规则消费/报告结构）都必须递增 —— 三个月后旧
  # 样本是哪个识别器生成的，靠它回答。
 -RECOGNIZER_REVISION = "recognizer-2026.09-r3"  # r3: cycle-1 prompt-sync vs output-dataflow evidence reclassification
 +RECOGNIZER_REVISION = "recognizer-2026.09-r4"  # r4: cycle-2 py2 print-statement tolerance in EXP parsing
- from pwnbao.features.heapviz.semantics import (
+ from pwncraft.features.heapviz.semantics import (
      BehaviorEffectExpander,
      CallTarget,
 @@ -313,7 +314,9 @@

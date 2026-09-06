@@ -1,0 +1,12 @@
+{
+  "run_id": "run_62f347bcdd824b48b054b9a29b2999fc",
+  "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+  "source_hash": "fb7cb12f7b508a2054f3570f6b4f6f4132d2f29e1cd3dd9d4a1a0ee4e7903fe3",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "over_budget",
+  "error": "预计输入 3635 tokens，超过当前可用 3584；请精简 EXP/本题指令，或在 LM Studio 和 pwncraft中同时提高上下文。",
+  "retryable": false,
+  "details": {},
+  "elapsed_s": 0.265
+}

@@ -1,0 +1,83 @@
+{
+  "job": "cmd_edit_show",
+  "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\exp.py",
+  "result": {
+    "generation": 311,
+    "source_hash": "b3583b20cecc9ca9a03a3de16f0a4530d9a6c43a471540df8c073d675944aaeb",
+    "proposals": [
+      {
+        "proposal_id": "rule_candidate_1",
+        "action": "rule_candidate",
+        "source_start": 848,
+        "source_end": 977,
+        "source_text": "def cmd(choice, *values):\n    io.sendlineafter(b'choice: ', enc(choice))\n    for value in values:\n        io.sendline(enc(value))",
+        "ast_fingerprint": "f5d266ac82bac72a",
+        "confidence": 0.95,
+        "rationale": "Dispatcher function with choice-based branching; matches edit/show patterns.",
+        "operation": {},
+        "helper_mapping": {},
+        "branch_choice": {},
+        "memory_annotation": {},
+        "rule": {
+          "rule_id": "edit_show_dispatcher",
+          "semantic": "edit",
+          "matcher": {
+            "function": "cmd",
+            "argument_equals": {
+              "0": 2
+            }
+          },
+          "output": {
+            "roles": [
+              "index",
+              "data"
+            ],
+            "arg_offset": 1,
+            "semantic": "edit"
+          },
+          "enabled": true,
+          "source": "L24@305:367"
+        }
+      },
+      {
+        "proposal_id": "rule_candidate_2",
+        "action": "rule_candidate",
+        "source_start": 848,
+        "source_end": 977,
+        "source_text": "def cmd(choice, *values):\n    io.sendlineafter(b'choice: ', enc(choice))\n    for value in values:\n        io.sendline(enc(value))",
+        "ast_fingerprint": "f5d266ac82bac72a",
+        "confidence": 0.95,
+        "rationale": "Dispatcher function with choice-based branching; matches edit/show patterns.",
+        "operation": {},
+        "helper_mapping": {},
+        "branch_choice": {},
+        "memory_annotation": {},
+        "rule": {
+          "rule_id": "edit_show_dispatcher",
+          "semantic": "show",
+          "matcher": {
+            "function": "cmd",
+            "argument_equals": {
+              "0": 3
+            }
+          },
+          "output": {
+            "roles": [
+              "index"
+            ],
+            "arg_offset": 1,
+            "semantic": "show"
+          },
+          "enabled": true,
+          "source": "L24@305:367"
+        }
+      }
+    ],
+    "diagnostics": [],
+    "elapsed_ms": 30218,
+    "model": "qwen3-coder-30b-a3b-instruct",
+    "cached": false,
+    "prompt_version": "pwncraft-heap-ai-v3-qwen-coder"
+  },
+  "elapsed_s": 30.218
+}

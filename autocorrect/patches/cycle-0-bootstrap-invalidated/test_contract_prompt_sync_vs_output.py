@@ -15,7 +15,7 @@ Covers the generic rules:
 """
 from __future__ import annotations
 
-from pwnbao.features.heapviz.contracts import HelperContractResolver
+from pwncraft.features.heapviz.contracts import HelperContractResolver
 
 PROMPT_SYNC_DELETE = """
 def free_slot(idx):

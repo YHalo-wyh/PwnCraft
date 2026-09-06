@@ -39,8 +39,8 @@ import ast
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pwn宝"))
-from pwnbao.features.heapviz.source_compat import parse_module_source  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "pwncraft"))
+from pwncraft.features.heapviz.source_compat import parse_module_source  # noqa: E402
 
 _SEMANTIC_ACTUAL = {
     "alloc": {"alloc", "allocate"},

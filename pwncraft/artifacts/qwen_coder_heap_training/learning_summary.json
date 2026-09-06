@@ -1,0 +1,329 @@
+{
+  "knowledge_path": "C:\\Users\\WYH\\AppData\\Local\\pwncraft\\ai\\knowledge.sqlite3",
+  "feedback_added": [
+    {
+      "feedback_id": "fb_5ed09e2ee86241b6b8891962025fb6f5",
+      "decision": "modified",
+      "proposal_id": "rule_candidate_1"
+    },
+    {
+      "feedback_id": "fb_a33d08cec73e4fbfb77fb6e6c8e0b56c",
+      "decision": "modified",
+      "proposal_id": "rule_candidate_2"
+    },
+    {
+      "feedback_id": "fb_36abad81690f44be8e3dd0e862cd17b4",
+      "decision": "modified",
+      "proposal_id": "rule_candidate_1"
+    },
+    {
+      "feedback_id": "fb_a19349ae443d4d3eb9284a82f502ef71",
+      "decision": "modified",
+      "proposal_id": "rule_candidate_2"
+    },
+    {
+      "feedback_id": "fb_2bad1da66ddf49028d87ea99e45d215d",
+      "decision": "modified",
+      "proposal_id": "rule_candidate"
+    },
+    {
+      "feedback_id": "fb_5b5cbdb8e7ca425b99c0d64bc0eca27f",
+      "decision": "modified",
+      "proposal_id": "helper_mapping_correction"
+    },
+    {
+      "feedback_id": "fb_a6af86c0e3904715948a1abfa5339269",
+      "decision": "accepted",
+      "proposal_id": "helper_mapping_correction"
+    },
+    {
+      "feedback_id": "fb_c6b08678ee9243888b00aea4edc468b9",
+      "decision": "modified",
+      "proposal_id": "pwncraft_heap_semantics_0"
+    },
+    {
+      "feedback_id": "fb_b4a8ac3f7c5f4f6f9fae1f001abc23da",
+      "decision": "rejected",
+      "proposal_id": "branch_selection_e6b2a3626c70c92b"
+    },
+    {
+      "feedback_id": "fb_b22d6710eaee4bf4aa9e89459521ca88",
+      "decision": "rejected",
+      "proposal_id": "branch_selection"
+    },
+    {
+      "feedback_id": "fb_03043c6684dd4bd68872743eaad7eec7",
+      "decision": "rejected",
+      "proposal_id": "branch_selection"
+    },
+    {
+      "feedback_id": "fb_e7ef4c9461504f6c9b74815ebea66af9",
+      "decision": "rejected",
+      "proposal_id": "pwncraft_heap_semantic_001"
+    }
+  ],
+  "global_rules": [
+    {
+      "rule_id": "rule_a5fb9445d1998fa73756d7e5",
+      "semantic": "copy",
+      "matcher": {
+        "function": "copy_chunk",
+        "arity": 3,
+        "keywords": [],
+        "parameter_names": [
+          "src",
+          "dst",
+          "length"
+        ]
+      },
+      "output": {
+        "roles": [
+          "src",
+          "dst",
+          "length"
+        ]
+      },
+      "enabled": true,
+      "accept_count": 1,
+      "reject_count": 0,
+      "source": "qwen-coder-reviewed",
+      "created_at": "2026-08-15T08:19:13+00:00",
+      "updated_at": "2026-08-15T08:19:13+00:00"
+    },
+    {
+      "rule_id": "rule_a792ee1fef946be684c2374c",
+      "semantic": "edit",
+      "matcher": {
+        "function": "edit_bio",
+        "arity": 2,
+        "keywords": [],
+        "parameter_names": [
+          "size",
+          "data"
+        ]
+      },
+      "output": {
+        "roles": [
+          "size",
+          "data"
+        ]
+      },
+      "enabled": true,
+      "accept_count": 1,
+      "reject_count": 0,
+      "source": "qwen-coder-reviewed",
+      "created_at": "2026-08-15T08:19:13+00:00",
+      "updated_at": "2026-08-15T08:19:13+00:00"
+    },
+    {
+      "rule_id": "rule_04aa036e9768d4e86fc346c5",
+      "semantic": "alloc",
+      "matcher": {
+        "function": "reg",
+        "arity": 3,
+        "keywords": [],
+        "parameter_names": [
+          "Id",
+          "name",
+          "passwd"
+        ]
+      },
+      "output": {
+        "roles": [
+          "index",
+          "data"
+        ]
+      },
+      "enabled": true,
+      "accept_count": 1,
+      "reject_count": 0,
+      "source": "qwen-coder-reviewed",
+      "created_at": "2026-08-15T08:19:13+00:00",
+      "updated_at": "2026-08-15T08:19:13+00:00"
+    },
+    {
+      "rule_id": "rule_998c25bc5f074681225b37e2",
+      "semantic": "edit",
+      "matcher": {
+        "function": "edit",
+        "arity": 2,
+        "keywords": [],
+        "parameter_names": [
+          "size",
+          "payload"
+        ]
+      },
+      "output": {
+        "roles": [
+          "size",
+          "data"
+        ]
+      },
+      "enabled": true,
+      "accept_count": 1,
+      "reject_count": 0,
+      "source": "qwen-coder-reviewed-static-feedback",
+      "created_at": "2026-08-15T08:19:13+00:00",
+      "updated_at": "2026-08-15T08:19:13+00:00"
+    }
+  ],
+  "scenario_rules": [
+    {
+      "rule_id": "traditional_cmd_1_alloc",
+      "semantic": "alloc",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 1
+        }
+      },
+      "output": {
+        "roles": [
+          "size",
+          "index"
+        ],
+        "semantic": "alloc",
+        "arg_offset": 1
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_4_free",
+      "semantic": "free",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 4
+        }
+      },
+      "output": {
+        "roles": [
+          "index"
+        ],
+        "semantic": "free",
+        "arg_offset": 1
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_2_edit",
+      "semantic": "edit",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 2
+        }
+      },
+      "output": {
+        "roles": [
+          "index",
+          "data"
+        ],
+        "arg_offset": 1,
+        "semantic": "edit"
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_3_show",
+      "semantic": "show",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 3
+        }
+      },
+      "output": {
+        "roles": [
+          "index"
+        ],
+        "arg_offset": 1,
+        "semantic": "show"
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_7_copy",
+      "semantic": "copy",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 7
+        }
+      },
+      "output": {
+        "arg_offset": 1,
+        "roles": [
+          "src",
+          "dst",
+          "length"
+        ],
+        "semantic": "copy"
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    }
+  ],
+  "exported_feedback_count": 14,
+  "model": {
+    "id": "qwen3-coder-30b-a3b-instruct",
+    "file": "F:\\LLM\\lmstudio-community\\Qwen3-Coder-30B-A3B-Instruct-GGUF\\Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf",
+    "context": 4096,
+    "max_input": 3584,
+    "max_output": 512,
+    "gpu_offload": 0.3
+  },
+  "full_exp_evaluation": [
+    {
+      "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\exp.py",
+      "artifact": "C:\\users\\wyh\\desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\qwen_coder_heap_training\\results\\01_traditional_exp.json",
+      "error": "",
+      "elapsed_s": 31.563,
+      "model": "qwen3-coder-30b-a3b-instruct",
+      "compact_static_ir": false
+    },
+    {
+      "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\solve.py",
+      "artifact": "C:\\users\\wyh\\desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\qwen_coder_heap_training\\results\\02_traditional_solve.json",
+      "error": "",
+      "elapsed_s": 45.843,
+      "model": "qwen3-coder-30b-a3b-instruct",
+      "compact_static_ir": false
+    },
+    {
+      "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\solve_alt.py",
+      "artifact": "C:\\users\\wyh\\desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\qwen_coder_heap_training\\results\\03_traditional_solve_alt.json",
+      "error": "",
+      "elapsed_s": 50.985,
+      "model": "qwen3-coder-30b-a3b-instruct",
+      "compact_static_ir": true
+    },
+    {
+      "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\Studentmanagement\\题目附件\\exp.py",
+      "artifact": "C:\\users\\wyh\\desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\qwen_coder_heap_training\\results\\04_题目附件_exp.json",
+      "error": "",
+      "elapsed_s": 48.0,
+      "model": "qwen3-coder-30b-a3b-instruct",
+      "compact_static_ir": false
+    },
+    {
+      "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\Studentmanagement\\题目附件\\solve_local.py",
+      "artifact": "C:\\users\\wyh\\desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\qwen_coder_heap_training\\results\\05_题目附件_solve_local.json",
+      "error": "",
+      "elapsed_s": 47.844,
+      "model": "qwen3-coder-30b-a3b-instruct",
+      "compact_static_ir": false
+    }
+  ],
+  "strict_replay": {
+    "operations": 44,
+    "snapshots": 45,
+    "final_logical_chunks": 20,
+    "aborted": false,
+    "final_warnings": []
+  }
+}

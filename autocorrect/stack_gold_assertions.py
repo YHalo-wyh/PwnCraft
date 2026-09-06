@@ -41,8 +41,8 @@ def objdump_layout(binary: Path) -> dict | None:
         return {"error": str(error)}
     if result.returncode != 0:
         return {"error": result.stderr[:200]}
-    sys.path.insert(0, str(ROOT / "pwn宝"))
-    from pwnbao.core.x86_trace import trace_stack_layouts
+    sys.path.insert(0, str(ROOT / "pwncraft"))
+    from pwncraft.core.x86_trace import trace_stack_layouts
     return {"functions": trace_stack_layouts(result.stdout)}
 
 
@@ -75,8 +75,8 @@ def main() -> None:
         byte_ranges = []
         given_state = []
         if exp_path and exp_path.exists():
-            sys.path.insert(0, str(ROOT / "pwn宝"))
-            from pwnbao.features.audit.extract import extract_exploit_ir
+            sys.path.insert(0, str(ROOT / "pwncraft"))
+            from pwncraft.features.audit.extract import extract_exploit_ir
             ir, _err = extract_exploit_ir(exp_path.read_text(encoding="utf-8"))
             for i, interaction in enumerate(ir.interactions):
                 if interaction.action in ("RECV", "RECVN", "RECVLINE") and interaction.length:

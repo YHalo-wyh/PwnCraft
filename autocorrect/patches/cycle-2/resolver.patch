@@ -1,11 +1,11 @@
 --- patches/cycle-2/resolver.py.pre	2026-09-05 16:22:49.150738000 +0800
-+++ ../pwn宝/pwnbao/features/heapviz/contracts/resolver.py	2026-09-05 16:24:56.192955400 +0800
++++ ../pwncraft/pwncraft/features/heapviz/contracts/resolver.py	2026-09-05 16:24:56.192955400 +0800
 @@ -7,6 +7,7 @@
  from typing import Iterable, Mapping
  
- from pwnbao.features.heapviz.contracts.aliases import assignment_aliases, name_candidate, partial_aliases
-+from pwnbao.features.heapviz.source_compat import parse_module_source
- from pwnbao.features.heapviz.contracts.model import (
+ from pwncraft.features.heapviz.contracts.aliases import assignment_aliases, name_candidate, partial_aliases
++from pwncraft.features.heapviz.source_compat import parse_module_source
+ from pwncraft.features.heapviz.contracts.model import (
      ArgumentBinding,
      CanonicalEffect,
 @@ -78,9 +79,9 @@
@@ -32,4 +32,4 @@
 +    if tree is None:
          return ()
      try:
-         from pwnbao.features.heapviz.payload import collect_payload_assignments
+         from pwncraft.features.heapviz.payload import collect_payload_assignments

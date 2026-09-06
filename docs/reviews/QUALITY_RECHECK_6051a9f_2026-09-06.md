@@ -26,7 +26,7 @@
 
 ### F04：运行入口新增 NameError
 
-位置：[pwncraft_adapter.py:302](C:/Users/WYH/Desktop/pwn宝/autocorrect/pwncraft_adapter.py:302)。
+位置：[pwncraft_adapter.py:302](C:/Users/WYH/Desktop/pwncraft/autocorrect/pwncraft_adapter.py:302)。
 
 新增语句使用 `ROOT / "autocorrect" / "cases"`，模块只定义了 `_OUTER` 和 `_PROJECT_ROOT`，没有 `ROOT`。错误发生在绑定加载的异常处理之前。
 
@@ -46,7 +46,7 @@ ValueError: helper.function 必须是 Python 函数名: <empty>
 
 ### F01：门禁仍有缺口
 
-位置：[comparator_v4.py:319](C:/Users/WYH/Desktop/pwn宝/autocorrect/comparator_v4.py:319)、[evaluation_contract.py:105](C:/Users/WYH/Desktop/pwn宝/autocorrect/evaluation_contract.py:105)。
+位置：[comparator_v4.py:319](C:/Users/WYH/Desktop/pwncraft/autocorrect/comparator_v4.py:319)、[evaluation_contract.py:105](C:/Users/WYH/Desktop/pwncraft/autocorrect/evaluation_contract.py:105)。
 
 门禁只在 `contract is not None and not collect_all` 时调用，因此无合同的原空输入反例仍为 MATCH。带合同的原反例已变为 INCONCLUSIVE，这一局部修复有效。
 
@@ -63,7 +63,7 @@ planned=1, executed=1, matched=1
 
 ### F02：发送存在不等于编辑证据
 
-位置：[resolver.py:231](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/features/heapviz/contracts/resolver.py:231)。
+位置：[resolver.py:231](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/features/heapviz/contracts/resolver.py:231)。
 
 修正增加了“函数体含 send”的条件，能挡住原普通加法函数，但仍未证明参数与编辑动作的关系。
 
@@ -82,7 +82,7 @@ ping(1, 2, 3)
 
 ### F03：检查了消费顺序，没有检查数据来源
 
-位置：[resolver.py:353](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/features/heapviz/contracts/resolver.py:353)。
+位置：[resolver.py:353](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/features/heapviz/contracts/resolver.py:353)。
 
 新增条件只要求消费行晚于 helper 调用行；原反例正好满足这个条件，所以根因仍在：
 
@@ -101,7 +101,7 @@ print(data)
 
 ### F08：寄存器补丁丢失了显式指令位宽
 
-位置：[x86_trace.py:194](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/core/x86_trace.py:194)。
+位置：[x86_trace.py:194](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/core/x86_trace.py:194)。
 
 当前改为只查源寄存器表，未知源默认 8。立即数不在寄存器表内，因此显式位宽被忽略：
 
@@ -117,10 +117,10 @@ print(data)
 
 ## 未改变的四项
 
-- **F05**：[正式入口](C:/Users/WYH/Desktop/pwn宝/autocorrect/loop.py:113)和领域适配器未改变。真实 brop 案例仍在 `Path(exp_rel)` 处报 `TypeError: expected str, bytes or os.PathLike object, not dict`。空源码分别得到 stack MATCH 1/1、fmt MATCH 3/3。
-- **F06**：[拆分逻辑](C:/Users/WYH/Desktop/pwn宝/autocorrect/resource_baseline.py:42)未改变。完全复用上次来源簇输入，仍有训练 10、封存 2，簇隔离不成立。
-- **F07**：[注册表枚举](C:/Users/WYH/Desktop/pwn宝/autocorrect/loop.py:325)未改变。临时注册一个缺材料的已接受局部断言，执行结果仍为检查 0 项、exit 0。
-- **F09**：[栈金标准生成](C:/Users/WYH/Desktop/pwn宝/autocorrect/stack_gold_assertions.py:45)及 stack_gold_assertions.json 与对照版本无差异。解析器产出仍直接写为 OK，没有独立断言比较。
+- **F05**：[正式入口](C:/Users/WYH/Desktop/pwncraft/autocorrect/loop.py:113)和领域适配器未改变。真实 brop 案例仍在 `Path(exp_rel)` 处报 `TypeError: expected str, bytes or os.PathLike object, not dict`。空源码分别得到 stack MATCH 1/1、fmt MATCH 3/3。
+- **F06**：[拆分逻辑](C:/Users/WYH/Desktop/pwncraft/autocorrect/resource_baseline.py:42)未改变。完全复用上次来源簇输入，仍有训练 10、封存 2，簇隔离不成立。
+- **F07**：[注册表枚举](C:/Users/WYH/Desktop/pwncraft/autocorrect/loop.py:325)未改变。临时注册一个缺材料的已接受局部断言，执行结果仍为检查 0 项、exit 0。
+- **F09**：[栈金标准生成](C:/Users/WYH/Desktop/pwncraft/autocorrect/stack_gold_assertions.py:45)及 stack_gold_assertions.json 与对照版本无差异。解析器产出仍直接写为 OK，没有独立断言比较。
 
 ## 测试与范围说明
 

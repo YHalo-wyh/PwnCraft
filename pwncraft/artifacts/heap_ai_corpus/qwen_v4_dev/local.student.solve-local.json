@@ -1,0 +1,2803 @@
+{
+  "run_id": "run_c7e0ac37e2884e1c90f7b898963e051d",
+  "case_id": "local.student.solve-local",
+  "source_hash": "11811d293b09df109100233a76fb0c7b0a3405dc4476bf0840f000211198523f",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "pwncraft-heap-ai-v4-snapshot-evidence",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\软安决赛\\Studentmanagement\\题目附件\\solve_local.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "1",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=1]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "alloc",
+        "chunk": "B",
+        "index": "2",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=2]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "alloc",
+        "chunk": "C",
+        "index": "3",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=3]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_004",
+        "kind": "alloc",
+        "chunk": "D",
+        "index": "4",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=4]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_005",
+        "kind": "edit",
+        "chunk": "C",
+        "index": "3",
+        "request_size": "0x10",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x10, b\"a\")",
+        "meta": {}
+      },
+      {
+        "op_id": "op_006",
+        "kind": "alloc",
+        "chunk": "E",
+        "index": "100",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=100]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_007",
+        "kind": "alloc",
+        "chunk": "F",
+        "index": "101",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=101]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_008",
+        "kind": "alloc",
+        "chunk": "G",
+        "index": "102",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=102]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_009",
+        "kind": "alloc",
+        "chunk": "H",
+        "index": "103",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=103]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_010",
+        "kind": "alloc",
+        "chunk": "I",
+        "index": "104",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=104]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_011",
+        "kind": "alloc",
+        "chunk": "J",
+        "index": "105",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=105]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_012",
+        "kind": "alloc",
+        "chunk": "K",
+        "index": "106",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=106]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_013",
+        "kind": "edit",
+        "chunk": "A",
+        "index": "1",
+        "request_size": "0x80",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x80, b\"a\")",
+        "meta": {}
+      },
+      {
+        "op_id": "op_014",
+        "kind": "alloc",
+        "chunk": "L",
+        "index": "5",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(5)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_015",
+        "kind": "free",
+        "chunk": "E",
+        "index": "100",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=100]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_016",
+        "kind": "free",
+        "chunk": "F",
+        "index": "101",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=101]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_017",
+        "kind": "free",
+        "chunk": "G",
+        "index": "102",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=102]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_018",
+        "kind": "free",
+        "chunk": "H",
+        "index": "103",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=103]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_019",
+        "kind": "free",
+        "chunk": "I",
+        "index": "104",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=104]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_020",
+        "kind": "free",
+        "chunk": "J",
+        "index": "105",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=105]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_021",
+        "kind": "free",
+        "chunk": "B",
+        "index": "2",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=2]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_022",
+        "kind": "free",
+        "chunk": "A",
+        "index": "1",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=1]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_023",
+        "kind": "free",
+        "chunk": "L",
+        "index": "5",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=5]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_024",
+        "kind": "free",
+        "chunk": "K",
+        "index": "106",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=106]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_025",
+        "kind": "alloc",
+        "chunk": "M",
+        "index": "200",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=200]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_026",
+        "kind": "alloc",
+        "chunk": "N",
+        "index": "201",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=201]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_027",
+        "kind": "alloc",
+        "chunk": "O",
+        "index": "202",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=202]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_028",
+        "kind": "alloc",
+        "chunk": "P",
+        "index": "203",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=203]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_029",
+        "kind": "alloc",
+        "chunk": "Q",
+        "index": "204",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=204]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_030",
+        "kind": "alloc",
+        "chunk": "R",
+        "index": "205",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=205]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_031",
+        "kind": "alloc",
+        "chunk": "S",
+        "index": "206",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=206]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_032",
+        "kind": "alloc",
+        "chunk": "T",
+        "index": "207",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=207]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_033",
+        "kind": "edit",
+        "chunk": "M",
+        "index": "200",
+        "request_size": "0x10",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x10, b\"a\") [sid=200]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_034",
+        "kind": "edit",
+        "chunk": "C",
+        "index": "3",
+        "request_size": "0x10",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x10, b\"a\") [sid=3]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_035",
+        "kind": "alloc",
+        "chunk": "U",
+        "index": "514",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(514)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_036",
+        "kind": "alloc",
+        "chunk": "V",
+        "index": "300",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=300]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_037",
+        "kind": "alloc",
+        "chunk": "W",
+        "index": "301",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=301]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_038",
+        "kind": "alloc",
+        "chunk": "X",
+        "index": "302",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=302]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_039",
+        "kind": "alloc",
+        "chunk": "Y",
+        "index": "303",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=303]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_040",
+        "kind": "alloc",
+        "chunk": "Z",
+        "index": "304",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=304]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_041",
+        "kind": "free",
+        "chunk": "M",
+        "index": "200",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=200]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_042",
+        "kind": "free",
+        "chunk": "N",
+        "index": "201",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=201]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_043",
+        "kind": "free",
+        "chunk": "O",
+        "index": "202",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=202]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_044",
+        "kind": "free",
+        "chunk": "P",
+        "index": "203",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=203]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_045",
+        "kind": "free",
+        "chunk": "Q",
+        "index": "204",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=204]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_046",
+        "kind": "free",
+        "chunk": "R",
+        "index": "205",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=205]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_047",
+        "kind": "free",
+        "chunk": "S",
+        "index": "206",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=206]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_048",
+        "kind": "free",
+        "chunk": "T",
+        "index": "207",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(sid) [sid=207]",
+        "meta": {}
+      },
+      {
+        "op_id": "op_049",
+        "kind": "show",
+        "chunk": "U",
+        "index": "514",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show()",
+        "meta": {
+          "function": "show",
+          "expression": "show()",
+          "result_var": "leak"
+        }
+      },
+      {
+        "op_id": "op_050",
+        "kind": "derive_value",
+        "chunk": "heap",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "leak_bio_qword() - 0xBD0",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: heap = leak_bio_qword() - 0xBD0",
+        "meta": {
+          "result_var": "heap",
+          "expression": "leak_bio_qword() - 0xBD0",
+          "dependencies": "leak",
+          "source_kind": "recv",
+          "source": "heap = leak_bio_qword() - 0xBD0",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "op_id": "op_051",
+        "kind": "alloc",
+        "chunk": "AA",
+        "index": "200",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=200]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_052",
+        "kind": "alloc",
+        "chunk": "AB",
+        "index": "201",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=201]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_053",
+        "kind": "alloc",
+        "chunk": "AC",
+        "index": "202",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=202]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_054",
+        "kind": "alloc",
+        "chunk": "AD",
+        "index": "203",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=203]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_055",
+        "kind": "alloc",
+        "chunk": "AE",
+        "index": "204",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=204]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_056",
+        "kind": "alloc",
+        "chunk": "AF",
+        "index": "205",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=205]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_057",
+        "kind": "alloc",
+        "chunk": "AG",
+        "index": "206",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=206]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_058",
+        "kind": "alloc",
+        "chunk": "AH",
+        "index": "207",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(sid) [sid=207]",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_059",
+        "kind": "edit",
+        "chunk": "AA",
+        "index": "200",
+        "request_size": "0x88",
+        "data": "p64(heap + 0x8F0) * 0x11",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x88, p64(heap + 0x8F0) * 0x11)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_060",
+        "kind": "free",
+        "chunk": "AA",
+        "index": "200",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(200)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_061",
+        "kind": "alloc",
+        "chunk": "AI",
+        "index": "400",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(400)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_062",
+        "kind": "alloc",
+        "chunk": "AJ",
+        "index": "401",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(401)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_063",
+        "kind": "show",
+        "chunk": "AJ",
+        "index": "401",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show()",
+        "meta": {
+          "function": "show",
+          "expression": "show()",
+          "result_var": "leak_2"
+        }
+      },
+      {
+        "op_id": "op_064",
+        "kind": "derive_value",
+        "chunk": "libc.address",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "leak_bio_qword() - 0x203B20",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: libc.address = leak_bio_qword() - 0x203B20",
+        "meta": {
+          "result_var": "libc.address",
+          "expression": "leak_bio_qword() - 0x203B20",
+          "dependencies": "leak_2",
+          "source_kind": "recv",
+          "source": "libc.address = leak_bio_qword() - 0x203B20",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "op_id": "op_065",
+        "kind": "alloc",
+        "chunk": "AK",
+        "index": "403",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(403)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_066",
+        "kind": "edit",
+        "chunk": "AK",
+        "index": "403",
+        "request_size": "0x80",
+        "data": "p64(io_list_all) * 0x10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x80, p64(io_list_all) * 0x10)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_067",
+        "kind": "alloc",
+        "chunk": "AL",
+        "index": "404",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(404)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_068",
+        "kind": "derive_value",
+        "chunk": "fake_file",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "heap + 0xE20",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: fake_file = heap + 0xE20",
+        "meta": {
+          "result_var": "fake_file",
+          "expression": "heap + 0xE20",
+          "dependencies": "heap",
+          "source_kind": "derived",
+          "source": "fake_file = heap + 0xE20",
+          "provenance": "derived"
+        }
+      },
+      {
+        "op_id": "op_069",
+        "kind": "derive_value",
+        "chunk": "fake_file_payload",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "flat(\n    {\n        0x00: b\"  sh\",\n        0x28: p64(1),\n        0x68: p64(system),\n        0x88: p64(heap + 0x1200),\n        0xA0: p64(fake_file),\n        0xD8: p64(wfile_jumps),\n        0xE0: p64(fake_file),\n    },\n    filler=b\"\\x00\",\n)",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: fake_file_payload = flat(\n    {\n        0x00: b\"  sh\",\n        0x28: p64(1),\n        0x68: p64(system),\n        0x88: p64(heap + 0x1200),\n        0xA0: p64(fake_file),\n        0xD8: p64(wfile_jumps),\n        0xE0: p64(fake_file),\n    },\n    filler=b\"\\x00\",\n)",
+        "meta": {
+          "result_var": "fake_file_payload",
+          "expression": "flat(\n    {\n        0x00: b\"  sh\",\n        0x28: p64(1),\n        0x68: p64(system),\n        0x88: p64(heap + 0x1200),\n        0xA0: p64(fake_file),\n        0xD8: p64(wfile_jumps),\n        0xE0: p64(fake_file),\n    },\n    filler=b\"\\x00\",\n)",
+          "dependencies": "fake_file,heap",
+          "source_kind": "derived",
+          "source": "fake_file_payload = flat(\n    {\n        0x00: b\"  sh\",\n        0x28: p64(1),\n        0x68: p64(system),\n        0x88: p64(heap + 0x1200),\n        0xA0: p64(fake_file),\n        0xD8: p64(wfile_jumps),\n        0xE0: p64(fake_file),\n    },\n    filler=b\"\\x00\",\n)",
+          "provenance": "derived",
+          "byte_width": "8",
+          "endian": "little"
+        }
+      },
+      {
+        "op_id": "op_070",
+        "kind": "edit",
+        "chunk": "AL",
+        "index": "404",
+        "request_size": "0x200",
+        "data": "fake_file_payload",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x200, fake_file_payload)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_071",
+        "kind": "free",
+        "chunk": "AK",
+        "index": "403",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(403)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_072",
+        "kind": "alloc",
+        "chunk": "AM",
+        "index": "405",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(405)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_073",
+        "kind": "alloc",
+        "chunk": "AN",
+        "index": "406",
+        "request_size": "unknown",
+        "data": "b\"a\"",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: reg(406)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_074",
+        "kind": "edit",
+        "chunk": "AN",
+        "index": "406",
+        "request_size": "0x10",
+        "data": "p64(fake_file)",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit_bio(0x10, p64(fake_file))",
+        "meta": {}
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_bb9c22025a845cf2",
+        "start": 1376,
+        "end": 1384,
+        "line": 66,
+        "end_line": 66,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_69789b758139d867",
+        "start": 1376,
+        "end": 1384,
+        "line": 66,
+        "end_line": 66,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_329e2925ec795468",
+        "start": 1376,
+        "end": 1384,
+        "line": 66,
+        "end_line": 66,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_12c0c574a98a7035",
+        "start": 1376,
+        "end": 1384,
+        "line": 66,
+        "end_line": 66,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "4"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a9067414cb28a6c7",
+        "start": 1395,
+        "end": 1415,
+        "line": 69,
+        "end_line": 69,
+        "fingerprint": "208ec080ed32421b",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5956abd82e62f96b",
+        "start": 1458,
+        "end": 1466,
+        "line": 73,
+        "end_line": 73,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "100"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_655e1094fc9714c4",
+        "start": 1458,
+        "end": 1466,
+        "line": 73,
+        "end_line": 73,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "101"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_2b7c0b6d3657d980",
+        "start": 1458,
+        "end": 1466,
+        "line": 73,
+        "end_line": 73,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "102"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_44aab4b6a20c2585",
+        "start": 1458,
+        "end": 1466,
+        "line": 73,
+        "end_line": 73,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "103"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_2726008e701a4cc3",
+        "start": 1458,
+        "end": 1466,
+        "line": 73,
+        "end_line": 73,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "104"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_681d86fb50115d0d",
+        "start": 1458,
+        "end": 1466,
+        "line": 73,
+        "end_line": 73,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "105"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a8cf6f014ff2c53f",
+        "start": 1458,
+        "end": 1466,
+        "line": 73,
+        "end_line": 73,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "106"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_2f026b2b859bb1e6",
+        "start": 1477,
+        "end": 1497,
+        "line": 76,
+        "end_line": 76,
+        "fingerprint": "3104074c5e566fcb",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_31c7b3bc972112a5",
+        "start": 1508,
+        "end": 1514,
+        "line": 79,
+        "end_line": 79,
+        "fingerprint": "5c8809d7c358a5c9",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5b557c6beb757fb7",
+        "start": 1547,
+        "end": 1558,
+        "line": 81,
+        "end_line": 81,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "100"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_f774e8e6d2ea85dd",
+        "start": 1547,
+        "end": 1558,
+        "line": 81,
+        "end_line": 81,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "101"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_c91c26d1d08e116d",
+        "start": 1547,
+        "end": 1558,
+        "line": 81,
+        "end_line": 81,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "102"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_0e6123998fb38ea0",
+        "start": 1547,
+        "end": 1558,
+        "line": 81,
+        "end_line": 81,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "103"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_9191796d1f73cd29",
+        "start": 1547,
+        "end": 1558,
+        "line": 81,
+        "end_line": 81,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "104"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_adae02b6f70c711b",
+        "start": 1547,
+        "end": 1558,
+        "line": 81,
+        "end_line": 81,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "105"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_d27af286c68e6593",
+        "start": 1590,
+        "end": 1601,
+        "line": 83,
+        "end_line": 83,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "2"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a3fffc5e7a75ed01",
+        "start": 1590,
+        "end": 1601,
+        "line": 83,
+        "end_line": 83,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "1"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_e6168f4815d43823",
+        "start": 1590,
+        "end": 1601,
+        "line": 83,
+        "end_line": 83,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "5"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_979011fce3fd3308",
+        "start": 1590,
+        "end": 1601,
+        "line": 83,
+        "end_line": 83,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "106"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_d6127f95f7b78eb8",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "200"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_fc44e4057ae1517a",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "201"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b26ae308177f276d",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "202"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_469e2565f8b90425",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "203"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_1bce0f41c0c32391",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "204"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_f61580f653fd6380",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "205"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_4d0ddb7f5d14ee6f",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "206"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_002550b382ed35e3",
+        "start": 1635,
+        "end": 1643,
+        "line": 86,
+        "end_line": 86,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "207"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_e432590cd57c5b77",
+        "start": 1685,
+        "end": 1705,
+        "line": 90,
+        "end_line": 90,
+        "fingerprint": "208ec080ed32421b",
+        "loop_env": [
+          [
+            "sid",
+            "200"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_61b6684f07dd1aab",
+        "start": 1685,
+        "end": 1705,
+        "line": 90,
+        "end_line": 90,
+        "fingerprint": "208ec080ed32421b",
+        "loop_env": [
+          [
+            "sid",
+            "3"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a4c3708ed7ede3b5",
+        "start": 1720,
+        "end": 1728,
+        "line": 93,
+        "end_line": 93,
+        "fingerprint": "48294659b0707450",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b4746bd4004b8cd3",
+        "start": 1761,
+        "end": 1769,
+        "line": 95,
+        "end_line": 95,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "300"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_857bb7440c162574",
+        "start": 1761,
+        "end": 1769,
+        "line": 95,
+        "end_line": 95,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "301"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_f287fccb5a68f92d",
+        "start": 1761,
+        "end": 1769,
+        "line": 95,
+        "end_line": 95,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "302"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_d9cc0c7d60f50c82",
+        "start": 1761,
+        "end": 1769,
+        "line": 95,
+        "end_line": 95,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "303"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_fbe6bd14b839ddc4",
+        "start": 1761,
+        "end": 1769,
+        "line": 95,
+        "end_line": 95,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "304"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_24edd0059aa32e3d",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "200"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_83c02c53116732f1",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "201"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_491e98858eb664c7",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "202"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ecdd26b27f729493",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "203"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_c3ceca4009e39792",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "204"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_26fc96bb2e48fe3e",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "205"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_0f92f1059cfa73f0",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "206"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_cffd863463e4f30d",
+        "start": 1803,
+        "end": 1814,
+        "line": 98,
+        "end_line": 98,
+        "fingerprint": "870ff1be40aa7090",
+        "loop_env": [
+          [
+            "sid",
+            "207"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b093887b6fad8dc7",
+        "start": 1827,
+        "end": 1833,
+        "line": 101,
+        "end_line": 101,
+        "fingerprint": "17de1d33f8a8bd4c",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_4643c64259051a16",
+        "start": 1834,
+        "end": 1865,
+        "line": 102,
+        "end_line": 102,
+        "fingerprint": "44bd523958087bc3",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_d6127f95f7b78eb8",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "200"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_fc44e4057ae1517a",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "201"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b26ae308177f276d",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "202"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_469e2565f8b90425",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "203"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_1bce0f41c0c32391",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "204"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_f61580f653fd6380",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "205"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_4d0ddb7f5d14ee6f",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "206"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_002550b382ed35e3",
+        "start": 2068,
+        "end": 2076,
+        "line": 109,
+        "end_line": 109,
+        "fingerprint": "e18a2106bbc5a273",
+        "loop_env": [
+          [
+            "sid",
+            "207"
+          ]
+        ],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_f10f5da12e3358cf",
+        "start": 2089,
+        "end": 2129,
+        "line": 112,
+        "end_line": 112,
+        "fingerprint": "97c0b3d1e428caff",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_44becb19df149a53",
+        "start": 2149,
+        "end": 2160,
+        "line": 116,
+        "end_line": 116,
+        "fingerprint": "4d4372650ddd5369",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_e110d46008b5af2d",
+        "start": 2161,
+        "end": 2169,
+        "line": 117,
+        "end_line": 117,
+        "fingerprint": "0f3b304d0253b3d9",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_38e24b2fb286dd46",
+        "start": 2170,
+        "end": 2178,
+        "line": 118,
+        "end_line": 118,
+        "fingerprint": "e82f411bce984df2",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b093887b6fad8dc7",
+        "start": 2191,
+        "end": 2197,
+        "line": 121,
+        "end_line": 121,
+        "fingerprint": "17de1d33f8a8bd4c",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a7468b8c0b360b3c",
+        "start": 2198,
+        "end": 2240,
+        "line": 122,
+        "end_line": 122,
+        "fingerprint": "9679cfae9e1810cb",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5824c71235273643",
+        "start": 2366,
+        "end": 2374,
+        "line": 127,
+        "end_line": 127,
+        "fingerprint": "8d763915807a717f",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_276e0e44732192f1",
+        "start": 2495,
+        "end": 2534,
+        "line": 132,
+        "end_line": 132,
+        "fingerprint": "b2f7611051041338",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_20c3747cec25873d",
+        "start": 2554,
+        "end": 2562,
+        "line": 136,
+        "end_line": 136,
+        "fingerprint": "264411f88883ffda",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_2b181faacc850261",
+        "start": 2574,
+        "end": 2598,
+        "line": 138,
+        "end_line": 138,
+        "fingerprint": "44b6a9776574d5d6",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_dfb64160f23ab8cc",
+        "start": 2599,
+        "end": 2857,
+        "line": 139,
+        "end_line": 150,
+        "fingerprint": "92f179535b8caf45",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ac5553a3c2bcb7ca",
+        "start": 2858,
+        "end": 2892,
+        "line": 151,
+        "end_line": 151,
+        "fingerprint": "4106b683dea0ab41",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_0fe000e61f25fef9",
+        "start": 2903,
+        "end": 2914,
+        "line": 154,
+        "end_line": 154,
+        "fingerprint": "8ebc68fcf5057c7b",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_14f2637b4ac3592c",
+        "start": 2915,
+        "end": 2923,
+        "line": 155,
+        "end_line": 155,
+        "fingerprint": "efc60f045ef55e4e",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_966005f43018884c",
+        "start": 2924,
+        "end": 2932,
+        "line": 156,
+        "end_line": 156,
+        "fingerprint": "0245595a47823798",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_05dbb6b67d5ecfe7",
+        "start": 2945,
+        "end": 2975,
+        "line": 159,
+        "end_line": 159,
+        "fingerprint": "9018b760f80b31ef",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [
+      {
+        "severity": "info",
+        "code": "heap_neutral_branch",
+        "message": "条件 `args.GDB` 只影响调试/辅助流程，已继续解析共同后缀。",
+        "start": 434,
+        "end": 477,
+        "line": 17,
+        "suggestion": ""
+      },
+      {
+        "severity": "info",
+        "code": "heap_neutral_branch",
+        "message": "条件 `args.CHECK` 只影响调试/辅助流程，已继续解析共同后缀。",
+        "start": 3119,
+        "end": 3328,
+        "line": 167,
+        "suggestion": ""
+      }
+    ],
+    "symbols": {
+      "sid": "207"
+    }
+  },
+  "snapshot": {
+    "step": 74,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+?<A:chunk>",
+        "user_address": "heap_base+?<A:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "B": {
+        "address": "heap_base+?<B:chunk>",
+        "user_address": "heap_base+?<B:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "C": {
+        "address": "heap_base+?<C:chunk>",
+        "user_address": "heap_base+?<C:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "D": {
+        "address": "heap_base+?<D:chunk>",
+        "user_address": "heap_base+?<D:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "E": {
+        "address": "heap_base+?<E:chunk>",
+        "user_address": "heap_base+?<E:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "F": {
+        "address": "heap_base+?<F:chunk>",
+        "user_address": "heap_base+?<F:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "G": {
+        "address": "heap_base+?<G:chunk>",
+        "user_address": "heap_base+?<G:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "H": {
+        "address": "heap_base+?<H:chunk>",
+        "user_address": "heap_base+?<H:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "I": {
+        "address": "heap_base+?<I:chunk>",
+        "user_address": "heap_base+?<I:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "J": {
+        "address": "heap_base+?<J:chunk>",
+        "user_address": "heap_base+?<J:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "K": {
+        "address": "heap_base+?<K:chunk>",
+        "user_address": "heap_base+?<K:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "L": {
+        "address": "heap_base+?<L:chunk>",
+        "user_address": "heap_base+?<L:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "M": {
+        "address": "heap_base+?<M:chunk>",
+        "user_address": "heap_base+?<M:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "N": {
+        "address": "heap_base+?<N:chunk>",
+        "user_address": "heap_base+?<N:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "O": {
+        "address": "heap_base+?<O:chunk>",
+        "user_address": "heap_base+?<O:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "P": {
+        "address": "heap_base+?<P:chunk>",
+        "user_address": "heap_base+?<P:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "Q": {
+        "address": "heap_base+?<Q:chunk>",
+        "user_address": "heap_base+?<Q:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "R": {
+        "address": "heap_base+?<R:chunk>",
+        "user_address": "heap_base+?<R:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "S": {
+        "address": "heap_base+?<S:chunk>",
+        "user_address": "heap_base+?<S:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "T": {
+        "address": "heap_base+?<T:chunk>",
+        "user_address": "heap_base+?<T:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "U": {
+        "address": "heap_base+?<U:chunk>",
+        "user_address": "heap_base+?<U:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "V": {
+        "address": "heap_base+?<V:chunk>",
+        "user_address": "heap_base+?<V:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "W": {
+        "address": "heap_base+?<W:chunk>",
+        "user_address": "heap_base+?<W:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "X": {
+        "address": "heap_base+?<X:chunk>",
+        "user_address": "heap_base+?<X:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "Y": {
+        "address": "heap_base+?<Y:chunk>",
+        "user_address": "heap_base+?<Y:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "Z": {
+        "address": "heap_base+?<Z:chunk>",
+        "user_address": "heap_base+?<Z:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AA": {
+        "address": "heap_base+?<AA:chunk>",
+        "user_address": "heap_base+?<AA:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AB": {
+        "address": "heap_base+?<AB:chunk>",
+        "user_address": "heap_base+?<AB:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AC": {
+        "address": "heap_base+?<AC:chunk>",
+        "user_address": "heap_base+?<AC:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AD": {
+        "address": "heap_base+?<AD:chunk>",
+        "user_address": "heap_base+?<AD:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AE": {
+        "address": "heap_base+?<AE:chunk>",
+        "user_address": "heap_base+?<AE:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AF": {
+        "address": "heap_base+?<AF:chunk>",
+        "user_address": "heap_base+?<AF:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AG": {
+        "address": "heap_base+?<AG:chunk>",
+        "user_address": "heap_base+?<AG:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AH": {
+        "address": "heap_base+?<AH:chunk>",
+        "user_address": "heap_base+?<AH:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AI": {
+        "address": "heap_base+?<AI:chunk>",
+        "user_address": "heap_base+?<AI:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AJ": {
+        "address": "heap_base+?<AJ:chunk>",
+        "user_address": "heap_base+?<AJ:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AK": {
+        "address": "heap_base+?<AK:chunk>",
+        "user_address": "heap_base+?<AK:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AL": {
+        "address": "heap_base+?<AL:chunk>",
+        "user_address": "heap_base+?<AL:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AM": {
+        "address": "heap_base+?<AM:chunk>",
+        "user_address": "heap_base+?<AM:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "AN": {
+        "address": "heap_base+?<AN:chunk>",
+        "user_address": "heap_base+?<AN:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 74,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 74,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true,
+    "ai_candidates": 0,
+    "ai_replay_accepted": 0,
+    "ai_replay_rejected": 0
+  },
+  "ai": {
+    "generation": 2,
+    "source_hash": "11811d293b09df109100233a76fb0c7b0a3405dc4476bf0840f000211198523f",
+    "proposals": [],
+    "diagnostics": [
+      "候选 1: 源码锚点无法唯一重绑",
+      "No additional diagnostics required."
+    ],
+    "elapsed_ms": 36078,
+    "model": "qwen3-coder-30b-a3b-instruct",
+    "cached": false,
+    "prompt_version": "pwncraft-heap-ai-v4-snapshot-evidence",
+    "candidate_audit": [
+      {
+        "proposal_id": "heap_semantic_correction_0",
+        "action": "replace_operation",
+        "source_start": 1685,
+        "source_end": 1705,
+        "source_text": "edit chunk=M index=200 size=0x10 data=b\"a\"",
+        "confidence": 0.95,
+        "rationale": "The source code shows edit operations on chunks M and C with size 0x10, but static analysis incorrectly lists these as 'alloc' instead of 'edit'. The exact line",
+        "ast_fingerprint": "",
+        "operation": {},
+        "helper_mapping": {},
+        "branch_choice": {},
+        "memory_annotation": {},
+        "rule": {},
+        "snapshot_effect": {}
+      }
+    ]
+  },
+  "strict_previews": [],
+  "elapsed_s": 36.859
+}

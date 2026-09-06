@@ -1,0 +1,12 @@
+{
+  "run_id": "run_a1d7b4a0092f4ea1bede8ff6bead559e",
+  "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+  "source_hash": "28183cb78268dac790d43ea6c833bc757881d1d073a698300dfc03c1e6f17a43",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "over_budget",
+  "error": "预计输入 3653 tokens，超过当前可用 3584；请精简 EXP/本题指令，或在 LM Studio 和 pwncraft中同时提高上下文。",
+  "retryable": false,
+  "details": {},
+  "elapsed_s": 0.14
+}

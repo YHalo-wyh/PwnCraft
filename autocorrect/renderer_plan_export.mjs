@@ -56,7 +56,7 @@ windowStub.window = windowStub;
 sandbox.globalThis = sandbox;
 vm.createContext(sandbox);
 
-const rendererRoot = path.resolve(import.meta.dirname, '..', 'pwn宝', 'pwnbao-electron', 'renderer');
+const rendererRoot = path.resolve(import.meta.dirname, '..', 'pwncraft', 'pwncraft-electron', 'renderer');
 function loadScript(rel) {
   const src = readFileSync(path.join(rendererRoot, rel), 'utf-8');
   vm.runInContext(src, sandbox, { filename: rel });
@@ -88,7 +88,7 @@ for (const i of picks) {
 }
 const out = {
   run_id: bridge.run_id || manifest.run_id,
-  source: 'pwnbao-electron/renderer/heap.js exportRendererPlan (real geometry pipeline, node headless)',
+  source: 'pwncraft-electron/renderer/heap.js exportRendererPlan (real geometry pipeline, node headless)',
   snapshot_id: bridge.snapshot_id,
   memory_revision: bridge.memory_revision,
   exported_steps: picks,

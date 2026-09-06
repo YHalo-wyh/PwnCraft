@@ -1,2 +1,0 @@
-# Electron 真值桥（pwnbao.electron_bridge）的唯一第三方依赖。
-pypdf>=6.0.0

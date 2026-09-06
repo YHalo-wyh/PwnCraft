@@ -21,7 +21,7 @@
 
 ### F01 · P1：正式比较入口没有调用完整性门禁
 
-位置：[comparator_v4.py:317](C:/Users/WYH/Desktop/pwn宝/autocorrect/comparator_v4.py:317)、[evaluation_contract.py:105](C:/Users/WYH/Desktop/pwn宝/autocorrect/evaluation_contract.py:105)。
+位置：[comparator_v4.py:317](C:/Users/WYH/Desktop/pwncraft/autocorrect/comparator_v4.py:317)、[evaluation_contract.py:105](C:/Users/WYH/Desktop/pwncraft/autocorrect/evaluation_contract.py:105)。
 
 `compare()` 直接返回汇总结果，没有执行 `evaluation_contract.enforce()`。`cmd_diverge` 和 `cmd_truthregress` 同样直接消费比较器结果。检索当前生产代码，`enforce()` 的调用仅出现在测试中。
 
@@ -38,7 +38,7 @@
 
 ### F02 · P1：任意三参数函数都会被提升为 EDIT
 
-位置：[resolver.py:225](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/features/heapviz/contracts/resolver.py:225)、[resolver.py:246](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/features/heapviz/contracts/resolver.py:246)。
+位置：[resolver.py:225](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/features/heapviz/contracts/resolver.py:225)、[resolver.py:246](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/features/heapviz/contracts/resolver.py:246)。
 
 新增调用点参数提升路径检查参数数量一致，但没有验证文档声称的 index/data 实参形态，也没有要求目标写入的正证据。三个及以上参数直接使 UNKNOWN 变为 EDIT，置信度为 STRUCTURAL。
 
@@ -59,7 +59,7 @@ combine(1, 2, 3)
 
 ### F03 · P1：SHOW 提升没有证明收到的数据属于该调用
 
-位置：[resolver.py:316](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/features/heapviz/contracts/resolver.py:316)、[resolver.py:332](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/features/heapviz/contracts/resolver.py:332)。
+位置：[resolver.py:316](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/features/heapviz/contracts/resolver.py:316)、[resolver.py:332](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/features/heapviz/contracts/resolver.py:332)。
 
 扫描先收集接收变量的后续使用，再将使用事件归给最近的待定 helper；消费时没有证明接收发生在该 helper 之后。
 
@@ -80,7 +80,7 @@ print(data)
 
 ### F04 · P1：最新行为绑定注入实际没有接通
 
-位置：[pwncraft_adapter.py:301](C:/Users/WYH/Desktop/pwn宝/autocorrect/pwncraft_adapter.py:301)、[challenge_profile.py:107](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/features/heapviz/semantics/challenge_profile.py:107)。
+位置：[pwncraft_adapter.py:301](C:/Users/WYH/Desktop/pwncraft/autocorrect/pwncraft_adapter.py:301)、[challenge_profile.py:107](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/features/heapviz/semantics/challenge_profile.py:107)。
 
 `run_case()` 接收 corpus 案例目录，并从该目录读取 `behavior_bindings.json`。两份新增绑定实际位于 `autocorrect/cases/<id>/`，适配器读取位置均没有文件。
 
@@ -92,7 +92,7 @@ print(data)
 
 ### F05 · P1：跨领域适配器存在，但正式训练仍只走堆入口
 
-位置：[loop.py:113](C:/Users/WYH/Desktop/pwn宝/autocorrect/loop.py:113)、[pwncraft_adapter.py:285](C:/Users/WYH/Desktop/pwn宝/autocorrect/pwncraft_adapter.py:285)、[domain_adapters.py:85](C:/Users/WYH/Desktop/pwn宝/autocorrect/domain_adapters.py:85)。
+位置：[loop.py:113](C:/Users/WYH/Desktop/pwncraft/autocorrect/loop.py:113)、[pwncraft_adapter.py:285](C:/Users/WYH/Desktop/pwncraft/autocorrect/pwncraft_adapter.py:285)、[domain_adapters.py:85](C:/Users/WYH/Desktop/pwncraft/autocorrect/domain_adapters.py:85)。
 
 `CaseMaterial` 和 `run_domain()` 已实现，正式 run/generate/truthregress 以及有真值的封存执行路径仍使用 `pwncraft_adapter.run_case()`。入口归一化没有接入这些调用路径。
 
@@ -104,7 +104,7 @@ print(data)
 
 ### F06 · P1：同一来源簇仍会跨越训练集与封存集
 
-位置：[resource_baseline.py:42](C:/Users/WYH/Desktop/pwn宝/autocorrect/resource_baseline.py:42)。
+位置：[resource_baseline.py:42](C:/Users/WYH/Desktop/pwncraft/autocorrect/resource_baseline.py:42)。
 
 拆分使用 `hash(cluster + case_id)`，因此同簇不同编号不保证进入同一个集合。独立构造 12 个同仓库、同题目路径的变体，结果为训练集 10 个、封存集 2 个。
 
@@ -114,7 +114,7 @@ print(data)
 
 ### F07 · P1：已接受规则与局部断言没有进入真值回归
 
-位置：[loop.py:325](C:/Users/WYH/Desktop/pwn宝/autocorrect/loop.py:325)。
+位置：[loop.py:325](C:/Users/WYH/Desktop/pwncraft/autocorrect/loop.py:325)。
 
 注册表分为 rule/assertion/case 三类，但 truthregress 只枚举 case_acceptances。只接受局部断言、整题尚未接受的案例不会被回归。
 
@@ -128,7 +128,7 @@ print(data)
 
 ### F08 · P2：栈写入位宽被错误记录为 8 字节
 
-位置：[x86_trace.py:193](C:/Users/WYH/Desktop/pwn宝/pwn宝/pwnbao/core/x86_trace.py:193)。
+位置：[x86_trace.py:193](C:/Users/WYH/Desktop/pwncraft/pwncraft/pwncraft/core/x86_trace.py:193)。
 
 当前按 mnemonic 后缀判断写入大小，普通 `mov` 默认 8 字节。实际反汇编常用寄存器宽度表达操作大小。
 
@@ -138,7 +138,7 @@ print(data)
 
 ### F09 · P1：所谓独立栈金标准实际是被测解析器的输出
 
-位置：[stack_gold_assertions.py:45](C:/Users/WYH/Desktop/pwn宝/autocorrect/stack_gold_assertions.py:45)、[stack_gold_assertions.py:106](C:/Users/WYH/Desktop/pwn宝/autocorrect/stack_gold_assertions.py:106)。
+位置：[stack_gold_assertions.py:45](C:/Users/WYH/Desktop/pwncraft/autocorrect/stack_gold_assertions.py:45)、[stack_gold_assertions.py:106](C:/Users/WYH/Desktop/pwncraft/autocorrect/stack_gold_assertions.py:106)。
 
 脚本使用项目自己的 `trace_stack_layouts()` 解析反汇编，将解析结果写为 `status=OK` 和 `OBSERVED`；不存在独立期望与实际结果的比较。byte_ranges 又来自项目自己的 ExploitIR，given_state 是同一布局结果的摘要。
 

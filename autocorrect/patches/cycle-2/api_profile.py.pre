@@ -4,7 +4,7 @@ import ast
 import re
 from dataclasses import replace
 
-from pwnbao.features.heapviz.models import HeapApiProfile
+from pwncraft.features.heapviz.models import HeapApiProfile
 
 
 ROLE_ALIASES = {

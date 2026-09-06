@@ -1,0 +1,19 @@
+{
+  "schema_version": 3,
+  "root": "/mnt/c/Users/WYH/Desktop/pwncraft/pwncraft_v0.5.0/artifacts/sunshine_ast_v012",
+  "case_count": 0,
+  "metrics": {
+    "raw_coverage": {
+      "passed": 0,
+      "total": 0,
+      "rate": 0.0
+    },
+    "static_scope_coverage": {
+      "passed": 0,
+      "total": 0,
+      "rate": 0.0
+    },
+    "eligibility": {}
+  },
+  "cases": []
+}

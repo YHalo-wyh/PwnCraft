@@ -1,0 +1,149 @@
+{
+  "run_id": "run_d3f16ea5fd404852ba2572384e3cd500",
+  "case_id": "local.ctfshow.pwn174",
+  "source_hash": "93e62b1e259d8a2850e2aaa208c2f27cf5e66a0fbed0d3b4357408bcd754f68f",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-174-93e62b1e259d.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "derive_value",
+        "chunk": "libc_base",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "int(io.recvuntil(',', drop=True) ,16) - 138135",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: libc_base = int(io.recvuntil(',', drop=True) ,16) - libc_start_main_ret",
+        "meta": {
+          "result_var": "libc_base",
+          "expression": "int(io.recvuntil(',', drop=True) ,16) - 138135",
+          "dependencies": "",
+          "source_kind": "recv",
+          "source": "libc_base = int(io.recvuntil(',', drop=True) ,16) - libc_start_main_ret",
+          "provenance": "inferred"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "derive_value",
+        "chunk": "malloc_hook",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "libc_base + libc.sym['__malloc_hook']",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: malloc_hook = libc_base + libc.sym['__malloc_hook']",
+        "meta": {
+          "result_var": "malloc_hook",
+          "expression": "libc_base + libc.sym['__malloc_hook']",
+          "dependencies": "libc_base",
+          "source_kind": "derived",
+          "source": "malloc_hook = libc_base + libc.sym['__malloc_hook']",
+          "provenance": "derived"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "derive_value",
+        "chunk": "one_gadget",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "libc_base + 0x10a38c",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: one_gadget  = libc_base + 0x10a38c",
+        "meta": {
+          "result_var": "one_gadget",
+          "expression": "libc_base + 0x10a38c",
+          "dependencies": "libc_base",
+          "source_kind": "derived",
+          "source": "one_gadget  = libc_base + 0x10a38c",
+          "provenance": "derived"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_3b39aee977b1ebce",
+        "start": 282,
+        "end": 353,
+        "line": 13,
+        "end_line": 13,
+        "fingerprint": "439a4887708babf4",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_975cf39765077dd0",
+        "start": 354,
+        "end": 405,
+        "line": 14,
+        "end_line": 14,
+        "fingerprint": "0d29c7f9e26c3c03",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ebd200828b8005a8",
+        "start": 406,
+        "end": 440,
+        "line": 15,
+        "end_line": 15,
+        "fingerprint": "969e2840442e164f",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {
+      "libc_start_main_ret": "138135",
+      "offset": "8"
+    }
+  },
+  "snapshot": {
+    "step": 3,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 3,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 3,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "feedback_compilation": [],
+  "elapsed_s": 0.016
+}

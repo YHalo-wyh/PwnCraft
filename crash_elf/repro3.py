@@ -1,5 +1,5 @@
 import faulthandler, os, sys
-sys.path.insert(0, r"C:\Users\WYH\Desktop\pwn宝\pwn宝")
+sys.path.insert(0, r"C:\Users\WYH\Desktop\pwncraft\pwncraft")
 faulthandler.enable()
 os.environ.pop("QT_QPA_PLATFORM", None)
 # 不安装 sys.excepthook：PyQt5 对未捕获 slot 异常会 qFatal(abort) = 用户闪退
@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QApplication
 
 app = QApplication([])
 
-from pwnbao.gui.main_window import MainWindow
+from pwncraft.gui.main_window import MainWindow
 w = MainWindow()
 w.show()
 app.processEvents()
@@ -21,7 +21,7 @@ from PyQt5.QtCore import QPoint, QMimeData as MD, QUrl
 from PyQt5.QtGui import QDragEnterEvent, QDropEvent
 
 mime = MD()
-mime.setUrls([QUrl.fromLocalFile(r"C:\Users\WYH\Desktop\pwn宝\crash_elf\pwn")])
+mime.setUrls([QUrl.fromLocalFile(r"C:\Users\WYH\Desktop\pwncraft\crash_elf\pwn")])
 
 def do_drop(widget, pos):
     widget.event(QDragEnterEvent(pos, Qt.CopyAction, mime, Qt.LeftButton, Qt.NoModifier))

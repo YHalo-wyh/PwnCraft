@@ -1,0 +1,89 @@
+{
+  "run_id": "run_d3c919f085e64dc182c4d51e2ffb0829",
+  "case_id": "local.ctfshow.pwn144",
+  "source_hash": "dbcaeb87a66cb8fa6878517ce08039218b4d0bed9f4a25640dd3fd1c8f33ec7b",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwncraft\\pwncraft_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-144-dbcaeb87a66c.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "note",
+        "chunk": "",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "unmapped heap-like call: create_heap",
+        "meta": {
+          "analysis_status": "unresolved"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_52441fd3f1acfec5",
+        "start": 1042,
+        "end": 1066,
+        "line": 34,
+        "end_line": 34,
+        "fingerprint": "aeed2782b9739350",
+        "loop_env": [],
+        "confidence": "unresolved",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [
+      {
+        "severity": "warning",
+        "code": "unmapped_call",
+        "message": "调用 `create_heap` 看起来像堆操作，但参数角色不明确。",
+        "start": 1042,
+        "end": 1066,
+        "line": 34,
+        "suggestion": "在函数适配或时间线校正中映射它。"
+      }
+    ],
+    "symbols": {
+      "heaparray_0": "6299840",
+      "heaparray_1": "6299848",
+      "heaparray_2": "6299856",
+      "heaparray_3": "6299864"
+    }
+  },
+  "snapshot": {
+    "step": 1,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 1,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 1,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.031
+}

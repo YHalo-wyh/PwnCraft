@@ -6,8 +6,8 @@ import re
 from dataclasses import dataclass, replace
 from typing import Iterable, Mapping
 
-from pwnbao.features.heapviz.contracts.aliases import assignment_aliases, name_candidate, partial_aliases
-from pwnbao.features.heapviz.contracts.model import (
+from pwncraft.features.heapviz.contracts.aliases import assignment_aliases, name_candidate, partial_aliases
+from pwncraft.features.heapviz.contracts.model import (
     ArgumentBinding,
     CanonicalEffect,
     ContractConfidence,
@@ -17,13 +17,13 @@ from pwnbao.features.heapviz.contracts.model import (
     FunctionSignature,
     HelperContract,
 )
-from pwnbao.features.heapviz.semantics.canonical_ir import (
+from pwncraft.features.heapviz.semantics.canonical_ir import (
     CanonicalHeapOperation,
     CanonicalOperationKind,
     CanonicalSourceBinding,
     SemanticConfidence,
 )
-from pwnbao.features.heapviz.semantics.values import LengthExpr, UnknownValue, byte_length, evaluate_value
+from pwncraft.features.heapviz.semantics.values import LengthExpr, UnknownValue, byte_length, evaluate_value
 
 
 _ROLE_ALIASES = {
@@ -185,7 +185,7 @@ def lower_source_calls(source: str, resolution: ContractResolution | None = None
     except SyntaxError:
         return ()
     try:
-        from pwnbao.features.heapviz.payload import collect_payload_assignments
+        from pwncraft.features.heapviz.payload import collect_payload_assignments
 
         module_assignments = collect_payload_assignments(source)
     except Exception:  # pragma: no cover - payload collector must never block lowering
@@ -304,7 +304,7 @@ def _inline_annotation(node: ast.FunctionDef | ast.AsyncFunctionDef, lines: list
     while line >= 0 and line >= int(getattr(node, "lineno", 1)) - 5:
         text = lines[line].strip() if line < len(lines) else ""
         if text.startswith("#"):
-            if "pwnbao:" in text.lower():
+            if "pwncraft:" in text.lower():
                 collected.append(text.split(":", 1)[1].strip())
             line -= 1
             continue

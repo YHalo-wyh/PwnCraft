@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pwnbao.features.audit.audit import audit_exp
+from pwncraft.features.audit.audit import audit_exp
 
 
 def _result(layer: str, status: str, **extra) -> dict:
@@ -54,8 +54,8 @@ def run_stack(case_material, exp_source: str, *,
 
 def run_fmt(case_material, exp_source: str) -> dict:
     """fmt 领域: 解析层 + 交互层 + 语义检查层 (M4 fmt 深化, 确定性 facts)。"""
-    from pwnbao.core.fmt_semantics import fmt_facts_from_strings
-    from pwnbao.features.audit.extract import extract_exploit_ir
+    from pwncraft.core.fmt_semantics import fmt_facts_from_strings
+    from pwncraft.features.audit.extract import extract_exploit_ir
     ir, syntax_error = extract_exploit_ir(exp_source)
     results = []
     if syntax_error is not None:

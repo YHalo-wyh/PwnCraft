@@ -1,0 +1,13 @@
+~/.gdbinit: Skipped loading Pwndbg from `source path/gdbinit.py` - already loaded.
+pwndbg: loaded 199 pwndbg commands. Type pwndbg [filter] for a list.
+pwndbg: created 12 GDB functions (can be used with print/break). Type help function to see them.
+Reading symbols from /mnt/c/users/wyh/desktop/pwncraft/pwncraft_v0.5.0//artifacts/runtime_probe_v011/heap_harness...
+------- tip of the day (disable with set show-tips off) -------
+Use the telescope command to dereference a given address/pointer multiple times (if the dereferenced value is a valid ptr; see config telescope to configure its behavior)
+pwndbg>tcachebins 
+tcachebins: Heap is not initialized yet.
+pwndbg>show pagination
+State of pagination is off.
+pwndbg>show pagination
+State of pagination is off.
+pwndbg>quit
