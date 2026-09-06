@@ -3,6 +3,7 @@ name: Recognizer training gate
 on:
   push:
     branches:
+      - main
       - "training/**"
   pull_request:
     branches:
