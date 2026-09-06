@@ -228,6 +228,22 @@ class HelperContractResolver:
             sample = callsite_list[0]
             if not sample:
                 continue
+            # F02 (P1): 行为证据门槛 —— helper 体必须包含 send 族调用
+            # (证明 helper 与目标程序有交互), 否则不提升为 EDIT。
+            # 普通 combine(a,b,c) / log(r,g,b) 无 send → 不提升。
+            has_send = False
+            for fn_node in tree.body:
+                if isinstance(fn_node, ast.FunctionDef) and fn_node.name == name:
+                    for sub in ast.walk(fn_node):
+                        if isinstance(sub, ast.Call):
+                            verb = _qualified_name(sub.func).rsplit(".", 1)[-1].lower()
+                            if verb in _SEND_VERBS:
+                                has_send = True
+                                break
+                if has_send:
+                    break
+            if not has_send:
+                continue
             roles = {"index": ArgumentBinding(
                 role="index",
                 parameter=self._param(contract, 0),
@@ -333,6 +349,9 @@ class HelperContractResolver:
                 if pending is None:
                     continue
                 name, call_line = pending
+                # F03 (P1): recv 消费行必须 > helper 调用行 (时序约束)
+                if line <= call_line:
+                    continue
                 var = arg
                 if var in promoted or name in promoted:
                     continue

@@ -314,6 +314,11 @@ def compare(expected_truth_raw: dict, actual: dict, exp_source: str = "",
         report["first_divergence"] = fd
     else:
         report["verdict"] = "MATCH"
+
+    # F01 (P1): 正式入口调用完整性门禁 (阶段 0.1)
+    if contract is not None and not collect_all:
+        from evaluation_contract import enforce as _enforce
+        report = _enforce(report, contract)
     return report
 
 

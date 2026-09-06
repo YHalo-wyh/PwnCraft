@@ -190,7 +190,20 @@ def trace_stack_layouts(objdump_text: str) -> list[dict]:
                 m = re.match(r"^(-?0x[0-9a-f]+)?\(%(\w+)\)$", dst_s)
                 if m and m.group(2) in ("rbp", "ebp"):
                     off = int(m.group(1), 16) if m.group(1) else 0
-                    size = {"movq": 8, "movl": 4, "movb": 1}.get(mnem, 8)
+                    # F08: 位宽由寄存器宽度推断, 非 mnemonic 后缀
+                    # mov %eax → 4 bytes, mov %rax → 8 bytes, mov %al → 1 byte
+                    reg_width = {"eax": 4, "ax": 2, "al": 1,
+                                 "ebx": 4, "bx": 2, "bl": 1,
+                                 "ecx": 4, "cx": 2, "cl": 1,
+                                 "edx": 4, "dx": 2, "dl": 1,
+                                 "esi": 4, "si": 2, "edi": 4, "di": 2,
+                                 "rsp": 8, "rbp": 8,
+                                 "r8d": 4, "r8": 8, "r9d": 4, "r9": 8,
+                                 "r10d": 4, "r10": 8, "r11d": 4, "r11": 8,
+                                 "r12d": 4, "r12": 8, "r13d": 4, "r13": 8,
+                                 "r14d": 4, "r14": 8, "r15d": 4, "r15": 8,
+                                 }.get(src_s.lstrip("%").strip(), 8)
+                    size = reg_width
                     kind = "canary" if canary_src else ("data" if size == 8 else "data")
                     prev = slots.get(off)
                     if prev and prev["kind"] == "canary":
