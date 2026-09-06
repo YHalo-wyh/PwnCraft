@@ -1,0 +1,373 @@
+{
+  "schema_version": 2,
+  "path": "比赛/polarisctf招新赛/ezheap(堆)/solve.py",
+  "source_hash": "6396df3b389b2bfa1ac9895e79d9f9fe51ee80406e04fe8a2a3144cf997b4272",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "FULL_REPLAY",
+  "analysis_variant": "default",
+  "failure_reasons": [
+    "external semantic truth oracle not provided"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {
+    "alloc": "alloc",
+    "free": "free_session"
+  },
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "chunk": "A",
+      "index": "0",
+      "request_size": "0x10",
+      "data": "b'Q0'",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: alloc(io, s0, 0x10, tag + b\"0\")",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_780ca9cba5cc7c54",
+        "call_target": "alloc",
+        "call_origin": "user_helper",
+        "evidence": "helper body `alloc` is defined in this EXP",
+        "source_line": "65",
+        "source_end_line": "65",
+        "source_id": "source_780ca9cba5cc7c54",
+        "ast_fingerprint": "a7f4aa0a402a52b1"
+      }
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "chunk": "h1",
+      "index": "1",
+      "request_size": "0x10",
+      "data": "b'Q1'",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: alloc(io, s1, 0x10, tag + b\"1\")",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_4246b779a3de0807",
+        "call_target": "alloc",
+        "call_origin": "user_helper",
+        "evidence": "helper body `alloc` is defined in this EXP",
+        "source_line": "66",
+        "source_end_line": "66",
+        "source_id": "source_4246b779a3de0807",
+        "ast_fingerprint": "00d76d47b256a660"
+      }
+    },
+    {
+      "op_id": "op_003",
+      "kind": "free",
+      "chunk": "A",
+      "index": "0",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: free_session(io, s0)",
+      "meta": {
+        "program_event_id": "event_d24227658e42f691",
+        "call_target": "free_session",
+        "call_origin": "user_helper",
+        "evidence": "helper body `free_session` is defined in this EXP",
+        "source_line": "67",
+        "source_end_line": "67",
+        "source_id": "source_d24227658e42f691",
+        "ast_fingerprint": "8586f04fe9dc4713"
+      }
+    },
+    {
+      "op_id": "op_004",
+      "kind": "free",
+      "chunk": "h1",
+      "index": "1",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: free_session(io, s1)",
+      "meta": {
+        "program_event_id": "event_704f6b36d246c9c1",
+        "call_target": "free_session",
+        "call_origin": "user_helper",
+        "evidence": "helper body `free_session` is defined in this EXP",
+        "source_line": "68",
+        "source_end_line": "68",
+        "source_id": "source_704f6b36d246c9c1",
+        "ast_fingerprint": "f88a1ca5d7d61872"
+      }
+    },
+    {
+      "op_id": "op_005",
+      "kind": "alloc",
+      "chunk": "C",
+      "index": "2",
+      "request_size": "0x10",
+      "data": "b'Q2'",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: alloc(io, s2, 0x10, tag + b\"2\")",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_9e6b388cc05e0eb2",
+        "call_target": "alloc",
+        "call_origin": "user_helper",
+        "evidence": "helper body `alloc` is defined in this EXP",
+        "source_line": "70",
+        "source_end_line": "70",
+        "source_id": "source_9e6b388cc05e0eb2",
+        "ast_fingerprint": "74e5d4f160d68143"
+      }
+    },
+    {
+      "op_id": "op_006",
+      "kind": "alloc",
+      "chunk": "D",
+      "index": "3",
+      "request_size": "0x10",
+      "data": "b'T0'",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: alloc(io, s0, 0x10, tag + b\"0\")",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_780ca9cba5cc7c54",
+        "call_target": "alloc",
+        "call_origin": "user_helper",
+        "evidence": "helper body `alloc` is defined in this EXP",
+        "source_line": "65",
+        "source_end_line": "65",
+        "source_id": "source_780ca9cba5cc7c54",
+        "ast_fingerprint": "a7f4aa0a402a52b1"
+      }
+    },
+    {
+      "op_id": "op_007",
+      "kind": "alloc",
+      "chunk": "h1",
+      "index": "4",
+      "request_size": "0x10",
+      "data": "b'T1'",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: alloc(io, s1, 0x10, tag + b\"1\")",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_4246b779a3de0807",
+        "call_target": "alloc",
+        "call_origin": "user_helper",
+        "evidence": "helper body `alloc` is defined in this EXP",
+        "source_line": "66",
+        "source_end_line": "66",
+        "source_id": "source_4246b779a3de0807",
+        "ast_fingerprint": "00d76d47b256a660"
+      }
+    },
+    {
+      "op_id": "op_008",
+      "kind": "free",
+      "chunk": "D",
+      "index": "3",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: free_session(io, s0)",
+      "meta": {
+        "program_event_id": "event_d24227658e42f691",
+        "call_target": "free_session",
+        "call_origin": "user_helper",
+        "evidence": "helper body `free_session` is defined in this EXP",
+        "source_line": "67",
+        "source_end_line": "67",
+        "source_id": "source_d24227658e42f691",
+        "ast_fingerprint": "8586f04fe9dc4713"
+      }
+    },
+    {
+      "op_id": "op_009",
+      "kind": "free",
+      "chunk": "h1",
+      "index": "4",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: free_session(io, s1)",
+      "meta": {
+        "program_event_id": "event_704f6b36d246c9c1",
+        "call_target": "free_session",
+        "call_origin": "user_helper",
+        "evidence": "helper body `free_session` is defined in this EXP",
+        "source_line": "68",
+        "source_end_line": "68",
+        "source_id": "source_704f6b36d246c9c1",
+        "ast_fingerprint": "f88a1ca5d7d61872"
+      }
+    },
+    {
+      "op_id": "op_010",
+      "kind": "alloc",
+      "chunk": "F",
+      "index": "5",
+      "request_size": "0x10",
+      "data": "b'T2'",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: alloc(io, s2, 0x10, tag + b\"2\")",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_9e6b388cc05e0eb2",
+        "call_target": "alloc",
+        "call_origin": "user_helper",
+        "evidence": "helper body `alloc` is defined in this EXP",
+        "source_line": "70",
+        "source_end_line": "70",
+        "source_id": "source_9e6b388cc05e0eb2",
+        "ast_fingerprint": "74e5d4f160d68143"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `exploit`。",
+      "start": 3112,
+      "end": 3123,
+      "line": 102,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "inlined_heap_helper",
+      "message": "已静态内联局部堆 helper `poison`。",
+      "start": 2680,
+      "end": 2717,
+      "line": 81,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "inlined_heap_helper",
+      "message": "已静态内联局部堆 helper `poison`。",
+      "start": 2767,
+      "end": 2799,
+      "line": 84,
+      "suggestion": ""
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 10,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "request_size": "0x10",
+        "chunk_size": "0x20",
+        "lifecycle": "stale",
+        "bin_location": "reused by D",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "h1": {
+        "address": "heap_base+0x2d0",
+        "user_address": "heap_base+0x2e0",
+        "request_size": "0x10",
+        "chunk_size": "0x20",
+        "lifecycle": "stale",
+        "bin_location": "reused by F",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "C": {
+        "address": "heap_base+0x2b0",
+        "user_address": "heap_base+0x2c0",
+        "request_size": "0x10",
+        "chunk_size": "0x20",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "D": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "request_size": "0x10",
+        "chunk_size": "0x20",
+        "lifecycle": "freed",
+        "bin_location": "tcache[0x20]",
+        "fd": "PROTECT_PTR(heap_base+0x2a0, NULL)",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "F": {
+        "address": "heap_base+0x2d0",
+        "user_address": "heap_base+0x2e0",
+        "request_size": "0x10",
+        "chunk_size": "0x20",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      }
+    },
+    "bins": {
+      "tcache": {
+        "0x20": [
+          "D"
+        ]
+      },
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

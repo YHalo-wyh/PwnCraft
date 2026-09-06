@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackprivot-X-CTF Quals 20-1e7d1285",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/stackprivot/X-CTF Quals 2016 - b0verfl0w",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "X-CTF Quals 2016 - b0verfl0w",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "x86",
+    "os": "linux",
+    "binary_sha256": "1e7d1285f5c7376dc9f0598f08613d86b989eb80f41255ff0cb85802a90b81da",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/stackprivot/X-CTF Quals 2016 - b0verfl0w/exploit.py",
+      "role": "python",
+      "size": 409
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

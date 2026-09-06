@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackoverflow-intro-3c514d6e",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/stackoverflow-intro",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "stackoverflow-intro",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "x86",
+    "os": "linux",
+    "binary_sha256": "3c514d6ef8178be5497c9f85bd5f83ff077498a746e927061560978884ecca85",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/stackoverflow-intro/stack-example/exp.py",
+      "role": "python",
+      "size": 345
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

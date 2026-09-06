@@ -1,0 +1,37 @@
+{
+  "schema_version": 2,
+  "path": "比赛/UMDC/bookmaker(堆)/solve.py",
+  "source_hash": "c924e32de0d7fd71fed93f224c2922f4750c36654d898a85a3458f53dee624f7",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "PARSE_ONLY",
+  "static_eligibility": "RUNTIME_REQUIRED",
+  "eligibility_reason": "no in-file deterministic heap operation; imported/runtime helper or non-heap candidate",
+  "analysis_variant": "default",
+  "failure_reasons": [
+    "external runtime dependency"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {},
+  "operations": [],
+  "diagnostics": [],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def show()",
+    "expected": {
+      "semantic": "show",
+      "roles": {
+        "arg0": "index"
+      },
+      "helper_evidence": [
+        "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+        "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+      ]
+    },
+    "actual": {
+      "operation": "unknown",
+      "confidence": "candidate",
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 29,
+          "score": 0.35
+        }
+      ]
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "create",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "edit",
+      "expected_semantic": "edit",
+      "actual_operation": "edit",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "show",
+      "expected_semantic": "show",
+      "semantic": "SEMANTIC_DIVERGED",
+      "actual_operation": "unknown",
+      "divergence_field": "semantic"
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [],
+  "layer_results": [
+    {
+      "layer": "HELPER_CONTRACT",
+      "status": "DIVERGED",
+      "semantic_status": "SEMANTIC_DIVERGED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "show: unknown ≠ show"
+    }
+  ],
+  "root_cause": {
+    "component": "HelperContractResolver",
+    "reason": null
+  },
+  "evidence": [
+    "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+    "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+    "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+  ],
+  "reviewer_reason_hint": "show 语义判定 unknown, 证据支持 show",
+  "confidence": null,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\evidence-scope\\pwncraft_output.json",
+    "renderer_plan": null,
+    "run_id": "run-acddb727f811e606",
+    "comparator": "v4"
+  }
+}

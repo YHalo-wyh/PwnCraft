@@ -1,0 +1,465 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "case_id": "local.ctfshow.pwn142",
+      "split": "holdout",
+      "technique": "heap-general",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-142-78e446edcb8b.py",
+      "source_hash": "78e446edcb8bfa085ea284bc3be71566a23d28ead3b9c7a313e7331e789c7274",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 109-144---Write UP.pdf pages 90-97; PDF SHA256 554f499ec940a06f1277f3d7c79ed3d9ae481a97e20cae4d17c7854a907824fd."
+    },
+    {
+      "case_id": "local.ctfshow.pwn143",
+      "split": "train",
+      "technique": "unlink",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-143-cb0673fadb51.py",
+      "source_hash": "cb0673fadb51af3d2df5a446b5661aed494a62e019a848c90377c4cef838ec3a",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 109-144---Write UP.pdf pages 97-105; PDF SHA256 554f499ec940a06f1277f3d7c79ed3d9ae481a97e20cae4d17c7854a907824fd."
+    },
+    {
+      "case_id": "local.ctfshow.pwn144",
+      "split": "train",
+      "technique": "unsorted-bin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-144-dbcaeb87a66c.py",
+      "source_hash": "dbcaeb87a66cb8fa6878517ce08039218b4d0bed9f4a25640dd3fd1c8f33ec7b",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 109-144---Write UP.pdf pages 105-115; PDF SHA256 554f499ec940a06f1277f3d7c79ed3d9ae481a97e20cae4d17c7854a907824fd."
+    },
+    {
+      "case_id": "local.ctfshow.pwn159",
+      "split": "train",
+      "technique": "unsorted-bin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-159-6eabbba7e338.py",
+      "source_hash": "6eabbba7e3384508908f0fae1c695577e967ea97b5dc9d89dd84018252923f71",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.27",
+        "version_evidence": "libc-2.27",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 1-4; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn160",
+      "split": "holdout",
+      "technique": "heap-general",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-160-dc7d8d5dc723.py",
+      "source_hash": "dc7d8d5dc7235eacbde32ea21e5c43f90b6d9f1c144653b8ada74cc4984b06ee",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "i386"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 4-8; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn161",
+      "split": "dev",
+      "technique": "fastbin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-161-24ce7c908c05.py",
+      "source_hash": "24ce7c908c052632b1e6aed4fc9cb7bd4700400815be7ffefd431083dea7fcb5",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 8-11; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn162",
+      "split": "dev",
+      "technique": "fastbin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-162-78fb0839a668.py",
+      "source_hash": "78fb0839a668bb2ae99ec32e19dfa839fd79e3711425b11136fd3242af6ab2d6",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 11-15; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn163",
+      "split": "dev",
+      "technique": "fastbin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-163-c9ba339d2ee3.py",
+      "source_hash": "c9ba339d2ee379b046746b2e4e8dfb5202f8273e0292885209da0d5ba94e8260",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 15-18; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn164",
+      "split": "train",
+      "technique": "tcache",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-164-bb1d1970e2a4.py",
+      "source_hash": "bb1d1970e2a43e182f02485fb647d084f7820211f63f08353463fc0ea66b8754",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.27",
+        "version_evidence": "libc-2.27",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 18-21; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn166",
+      "split": "dev",
+      "technique": "fastbin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-166-2a0916d5ef03.py",
+      "source_hash": "2a0916d5ef03583ef8f6a86d62c233f7443a554d25ed77319e0b64ef0adb73a3",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 23-26; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn167",
+      "split": "train",
+      "technique": "large-bin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-167-4307958e3e49.py",
+      "source_hash": "4307958e3e49f2ff9e6e0e7f5ae4ff6eb761fed147376952abf01e2b759f8043",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 26-30; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn168",
+      "split": "holdout",
+      "technique": "heap-general",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-168-f0377635bbdc.py",
+      "source_hash": "f0377635bbdc7f11849bc92f01be2c8db5bbc5705c38a0ef669057a2e206f932",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 30-33; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn169",
+      "split": "train",
+      "technique": "unsorted-bin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-169-c6dd0878c590.py",
+      "source_hash": "c6dd0878c5903994574694f2e7065387eaefa2226750ac8ec74325054313f760",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 33-35; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn171",
+      "split": "train",
+      "technique": "unsorted-bin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-171-fac6ada7ccff.py",
+      "source_hash": "fac6ada7ccff2a1121cf3eb2804b8f8ba15ccb3d9928dcaaec124fd4b5cc72d4",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 37-39; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn172",
+      "split": "holdout",
+      "technique": "heap-general",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-172-b894491e61a0.py",
+      "source_hash": "b894491e61a0aed9854e537dd324f9c1f48bee77516d5c5b5e7cec0246345cbc",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 39-43; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn173",
+      "split": "holdout",
+      "technique": "heap-general",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-173-656e0e5855e7.py",
+      "source_hash": "656e0e5855e7fc932e72fa340358a602c06fe6dbaf0c3cddecc912e549012822",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 43-45; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn174",
+      "split": "holdout",
+      "technique": "heap-general",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-174-93e62b1e259d.py",
+      "source_hash": "93e62b1e259d8a2850e2aaa208c2f27cf5e66a0fbed0d3b4357408bcd754f68f",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.27",
+        "version_evidence": "libc-2.27",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 45-46; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn175",
+      "split": "dev",
+      "technique": "fastbin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-175-d00140be5fd0.py",
+      "source_hash": "d00140be5fd0d713002cb8cdfd5722f0eb5e5e722d9c87c9cc9b955773be6650",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.27",
+        "version_evidence": "libc-2.27",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 46-49; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn176",
+      "split": "train",
+      "technique": "large-bin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-176-499fe5fb85f7.py",
+      "source_hash": "499fe5fb85f7cfee988ce9b0b59e775fa00cd92540eeb46f554710eba2acba58",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 49-52; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn177",
+      "split": "dev",
+      "technique": "fastbin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-177-4a76c03270df.py",
+      "source_hash": "4a76c03270dfa045b6465dca4b22290b472dba4c3ae04338d4c6af739b97fb8b",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.23",
+        "version_evidence": "libc-2.23",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 52-54; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn178",
+      "split": "holdout",
+      "technique": "heap-general",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-178-6c6d2147025a.py",
+      "source_hash": "6c6d2147025a9ceee151747b6fc3ae1ded393895263e9ec35ca19d64a300a9be",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 54-56; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn179",
+      "split": "train",
+      "technique": "tcache",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-179-88a2287d94f9.py",
+      "source_hash": "88a2287d94f9b52f1e360904be0e72a1ca9bb3a551e3b0df893b89c858800f60",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.27",
+        "version_evidence": "libc-2.27",
+        "arch": "amd64"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 56-58; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    },
+    {
+      "case_id": "local.ctfshow.pwn180",
+      "split": "dev",
+      "technique": "fastbin",
+      "source_uri": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-180-c84ae0dacfbc.py",
+      "source_hash": "c84ae0dacfbccfbfad694a426631eddc35abcd9494eda2a7b391e2f0d53abcbc",
+      "source_language": "python",
+      "purpose": "semantic",
+      "license": "local-user-provided",
+      "allocator": {
+        "family": "glibc",
+        "version": "2.35",
+        "version_evidence": "unspecified; review required",
+        "arch": "i386"
+      },
+      "expected_ir": [],
+      "operations": [],
+      "assertions": [],
+      "note": "Derived locally from 145-180---Write UP.pdf pages 58-60; PDF SHA256 398bd069bb4ea6e1c1b5a504c1fa620f0d5aee67d8d62e5964a71e35b592829c."
+    }
+  ]
+}

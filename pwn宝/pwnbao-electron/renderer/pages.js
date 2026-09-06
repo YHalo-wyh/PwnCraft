@@ -1,0 +1,1423 @@
+/**
+ * PwnCraft Workbench pages (v0.31) — Binary / ROP / Debug / Format / Syscall /
+ * Stack / Tools plus the EXP editor's tool column.
+ *
+ * Every page is a thin form over the Python truth bridge: forms collect
+ * user intent, the bridge returns facts, pages render them and offer
+ * "插入 EXP" / "在终端运行" actions.  No page fabricates addresses or
+ * gadget text on its own.
+ */
+(() => {
+  'use strict';
+
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => [...(root || document).querySelectorAll(sel)];
+  const el = (tag, cls, text) => {
+    const node = document.createElement(tag);
+    if (cls) node.className = cls;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  };
+  const esc = (value) => String(value ?? '').replace(/[&<>"]/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+  }[c]));
+  const icon = (name) => window.lucideIcon ? window.lucideIcon(name) : '';
+
+  const app = () => window.PwnApp;
+  const log = (message, level) => app() ? app().log(message, level) : console.log(message);
+  const insertExp = async (text) => {
+    if (app()) await app().insertExpText(text);
+  };
+  const runInTerminal = async (command) => {
+    if (app()) return app().runInTerminal(command);
+    log('终端未就绪', 'warn');
+  };
+
+  // =====================================================================
+  // Binary page
+
+  function renderBinary() {
+    const host = $('#page-binary');
+    const state = app().state;
+    if (state.importState !== 'bound' || !state.facts) {
+      host.innerHTML = '<div class="sidebar-empty" style="padding:26px">尚未绑定 Target。回欢迎页导入 ELF。</div>';
+      return;
+    }
+    const facts = state.facts;
+    const context = state.context || {};
+    const working = context.working_binary || '';
+    const original = context.original_binary || '';
+    const reports = state.reports || {};
+    const reportsFresh = state.reportsFor === working;
+
+    host.innerHTML = `
+      <div class="binary-header">
+        <div class="file-name"></div>
+        <div class="file-path"></div>
+      </div>
+      <div class="binary-reports">
+        <div class="card sec-card">
+          <div class="card-title">checksec
+            <span class="flex-spacer"></span>
+            <span class="sec-source">${esc(sourceLabel(reports, facts))}</span>
+            <button id="sec-refresh" class="mini-btn" title="WSL 重新执行 checksec / file / ldd">重新检测</button>
+          </div>
+          <div id="sec-rows"></div>
+        </div>
+        <div class="card sec-card">
+          <div class="card-title">file</div>
+          <div id="file-rows"></div>
+        </div>
+        <div class="card sec-card">
+          <div class="card-title">ldd</div>
+          <div id="ldd-rows"></div>
+        </div>
+      </div>
+      <div class="card-grid">
+        <div class="card"><div class="card-title">标识</div>
+          <div class="fact-stack"><span class="k">工作副本（运行用）</span><span class="v"></span></div>
+          <div class="fact-stack"><span class="k">原始副本（只读）</span><span class="v"></span></div>
+          <div class="fact-stack"><span class="k">项目目录</span><span class="v"></span></div>
+        </div>
+        <div class="card"><div class="card-title">架构</div>
+          <div class="fact-row"><span class="k">架构</span><span class="v"></span></div>
+          <div class="fact-row"><span class="k">端序</span><span class="v"></span></div>
+          <div class="fact-row"><span class="k">入口</span><span class="v"></span></div>
+        </div>
+        <div class="card"><div class="card-title">运行时</div>
+          <div class="fact-row"><span class="k">interpreter</span><span class="v"></span></div>
+          <div class="fact-row"><span class="k">libc</span><span class="v"></span></div>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">静态分析输出（readelf -h 等）</div></div>
+      <pre class="report-pre"></pre>`;
+    $('.file-name', host).textContent = working.split(/[\\/]/).pop() || 'target';
+    $('.file-path', host).textContent = working;
+    const values = $$('.card-grid .v', host);
+    const assignment = [
+      working, original, (state.project && state.project.project_path) || '',
+      `${facts.architecture || '?'} · ${facts.bits || '?'} 位`, facts.endian || '?',
+      facts.entry !== undefined ? '0x' + Number(facts.entry).toString(16) : '?',
+      context.interpreter || '(系统默认)',
+      context.libc ? String(context.libc).split(/[\\/]/).pop() : '未发现',
+    ];
+    assignment.forEach((value, index) => { if (values[index]) values[index].textContent = value; });
+    $('.report-pre', host).textContent = state.staticReport || '(no output)';
+
+    renderChecksecRows(reportsFresh ? reports : {}, facts);
+    renderFileRows(reportsFresh ? reports : {});
+    renderLddRows(reportsFresh ? reports : {});
+    $('#sec-refresh', host).addEventListener('click', () => fetchBinaryReports(working, true));
+    if (!reportsFresh && !state.reportsInFlight) fetchBinaryReports(working, false);
+  }
+
+  function pre(text) {
+    const clean = String(text || '').trim();
+    if (!clean) return '（无输出）';
+    if (/^ERROR:/i.test(clean)) return `${clean}\n（WSL 中缺少该工具；checksec 可 pip install pwntools 获取）`;
+    return clean;
+  }
+
+  function sourceLabel(reports, facts) {
+    const raw = String(reports.checksec || '');
+    if (raw.trim() && !/^ERROR:/i.test(raw.trim())) return 'checksec（WSL）';
+    return '本地 ELF 解析';
+  }
+
+  // checksec 逐行 key: value → 竖列卡片行；绿=开启，红=未开启，黄=部分
+  function renderChecksecRows(reports, facts) {
+    const host = $('#sec-rows');
+    if (!host) return;
+    let rows = parseChecksecRows(reports.checksec);
+    if (!rows.length) rows = synthesizeChecksecRows(facts);
+    host.innerHTML = rows.map((row) => `
+      <div class="sec-row">
+        <span class="sec-key">${esc(row.key)}:</span>
+        <span class="sec-val ${row.tone}" title="${esc(row.value)}">${esc(row.value)}</span>
+      </div>`).join('');
+  }
+
+  function secRowHtml(key, value, tone) {
+    return `
+      <div class="sec-row">
+        <span class="sec-key">${esc(key)}</span>
+        <span class="sec-val ${tone || 'neutral'}" title="${esc(value)}">${esc(value)}</span>
+      </div>`;
+  }
+
+  // file 原文 → 结构化行（类型/架构/链接/interpreter/BuildID/Stripped）
+  function renderFileRows(reports) {
+    const host = $('#file-rows');
+    if (!host) return;
+    const raw = String(reports.file || '').trim();
+    if (!raw) { host.innerHTML = '<div class="hint-dim">（无输出）</div>'; return; }
+    if (/^ERROR:/i.test(raw)) {
+      host.innerHTML = `<div class="sec-row"><span class="sec-key">错误</span>
+        <span class="sec-val bad">${esc(raw)}</span></div>
+        <div class="hint-dim">WSL 中缺少 file 工具（apt install file）。</div>`;
+      return;
+    }
+    const rows = [];
+    const firstLine = raw.split(/\r?\n/)[0] || '';
+    const pathMatch = /^([^:]+):\s*(.*)$/.exec(firstLine);
+    const description = pathMatch ? pathMatch[2] : firstLine;
+    const fileName = pathMatch ? pathMatch[1].split('/').pop() : '';
+    if (fileName) rows.push(['文件', fileName, 'neutral']);
+    const classMatch = /ELF (\d{2}-bit)\s+([^,]+),\s*([^,]+)/.exec(description);
+    if (classMatch) {
+      rows.push(['类型', `ELF ${classMatch[1]} ${classMatch[2]}`.trim(), 'neutral']);
+      const arch = classMatch[3];
+      rows.push(['架构', arch, 'neutral']);
+    }
+    if (/pie executable|shared object/i.test(description)) rows.push(['PIE', 'PIE 执行文件', 'good']);
+    if (/dynamically linked/.test(description)) rows.push(['链接', 'dynamically linked', 'neutral']);
+    else if (/statically linked/.test(description)) rows.push(['链接', 'statically linked', 'neutral']);
+    const interp = /interpreter ([^\s,]+)/.exec(raw);
+    if (interp) rows.push(['interpreter', interp[1].split('/').pop(), 'neutral']);
+    const buildId = /BuildID\[([^\]]+)\]=([0-9a-fA-F]+)/.exec(raw);
+    if (buildId) rows.push([`BuildID[${buildId[1]}]`, buildId[2], 'neutral']);
+    if (/not stripped/i.test(raw)) rows.push(['Stripped', 'No（符号可用）', 'good']);
+    else if (/stripped/i.test(raw)) rows.push(['Stripped', 'Yes（已剥离）', 'bad']);
+    const forVersion = /for GNU\/Linux ([\d.]+)/.exec(raw);
+    if (forVersion) rows.push(['最低内核', `GNU/Linux ${forVersion[1]}`, 'neutral']);
+    host.innerHTML = rows.map(([key, value, tone]) => secRowHtml(key, value, tone)).join('');
+  }
+
+  // ldd：按原文整行显示（每行一条依赖，等宽不拆列）——用户口径
+  function renderLddRows(reports) {
+    const host = $('#ldd-rows');
+    if (!host) return;
+    const raw = String(reports.ldd || '').trim();
+    if (!raw) { host.innerHTML = '<div class="hint-dim">（无输出）</div>'; return; }
+    if (/^ERROR:/i.test(raw)) {
+      host.innerHTML = `<div class="sec-row"><span class="sec-key">错误</span>
+        <span class="sec-val bad">${esc(raw)}</span></div>`;
+      return;
+    }
+    if (/not a dynamic executable/i.test(raw)) {
+      host.innerHTML = '<div class="hint-dim">静态链接或非 ELF：没有动态依赖。</div>';
+      return;
+    }
+    const lines = raw.split(/\r?\n/).map((l) => l.trimEnd()).filter((l) => l.trim());
+    host.innerHTML = lines.map((line) => {
+      const tone = /not found/i.test(line) ? 'bad' : 'neutral';
+      return `<div class="ldd-line"><span class="sec-val ${tone}">${esc(line)}</span></div>`;
+    }).join('');
+  }
+
+  function parseChecksecRows(raw) {
+    const rows = [];
+    for (const line of String(raw || '').split(/\r?\n/)) {
+      const match = /^\s*([A-Za-z][A-Za-z0-9_]*)\s*:\s*(.+?)\s*$/.exec(line);
+      if (match) rows.push({ key: match[1], value: match[2], tone: secTone(match[1], match[2]) });
+    }
+    return rows;
+  }
+
+  // WSL checksec 不可用时，用本地 ELF 解析的保护事实合成同样格式的行
+  function synthesizeChecksecRows(facts) {
+    const security = facts.security || {};
+    const archText = `${facts.architecture || 'amd64'}-${Number(facts.bits) || 64}-${
+      (facts.endian || 'little').toLowerCase()}`;
+    const canonical = [
+      ['Arch', archText],
+      ['RELRO', synthValue('RELRO', security.RELRO)],
+      ['Stack', synthValue('CANARY', security.CANARY)],
+      ['NX', synthValue('NX', security.NX)],
+      ['PIE', synthValue('PIE', security.PIE)],
+      ['FORTIFY', synthValue('FORTIFY', security.FORTIFY)],
+      ['Stripped', synthValue('STRIPPED', security.STRIPPED)],
+    ];
+    return canonical.map(([key, value]) => ({ key, value, tone: secTone(key, value) }));
+  }
+
+  // 本地解析值域（ON/OFF/FULL/PARTIAL/NONE/UNKNOWN）→ pwntools 风格展示文本
+  function synthValue(key, raw) {
+    const v = String(raw || '').trim().toUpperCase();
+    if (!v || v === 'UNKNOWN') return 'unknown';
+    if (key === 'RELRO') {
+      return { FULL: 'Full RELRO', PARTIAL: 'Partial RELRO', NONE: 'No RELRO' }[v] || v;
+    }
+    if (key === 'CANARY') return { ON: 'Canary found', OFF: 'No canary' }[v] || v;
+    if (key === 'NX') return { ON: 'NX enabled', OFF: 'NX disabled' }[v] || v;
+    if (key === 'PIE') return { ON: 'PIE enabled', OFF: 'No PIE' }[v] || v;
+    if (key === 'FORTIFY') return { ON: 'Yes', OFF: 'No' }[v] || v;
+    if (key === 'STRIPPED') return { ON: 'Yes', OFF: 'No' }[v] || v;
+    return v;
+  }
+
+  // 值域并集：pwntools checksec 短语 + checksec.sh 的 ON/OFF/NONE + 本地解析值
+  function secTone(key, value) {
+    const v = String(value || '').trim();
+    const lower = v.toLowerCase();
+    const k = String(key || '').toLowerCase();
+    if (k === 'relro') {
+      if (lower === 'full' || /full relro/i.test(v)) return 'good';
+      if (lower === 'partial' || /partial/i.test(v)) return 'warn';
+      if (lower === 'none' || /no relro/i.test(v)) return 'bad';
+      return 'neutral';
+    }
+    if (k === 'stack') {
+      if (/no canary/i.test(lower) || lower === 'off' || lower === 'no') return 'bad';
+      if (/canary/i.test(lower) || lower === 'on' || lower === 'yes') return 'good';
+      return secToneFallback(lower);
+    }
+    if (k === 'nx') {
+      if (/enabled/i.test(lower) || lower === 'on' || lower === 'yes') return 'good';
+      if (/disabled/i.test(lower) || lower === 'off' || lower === 'no') return 'bad';
+      return 'neutral';
+    }
+    if (k === 'pie') {
+      if (/no pie/i.test(lower) || lower === 'off' || lower === 'none') return 'bad';
+      if (/enabled|dso|^on$|^yes$/.test(lower)) return 'good';
+      return 'neutral';
+    }
+    if (k === 'shstk' || k === 'ibt') {
+      if (lower === 'enabled' || lower === 'on' || lower === 'yes') return 'good';
+      if (lower === 'disabled' || lower === 'off' || lower === 'no') return 'bad';
+      return 'neutral';
+    }
+    if (k === 'fortify') {
+      if (lower === 'yes' || lower === 'on' || /enabled/.test(lower)) return 'good';
+      if (lower === 'no' || lower === 'off' || /disabled/.test(lower)) return 'bad';
+      return 'neutral';
+    }
+    if (k === 'stripped') {
+      if (lower === 'yes' || lower === 'on') return 'bad';
+      if (lower === 'no' || lower === 'off') return 'good';
+      return 'neutral';
+    }
+    return secToneFallback(lower);
+  }
+
+  // 兜底判定：checksec 工具的值域五花八门（Yes/No、ON/OFF、Enabled/Disabled、
+  // Canary found…），不在已知键名里的值按前缀词判断——保证「开=绿 / 没开=红」永远成立
+  function secToneFallback(lower) {
+    if (/^(yes|on|enabled|found|full)/.test(lower) || /enabled|found$/.test(lower)) return 'good';
+    if (/^(no|none|off|disabled)/.test(lower) || /disabled|not found/.test(lower)) return 'bad';
+    if (/partial/.test(lower)) return 'warn';
+    return 'neutral';
+  }
+
+  async function fetchBinaryReports(working, force) {
+    const state = app().state;
+    if (state.reportsInFlight) return;
+    state.reportsInFlight = true;
+    const rowsHost = $('#sec-rows');
+    if (rowsHost && !force) {
+      rowsHost.innerHTML = '<div class="hint-dim">WSL 检测中…</div>';
+    }
+    try {
+      const result = await window.pwnbao.request('binary_reports', { path: working });
+      state.reports = result.reports || {};
+      state.reportsFor = working;
+      if (state.context && state.context.working_binary === working) {
+        state.reportsFetched = true;
+      }
+    } catch (error) {
+      state.reports = { checksec: `ERROR: ${error.message}`, file: '', ldd: '' };
+      state.reportsFor = working;
+      log(`checksec/file/ldd 检测失败：${error.message}`, 'error');
+    } finally {
+      state.reportsInFlight = false;
+      // 写回当前工作区，切换回来时不重跑
+      const entry = state.workspaces && state.activePath ? state.workspaces.get(state.activePath) : null;
+      if (entry) { entry.reports = state.reports; entry.reportsFetched = true; }
+      if (state.page === 'binary') renderBinary();
+    }
+  }
+
+  function chip(label, raw) {
+    const info = app().secInfo ? app().secInfo(raw) : { cls: 'unknown', mark: '?' };
+    return `<span class="chip ${info.cls}">${label} ${info.mark}</span>`;
+  }
+
+  async function runCliTool(toolId, values) {
+    try {
+      const result = await window.pwnbao.request('cli_run', { tool_id: toolId, values });
+      const host = $('#page-binary .report-pre');
+      if (host) host.textContent = `$ ${result.command}\n\n${result.stdout || '(no output)'}`;
+      log(`$ ${result.command}`);
+    } catch (error) {
+      log(`${toolId} 失败：${error.message}`, 'error');
+    }
+  }
+
+  // =====================================================================
+  // ROP page
+
+  const ropState = { gadgets: [], shelf: {} };
+
+  function renderRop() {
+    const host = $('#page-rop');
+    host.innerHTML = `
+      <div class="rop-grid">
+        <div class="card">
+          <div class="card-title">Gadget Explorer · 真实 ROPgadget（WSL 执行）</div>
+          <div class="form-grid">
+            <label class="form-row"><span>--only</span><input id="rop-only" class="input" placeholder="pop|ret" value="pop|ret" /></label>
+            <label class="form-row"><span>--badbytes</span><input id="rop-badbytes" class="input" placeholder="000a" /></label>
+            <label class="form-row"><span>--depth</span><input id="rop-depth" class="input" placeholder="10" /></label>
+          </div>
+          <div class="cli-row">
+            <button id="rop-run" class="btn primary">运行 ROPgadget</button>
+            <button id="rop-run-terminal" class="btn" title="把 ROPgadget 命令写进当前终端直接运行">在终端运行</button>
+            <button id="rop-env" class="btn" title="检查 WSL 中 ROPgadget/ropper/one_gadget 是否可用">环境体检</button>
+          </div>
+          <label class="form-row" style="margin-top:10px"><span>过滤结果</span><input id="rop-search" class="input" placeholder="例如 pop rdi / syscall / rdx" /></label>
+          <div id="rop-results" class="rop-results"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Gadget Shelf（收藏 → Chain Builder 优先使用）</div>
+          <div id="rop-shelf" class="rop-shelf"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Chain Builder</div>
+          <div class="form-grid">
+            <label class="form-row"><span>function</span><input id="chain-func" class="input" placeholder="0x... 或 system" /></label>
+            <label class="form-row"><span>rdi</span><input id="chain-rdi" class="input" placeholder="binsh_addr" /></label>
+            <label class="form-row"><span>rsi</span><input id="chain-rsi" class="input" /></label>
+            <label class="form-row"><span>rdx</span><input id="chain-rdx" class="input" /></label>
+            <label class="form-row"><span>return_addr</span><input id="chain-ret" class="input" /></label>
+          </div>
+          <div class="cli-row">
+            <button id="chain-build" class="btn primary">构造 Chain</button>
+          </div>
+          <div id="chain-report" class="chain-report"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">ret2libc 快速通道</div>
+          <div class="form-grid">
+            <label class="form-row"><span>泄露地址</span><input id="r2l-leak" class="input" placeholder="0x7f..." /></label>
+            <label class="form-row"><span>符号偏移</span><input id="r2l-offset" class="input" placeholder="0x...（system 在 libc 中的偏移）" /></label>
+          </div>
+          <div class="cli-row"><button id="r2l-derive" class="btn">推导 libc_base</button></div>
+          <div class="form-grid">
+            <label class="form-row"><span>system 地址</span><input id="r2l-system" class="input" /></label>
+            <label class="form-row"><span>/bin/sh 地址</span><input id="r2l-binsh" class="input" /></label>
+          </div>
+          <div class="cli-row"><button id="r2l-build" class="btn primary">构造 system("/bin/sh")</button></div>
+          <div id="r2l-report" class="chain-report"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">SROP</div>
+          <div class="cli-row"><button id="srop-plan" class="btn">生成 SROP 计划</button></div>
+          <div id="srop-report" class="chain-report"></div>
+        </div>
+      </div>`;
+
+    $('#rop-run').addEventListener('click', runRopgadget);
+    $('#rop-search').addEventListener('input', () => renderGadgets(filterGadgets($('#rop-search').value)));
+    $('#rop-env').addEventListener('click', showEnvDoctor);
+    $('#rop-run-terminal').addEventListener('click', () => {
+      const only = $('#rop-only').value.trim() || 'pop|ret';
+      runInTerminal(`ROPgadget --binary ./pwn --only "${only}"`);
+    });
+    $('#chain-build').addEventListener('click', buildChain);
+    $('#r2l-derive').addEventListener('click', deriveR2l);
+    $('#r2l-build').addEventListener('click', buildR2l);
+    $('#srop-plan').addEventListener('click', planSrop);
+    refreshShelf();
+  }
+
+  async function runRopgadget() {
+    if (!app().state.context) { log('先绑定 Target，再运行 ROPgadget。', 'warn'); return; }
+    const values = {};
+    for (const [id, key] of [['rop-only', 'only'], ['rop-badbytes', 'badbytes'], ['rop-depth', 'depth']]) {
+      const value = $(`#${id}`).value.trim();
+      if (value) values[key] = value;
+    }
+    try {
+      const result = await window.pwnbao.request('cli_run', { tool_id: 'ropgadget', values });
+      ropState.gadgets = result.parsed || [];
+      renderGadgets(ropState.gadgets);
+      log(`ROPgadget 完成：${ropState.gadgets.length} 条 gadget`);
+    } catch (error) {
+      log(`ROPgadget 失败：${error.message}`, 'error');
+    }
+  }
+
+  function filterGadgets(query) {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return ropState.gadgets;
+    return ropState.gadgets.filter((gadget) => gadget.text.toLowerCase().includes(needle));
+  }
+
+  function renderGadgets(gadgets) {
+    const host = $('#rop-results');
+    if (!host) return;
+    host.innerHTML = gadgets.length ? `
+      <table class="data-table">
+        <thead><tr><th>分数</th><th>地址</th><th>Gadget</th><th></th></tr></thead>
+        <tbody>
+          ${gadgets.slice(0, 400).map((gadget, index) => `
+            <tr>
+              <td class="stars">${esc(gadget.stars || '')}</td>
+              <td class="mono">${esc('0x' + Number(gadget.address).toString(16))}</td>
+              <td class="mono">${esc(gadget.text)}</td>
+              <td><button class="mini-btn" data-pin="${index}">收藏</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`
+      : '<div class="hint-dim">还没有结果：先「运行 ROPgadget」。</div>';
+    $$('button[data-pin]', host).forEach((button) => {
+      button.addEventListener('click', async () => {
+        const gadget = gadgets[Number(button.dataset.pin)];
+        const role = window.prompt('收藏到哪个寄存器/角色？', (gadget.controls || [])[0] || 'rdi');
+        if (!role) return;
+        await pinGadget(role, gadget);
+      });
+    });
+  }
+
+  async function pinGadget(role, gadget) {
+    // The shelf lives in the bridge; gadgets were persisted during cli_run.
+    const index = ropState.gadgets.findIndex((item) => item.address === gadget.address && item.text === gadget.text);
+    const result = await window.pwnbao.request('gadget_shelf', { action: 'pin', role, index });
+    ropState.shelf = result.shelf || {};
+    ropState.gadgets = result.gadgets || ropState.gadgets;
+    refreshShelf();
+    log(`已收藏 gadget 到 ${role}`);
+  }
+
+  async function refreshShelf() {
+    try {
+      const result = await window.pwnbao.request('gadget_shelf', { action: 'list' });
+      ropState.shelf = result.shelf || {};
+      if ((result.gadgets || []).length && !ropState.gadgets.length) {
+        ropState.gadgets = result.gadgets;
+      }
+    } catch { /* offline is fine */ }
+    const host = $('#rop-shelf');
+    if (!host) return;
+    const roles = Object.entries(ropState.shelf || {});
+    host.innerHTML = roles.length ? `
+      <table class="data-table">
+        <thead><tr><th>角色</th><th>地址</th><th>指令</th><th></th></tr></thead>
+        <tbody>${roles.map(([role, gadget]) => `
+          <tr>
+            <td>${esc(role)}</td>
+            <td class="mono">${esc('0x' + Number(gadget.address).toString(16))}</td>
+            <td class="mono">${esc(gadget.text || (gadget.instructions || []).join(' ; '))}</td>
+            <td><button class="mini-btn" data-unpin="${esc(role)}">移除</button></td>
+          </tr>`).join('')}</tbody>
+      </table>`
+      : '<div class="hint-dim">暂无收藏 gadget。</div>';
+    $$('button[data-unpin]', host).forEach((button) => {
+      button.addEventListener('click', async () => {
+        const result = await window.pwnbao.request('gadget_shelf', { action: 'unpin', role: button.dataset.unpin });
+        ropState.shelf = result.shelf || {};
+        refreshShelf();
+      });
+    });
+  }
+
+  async function buildChain() {
+    const args = {};
+    for (const [id, reg] of [['chain-rdi', 'rdi'], ['chain-rsi', 'rsi'], ['chain-rdx', 'rdx']]) {
+      const value = $(`#${id}`).value.trim();
+      if (value) args[reg] = value;
+    }
+    try {
+      const result = await window.pwnbao.request('rop_build', {
+        function: $('#chain-func').value.trim(),
+        arguments: args,
+        return_addr: $('#chain-ret').value.trim(),
+      });
+      $('#chain-report').innerHTML = `
+        <div class="explain-line">${result.entries.length} 项 · ${result.warnings.length ? esc(result.warnings.join('；')) : '无警告'}</div>
+        <pre class="report-pre">${esc(result.pwntools)}</pre>
+        <div class="cli-row">
+          <button class="btn" id="chain-insert">插入 EXP</button>
+          <button class="btn" id="chain-copy">复制</button>
+        </div>`;
+      $('#chain-insert').addEventListener('click', () => insertExp(result.pwntools));
+      $('#chain-copy').addEventListener('click', () => navigator.clipboard.writeText(result.pwntools));
+    } catch (error) {
+      $('#chain-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+    }
+  }
+
+  async function deriveR2l() {
+    try {
+      const result = await window.pwnbao.request('leak_derive', {
+        address: $('#r2l-leak').value.trim(),
+        offset: $('#r2l-offset').value.trim(),
+      });
+      $('#r2l-report').innerHTML = `
+        <div class="explain-line">libc_base = ${esc('0x' + result.libc_base.toString(16))} <span class="hint-dim">(${esc(result.formula)})</span></div>
+        <div class="cli-row"><button class="btn" id="r2l-base-insert">插入 EXP</button></div>`;
+      $('#r2l-base-insert').addEventListener('click', () => insertExp(`libc_base = ${result.formula}\nlog.success('libc_base -> ' + hex(libc_base))\n`));
+      log(`libc_base = 0x${result.libc_base.toString(16)}`);
+    } catch (error) {
+      $('#r2l-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+    }
+  }
+
+  async function buildR2l() {
+    const system = $('#r2l-system').value.trim();
+    const binsh = $('#r2l-binsh').value.trim();
+    if (!system) { log('先填 system 地址（可用泄露地址 - 偏移推导）。', 'warn'); return; }
+    try {
+      const result = await window.pwnbao.request('rop_build', {
+        function: system,
+        arguments: binsh ? { rdi: binsh } : {},
+      });
+      $('#r2l-report').innerHTML = `
+        <pre class="report-pre">${esc(result.pwntools)}</pre>
+        <div class="cli-row">
+          <button class="btn" id="r2l-chain-insert">插入 EXP</button>
+        </div>`;
+      $('#r2l-chain-insert').addEventListener('click', () => insertExp(result.pwntools));
+    } catch (error) {
+      $('#r2l-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+    }
+  }
+
+  async function planSrop() {
+    try {
+      const result = await window.pwnbao.request('srop_plan', {});
+      $('#srop-report').innerHTML = `
+        <div class="explain-line">目标 ${esc(result.plan.target || '')} · ${esc(result.plan.architecture || '')}</div>
+        <pre class="report-pre">${esc(result.pwntools || JSON.stringify(result.plan, null, 2))}</pre>`;
+    } catch (error) {
+      $('#srop-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+    }
+  }
+
+  async function showEnvDoctor() {
+    try {
+      const result = await window.pwnbao.request('cli_env_doctor', {});
+      const missing = result.tools.filter((tool) => !tool.present);
+      if (!missing.length) {
+        log('WSL 工具链齐备：ROPgadget / ropper / one_gadget / seccomp-tools 全部可用。');
+        return;
+      }
+      const install = missing.map((tool) => tool.install).join(' && ');
+      log(`缺少: ${missing.map((tool) => tool.tool).join(', ')}。安装命令已写入终端（需要你确认执行）。`, 'warn');
+      runInTerminal(install);
+    } catch (error) {
+      log(`环境体检失败：${error.message}`, 'error');
+    }
+  }
+
+  // =====================================================================
+  // Debug page (pwndbg-mogai)
+
+  function renderDebug() {
+    const host = $('#page-debug');
+    const state = app().state;
+    const bound = Boolean(state.context);
+    const active = app().hasDebugSession();
+    host.innerHTML = `
+      <div class="debug-layout">
+        <div class="debug-exp" id="debug-exp-slot">
+          <div class="debug-exp-head">exp.py <span class="hint-dim">当前 Target · 只读随动</span></div>
+        </div>
+        <div class="debug-center">
+          <div class="debug-center-head">
+            <span class="debug-title">pwndbg-mogai 调试终端</span>
+            <span class="hint-dim">隔离 fork · 官方 pwndbg 未改动</span>
+            <span class="flex-spacer"></span>
+            <span id="debug-status" class="hint-dim">检查中…</span>
+            <button id="debug-start" class="btn primary" ${bound && !active ? '' : 'hidden'}>启动调试终端</button>
+            <button id="debug-stop" class="btn" ${active ? '' : 'hidden'}>结束调试</button>
+          </div>
+          <div id="debug-term-slot" class="debug-term-slot">
+            ${active
+    ? ''
+    : `<div class="debug-term-placeholder">
+                 <div class="dt-main">${bound ? '尚未启动调试' : '先导入 ELF，再启动调试'}</div>
+                 <div class="hint-dim">「启动调试终端」会校验/安装独立 pwndbg-mogai（官方 pwndbg 零改动），生成启动脚本
+                 （工作副本 ELF 已加载、x86 自动 starti），然后在<b>本页正中</b>打开终端实例 ——
+                 底部面板保留给程序运行终端。</div>
+               </div>`}
+          </div>
+        </div>
+        <div class="debug-cmd-col">
+          <div class="card">
+            <div class="card-title">常用命令</div>
+            <div class="debug-cmd-grid">
+              ${['context', 'starti', 'continue', 'ni', 'si', 'finish', 'heap', 'tcachebins', 'fastbins',
+    'bins', 'arena', 'top_chunk', 'vis-heap-chunks', 'vmmap', 'checksec', 'bt', 'nearpc']
+    .map((command) => `<button class="btn cmd-chip" data-cmd="${command}">${command}</button>`).join('')}
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">自定义命令</div>
+            <input id="debug-custom" class="input" style="width:100%" placeholder="gdb 命令…" />
+            <div class="cli-row">
+              <button id="debug-send" class="btn primary">发送</button>
+              <button id="debug-snapshot" class="btn" title="写入 pwnbao-snapshot 采集运行时快照">采集快照</button>
+              <button id="debug-cheatsheet" class="btn" title="中文命令手册（F1）">命令手册 F1</button>
+            </div>
+            <div class="cli-row">
+              <button id="debug-ensure" class="btn mini-btn" title="校验/安装隔离 pwndbg-mogai（官方 pwndbg 零改动）">安装 / 校验</button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">说明</div>
+            <div class="hint-dim">· 底部面板终端 = 程序运行用；本页终端 = pwndbg 调试实例。<br />
+              · Heap 页静态回放与这里的运行时状态分开存放。</div>
+          </div>
+        </div>
+      </div>`;
+    $('#debug-start').addEventListener('click', startDebugSession);
+    $('#debug-stop').addEventListener('click', () => app().stopDebugSession());
+    $('#debug-ensure').addEventListener('click', ensurePwndbg);
+    $$('#debug-commands .btn, .debug-cmd-grid .btn').forEach((button) => {
+      button.addEventListener('click', () => sendToDebug(button.dataset.cmd));
+    });
+    $('#debug-send').addEventListener('click', () => {
+      const value = $('#debug-custom').value.trim();
+      if (value) { sendToDebug(value); $('#debug-custom').value = ''; }
+    });
+    $('#debug-snapshot').addEventListener('click', () => sendToDebug('pwnbao-snapshot'));
+    $('#debug-cheatsheet').addEventListener('click', () => {
+      if (!app().debugSheetToggle || !app().debugSheetToggle()) {
+        log('调试终端未开启：先点「启动调试终端」。', 'warn');
+      }
+    });
+    // 持久实例挂载：EXP 编辑器（左 1/4，与 exp 页同一实例）+ 已有调试终端
+    app().mountDebugTerminalNode();
+    if (active) {
+      const start = $('#debug-start');
+      const stop = $('#debug-stop');
+      if (start) start.hidden = true;
+      if (stop) stop.hidden = false;
+    }
+    refreshDebugStatus();
+  }
+
+  async function refreshDebugStatus() {
+    const host = $('#debug-status');
+    if (!host) return;
+    try {
+      const result = await window.pwnbao.request('pwndbg_status');
+      host.textContent = result.installed
+        ? `pwndbg-mogai ${result.version} 已就绪`
+        : 'pwndbg-mogai 尚未安装（启动时会自动安装）';
+    } catch (error) {
+      host.textContent = `状态未知：${error.message}`;
+    }
+  }
+
+  async function ensurePwndbg() {
+    log('正在校验/安装独立 pwndbg-mogai（首次约 108MB 下载，请稍候）…');
+    try {
+      const result = await window.pwnbao.request('pwndbg_ensure');
+      log(`${result.command} 已就绪（${result.version}）；官方 pwndbg 未改动。`);
+      refreshDebugStatus();
+    } catch (error) {
+      log(`pwndbg-mogai 安装失败：${error.message}`, 'error');
+    }
+  }
+
+  async function startDebugSession() {
+    if (!app().state.context) { log('先绑定 Target。', 'warn'); return; }
+    try {
+      const spec = await window.pwnbao.request('debug_launch', {});
+      log(`调试脚本就绪：${spec.script_wsl_path}（${spec.architecture}${spec.auto_start ? ' · 自动 starti' : ' · 静态安全模式'}）`);
+      const started = await window.pwnbao.terminalStart({
+        kind: 'debug',
+        name: spec.script_wsl_path,
+        cwd: app().state.terminalCwd || '',
+      });
+      app().attachDebugTerminal(started.id);
+      log('pwndbg-mogai 调试终端已开启（新终端实例）。');
+      refreshDebugStatus();
+    } catch (error) {
+      log(`调试启动失败：${error.message}`, 'error');
+    }
+  }
+
+  function sendToDebug(command) {
+    if (app()) app().sendToDebugTerminal(command);
+    else log('调试终端未开启。', 'warn');
+  }
+
+  // =====================================================================
+  // Format page
+
+  function renderFormat() {
+    const host = $('#page-format');
+    host.innerHTML = `
+      <div class="rop-grid">
+        <div class="card">
+          <div class="card-title">Offset Finder（%p 探针 → 格式化偏移）</div>
+          <textarea id="fmt-probe" class="input area" rows="5"
+            placeholder="粘贴探针输出，例如：&#10;0x1 0x2 0x3 0x4 0x5 0x4141414141414141 ..."></textarea>
+          <div class="cli-row"><button id="fmt-find" class="btn primary">计算偏移</button></div>
+          <div id="fmt-offset-report" class="chain-report"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Write Planner（%hn 分段写入）</div>
+          <div class="form-grid">
+            <label class="form-row"><span>目标地址</span><input id="fmt-target" class="input" placeholder="0x..." /></label>
+            <label class="form-row"><span>写入值</span><input id="fmt-value" class="input" placeholder="0x..." /></label>
+            <label class="form-row"><span>格式化偏移</span><input id="fmt-offset" class="input" placeholder="6" /></label>
+          </div>
+          <div class="cli-row">
+            <button id="fmt-plan" class="btn primary">生成写入计划</button>
+            <button id="fmt-payload" class="btn" title="32 位 %hn 模板">32 位模板</button>
+          </div>
+          <div id="fmt-plan-report" class="chain-report"></div>
+        </div>
+      </div>`;
+    $('#fmt-find').addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('fmt_offset', { probe_output: $('#fmt-probe').value });
+        $('#fmt-offset').value = result.offset;
+        $('#fmt-offset-report').innerHTML = `<div class="explain-line">格式化偏移 = <b>${result.offset}</b></div>`;
+        log(`格式化偏移 = ${result.offset}`);
+      } catch (error) {
+        $('#fmt-offset-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+      }
+    });
+    $('#fmt-plan').addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('fmt_plan', {
+          target: $('#fmt-target').value.trim(), value: $('#fmt-value').value.trim(),
+        });
+        const parts = result.plan.parts || [];
+        const offset = Number($('#fmt-offset').value || 8);
+        const lines = parts.map((part, index) => {
+          const padding = Math.max(0, part.value - (index === 0 ? 0 : parts[index - 1].value));
+          return `payload += fmtstr_payload({${offset}}, {{{part.address}: ${part.value}}}, write_size='short')  # ${part.address} <- ${part.value}`;
+        });
+        const text = `# %hn 分段写入计划（低半字优先）\n${lines.join('\n')}\n`;
+        $('#fmt-plan-report').innerHTML = `
+          <pre class="report-pre">${esc(result.plan.parts.map((p) => `${p.address} <- ${p.value}`).join('\n'))}</pre>
+          <div class="cli-row"><button class="btn" id="fmt-plan-insert">插入 EXP</button></div>`;
+        $('#fmt-plan-insert').addEventListener('click', () => insertExp(text));
+      } catch (error) {
+        $('#fmt-plan-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+      }
+    });
+    $('#fmt-payload').addEventListener('click', () => {
+      insertExp([
+        "# 32 位 %hn 分段写入（fmtstr_payload）",
+        "payload = fmtstr_payload(FMT_OFFSET, {TARGET_ADDR: TARGET_VALUE}, write_size='short')",
+        "p.sendline(payload)",
+      ].join('\n'));
+    });
+  }
+
+  // =====================================================================
+  // Syscall page
+
+  function renderSyscall() {
+    const host = $('#page-syscall');
+    host.innerHTML = `
+      <div class="rop-grid">
+        <div class="card">
+          <div class="card-title">Syscall Explorer</div>
+          <div class="cli-row">
+            <label class="inline-label">架构
+              <select id="sys-arch" class="input"><option>amd64</option><option>i386</option><option>aarch64</option></select>
+            </label>
+            <button id="sys-load" class="btn">加载</button>
+            <button id="sys-seccomp" class="btn" title="seccomp-tools dump（WSL）">解析 Seccomp</button>
+          </div>
+          <div id="sys-table" class="rop-results"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">ORW Builder</div>
+          <div class="form-grid">
+            <label class="form-row"><span>flag 路径</span><input id="orw-path" class="input" value="/flag" /></label>
+            <label class="form-row"><span>buffer</span><input id="orw-buffer" class="input" placeholder="0x0" /></label>
+            <label class="form-row"><span>read size</span><input id="orw-size" class="input" value="0x100" /></label>
+            <label class="form-row"><span>output fd</span><input id="orw-fd" class="input" value="1" /></label>
+          </div>
+          <div class="cli-row"><button id="orw-plan" class="btn primary">生成 ORW 计划</button></div>
+          <div id="orw-report" class="chain-report"></div>
+        </div>
+      </div>`;
+    $('#sys-load').addEventListener('click', loadSyscalls);
+    $('#sys-seccomp').addEventListener('click', () => runCliTool('seccomp-tools', {}));
+    $('#orw-plan').addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('orw_plan', {
+          path: $('#orw-path').value.trim() || '/flag',
+          buffer: $('#orw-buffer').value.trim() || '0x0',
+          read_size: $('#orw-size').value.trim() || '0x100',
+          output_fd: Number($('#orw-fd').value || 1),
+        });
+        const steps = (result.plan.steps || []).map((step) => `
+          <div class="explain-line"><b>${esc(step.name)}</b> = ${esc(step.syscall)}
+            ${step.missing_registers && step.missing_registers.length ? `<span class="warn-line error">缺 ${esc(step.missing_registers.join(','))}</span>` : ''}
+          </div>`).join('');
+        $('#orw-report').innerHTML = steps
+          + `<div class="hint-dim">${esc((result.plan.warnings || []).join('；') || '计划可执行。')}</div>`;
+      } catch (error) {
+        $('#orw-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+      }
+    });
+    loadSyscalls();
+  }
+
+  async function loadSyscalls() {
+    try {
+      const result = await window.pwnbao.request('syscall_table', { arch: $('#sys-arch').value });
+      $('#sys-table').innerHTML = `
+        <table class="data-table">
+          <thead><tr><th>#</th><th>name</th><th>寄存器</th><th></th></tr></thead>
+          <tbody>${result.syscalls.map((syscall) => `
+            <tr>
+              <td class="mono">${syscall.number}</td>
+              <td class="mono">${esc(syscall.name)}</td>
+              <td class="mono">${esc(syscall.registers.join(', '))}</td>
+              <td><button class="mini-btn" data-copy="${syscall.number}">复制号</button></td>
+            </tr>`).join('')}</tbody>
+        </table>`;
+      $$('#sys-table button[data-copy]').forEach((button) => {
+        button.addEventListener('click', () => navigator.clipboard.writeText(button.dataset.copy));
+      });
+    } catch (error) {
+      log(`syscall 表加载失败：${error.message}`, 'error');
+    }
+  }
+
+  // =====================================================================
+  // Stack page
+
+  function renderStack() {
+    const host = $('#page-stack');
+    host.innerHTML = `
+      <div class="rop-grid">
+        <div class="card">
+          <div class="card-title">Offset Finder（cyclic 溢出偏移）</div>
+          <div class="form-grid">
+            <label class="form-row"><span>长度</span><input id="cyc-size" class="input" value="200" /></label>
+            <label class="form-row"><span>周期 n</span><select id="cyc-n" class="input"><option>4</option><option>8</option></select></label>
+          </div>
+          <div class="cli-row">
+            <button id="cyc-gen" class="btn primary">生成 Pattern</button>
+            <label class="form-row" style="flex:1;margin:0"><span>崩溃值</span><input id="cyc-crash" class="input" placeholder="0x61616162 或 b'aaab'" /></label>
+            <button id="cyc-find" class="btn">计算 Offset</button>
+          </div>
+          <div id="cyc-report" class="chain-report"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Leak Manager</div>
+          <div class="form-grid">
+            <label class="form-row"><span>符号</span><input id="leak-symbol" class="input" placeholder="puts / write / printf" /></label>
+            <label class="form-row"><span>泄露地址</span><input id="leak-addr" class="input" placeholder="0x7f..." /></label>
+            <label class="form-row"><span>符号偏移</span><input id="leak-offset" class="input" placeholder="0x..." /></label>
+          </div>
+          <div class="cli-row"><button id="leak-add" class="btn primary">记录 Leak 并推导 libc_base</button></div>
+          <div id="leak-list" class="leak-list"></div>
+        </div>
+      </div>`;
+    $('#cyc-gen').addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('cyclic_pattern', {
+          size: Number($('#cyc-size').value || 200), n: Number($('#cyc-n').value || 4),
+        });
+        $('#cyc-report').innerHTML = `
+          <textarea class="input area" rows="3" readonly>${esc(result.pattern)}</textarea>
+          <div class="cli-row">
+            <button class="btn" id="cyc-copy">复制 Pattern</button>
+            <button class="btn" id="cyc-insert">插入 EXP 片段</button>
+          </div>`;
+        $('#cyc-copy').addEventListener('click', () => navigator.clipboard.writeText(result.pattern));
+        $('#cyc-insert').addEventListener('click', () => insertExp(
+          `payload = cyclic(${Number($('#cyc-size').value || 200)}, n=${Number($('#cyc-n').value || 4)})\np.sendline(payload)\n`,
+        ));
+      } catch (error) {
+        log(`pattern 生成失败：${error.message}`, 'error');
+      }
+    });
+    $('#cyc-find').addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('cyclic_find', { value: $('#cyc-crash').value.trim() });
+        $('#cyc-report').innerHTML = `<div class="explain-line">溢出偏移 = <b>${result.offset}</b></div>
+          <div class="cli-row"><button class="btn" id="cyc-off-insert">插入 EXP 片段</button></div>`;
+        $('#cyc-off-insert').addEventListener('click', () => insertExp(
+          `OFFSET = ${result.offset}\npayload = b'A' * OFFSET + p64(TARGET)\n`,
+        ));
+        log(`溢出偏移 = ${result.offset}`);
+      } catch (error) {
+        $('#cyc-report').innerHTML = `<div class="warn-line error">${esc(error.message)}</div>`;
+      }
+    });
+    $('#leak-add').addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('leak_derive', {
+          address: $('#leak-addr').value.trim(), offset: $('#leak-offset').value.trim(),
+        });
+        const leaks = stackLeaks();
+        leaks.unshift({
+          symbol: $('#leak-symbol').value.trim() || 'leak',
+          address: $('#leak-addr').value.trim(),
+          offset: $('#leak-offset').value.trim(),
+          base: `0x${result.libc_base.toString(16)}`,
+          formula: result.formula,
+        });
+        localStorage.setItem('pwnbao.leaks', JSON.stringify(leaks.slice(0, 20)));
+        renderLeaks();
+        log(`libc_base = 0x${result.libc_base.toString(16)}（${result.formula}）`);
+      } catch (error) {
+        log(`libc_base 推导失败：${error.message}`, 'error');
+      }
+    });
+    renderLeaks();
+  }
+
+  function stackLeaks() {
+    try { return JSON.parse(localStorage.getItem('pwnbao.leaks') || '[]'); }
+    catch { return []; }
+  }
+
+  function renderLeaks() {
+    const host = $('#leak-list');
+    if (!host) return;
+    const leaks = stackLeaks();
+    host.innerHTML = leaks.length ? `
+      <table class="data-table">
+        <thead><tr><th>符号</th><th>泄露地址</th><th>偏移</th><th>libc_base</th></tr></thead>
+        <tbody>${leaks.map((leak) => `
+          <tr><td>${esc(leak.symbol)}</td><td class="mono">${esc(leak.address)}</td>
+          <td class="mono">${esc(leak.offset)}</td><td class="mono">${esc(leak.base)}</td></tr>`).join('')}</tbody>
+      </table>`
+      : '<div class="hint-dim">暂无 Leak 记录。</div>';
+  }
+
+  // =====================================================================
+  // Tools page
+
+  function renderTools() {
+    const host = $('#page-tools');
+    host.innerHTML = `
+      <div class="tools-grid">
+        <div class="tools-left">
+        <div class="card">
+          <div class="card-title">编码转换</div>
+          <div class="cli-row">
+            <input id="conv-value" class="input" style="flex:1" placeholder="0x7ffff7a52290 或 123 或文本" />
+            <select id="conv-mode" class="input"><option value="int">整数</option><option value="bytes">字节/字符串</option></select>
+            <select id="conv-bits" class="input"><option>64</option><option>32</option></select>
+            <button id="conv-run" class="btn primary">转换</button>
+          </div>
+          <div id="conv-results" class="rop-results"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">环境体检（WSL CLI 工具链）</div>
+          <div class="cli-row"><button id="env-doctor" class="btn">体检</button></div>
+          <div id="env-report" class="rop-results"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">命令提示（WSL 模板，点击复制）</div>
+          <input id="tpl-filter" class="input" placeholder="筛选，例如 checksec / ROPgadget / one_gadget" />
+          <div id="tpl-list" class="tpl-list"></div>
+        </div>
+        </div>
+        <div class="card clib-card">
+          <div class="card-title">C 函数速查
+            <span class="flex-spacer"></span>
+            <span class="hint-dim">原型 · 参数逐项 · 返回值 · pwn 笔记</span>
+          </div>
+          <div id="clib-tools-panel"></div>
+        </div>
+      </div>`;
+    $('#conv-run').addEventListener('click', runConvert);
+    $('#env-doctor').addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('cli_env_doctor', {});
+        $('#env-report').innerHTML = `
+          <table class="data-table">
+            <thead><tr><th>工具</th><th>状态</th><th></th></tr></thead>
+            <tbody>${result.tools.map((tool) => `
+              <tr><td class="mono">${esc(tool.tool)}</td>
+              <td>${tool.present ? '<span class="ok-text">可用</span>' : '<span class="err-text">缺失</span>'}</td>
+              <td>${tool.present ? '' : `<button class="mini-btn" data-install="${esc(tool.install)}">在终端安装</button>`}</td></tr>`).join('')}</tbody>
+          </table>`;
+        $$('#env-report button[data-install]').forEach((button) => {
+          button.addEventListener('click', () => runInTerminal(button.dataset.install));
+        });
+      } catch (error) {
+        log(`体检失败：${error.message}`, 'error');
+      }
+    });
+    $('#tpl-filter').addEventListener('input', () => renderTemplates($('#tpl-filter').value));
+    loadTemplates();
+    renderClibPanel($('#clib-tools-panel'));
+  }
+
+  async function runConvert() {
+    try {
+      const result = await window.pwnbao.request('convert', {
+        mode: $('#conv-mode').value,
+        value: $('#conv-value').value.trim(),
+        bits: Number($('#conv-bits').value || 64),
+      });
+      $('#conv-results').innerHTML = `
+        <table class="data-table">
+          <thead><tr><th>形式</th><th>值</th><th></th></tr></thead>
+          <tbody>${result.results.map((item, index) => `
+            <tr><td>${esc(item.title)}</td><td class="mono conv-value">${esc(item.value)}</td>
+            <td><button class="mini-btn" data-copy="${index}">复制</button></td></tr>`).join('')}</tbody>
+        </table>`;
+      $$('#conv-results button[data-copy]').forEach((button) => {
+        button.addEventListener('click', () => {
+          navigator.clipboard.writeText(result.results[Number(button.dataset.copy)].value);
+          log('已复制转换结果');
+        });
+      });
+    } catch (error) {
+      log(`转换失败：${error.message}`, 'error');
+    }
+  }
+
+  let templateCache = [];
+  async function loadTemplates() {
+    try {
+      const result = await window.pwnbao.request('command_templates');
+      templateCache = result.wsl || [];
+      renderTemplates('');
+    } catch (error) {
+      log(`命令模板加载失败：${error.message}`, 'error');
+    }
+  }
+
+  function renderTemplates(query) {
+    const host = $('#tpl-list');
+    if (!host) return;
+    const needle = String(query || '').trim().toLowerCase();
+    const items = templateCache.filter((item) => !needle
+      || item.title.toLowerCase().includes(needle)
+      || item.command.toLowerCase().includes(needle));
+    host.innerHTML = items.map((item) => `
+      <div class="tpl-row">
+        <div class="tpl-title">${esc(item.title)}</div>
+        <div class="tpl-command mono">${esc(item.command)}</div>
+      </div>`).join('') || '<div class="hint-dim">没有匹配模板。</div>';
+    $$('.tpl-row', host).forEach((row, index) => {
+      row.addEventListener('click', () => {
+        navigator.clipboard.writeText(items[index].command);
+        log(`已复制：${items[index].title}`);
+      });
+    });
+  }
+
+  // =====================================================================
+  // C 函数速查（clib_catalog 桥真值）——工具箱卡片 + EXP 工具列 tab 共用
+
+  const clibState = { cache: null, expanded: new Set() };
+
+  async function loadClibCatalog() {
+    if (clibState.cache) return clibState.cache;
+    const result = await window.pwnbao.request('clib_catalog', {});
+    clibState.cache = {
+      functions: result.functions || [],
+      operators: result.operators || [],
+      categories: result.categories || [],
+    };
+    return clibState.cache;
+  }
+
+  function filterClib(catalog, query, category) {
+    const needle = String(query || '').trim().toLowerCase();
+    return catalog.functions.filter((fn) => {
+      if (category && fn.category !== category) return false;
+      if (!needle) return true;
+      return fn.name.toLowerCase().includes(needle)
+        || (fn.summary || '').toLowerCase().includes(needle)
+        || (fn.prototype || '').toLowerCase().includes(needle)
+        || (fn.tags || []).some((tag) => tag.toLowerCase().includes(needle));
+    });
+  }
+
+  function clibDetailHtml(fn) {
+    const params = (fn.params || []).map((param) => `
+      <tr>
+        <td class="mono">${esc(param.name)}</td>
+        <td class="mono">${esc(param.type || '')}</td>
+        <td>${esc(param.note || '')}</td>
+      </tr>`).join('');
+    const returns = (fn.returns || []).map((item) => `
+      <div class="fact-row"><span class="k">${esc(item.condition || '返回')}</span>
+      <span class="v">${esc(item.value)}</span></div>`).join('');
+    const notes = (fn.notes || []).map((note) => `<li>${esc(note)}</li>`).join('');
+    return `
+      <div class="clib-detail">
+        <div class="clib-proto mono">${esc(fn.prototype)}</div>
+        <div class="hint-dim">${esc([fn.header, fn.category].filter(Boolean).join(' · '))}</div>
+        ${params ? `<table class="data-table clib-table">
+          <thead><tr><th>参数</th><th>类型</th><th>说明</th></tr></thead>
+          <tbody>${params}</tbody></table>` : ''}
+        ${returns ? `<div class="clib-returns">${returns}</div>` : ''}
+        ${notes ? `<ul class="clib-notes">${notes}</ul>` : ''}
+        <div class="cli-row"><button class="mini-btn" data-copy-proto="${esc(fn.prototype)}">复制原型</button></div>
+      </div>`;
+  }
+
+  function renderClibList(host, catalog, query, category) {
+    const items = filterClib(catalog, query, category);
+    const listHtml = items.length ? items.map((fn) => {
+      const open = clibState.expanded.has(fn.name);
+      return `
+        <div class="clib-row ${open ? 'open' : ''}" data-name="${esc(fn.name)}">
+          <div class="clib-row-head">
+            <span class="clib-name mono">${esc(fn.name)}</span>
+            <span class="clib-cat">${esc(fn.category || '')}</span>
+            <span class="hint-dim clib-summary">${esc(fn.summary || '')}</span>
+          </div>
+          ${open ? clibDetailHtml(fn) : ''}
+        </div>`;
+    }).join('') : '<div class="hint-dim">没有匹配的 C 函数。</div>';
+    host.innerHTML = `
+      <div class="clib-count hint-dim">${items.length} / ${catalog.functions.length} 个函数</div>
+      ${listHtml}`;
+    $$('.clib-row', host).forEach((row) => {
+      row.addEventListener('click', (event) => {
+        if (event.target.closest('[data-copy-proto]')) return;   // 复制按钮不折叠
+        if (event.target.closest('.clib-detail')) return;        // 详情内选中文本不折叠
+        const name = row.dataset.name;
+        if (clibState.expanded.has(name)) clibState.expanded.delete(name);
+        else clibState.expanded.add(name);
+        renderClibList(host, catalog, query, category);
+      });
+    });
+    $$('button[data-copy-proto]', host).forEach((button) => {
+      button.addEventListener('click', () => {
+        navigator.clipboard.writeText(button.dataset.copyProto);
+        log('已复制函数原型');
+      });
+    });
+  }
+
+  async function renderClibPanel(host, options = {}) {
+    const compact = Boolean(options.compact);
+    let catalog;
+    try {
+      catalog = await loadClibCatalog();
+    } catch (error) {
+      host.innerHTML = `<div class="hint-dim">C 函数目录加载失败：${esc(error.message)}</div>`;
+      return;
+    }
+    host.innerHTML = `
+      <div class="cli-row clib-controls">
+        <input class="input clib-q" style="flex:1;min-width:0" placeholder="搜索函数 / 摘要 / 标签，如 read、memset、低 8 位" />
+        <select class="input clib-category">
+          <option value="">全部分类</option>
+          ${catalog.categories.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join('')}
+        </select>
+      </div>
+      <div class="clib-list"></div>
+      ${compact ? '' : `
+        <details class="clib-ops">
+          <summary>运算符速查（&amp; &amp;&amp; | || ^ ~ &lt;&lt; &gt;&gt;）</summary>
+          <table class="data-table">
+            <thead><tr><th>符号</th><th>名字</th><th>类型</th><th>短路</th><th>作用</th><th>例子</th></tr></thead>
+            <tbody>${catalog.operators.map((op) => `
+              <tr>
+                <td class="mono">${esc(op.symbol)}</td>
+                <td>${esc(op.name)}</td>
+                <td>${esc(op.kind)}</td>
+                <td>${op.short_circuit ? '短路' : '不短路'}</td>
+                <td>${esc(op.description)}</td>
+                <td class="mono">${esc(op.example)}</td>
+              </tr>`).join('')}</tbody>
+          </table>
+        </details>`}`;
+    const list = $('.clib-list', host);
+    const queryInput = $('.clib-q', host);
+    const categorySelect = $('.clib-category', host);
+    const refresh = () => renderClibList(
+      list, catalog, queryInput.value, categorySelect ? categorySelect.value : '',
+    );
+    queryInput.addEventListener('input', refresh);
+    if (categorySelect) categorySelect.addEventListener('change', refresh);
+    refresh();
+  }
+
+  // =====================================================================
+  // EXP tool column (代码块 / 转换 / 格式化 / 命令 / GDB)
+
+  async function renderExpTools() {
+    const host = $('#exp-tools');
+    if (!host) return;
+    host.innerHTML = `
+      <div class="exp-tools-tabs">
+        ${['代码块', '进制转换', '格式化', '命令提示', 'GDB 菜单', 'C 函数'].map((label, index) => `
+          <button class="mini-tab ${index === 0 ? 'active' : ''}" data-etab="${index}">${label}</button>`).join('')}
+      </div>
+      <div class="exp-tools-pages"></div>`;
+    const pages = $('.exp-tools-pages', host);
+    const renderTab = async (index) => {
+      pages.innerHTML = '';
+      if (index === 0) await renderBlockCatalog(pages);
+      if (index === 1) renderConvMini(pages);
+      if (index === 2) renderFmtMini(pages);
+      if (index === 3) await renderCommandHints(pages);
+      if (index === 4) await renderGdbMenu(pages);
+      if (index === 5) await renderClibPanel(pages, { compact: true });
+    };
+    $$('.exp-tools-tabs .mini-tab', host).forEach((tab) => {
+      tab.addEventListener('click', () => {
+        $$('.exp-tools-tabs .mini-tab', host).forEach((item) => item.classList.toggle('active', item === tab));
+        renderTab(Number(tab.dataset.etab));
+      });
+    });
+    await renderTab(0);
+  }
+
+  async function renderBlockCatalog(host) {
+    let blocks = [];
+    try {
+      const result = await window.pwnbao.request('blocks_list');
+      blocks = result.blocks || [];
+    } catch (error) {
+      host.innerHTML = `<div class="hint-dim">代码块目录加载失败：${esc(error.message)}</div>`;
+      return;
+    }
+    host.innerHTML = `
+      <input id="block-filter" class="input" placeholder="搜索 tcache / overlap / ret2libc…" />
+      <div id="block-list" class="block-list"></div>`;
+    const renderList = (query) => {
+      const needle = query.trim().toLowerCase();
+      const items = blocks.filter((block) => !needle
+        || block.title.toLowerCase().includes(needle)
+        || block.category.toLowerCase().includes(needle)
+        || (block.tags || []).some((tag) => tag.toLowerCase().includes(needle)));
+      $('#block-list', host).innerHTML = items.map((block) => `
+        <div class="block-row" data-id="${esc(block.id)}">
+          <div class="block-title">${esc(block.title)}<span class="block-cat">${esc(block.category)}</span></div>
+          <div class="hint-dim">${esc(block.description)}</div>
+        </div>`).join('') || '<div class="hint-dim">没有匹配代码块。</div>';
+      $$('.block-row', host).forEach((row) => {
+        row.addEventListener('dblclick', async () => {
+          const block = blocks.find((item) => item.id === row.dataset.id);
+          if (!block) return;
+          await insertBlockWithPlaceholders(block);
+        });
+      });
+    };
+    $('#block-filter', host).addEventListener('input', (event) => renderList(event.target.value));
+    renderList('');
+  }
+
+  async function insertBlockWithPlaceholders(block) {
+    const names = block.placeholders || [];
+    if (!names.length) {
+      await insertExp(block.snippet);
+      log(`已插入代码块：${block.title}`);
+      return;
+    }
+    const fields = names.map((name) => `
+      <label class="form-row"><span>${esc(name)}</span>
+        <input class="input ph-input" data-name="${esc(name)}" placeholder="${esc(name)}" /></label>`).join('');
+    app().openDialog(`填写代码块参数：${block.title}`, fields, async () => {
+      let text = block.snippet;
+      $$('.ph-input').forEach((input) => {
+        const value = input.value.trim();
+        if (value) text = text.split(`{{${input.dataset.name}}}`).join(value);
+      });
+      await insertExp(text);
+      log(`已插入代码块：${block.title}`);
+    });
+  }
+
+  function renderConvMini(host) {
+    host.innerHTML = `
+      <label class="form-row"><span>整数</span><input id="mini-int" class="input" placeholder="0x7f..." /></label>
+      <button id="mini-int-go" class="btn">转换并展示</button>
+      <div id="mini-int-out"></div>
+      <label class="form-row" style="margin-top:10px"><span>字节/字符串</span><input id="mini-bytes" class="input" placeholder="b'AAAA' 或文本" /></label>
+      <button id="mini-bytes-go" class="btn">转换并展示</button>
+      <div id="mini-bytes-out"></div>`;
+    $('#mini-int-go', host).addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('convert', { mode: 'int', value: $('#mini-int', host).value.trim() });
+        $('#mini-int-out', host).innerHTML = result.results.map((item) => `
+          <div class="tpl-row"><div class="tpl-title">${esc(item.title)}</div>
+          <div class="tpl-command mono">${esc(item.value)}</div></div>`).join('');
+      } catch (error) {
+        $('#mini-int-out', host).textContent = error.message;
+      }
+    });
+    $('#mini-bytes-go', host).addEventListener('click', async () => {
+      try {
+        const result = await window.pwnbao.request('convert', { mode: 'bytes', value: $('#mini-bytes', host).value.trim() });
+        $('#mini-bytes-out', host).innerHTML = result.results.map((item) => `
+          <div class="tpl-row"><div class="tpl-title">${esc(item.title)}</div>
+          <div class="tpl-command mono">${esc(item.value)}</div></div>`).join('');
+      } catch (error) {
+        $('#mini-bytes-out', host).textContent = error.message;
+      }
+    });
+  }
+
+  function renderFmtMini(host) {
+    host.innerHTML = `
+      <div class="hint-dim">常用格式化字符串片段（点击插入）</div>
+      ${[
+        ['low/high 分段写入', "payload = fmtstr_payload(FMT_OFFSET, {TARGET: VALUE}, write_size='short')"],
+        ['%s 泄漏', "p.sendline(b'%9$s')\nleak = p.recvuntil(b'\\x7f', drop=False)"],
+        ['%p 探针', "p.sendline(b'AAAAAAAA' + b'.'.join(b'%%%d$p' % i for i in range(1, 30)))"],
+        ['fmtstr_payload 全量', "payload = fmtstr_payload(FMT_OFFSET, {GOT_ADDR: SYSTEM_ADDR})"],
+      ].map(([title, snippet], index) => `
+        <div class="tpl-row" data-index="${index}">
+          <div class="tpl-title">${esc(title)}</div>
+          <div class="tpl-command mono">${esc(snippet)}</div>
+        </div>`).join('')}`;
+    $$('.tpl-row', host).forEach((row) => {
+      row.addEventListener('click', () => insertExp(host.querySelector(`.tpl-row[data-index="${row.dataset.index}"] .tpl-command`).textContent));
+    });
+  }
+
+  async function renderCommandHints(host) {
+    try {
+      const result = await window.pwnbao.request('command_templates');
+      const items = result.wsl || [];
+      host.innerHTML = items.map((item, index) => `
+        <div class="tpl-row" data-index="${index}">
+          <div class="tpl-title">${esc(item.title)}</div>
+          <div class="tpl-command mono">${esc(item.command)}</div>
+        </div>`).join('');
+      $$('.tpl-row', host).forEach((row) => {
+        row.addEventListener('click', () => {
+          navigator.clipboard.writeText(items[Number(row.dataset.index)].command);
+          log('命令已复制到剪贴板');
+        });
+      });
+    } catch (error) {
+      host.textContent = error.message;
+    }
+  }
+
+  async function renderGdbMenu(host) {
+    try {
+      const result = await window.pwnbao.request('command_templates');
+      const items = result.gdb || [];
+      host.innerHTML = items.map((item, index) => `
+        <div class="tpl-row" data-index="${index}">
+          <div class="tpl-title">${esc(item.title)}</div>
+          <div class="tpl-command mono">${esc(item.command)}</div>
+        </div>`).join('');
+      $$('.tpl-row', host).forEach((row) => {
+        row.addEventListener('click', async () => {
+          const command = items[Number(row.dataset.index)].command;
+          navigator.clipboard.writeText(command);
+          log(`已复制：${command}`);
+        });
+      });
+    } catch (error) {
+      host.textContent = error.message;
+    }
+  }
+
+  // =====================================================================
+  window.PwnPages = {
+    renderBinary,
+    renderRop,
+    renderDebug,
+    renderFormat,
+    renderSyscall,
+    renderStack,
+    renderTools,
+    renderExpTools,
+    runCliTool,
+  };
+})();

@@ -1,0 +1,85 @@
+{
+  "schema_version": 2,
+  "path": "比赛/SekaiCTF2026/pwn_ppp(堆)/exp_ppp_remote_fixed.py",
+  "source_hash": "be20d96c0f1b34c3bfdfec2936994a7c9e21a4ac8c49f114fca290caaeb9f459",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "PARSE_ONLY",
+  "analysis_variant": "default",
+  "failure_reasons": [
+    "external runtime dependency"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {},
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "note",
+      "chunk": "",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "dynamic for: iterable is unknown",
+      "meta": {
+        "analysis_status": "unresolved",
+        "source_line": "205",
+        "source_end_line": "219",
+        "source_id": "source_f7691e6b624598c6",
+        "ast_fingerprint": "bbf49aaccc2c0bd0"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `main`。",
+      "start": 8099,
+      "end": 8105,
+      "line": 223,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `args.system is not None` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 6938,
+      "end": 7248,
+      "line": 199,
+      "suggestion": ""
+    },
+    {
+      "severity": "warning",
+      "code": "dynamic_iterable",
+      "message": "for iterable 无法静态确定，未展开循环。",
+      "start": 7254,
+      "end": 7979,
+      "line": 205,
+      "suggestion": "改用静态 range/list，或在时间线中人工绑定。"
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 1,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

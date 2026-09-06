@@ -1,0 +1,1836 @@
+from __future__ import annotations
+
+import argparse
+import ast
+import functools
+import logging
+import math
+import re
+import sys
+from collections import defaultdict
+from collections.abc import Callable
+from contextlib import AbstractContextManager
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any
+from typing import TextIO
+from typing import TypeVar
+
+import unicorn as U
+from rich.table import Table
+from rich.text import Text
+from typing_extensions import ParamSpec
+from typing_extensions import override
+
+import pwndbg
+import pwndbg.aglib
+import pwndbg.aglib.disasm.disassembly
+import pwndbg.aglib.kernel
+import pwndbg.aglib.nearpc
+import pwndbg.aglib.qemu
+import pwndbg.aglib.signal
+import pwndbg.aglib.symbol
+import pwndbg.aglib.vmmap
+import pwndbg.arguments
+import pwndbg.chain
+import pwndbg.color
+import pwndbg.color.context as ctx_color
+import pwndbg.color.memory as mem_color
+import pwndbg.color.syntax_highlight as H
+import pwndbg.commands
+import pwndbg.commands.telescope
+import pwndbg.dbg_mod
+import pwndbg.dintegration
+import pwndbg.lib.cache
+import pwndbg.lib.config
+import pwndbg.lib.tips
+import pwndbg.rich
+import pwndbg.ui
+from pwndbg.aglib.arch_mod import get_thumb_mode_string
+from pwndbg.color import ColorConfig
+from pwndbg.color import ColorParamSpec
+from pwndbg.color import message
+from pwndbg.color import theme
+from pwndbg.commands import CommandCategory
+from pwndbg.dbg_mod import EventHandlerPriority
+from pwndbg.dbg_mod import EventType
+from pwndbg.lib import pretty_print
+from pwndbg.lib.regs import BitFlags
+from pwndbg.lib.regs import RegisterContextProtocol
+from pwndbg.lib.regs import VisitableRegister
+
+if pwndbg.dbg.is_gdblib_available():
+    import gdb
+
+    import pwndbg.gdblib.ptmalloc2_tracking
+    import pwndbg.gdblib.symbol
+
+log = logging.getLogger(__name__)
+
+T = TypeVar("T")
+P = ParamSpec("P")
+
+theme.add_param("backtrace-prefix", "►", "prefix for current backtrace label")
+
+# TODO: Should namespace be "context.backtrace"?
+c = ColorConfig(
+    "backtrace",
+    [
+        ColorParamSpec("prefix", "none", "color for prefix of current backtrace label"),
+        ColorParamSpec("address", "none", "color for backtrace (address)"),
+        ColorParamSpec("symbol", "none", "color for backtrace (symbol)"),
+        ColorParamSpec("frame-label", "none", "color for backtrace (frame label)"),
+    ],
+)
+
+
+def clear_screen(out=sys.stdout) -> None:
+    """
+    Clear the screen by moving the cursor to top-left corner and
+    clearing the content. Different terminals may act differently
+    """
+    ## The ANSI escape codes we use here are described e.g. on:
+    # https://en.wikipedia.org/wiki/ANSI_escape_code#CSIsection
+    #
+    ## To sum up the escape codes used below:
+    # \x1b - Escape | Starts all the escape sequences
+    # [ - Control Sequence Introducer | Starts most of the useful sequences
+    # H - Cursor Position | Moves the cursor to row n, column m (default=1)
+    # \x1b - Escape | Starts all the escape sequences
+    # <n> J - Erase in Display | Clears part of the screen.
+    # If n is 0 (or missing), clear from cursor to end of screen.
+    # If n is 1, clear from cursor to beginning of the screen.
+    # If n is 2, clear entire screen (and moves cursor to upper left on DOS ANSI.SYS).
+    # If n is 3, clear entire screen and delete all lines saved in the
+    # scrollback buffer (this feature was added for xterm and is supported
+    # by other terminal applications
+    out.write("\x1b[H\x1b[2J")
+
+
+config_reserve_lines = pwndbg.config.add_param(
+    "context-reserve-lines",
+    "if-ctx-fits",
+    "when to reserve lines after the prompt to reduce context shake",
+    help_docstring="""
+The "if-ctx-fits" setting only reserves lines if the whole context would still fit vertically in the current terminal window.
+It doesn't take into account line-wrapping due to insufficient terminal width.
+""",  # TODO: maybe it could take into account line-wrapping?
+    param_class=pwndbg.lib.config.PARAM_ENUM,
+    enum_sequence=["never", "if-ctx-fits", "always"],
+)
+
+
+def reserve_lines_maybe(cmd_lines: int) -> None:
+    """
+    Scroll the terminal up a few lines to reduce shaking
+    when repeatedly printing the context.
+
+    Only do this if the context would still fit on
+    the screen.
+    """
+    if config_reserve_lines == "never":
+        return
+
+    # If we are clearing the screen, we already have the maximum number of empty
+    # lines below us, no need to scroll.
+    if config_reserve_lines == "if-ctx-fits" and config_clear_screen:
+        return
+
+    # Could use .get_cmd_window_size() but lldb doesn't provide it
+    rows, _ = pwndbg.ui.get_window_size(sys.stdout)
+    leftover_lines = rows - cmd_lines
+    # Take away one line for the prompt (e.g. pwndbg>) which is printed after the context
+    leftover_lines -= 1
+
+    # Need one line for the newline generated by pressing enter
+    needed_empty = 1
+    # Also need to cover extra lines that are printed before we start calculating/printing
+    # the context.
+    # Even though they are cleared when config_clear_screen=True, they still
+    # cause shake, so we still account for them.
+    needed_empty += pwndbg.dbg.pre_ctx_lines
+
+    if not config_clear_screen:
+        # Since we are not clearing the screen, we assume the prompt is at the bottom
+        # of the window
+        if config_reserve_lines == "always" or leftover_lines >= needed_empty:
+            # We always write to stdout since that is where the prompt will be
+            # ANSII codes
+            # \x1b[#S  scroll the terminal up by # lines
+            # \x1b[#A  move the cursor up by # lines
+            sys.stdout.write(f"\x1b[{needed_empty}S\x1b[{needed_empty}A")
+    else:
+        assert config_reserve_lines == "always"
+        # Since we are clearing the screen, leftover_lines describes actual empty lines.
+        leftover_lines = max(leftover_lines, 0)
+        if leftover_lines < needed_empty:
+            to_scroll = needed_empty - leftover_lines
+            sys.stdout.write(f"\x1b[{to_scroll}S\x1b[{to_scroll}A")
+
+
+config_clear_screen = pwndbg.config.add_param(
+    "context-clear-screen", False, "whether to clear the screen before printing the context"
+)
+config_output = pwndbg.config.add_param(
+    "context-output", "stdout", 'where Pwndbg should output ("stdout" or file/tty)'
+)
+config_context_sections = pwndbg.config.add_param(
+    "context-sections",
+    "regs disasm code ghidra stack backtrace expressions threads heap_tracker last_signal",
+    "which context sections are displayed (controls order)",
+)
+config_max_threads_display = pwndbg.config.add_param(
+    "context-max-threads",
+    4,
+    "maximum number of threads displayed by the context command",
+)
+config_backtrace_hex = pwndbg.config.add_param(
+    "context-backtrace-hex",
+    False,
+    "whether to use hex for offsets in the backtrace",
+)
+
+# Storing output configuration per section
+OutputType = str | Callable[[str], None]
+outputs: dict[str, OutputType] = {}
+output_settings: defaultdict[str, dict[str, Any]] = defaultdict(dict)
+
+
+@pwndbg.config.trigger(config_context_sections)
+def validate_context_sections() -> None:
+    valid_values = [
+        context.__name__.replace("context_", "") for context in context_sections.values()
+    ]
+
+    # If someone tries to set an empty string, we let to do that informing about possible values
+    # (so that it is possible to have no context at all)
+    if not config_context_sections.value or config_context_sections.value.lower() in (
+        "''",
+        '""',
+        "none",
+        "empty",
+        "-",
+    ):
+        config_context_sections.value = ""
+        print(
+            message.warn(
+                f"Sections set to be empty. FYI valid values are: {', '.join(valid_values)}"
+            )
+        )
+        return
+
+    for section in config_context_sections.split():
+        if section not in valid_values:
+            print(
+                message.warn(f"Invalid section: {section}, valid values: {', '.join(valid_values)}")
+            )
+            print(message.warn("(setting none of them like '' will make sections not appear)"))
+            config_context_sections.revert_default()
+            return
+
+
+@dataclass(frozen=True)
+class StdOutput(AbstractContextManager[TextIO]):
+    """A context manager wrapper to give stdout"""
+
+    def __enter__(self) -> TextIO:
+        return sys.stdout
+
+    def __exit__(self, *exc: object) -> None:
+        return None
+
+
+class FileOutput:
+    """A context manager wrapper to reopen files on enter"""
+
+    def __init__(self, *args) -> None:
+        self.args = args
+        self.handle = None
+
+    def __enter__(self) -> TextIO:
+        self.handle = open(*self.args)
+        return self.handle
+
+    def __exit__(self, *args, **kwargs) -> None:
+        assert self.handle is not None
+        self.handle.close()
+
+    def __hash__(self):
+        return hash(self.args)
+
+    def __eq__(self, other):
+        return self.args == other.args
+
+
+@dataclass(frozen=True)
+class CallOutput:
+    """A context manager which calls a function on write"""
+
+    func: Callable[[str], None]
+
+    def __enter__(self) -> CallOutput:
+        return self
+
+    def __exit__(self, *args, **kwargs) -> None:
+        pass
+
+    def write(self, data) -> None:
+        self.func(data)
+
+    def writelines(self, lines_iterable) -> None:
+        self.func("".join(lines_iterable))
+
+    def flush(self):
+        if flush := getattr(self.func, "flush", None):
+            return flush()
+
+    def isatty(self):
+        if isatty := getattr(self.func, "isatty", None):
+            return isatty()
+        return False
+
+
+OutputWrapper = StdOutput | FileOutput | CallOutput
+OutputTarget = TextIO | CallOutput
+
+
+def output(section: str) -> OutputWrapper:
+    """Creates a context manager corresponding to configured context output"""
+    target = outputs.get(section, str(config_output))
+    if not target or target == "stdout":
+        return StdOutput()
+    if callable(target):
+        return CallOutput(target)
+    return FileOutput(target, "w")
+
+
+parser = argparse.ArgumentParser(description="Sets the output of a context section.")
+parser.add_argument(
+    "section",
+    type=str,
+    help="The section which is to be configured. ('regs', 'disasm', 'code', 'stack', 'backtrace', 'args', 'threads', 'heap_tracker', 'expressions', and/or 'last_signal')",
+)
+parser.add_argument("path", type=str, help="The path to which the output is written")
+parser.add_argument("clearing", type=bool, help="Indicates whether to clear the output")
+banner_arg = parser.add_argument(
+    "banner",
+    type=str,
+    nargs="?",
+    default="both",
+    help="Where a banner should be placed: both, top , bottom, none",
+)
+parser.add_argument(
+    "width",
+    type=int,
+    nargs="?",
+    default=None,
+    help="Sets a fixed width (used for banner). Set to None for auto",
+)
+parser.add_argument(
+    "height",
+    type=int,
+    nargs="?",
+    default=None,
+    help="Sets a fixed height (used for number of lines to display before cutoff). Only applies to sections where more data can be displayed like disasm, stack, and threads and overrides their section specific limits. Set to None for auto",
+)
+
+
+@pwndbg.commands.Command(parser, aliases=["ctx-out"], category=CommandCategory.CONTEXT)
+def contextoutput(
+    section: str,
+    path: OutputType,
+    clearing: bool,
+    banner: str = "both",
+    width: int | None = None,
+    height: int | None = None,
+):
+    if not banner:  # synonym for splitmind backwards compatibility
+        banner = "none"
+    elif banner not in ("both", "top", "bottom", "none"):
+        raise argparse.ArgumentError(banner_arg, f"banner can not be '{banner}'")
+
+    outputs[section] = path
+    output_settings[section].update(
+        {
+            "clearing": clearing,
+            "width": width,
+            "height": height,
+            "banner_top": banner in ("both", "top"),
+            "banner_bottom": banner in ("both", "bottom"),
+        }
+    )
+
+
+def resetcontextoutput(section: str) -> None:
+    target = outputs.pop(section, None)
+    if target is not None:
+        # Remove all settings except for the ones that are not related to output redirection
+        output_settings[section] = {
+            k: v
+            for k, v in output_settings[section].items()
+            if k not in ("clearing", "width", "height", "banner_top", "banner_bottom")
+        }
+
+
+# Context history
+context_history: defaultdict[str, list[list[str]]] = defaultdict(list)
+selected_history_index: int | None = None
+
+context_history_size = pwndbg.config.add_param(
+    "context-history-size", 50, "number of context history entries to store"
+)
+
+
+@pwndbg.config.trigger(context_history_size)
+def history_size_changed() -> None:
+    if context_history_size <= 0:
+        context_history.clear()
+    else:
+        for section in context_history:
+            context_history[section] = context_history[section][-int(context_history_size) :]
+
+
+def serve_context_history(function: Callable[P, list[str]]) -> Callable[P, list[str]]:
+    @functools.wraps(function)
+    def _serve_context_history(*a: P.args, **kw: P.kwargs) -> list[str]:
+        global selected_history_index
+        assert "context_" in function.__name__
+        section_name = function.__name__.replace("context_", "")
+
+        # If the history is disabled, just return the current output
+        if context_history_size <= 0:
+            return function(*a, **kw)
+
+        # Add the current section to the history if it is not already there
+        current_output = []
+        if pwndbg.aglib.proc.alive():
+            # Do not reevaluate the expressions section because its content is not deterministic.
+            # Instead, reuse the last evaluated expression and rely on the other sections to deselect
+            # the history entry if the output changed.
+            # https://github.com/pwndbg/pwndbg/issues/2579
+            if (
+                section_name == "expressions"
+                and selected_history_index is not None
+                and len(context_history[section_name]) > 0
+            ):
+                current_output = context_history[section_name][-1]
+            else:
+                current_output = function(*a, **kw)
+            if (
+                len(context_history[section_name]) == 0
+                or context_history[section_name][-1] != current_output
+            ):
+                context_history[section_name].append(current_output)
+                selected_history_index = None
+        # Show the history if the process is not running anymore
+        elif context_history[section_name] and selected_history_index is None:
+            selected_history_index = len(context_history[section_name]) - 1
+
+        # Truncate the history to the configured size
+        context_history[section_name] = context_history[section_name][-int(context_history_size) :]
+        history = context_history[section_name]
+
+        if selected_history_index is None:
+            return current_output or function(*a, **kw)
+        if not history or selected_history_index >= len(history):
+            return []
+        return history[selected_history_index]
+
+    return _serve_context_history
+
+
+def history_handle_unchanged_contents() -> None:
+    if not context_history:
+        return
+    longest_history = max(len(h) for h in context_history.values())
+    for section_name, history in context_history.items():
+        # Duplicate the last entry if it is the same as the previous one
+        # and wasn't added when the history was updated
+        if len(history) == longest_history - 1 and history:
+            history.append(history[-1])
+        # Prepend empty entries to the history to make all sections have the same length
+        elif len(history) < longest_history - 1:
+            context_history[section_name] = [
+                [] for _ in range(longest_history - 1 - len(history))
+            ] + history
+
+
+parser = argparse.ArgumentParser(description="Select previous entry in context history.")
+parser.add_argument(
+    "count",
+    type=int,
+    nargs="?",
+    default=1,
+    help="The number of entries to go back in history",
+)
+
+
+@pwndbg.commands.Command(parser, aliases=["ctxp"], category=CommandCategory.CONTEXT)
+def contextprev(count: int) -> None:
+    global selected_history_index
+    if not context_history:
+        print(message.error("No context history captured"))
+        return
+    if selected_history_index is None:
+        longest_history = max(len(h) for h in context_history.values())
+        new_index = longest_history - count - 1
+    else:
+        new_index = selected_history_index - count
+    selected_history_index = max(0, new_index)
+    context()
+
+
+parser = argparse.ArgumentParser(description="Select next entry in context history.")
+parser.add_argument(
+    "count",
+    type=int,
+    nargs="?",
+    default=1,
+    help="The number of entries to go forward in history",
+)
+
+
+@pwndbg.commands.Command(parser, aliases=["ctxn"], category=CommandCategory.CONTEXT)
+def contextnext(count: int) -> None:
+    global selected_history_index
+    if not context_history:
+        print(message.error("No context history captured"))
+        return
+    longest_history = max(len(h) for h in context_history.values())
+    if selected_history_index is None:
+        new_index = longest_history - 1
+    else:
+        new_index = selected_history_index + count
+    selected_history_index = min(longest_history - 1, new_index)
+    context()
+
+
+parser = argparse.ArgumentParser(
+    description="Search for a string in the context history and select that entry."
+)
+parser.add_argument(
+    "needle",
+    type=str,
+    help="The string to search for in the context history",
+)
+parser.add_argument(
+    "section",
+    type=str,
+    nargs="?",
+    default=None,
+    help="The section to search in. If not provided, search in all sections",
+)
+
+
+@pwndbg.commands.Command(parser, aliases=["ctxsearch"], category=CommandCategory.CONTEXT)
+def contextsearch(needle: str, section: str | None = None) -> None:
+    if not section:
+        sections = context_history.keys()
+    else:
+        if section not in context_history:
+            print(message.error(f"Section '{section}' not found in context history."))
+            return
+        sections = [section]
+
+    matches: list[tuple[str, int]] = []
+    for section in sections:
+        for i, entry in enumerate(context_history[section]):
+            if not any(m[1] == i for m in matches) and any(needle in line for line in entry):
+                matches.append((section, i))
+    matches.sort(key=lambda m: m[1], reverse=True)
+
+    if not matches:
+        print(message.error(f"String '{needle}' not found in context history."))
+        return
+
+    # Select first match before currently selected entry
+    global selected_history_index
+    if selected_history_index is None:
+        next_match = matches[0]
+    else:
+        for match in matches:
+            if match[1] < selected_history_index:
+                next_match = match
+                break
+        else:
+            next_match = matches[0]
+            print(message.warn("No more matches before the current entry. Starting from the top."))
+
+    selected_history_index = next_match[1]
+    print(
+        message.info(
+            f"Found {len(matches)} match{'es' if len(matches) > 1 else ''}. Selected entry {next_match[1] + 1} for match in section '{next_match[0]}'."
+        )
+    )
+    context()
+
+
+# Watches
+expressions = []
+
+parser = argparse.ArgumentParser(
+    description="""
+Adds an expression to be shown on context.
+
+To remove an expression, see `cunwatch`.
+""",
+)
+parser.add_argument(
+    "cmd",
+    type=str,
+    default="eval",
+    nargs="?",
+    choices=("eval", "execute"),
+    help="""Command to be used with the expression.
+- eval: the expression is parsed and evaluated as in the debugged language.
+- execute: the expression is executed as a GDB command.""",
+)
+parser.add_argument(
+    "expression", type=str, help="The expression to be evaluated and shown in context"
+)
+
+
+@pwndbg.commands.Command(
+    parser,
+    aliases=["ctx-watch", "cwatch"],
+    category=CommandCategory.CONTEXT,
+    examples="""
+For watching variables/expressions:
+    cwatch BUF
+    cwatch ITEMS[0]
+
+For running commands:
+    cwatch execute "ds BUF"
+    cwatch execute "x/20x $rsp"
+    cwatch execute "info args"
+    """,
+)
+def contextwatch(expression: str, cmd: str = "eval") -> None:
+    expressions.append((expression, cmd))
+
+
+parser = argparse.ArgumentParser(
+    description="Removes an expression previously added to be watched."
+)
+parser.add_argument("num", type=int, help="The expression number to be removed from context")
+
+
+@pwndbg.commands.Command(
+    parser, aliases=["ctx-unwatch", "cunwatch"], category=CommandCategory.CONTEXT
+)
+def contextunwatch(num: int) -> None:
+    if num < 1 or num > len(expressions):
+        print(message.error("Invalid input"))
+        return
+
+    expressions.pop(int(num) - 1)
+
+
+@serve_context_history
+def context_expressions(
+    target: OutputTarget = sys.stdout,
+    with_banner: bool = True,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    if not expressions:
+        return []
+    banner = [pwndbg.ui.banner("expressions", target=target, width=width)]
+    output = []
+    for i, (exp, cmd) in enumerate(expressions):
+        header = f"{i + 1}: {ctx_color.highlight(exp)}"
+        try:
+            if cmd == "eval":
+                value = str(gdb.parse_and_eval(exp))
+            else:
+                assert cmd == "execute"
+                value = gdb.execute(exp, from_tty=False, to_string=True)
+        except gdb.error as err:
+            value = str(err)
+
+        # When evaluating the expression we display it inline with the header, but when executing an
+        # expression we display it on the next line
+        if cmd == "eval":
+            header += f" = {value}"
+        output.append(header)
+
+        if cmd == "execute":
+            output.append(value)
+
+    # gdb can output single elements with \n's
+    # we split it up here so the cmd_line calculation is correct in context()
+    _output = []
+    for val in output:
+        _output.extend(val.split("\n"))
+    output = _output
+
+    return banner + output if with_banner else output
+
+
+parser = argparse.ArgumentParser(
+    description="""
+Print out the currently enabled context sections.
+
+This is the text that gets printed on every stop. It can be useful
+to run this command manually when you change some process/debugger
+state but don't want to step/continue (e.g. after using the `down`
+and `up` commands).
+"""
+)
+parser.add_argument(
+    "subcontext",
+    nargs="*",
+    type=str,
+    default=None,
+    help="Submenu to display: 'regs', 'disasm', 'code', 'stack', 'backtrace', 'args', 'threads', 'heap_tracker', 'expressions', and/or 'last_signal'",
+)
+parser.add_argument(
+    "--on",
+    dest="enabled",
+    action="store_true",
+    default=None,
+    help="Show the section(s) in subsequent context commands again. The section(s) have to be in the 'context-sections' list.",
+)
+parser.add_argument(
+    "--off",
+    dest="enabled",
+    action="store_false",
+    default=None,
+    help="Do not show the section(s) in subsequent context commands even though they might be in the 'context-sections' list.",
+)
+parser.add_argument(
+    "-a",
+    "--all",
+    dest="all_sections",
+    action="store_true",
+    default=False,
+    help="Show all context sections.",
+)
+
+
+@pwndbg.commands.Command(
+    parser,
+    aliases=["ctx"],
+    category=CommandCategory.CONTEXT,
+    notes="""
+To see more commands related to context control run:
+```
+pwndbg -c context
+```
+To see context configuration run:
+```
+config context
+```
+""",
+)
+def context(
+    subcontext: list[str] | None = None,
+    enabled: bool | None = None,
+    all_sections: bool = False,
+) -> None:
+    """
+    Print out the current register, instruction, and stack context.
+
+    Accepts subcommands 'reg', 'disasm', 'code', 'stack', 'backtrace', 'args', 'threads', 'heap_tracker', 'expressions', and/or 'last_signal'.
+    """
+    # Allow to view history after the program has exited
+    if not pwndbg.aglib.proc.alive() and (context_history_size <= 0 or not context_history):
+        log.error("context: The program is not being run.")
+        return
+
+    if subcontext is None:
+        subcontext = []
+    args: list[str] = subcontext
+
+    if all_sections:
+        args = [c.__name__.replace("context_", "") for c in context_sections.values()]
+    elif len(args) == 0:
+        args = config_context_sections.split()
+
+    cache_status = pwndbg.aglib.vmmap.cache_status_text()
+    cache_suffix = message.hint(f" [{cache_status}]") if cache_status is not None else ""
+
+    sections: list[tuple[str, Callable[..., list[str]] | None]] = []
+    if args:
+        if selected_history_index is None:
+            sections.append(("legend", lambda *args, **kwargs: [mem_color.legend() + cache_suffix]))
+        else:
+            longest_history = max(len(h) for h in context_history.values())
+            history_status = f" (history {selected_history_index + 1}/{longest_history})"
+            sections.append(
+                (
+                    "legend",
+                    lambda *args, **kwargs: [mem_color.legend() + history_status + cache_suffix],
+                )
+            )
+
+    sections += [(arg, context_sections.get(arg[0])) for arg in args]
+
+    result: defaultdict[OutputWrapper, list[str]] = defaultdict(list)
+    result_settings: defaultdict[OutputWrapper, dict[str, Any]] = defaultdict(dict)
+    for section, func in sections:
+        if not func:
+            continue
+        target = output(section)
+        # Last section of an output decides about output settings
+        settings = output_settings[section]
+        if enabled is not None:
+            settings["enabled"] = enabled
+        if not settings.get("enabled", True):
+            continue
+        result_settings[target].update(settings)
+        with target as out:
+            result[target].extend(
+                func(
+                    target=out,
+                    width=settings.get("width", None),
+                    height=settings.get("height", None),
+                    with_banner=settings.get("banner_top", True),
+                )
+            )
+
+    history_handle_unchanged_contents()
+
+    for target, res in result.items():
+        settings = result_settings[target]
+        if not (len(res) and settings.get("banner_bottom", True)):
+            continue
+        with target as out:
+            res.append(pwndbg.ui.banner("", target=out, width=settings.get("width", None)))
+
+    cmd_lines = 0
+    for target, lines in result.items():
+        with target as out:
+            if result_settings[target].get("clearing", config_clear_screen) and lines:
+                clear_screen(out)
+            # The `if` here essentially checks whether the output is going to
+            # the window where the debugger prompt is. The prompt is
+            # always printed to stdout.
+            if isinstance(target, StdOutput):
+                # We always get a new line after the prompt, so the first line
+                # doesn't need to have a "\n" in front. Furthermore, we need
+                # to reserve a new line before the next prompt is printed.
+                out.writelines(line + "\n" for line in lines)
+            else:
+                # A "\n" after the last line would just take up space in this case.
+                # There will be a redundant preceding empty line when the first
+                # context is printed, but it doesn't really matter.
+                out.writelines("\n" + line for line in lines)
+            out.flush()
+        # Assuming the command window (where the prompt is printed) is always stdout
+        if isinstance(target, StdOutput):
+            assert all("\n" not in line for line in lines)
+            cmd_lines += len(lines)
+
+    reserve_lines_maybe(cmd_lines)
+
+
+class CompactRegsOptions(Enum):
+    NO = "off"
+    YES = "on"
+    VERY = "very"
+    HARDCUT = "hardcut"
+
+
+pwndbg.config.add_param(
+    "show-compact-regs",
+    CompactRegsOptions.NO.value,
+    "whether to show a compact register view with columns",
+    param_class=pwndbg.lib.config.PARAM_ENUM,
+    enum_sequence=[x.value for x in CompactRegsOptions],
+    help_docstring=f"""
+Values explained:
+
++ `{CompactRegsOptions.NO.value}` - Disable compact registers (default). Every other option tries to make the register context use less rows by putting the registers into multiple columns.
++ `{CompactRegsOptions.YES.value}` - If a register printout doesn't fit it will be added to the end of the register context.
++ `{CompactRegsOptions.VERY.value}` - Try to very hard to compress. May save more lines than `{CompactRegsOptions.YES.value}` but logical register grouping may suffer.
++ `{CompactRegsOptions.HARDCUT.value}` - If a register printout doesn't fit its slot, it will simply be truncated.
+
+See also show-compact-regs-columns, show-compact-regs-min-width and show-compact-regs-separation.
+""",
+)
+pwndbg.config.add_param(
+    "show-compact-regs-columns", 2, "the number of columns (0 for dynamic number of columns)"
+)
+pwndbg.config.add_param("show-compact-regs-min-width", 20, "the minimum width of each column")
+pwndbg.config.add_param(
+    "show-compact-regs-separation", 4, "the number of spaces separating columns"
+)
+
+
+def calculate_padding_to_align(length: int, align: int) -> int:
+    """Calculates the number of spaces to append to reach the next alignment.
+    The next alignment point is given by "x * align >= length".
+    """
+    return 0 if length % align == 0 else (align - (length % align))
+
+
+def compact_regs_hardcut(
+    regs: list[str], terminal_width: int, column_width: int, columns: int, separation: int
+) -> list[str]:
+    """
+    If the string of any register overflows its column_width, it will be hard cut to the column_width.
+
+    Example:
+     RAX  0xfffffffffffffdfe              R8   0                               R14  0
+     RBX  0                               R9   0x7fffffffcbd0 —▸ 0x7fff...     R15  0x7ffff7f83e60 (_rl_orig...
+     RCX  0x7ffff7c90efa (__intern...     R10  0                               RBP  1
+     RDX  0                               R11  0x202                           RSP  0x7fffffffcb70 ◂— 0
+     RDI  1                               R12  0x7fffffffccb0 ◂— 1             RIP  0x7ffff7c90efa (__intern...
+     RSI  0x7fffffffccb0 ◂— 1             R13  0                               EFLAGS 0x202 [ cf pf af zf sf...
+    """
+    result: list[str] = []
+
+    cut_marker = pwndbg.color.white("...")
+
+    def hardcut(reg: str) -> tuple[str, int]:
+        # Returns the cut string and the new size
+        # I don't know of a better way to do this while retaining the coloring.
+        reglen = len(reg)
+        for i in range(reglen, 0, -1):
+            candidate = reg[0:i] + cut_marker
+            candidate_len = len(pwndbg.color.strip(candidate))
+            if candidate_len <= column_width:
+                return candidate, candidate_len
+        # Shouldn't happen anyway, but we return non-zero so padding alignment
+        # can proceed.
+        return " ", 1
+
+    line: str = ""
+    line_length: int = 0
+    nregs: int = len(regs)
+    nrows: int = math.ceil(nregs / columns)
+    for row_idx in range(nrows):
+        for column_idx in range(columns):
+            # Pad the line from the last register.
+            if column_idx != 0:
+                padding = calculate_padding_to_align(line_length, column_width + separation)
+                line += " " * padding
+                line_length += padding
+
+            reg_idx = column_idx * nrows + row_idx
+            if reg_idx >= nregs:
+                # Some columns will not have all rows filled.
+                continue
+            reg = regs[reg_idx]
+
+            # Strip the color / hightlight information the get the raw text width of the register
+            reg_length = len(pwndbg.color.strip(reg))
+
+            if reg_length > column_width:
+                txt, txtlen = hardcut(reg)
+                line += txt
+                line_length += txtlen
+            else:
+                line += reg
+                line_length += reg_length
+
+        # Add the line.
+        result.append(line)
+        line = ""
+        line_length = 0
+
+    return result
+
+
+def compact_regs_normal(
+    regs: list[str], terminal_width: int, column_width: int, columns: int, separation: int
+) -> list[str]:
+    """
+    Will try to group similar registers together, and may increase the number of rows (as opposed to compact_regs_very)
+    in order to achieve this.
+
+    column_width does not include separation.
+
+    Example:
+     RAX  0xfffffffffffffdfe           R8   0                            R14  0
+     RBX  0                            R9    ⏎                           R15   ⏎
+     RCX   ⏎                           R10  0                            RBP  1
+     RDX  0                            R11  0x202                        RSP  0x7fffffffcb70 ◂— 0
+     RDI  1                            R12  0x7fffffffccb0 ◂— 1          RIP   ⏎
+     RSI  0x7fffffffccb0 ◂— 1          R13  0                            EFLAGS   ⏎
+    ↪ R9   0x7fffffffcbd0 —▸ 0x7ffff7f83e60 (_rl_orig_sigset) ◂— 0
+    ↪ R15  0x7ffff7f83e60 (_rl_orig_sigset) ◂— 0
+    ↪ RCX  0x7ffff7c90efa (__internal_syscall_cancel+138) ◂— add rsp, 0x18
+    ↪ RIP  0x7ffff7c90efa (__internal_syscall_cancel+138) ◂— add rsp, 0x18
+    ↪ EFLAGS 0x202 [ cf pf af zf sf IF df of iopl:00 ac ]
+    """
+    result: list[str] = []
+
+    def extract_reg_name(one_reg: str) -> str:
+        # We want the whitespace right after the name too. Also the change marker.
+        # Tricky because we want to preserve colors.
+        # state = 0 means i'm before the register name
+        # state = 1 means i'm in the register name
+        # state = 2 means i'm in the whitespace after the register name
+        state: int = 0
+        last_ws: int = -1
+        for i in range(len(one_reg)):
+            match state:
+                case 0:
+                    if one_reg[i] == change_marker or one_reg[i] == " ":
+                        state = 1
+                case 1:
+                    if one_reg[i] == " ":
+                        state = 2
+                case 2:
+                    if one_reg[i] != " ":
+                        last_ws = i - 1
+                        break
+        assert last_ws != -1
+        return one_reg[:last_ws]
+
+    will_wrap_char: str = pwndbg.color.light_gray("  ⏎")
+    wrapping_char: str = pwndbg.color.gray("↪")
+    change_marker: str = str(ctx_color.config_register_changed_marker)
+
+    line: str = ""
+    line_length: int = 0
+    nregs: int = len(regs)
+    nrows: int = math.ceil(nregs / columns)
+    pending: list[str] = []
+    for row_idx in range(nrows):
+        for column_idx in range(columns):
+            # Pad the line from the last register.
+            if column_idx != 0:
+                padding = calculate_padding_to_align(line_length, column_width + separation)
+                line += " " * padding
+                line_length += padding
+
+            reg_idx = column_idx * nrows + row_idx
+            if reg_idx >= nregs:
+                # Some columns will not have all rows filled.
+                continue
+            reg = regs[reg_idx]
+
+            # Strip the color / hightlight information the get the raw text width of the register
+            reg_length = len(pwndbg.color.strip(reg))
+
+            if reg_length > column_width:
+                # We cannot put this register here without displacing the next one, so we will
+                # print this register in a lone line at the end.
+                pending.append(reg)
+                # We want to leave a marker that we will wrap here.
+                # We extract the register name from the `reg` string which is a bit tricky.
+                # Look at the RegisterContext class for reference.
+                reg_name = extract_reg_name(reg)
+                addition = reg_name + will_wrap_char
+                line += addition
+                line_length += len(pwndbg.color.strip(addition))
+            else:
+                line += reg
+                line_length += reg_length
+
+        # Add the line.
+        result.append(line)
+        line = ""
+        line_length = 0
+
+    # Add all registers that couldn't fit into their slot.
+    if pending:
+        for pending_line in pending:
+            result.append(wrapping_char + pending_line)
+        pending.clear()
+
+    return result
+
+
+def compact_regs_very(
+    regs: list[str], terminal_width: int, column_width: int, columns: int, separation: int
+) -> list[str]:
+    """
+    Will try to group similar registers together, but will sacrifice the grouping if it can be more compact.
+
+    column_width does not include separation.
+
+    Example:
+     RAX  0xfffffffffffffdfe           R8   0                            R14  0
+     RBX  0                            R9   0x7fffffffcbd0 —▸ 0x7ffff7f83e60 (_rl_orig_sigset) ◂— 0
+     R15  0x7ffff7f83e60 (_rl_orig_sigset) ◂— 0
+     RCX  0x7ffff7c90efa (__internal_syscall_cancel+138) ◂— add rsp, 0x18
+     R10  0                            RBP  1                            RDX  0
+     R11  0x202                        RSP  0x7fffffffcb70 ◂— 0          RDI  1
+     R12  0x7fffffffccb0 ◂— 1
+     RIP  0x7ffff7c90efa (__internal_syscall_cancel+138) ◂— add rsp, 0x18
+     RSI  0x7fffffffccb0 ◂— 1          R13  0
+     EFLAGS 0x202 [ cf pf af zf sf IF df of iopl:00 ac ]
+    """
+    result: list[str] = []
+
+    line: str = ""
+    line_length: int = 0
+    nregs: int = len(regs)
+    nrows: int = math.ceil(nregs / columns)
+    for row_idx in range(nrows):
+        for column_idx in range(columns):
+            reg_idx = column_idx * nrows + row_idx
+            if reg_idx >= nregs:
+                # Some columns will not have all rows filled.
+                continue
+            reg = regs[reg_idx]
+
+            # Strip the color / hightlight information the get the raw text width of the register
+            reg_length = len(pwndbg.color.strip(reg))
+
+            # Length of line with unoccupied space and padding is required
+            # to fit the register string onto the screen / display.
+            line_length_with_padding = line_length
+            line_length_with_padding += (
+                separation if line_length != 0 else 0
+            )  # No separation at the start of a line
+            line_length_with_padding += calculate_padding_to_align(
+                line_length_with_padding, column_width + separation
+            )
+
+            # When element does not fully fit, then start a new line
+            if line_length_with_padding + max(reg_length, column_width) > terminal_width:
+                result.append(line)
+
+                line = ""
+                line_length = 0
+                line_length_with_padding = 0
+
+            # Add padding in front of the next printed register
+            if line_length != 0:
+                line += " " * (line_length_with_padding - line_length)
+
+            line += reg
+            line_length = line_length_with_padding + reg_length
+
+    # Append last line if required
+    if line_length != 0:
+        result.append(line)
+
+    return result
+
+
+COMPACT_REGS_MAP = {
+    CompactRegsOptions.YES.value: compact_regs_normal,
+    CompactRegsOptions.VERY.value: compact_regs_very,
+    CompactRegsOptions.HARDCUT.value: compact_regs_hardcut,
+}
+
+
+def compact_regs(
+    regs: list[str], width: int | None = None, target: OutputTarget = sys.stdout
+) -> list[str]:
+    columns = max(0, int(pwndbg.config.show_compact_regs_columns))
+    min_width = max(1, int(pwndbg.config.show_compact_regs_min_width))
+    separation = max(1, int(pwndbg.config.show_compact_regs_separation))
+
+    if width is None:
+        _, width = pwndbg.ui.get_window_size(target)
+
+    if columns > 0:
+        # Adjust the minimum_width (column) according to the
+        # layout depicted below, where there are "columns" columns
+        # and "columns - 1" separations.
+        #
+        # |<----------------- window width -------------------->|
+        # | column | sep. | column | sep. | ... | sep. | column |
+        #
+        # Which results in the following formula:
+        # window_width = columns * min_width + (columns - 1) * separation
+        # => min_width = (window_width - (columns - 1) * separation) / columns
+        min_width = max(min_width, (width - (columns - 1) * separation) // columns)
+
+    compact_regs_fn = COMPACT_REGS_MAP.get(pwndbg.config.show_compact_regs.value)
+    assert compact_regs_fn is not None, "Invalid compact regs value."
+
+    return compact_regs_fn(regs, width, min_width, columns, separation)
+
+
+@serve_context_history
+def context_regs(
+    target: OutputTarget = sys.stdout,
+    with_banner: bool = True,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    regs = get_regs()
+    if pwndbg.config.show_compact_regs.value != CompactRegsOptions.NO.value:
+        regs = compact_regs(regs, target=target, width=width)
+
+    info = " / show-flags {} / show-compact-regs {}".format(
+        "on" if pwndbg.config.show_flags else "off", pwndbg.config.show_compact_regs
+    )
+    banner = [pwndbg.ui.banner("registers", target=target, width=width, extra=info)]
+    return banner + regs if with_banner else regs
+
+
+@serve_context_history
+def context_heap_tracker(
+    target: OutputTarget = sys.stdout,
+    with_banner: bool = True,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    if not pwndbg.gdblib.ptmalloc2_tracking.is_enabled():
+        return []
+
+    banner = [pwndbg.ui.banner("heap tracker", target=target, width=width, extra="")]
+
+    if pwndbg.gdblib.ptmalloc2_tracking.last_issue is not None:
+        info = [
+            f"Detected the following potential issue: {pwndbg.gdblib.ptmalloc2_tracking.last_issue}"
+        ]
+        pwndbg.gdblib.ptmalloc2_tracking.last_issue = None
+    else:
+        info = ["Nothing to report."]
+
+    return banner + info if with_banner else info
+
+
+parser = argparse.ArgumentParser(description="Print out all registers and enhance the information.")
+parser.add_argument("regs", nargs="*", type=str, default=None, help="Registers to be shown")
+
+
+@pwndbg.commands.Command(parser, category=CommandCategory.CONTEXT)
+@pwndbg.commands.OnlyWhenRunning
+def regs(regs: list[str | VisitableRegister | None] | None = None) -> None:
+    """Print out all registers and enhance the information."""
+    print("\n".join(get_regs(regs)))
+
+
+pwndbg.config.add_param("show-flags", False, "whether to show flags registers")
+pwndbg.config.add_param("show-retaddr-reg", True, "whether to show return address register")
+
+
+class RegisterContext(RegisterContextProtocol):
+    changed: list[str]
+
+    def __init__(self) -> None:
+        self.changed = pwndbg.aglib.regs.changed
+
+    def get_prefix(self, reg: str) -> str:
+        # Make the register stand out and give a color if changed
+        regname = ctx_color.register(reg.ljust(4).upper())
+        if reg in self.changed:
+            regname = ctx_color.register_changed(regname)
+
+        # Show a marker next to the register if it changed
+        change_marker = f"{ctx_color.config_register_changed_marker}"
+        m = (
+            " " * len(change_marker)
+            if reg not in self.changed
+            else ctx_color.register_changed(change_marker)
+        )
+        return f"{m}{regname}"
+
+    def get_register_value(self, reg: str) -> int | None:
+        val = pwndbg.aglib.regs.read_reg(reg)
+        if val is None:
+            print(message.warn(f"Unknown register: {reg!r}"))
+            return None
+        return val
+
+    @override
+    def flag_register_context(self, reg: str, bit_flags: BitFlags) -> str | None:
+        val = self.get_register_value(reg)
+        if val is None:
+            return None
+        desc = ctx_color.format_flags(val, bit_flags, pwndbg.aglib.regs.last.get(reg, 0))
+        prefix = self.get_prefix(reg)
+        return f"{prefix} {desc}"
+
+    @override
+    def segment_registers_context(self, regs: list[str]) -> str | None:
+        result = ""
+        for reg in regs:
+            val = self.get_register_value(reg)
+            if val is None:
+                continue
+            prefix = self.get_prefix(reg)
+            result += f"{prefix} {hex(val)}   "
+        return result
+
+    @override
+    def addressing_register_context(self, reg: str, is_virtual: bool) -> str | None:
+        if is_virtual:
+            return self.register_context_default(reg)
+        val = self.get_register_value(reg)
+        if val is None:
+            return None
+        prefix = self.get_prefix(reg)
+        desc = hex(val)
+        if pwndbg.aglib.kernel.has_debug_symbols():
+            try:
+                virtual = pwndbg.aglib.kernel.phys_to_virt(val)
+                desc += f" [virtual: {pwndbg.chain.format(virtual)}]"
+            except Exception:
+                pass
+        return f"{prefix} {desc}"
+
+    def register_context_default(self, reg: str) -> str | None:
+        val = self.get_register_value(reg)
+        if val is None:
+            return None
+        desc = pwndbg.chain.format(val)
+        prefix = self.get_prefix(reg)
+        return f"{prefix} {desc}"
+
+
+def get_regs(in_regs: list[str | VisitableRegister | None] | None = None) -> list[str]:
+    # Python default parameters are instantiated once and shared across calls.
+    # Instead of a default value of [], we need to do this check so we get a fresh list each time
+    if in_regs is None:
+        in_regs = []
+    regs: list[str | VisitableRegister | None] = in_regs
+    result: list[str] = []
+    rc = RegisterContext()
+
+    if len(regs) == 0:
+        regs += pwndbg.aglib.regs.gpr
+
+        regs.append(pwndbg.aglib.regs.frame)
+        regs.append(pwndbg.aglib.regs.stack)
+
+        if pwndbg.config.show_retaddr_reg:
+            regs += pwndbg.aglib.regs.retaddr
+
+        regs.append(pwndbg.aglib.regs.current.pc)
+
+        if pwndbg.aglib.qemu.is_qemu_kernel() and pwndbg.aglib.regs.kernel is not None:
+            controls = pwndbg.aglib.regs.kernel.controls
+            if controls is not None:
+                for regname, control in controls.items():
+                    control.update(regname)
+                    regs.append(control)
+            msrs = pwndbg.aglib.regs.kernel.msrs
+            if msrs is not None:
+                for regname, msr in msrs.items():
+                    msr.update(regname)
+                    regs.append(msr)
+        if pwndbg.config.show_flags:
+            flags = pwndbg.aglib.regs.flags
+            if flags is not None:
+                for regname, flag in flags.items():
+                    flag.update(regname)
+                    regs.append(flag)
+        if pwndbg.aglib.qemu.is_qemu_kernel() and pwndbg.aglib.regs.kernel is not None:
+            if pwndbg.aglib.regs.kernel.segments is not None:
+                regs.append(pwndbg.aglib.regs.kernel.segments)
+
+    for reg in regs:
+        if reg is None:
+            continue
+        # If it's a VisitableRegister which has special logic to determine what to print
+        if not isinstance(reg, str):
+            desc = reg.context(rc)
+            if desc is not None:
+                result.append(desc)
+            continue
+
+        # Resolve "sp" and "pc" to the real architectural register names
+        reg = pwndbg.aglib.regs.current.resolve_aliases(reg)
+
+        desc = rc.register_context_default(reg)
+        if desc is not None:
+            result.append(desc)
+
+    return result
+
+
+disasm_lines = pwndbg.config.add_param(
+    "context-disasm-lines", 10, "number of additional lines to print in the disasm context"
+)
+
+
+def try_emulate_if_bug_disable(handler: Callable[[], T]) -> T:
+    try:
+        return handler()
+    except U.UcError as e:
+        print(
+            message.warn(
+                f"Warning: Emulation context disabled due to a Unicorn error: \n{str(e)}\n"
+                "If you want to enable it again, use `set emulate on`."
+            )
+        )
+        pwndbg.config.emulate.value = "off"
+        return handler()
+
+
+@serve_context_history
+def context_disasm(
+    target: OutputTarget = sys.stdout,
+    with_banner: bool = True,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    flavor = pwndbg.dbg.x86_disassembly_flavor()
+    syntax = pwndbg.aglib.disasm.disassembly.CapstoneSyntax[flavor]
+
+    # Get the Capstone object to set disassembly syntax
+    cs = next(iter(pwndbg.aglib.disasm.disassembly.get_disassembler.cache.values()), None)
+
+    # Clear the caches when user changes disassembly syntax during session.
+    # The `None` case happens when the cache was not filled yet (see e.g. #881)
+    if (
+        cs is not None
+        and (cs.syntax & pwndbg.aglib.disasm.disassembly.CAPSTONE_SYNTAX_OPTIONS_MASK) != syntax
+    ):
+        pwndbg.lib.cache.clear_caches()
+        pwndbg.aglib.disasm.disassembly.computed_instruction_cache.clear()
+
+    additional_disasm_lines = max(int(disasm_lines), height or 0)
+
+    result = try_emulate_if_bug_disable(
+        lambda: pwndbg.aglib.nearpc.nearpc(
+            back_lines=additional_disasm_lines // 2,
+            total_lines=additional_disasm_lines + 1,
+            emulate=pwndbg.config.emulate != "off",
+            use_cache=True,
+        )
+    )
+
+    # Note: we must fetch emulate value again after disasm since
+    # we check if we can actually use emulation in `can_run_first_emulate`
+    # and this call may disable it
+    thumb_mode_str = get_thumb_mode_string()
+    if thumb_mode_str is not None:
+        info = f" / {pwndbg.aglib.arch.name} / {thumb_mode_str} mode / set emulate {pwndbg.config.emulate}"
+    else:
+        info = f" / {pwndbg.aglib.arch.name} / set emulate {pwndbg.config.emulate}"
+    banner = [pwndbg.ui.banner("disasm", target=target, width=width, extra=info)]
+
+    # If we didn't disassemble backward, try to make sure
+    # that the amount of screen space taken is roughly constant.
+    while len(result) < additional_disasm_lines + 1:
+        result.append("")
+
+    return banner + result if with_banner else result
+
+
+theme.add_param("highlight-source", True, "whether to highlight the closest source line")
+source_disasm_lines = pwndbg.config.add_param(
+    "context-code-lines", 14, "number of source code lines to print by the context command"
+)
+pwndbg.config.add_param(
+    "context-code-tabstop", 8, "number of spaces that a <tab> in the source code counts for"
+)
+theme.add_param("code-prefix", "►", "prefix marker for 'context code' command")
+# All of these are also used for the decompilation context^^
+
+
+def get_highlight_source_uncached(filename: str) -> tuple[str, ...]:
+    with open(filename, encoding="utf-8", errors="ignore") as f:
+        source = f.read()
+
+    if pwndbg.config.syntax_highlight:
+        source = H.syntax_highlight(source, filename)
+
+    source_lines = source.split("\n")
+    source_lines = tuple(line.rstrip() for line in source_lines)
+    return source_lines
+
+
+@pwndbg.lib.cache.cache_until("objfile")
+def get_highlight_source(filename: str) -> tuple[str, ...]:
+    # Notice that the code is cached
+    return get_highlight_source_uncached(filename)
+
+
+def get_filename_and_formatted_source(height: int | None = None) -> tuple[str, list[str], int]:
+    """
+    Returns formatted, lines limited and highlighted source as list
+    or if it isn't there - an empty list
+    """
+    frame = pwndbg.dbg.selected_frame()
+    if not frame:
+        return "", [], 0
+
+    sal = frame.sal()
+
+    # Check if source code is available
+    if sal is None:
+        return "", [], 0
+
+    # Get the full source code
+    filename, closest_line = sal
+
+    try:
+        source = get_highlight_source(filename)
+    except OSError:
+        return "", [], closest_line
+
+    if not source:
+        return "", [], closest_line
+
+    nlines = max(int(source_disasm_lines), height or 0)
+    formatted_source = pretty_print.format_source(list(source), nlines, closest_line - 1)
+
+    return filename, formatted_source, closest_line
+
+
+should_decompile = pwndbg.config.add_param(
+    "context-integration-decompile",
+    True,
+    "whether context should fall back to decompilation with no source code",
+)
+
+
+@serve_context_history
+def context_code(
+    target: OutputTarget = sys.stdout,
+    with_banner: bool = True,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    filename, formatted_source, line = get_filename_and_formatted_source(height)
+
+    # Try getting source from files
+    if formatted_source:
+        bannerline = (
+            [pwndbg.ui.banner("Source (code)", target=target, width=width)] if with_banner else []
+        )
+        return bannerline + [f"In file: {filename}:{line}"] + formatted_source
+
+    if should_decompile and pwndbg.aglib.regs.pc is not None:
+        nlines = max(int(source_disasm_lines), height or 0)
+        # Will be None if we aren't connected or decompilation fails.
+        code: list[str] | None = pwndbg.dintegration.manager.decompile_pretty(
+            pwndbg.aglib.regs.pc, nlines
+        )
+        if code is None:
+            return []
+
+        bannerline = [pwndbg.ui.banner("Decomp", target=target, width=width)] if with_banner else []
+        return bannerline + code
+    return []
+
+
+stack_lines = pwndbg.config.add_param(
+    "context-stack-lines", 8, "number of lines to print in the stack context"
+)
+
+
+@serve_context_history
+def context_stack(
+    target: OutputTarget = sys.stdout,
+    with_banner: bool = True,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    tui_stack_lines = max(int(stack_lines), height or 0)
+    result = [pwndbg.ui.banner("stack", target=target, width=width)] if with_banner else []
+    telescope = pwndbg.commands.telescope.telescope(
+        pwndbg.aglib.regs.sp, to_string=True, count=tui_stack_lines
+    )
+    if telescope:
+        result.extend(telescope)
+    return result
+
+
+backtrace_lines = pwndbg.config.add_param(
+    "context-backtrace-lines", 8, "number of lines to print in the backtrace context"
+)
+backtrace_frame_label = theme.add_param(
+    "backtrace-frame-label", "", "frame number label for backtrace"
+)
+
+
+@serve_context_history
+def context_backtrace(
+    with_banner: bool = True,
+    target: OutputTarget = sys.stdout,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    result = []
+
+    if with_banner:
+        result.append(pwndbg.ui.banner("backtrace", target=target, width=width))
+
+    this_frame = pwndbg.dbg.selected_frame()
+    newest_frame = this_frame
+    oldest_frame = this_frame
+
+    tui_backtrace_lines = max(int(backtrace_lines), height or 0)
+    for _ in range(tui_backtrace_lines - 1):
+        try:
+            candidate = oldest_frame.parent()
+        # We catch an error in case of a `gdb.error: PC not saved` case
+        except pwndbg.dbg_mod.Error:
+            break
+
+        if not candidate:
+            break
+        oldest_frame = candidate
+
+    for _ in range(tui_backtrace_lines - 1):
+        candidate = newest_frame.child()
+        if not candidate:
+            break
+        newest_frame = candidate
+
+    frame = newest_frame
+    i = 0
+    active_prefix = Text(" ")
+    active_prefix.append_text(Text.from_ansi(c.prefix(str(pwndbg.config.backtrace_prefix))))
+    inactive_prefix = Text(" " * active_prefix.cell_len)
+
+    table = Table.grid(expand=False, padding=(0, 1))
+    table.add_column(no_wrap=True)  # active indicator
+    table.add_column(justify="right")  # frame number
+    table.add_column(justify="right", overflow="ignore", no_wrap=True)  # address
+    table.add_column(overflow="fold")  # symbol
+
+    offset_regex = re.compile(r"^(.+)\+(\d+)$")
+
+    while True:
+        pc = frame.pc()
+        prefix = active_prefix if frame == this_frame else inactive_prefix
+        # let rich handle alignment
+        address = Text.from_ansi(c.address(pwndbg.ui.addrsz(pc).strip()))
+        symbol = pwndbg.aglib.symbol.resolve_addr(int(pc))
+
+        symbol_cell = Text()
+        if symbol:
+            if bool(config_backtrace_hex):
+                if parts := offset_regex.match(symbol):
+                    symbol = f"{parts[1]}+{int(parts[2]):#x}"
+            symbol_cell = Text.from_ansi(c.symbol(symbol))
+
+        table.add_row(
+            prefix,
+            Text.from_ansi(c.frame_label(f"{backtrace_frame_label}{i}")),
+            address,
+            symbol_cell,
+        )
+
+        if frame == oldest_frame:
+            break
+
+        frame = frame.parent()
+        i += 1
+
+    result.extend(line.rstrip() for line in pwndbg.rich.rich_to_str(table).splitlines())
+    return result
+
+
+@serve_context_history
+def context_args(
+    with_banner: bool = True,
+    target: OutputTarget = sys.stdout,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    args = pwndbg.arguments.format_args(pwndbg.aglib.disasm.disassembly.one())
+
+    # early exit to skip section if no arg found
+    if not args:
+        return []
+
+    if with_banner:
+        args.insert(0, pwndbg.ui.banner("arguments", target=target, width=width))
+
+    return args
+
+
+last_signal: list[str] = []
+
+thread_status_messages = {
+    "running": pwndbg.color.light_green("running"),
+    "stopped": pwndbg.color.yellow("stopped"),
+    "exited": pwndbg.color.gray("exited "),
+}
+
+
+def get_thread_status(thread: gdb.InferiorThread) -> str:
+    if thread.is_running():
+        return thread_status_messages["running"]
+    if thread.is_stopped():
+        return thread_status_messages["stopped"]
+    if thread.is_exited():
+        return thread_status_messages["exited"]
+    return "unknown"
+
+
+@serve_context_history
+def context_threads(
+    with_banner: bool = True,
+    target: OutputTarget = sys.stdout,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    try:
+        original_thread = gdb.selected_thread()
+    except SystemError:
+        original_thread = None
+    try:
+        original_frame = gdb.selected_frame()
+    except gdb.error:
+        original_frame = None
+
+    all_threads = gdb.selected_inferior().threads()[::-1]
+
+    displayed_threads = []
+
+    if original_thread is not None and original_thread.is_valid():
+        displayed_threads.append(original_thread)
+
+    max_threads_display = max(int(config_max_threads_display), height or 0)
+    for thread in all_threads:
+        if len(displayed_threads) >= max_threads_display:
+            break
+
+        if thread.is_valid() and thread is not original_thread:
+            displayed_threads.append(thread)
+
+    num_threads_not_shown = len(all_threads) - len(displayed_threads)
+
+    if len(displayed_threads) < 2:
+        return []
+
+    out = (
+        [pwndbg.ui.banner(f"threads ({len(all_threads)} total)", target=target, width=width)]
+        if with_banner
+        else []
+    )
+    max_name_length = 0
+    max_global_num_len = 0
+
+    for thread in displayed_threads:
+        name = thread.name or ""
+        max_name_length = max(max_name_length, len(name))
+        max_global_num_len = max(max_global_num_len, len(str(thread.global_num)))
+
+    for thread in filter(lambda t: t.is_valid(), displayed_threads):
+        selected = " ►" if thread is original_thread else "  "
+        name = thread.name if thread.name is not None else ""
+        name_padding = max_name_length - len(name)
+        global_num_padding = max(2, max_global_num_len - len(str(thread.global_num)))
+        status = get_thread_status(thread)
+
+        line = (
+            f" {selected} {thread.global_num} "
+            f"{' ' * global_num_padding}"
+            f'"{pwndbg.color.cyan(name)}" '
+            f"{' ' * name_padding}"
+            f"{status}: "
+        )
+
+        if thread.is_stopped():
+            thread.switch()
+            pc = gdb.selected_frame().pc()
+
+            pc_colored = mem_color.get(pc)
+            symbol = pwndbg.aglib.symbol.resolve_addr(int(pc))
+
+            line += f"{pc_colored}"
+            if symbol:
+                line += f" <{pwndbg.color.bold(pwndbg.color.green(symbol))}> "
+
+        out.append(line)
+
+    if num_threads_not_shown:
+        out.append(
+            pwndbg.lib.tips.color_tip(
+                f"Not showing {num_threads_not_shown} thread(s). Use `set context-max-threads <number of threads>` to change this."
+            )
+        )
+
+    if original_thread is not None and original_thread.is_valid():
+        original_thread.switch()
+    if original_frame is not None and original_frame.is_valid():
+        original_frame.select()
+
+    return out
+
+
+@pwndbg.dbg.event_handler(EventType.STOP, EventHandlerPriority.SAVE_SIGNAL)
+def save_signal() -> None:
+    # We can't do this on EventType.CONTINUE because of #3683
+    # We can't do this on EventType.EXIT because of
+    #  https://sourceware.org/bugzilla/show_bug.cgi?id=34047
+    # But we don't really care about those anyway, at least for GDB, because
+    # the signal information only changes on gdb.SignalEvent which is a subclass of gdb.StopEvent .
+    global last_signal
+    last_signal = result = []
+
+    if pwndbg.dbg.is_gdblib_available() and _is_rr_present():
+        # When users use rr (https://rr-project.org or https://github.com/mozilla/rr)
+        # we can't access $_siginfo, so lets just show current pc
+        # see also issue 476
+        if pwndbg.aglib.regs.pc is not None:
+            result.append(message.signal(f"current pc: {pwndbg.aglib.regs.pc:#x}"))
+        return
+
+    process = pwndbg.dbg.selected_inferior()
+    if not process:
+        return
+
+    # We don't show signal on breakpoints (process.stopped_at_breakpoint()) because
+    # it clutters the context.
+    # process.stopped_with_signal() does return non-breakpoint caused SIGTRAPs
+    # (e.g. a non-debugger-inserted int3 instruction).
+    if not (process.stopped_with_signal()):
+        return
+
+    signal = pwndbg.aglib.signal.get_last_signal()
+    if signal is None:
+        return
+    msg = f"Program received signal {signal}"
+
+    if signal == "SIGSEGV":
+        try:
+            desc_short, desc_long = pwndbg.aglib.signal.get_segv_information()
+            msg = f"Program received signal {desc_short}"
+            if desc_long:
+                msg += desc_long
+        except pwndbg.dbg_mod.Error:
+            pass
+
+    result.append(message.signal(msg))
+
+
+@serve_context_history
+def context_last_signal(
+    with_banner: bool = True,
+    target: OutputTarget = sys.stdout,
+    width: int | None = None,
+    height: int | None = None,
+) -> list[str]:
+    if not last_signal:
+        return []
+
+    result = last_signal[::]
+    if with_banner:
+        result.insert(0, pwndbg.ui.banner("last signal", target=target, width=width))
+
+    return result
+
+
+context_sections: dict[str, Callable[..., list[str]]] = {
+    "a": context_args,
+    "r": context_regs,
+    "d": context_disasm,
+    "s": context_stack,
+    "b": context_backtrace,
+    "c": context_code,
+    "l": context_last_signal,
+}
+
+
+if pwndbg.dbg.is_gdblib_available():
+    # Add the sections that need gdblib.
+    context_sections = {
+        **context_sections,
+        "e": context_expressions,
+        "h": context_heap_tracker,
+        "t": context_threads,
+    }
+
+
+@pwndbg.lib.cache.cache_until("forever")
+def _is_rr_present() -> bool:
+    """
+    Checks whether rr project is present (so someone launched e.g. `rr replay <some-recording>`)
+    """
+
+    # this is ugly but I couldn't find a better way to do it
+    # feel free to refactor it
+    globals_list_literal_str = gdb.execute("python print(list(globals().keys()))", to_string=True)
+    interpreter_globals = ast.literal_eval(globals_list_literal_str)
+
+    return "RRCmd" in interpreter_globals and "RRWhere" in interpreter_globals

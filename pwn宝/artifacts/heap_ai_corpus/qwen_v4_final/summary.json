@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.student.exp",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_final\\local.student.exp.json"
+    }
+  ],
+  "completed": 1,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_corpus\\qwen_v4_final\\gap_report.json"
+}

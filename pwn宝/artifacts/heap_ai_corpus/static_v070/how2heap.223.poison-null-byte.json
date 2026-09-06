@@ -1,0 +1,44 @@
+{
+  "run_id": "run_a25c946c4a9b4ca483e3dcaca9dd407d",
+  "case_id": "how2heap.223.poison-null-byte",
+  "source_hash": "5294a7d0b26b78ddb22ce67c20c6b5bf34496f025f719cdeae45b0f00e6fbfa7",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_v070\\sources\\5294a7d0b26b78ddb22ce67c20c6b5bf34496f025f719cdeae45b0f00e6fbfa7.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.875
+}

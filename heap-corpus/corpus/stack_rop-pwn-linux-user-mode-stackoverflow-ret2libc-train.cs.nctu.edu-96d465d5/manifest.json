@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-train.cs.nctu.edu-96d465d5",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/ret2libc/train.cs.nctu.edu.tw",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "train.cs.nctu.edu.tw",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "x86",
+    "os": "linux",
+    "binary_sha256": "96d465d56d1916ba607798afc81e29d91ae481b515fb855802bef82efa9103c1",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/ret2libc/train.cs.nctu.edu.tw/ret2libc/exp.py",
+      "role": "python",
+      "size": 700
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": []
+  }
+}

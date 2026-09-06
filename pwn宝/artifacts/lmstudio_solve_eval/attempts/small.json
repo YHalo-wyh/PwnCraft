@@ -1,0 +1,1 @@
+{"model":"qwen3.6-27b","messages":[{"role":"user","content":"Return only JSON with ok=true."}],"temperature":0.1,"max_tokens":64,"stream":false}

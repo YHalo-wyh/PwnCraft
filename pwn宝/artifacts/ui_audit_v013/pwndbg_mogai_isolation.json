@@ -1,0 +1,11 @@
+{
+  "official_path": "/home/wyh/bin/pwndbg",
+  "official_sha256": "06cf47591ac8a0538b1f38dbc18c3eb0e677dfcc855f3fb194d1f67443706050",
+  "mogai_path": "/home/wyh/.local/bin/pwndbg-mogai",
+  "mogai_root": "/home/wyh/.local/share/pwnbao/pwndbg-mogai/2026.07.29-pwndbg-mogai.15",
+  "mogai_config": "/home/wyh/.config/pwnbao/pwndbg-mogai",
+  "mogai_cache": "/home/wyh/.cache/pwnbao/pwndbg-mogai",
+  "official_config_exists": false,
+  "official_untouched": true,
+  "forced_theme_present": true
+}

@@ -1,0 +1,28 @@
+{
+  "counts": {
+    "intent_only_not_allocator_fact": 5,
+    "golden_ir_review_required": 2,
+    "static_heap_neutral_branch": 2
+  },
+  "examples": {
+    "golden_ir_review_required": [
+      "local.student.exp",
+      "local.student.solve-local"
+    ],
+    "static_heap_neutral_branch": [
+      "local.student.solve-local"
+    ],
+    "intent_only_not_allocator_fact": [
+      "how2heap.223.overlapping-chunks",
+      "how2heap.223.poison-null-byte",
+      "how2heap.227.tcache-stashing-unlink",
+      "how2heap.231.large-bin-attack",
+      "how2heap.231.overlapping-chunks"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

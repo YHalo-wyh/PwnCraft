@@ -1,0 +1,44 @@
+{
+  "run_id": "run_9fc7eb8e979048c384960fed61bf18ae",
+  "case_id": "how2heap.231.large-bin-attack",
+  "source_hash": "54a56227dbd8bcfc7488a65514ca6dc2c43511c174cce3a52b7edd78d1369d8e",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\sources\\54a56227dbd8bcfc7488a65514ca6dc2c43511c174cce3a52b7edd78d1369d8e.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.016
+}

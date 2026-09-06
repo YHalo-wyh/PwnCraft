@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "ret2libc1",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "x86",
+    "os": "linux",
+    "binary_sha256": "c5603c89e49279a685d515b16721a7a219e8c4b99884aa6ae1a7899619389344",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1/exploit.py",
+      "role": "python",
+      "size": 228
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "counts": {
+    "golden_ir_review_required": 23,
+    "static_previewed_uninvoked_entrypoint": 3,
+    "static_bounded_entry_loop": 1,
+    "static_heap_neutral_branch": 1,
+    "static_inlined_entrypoint": 1,
+    "static_try_path": 1
+  },
+  "examples": {
+    "golden_ir_review_required": [
+      "local.ctfshow.pwn142",
+      "local.ctfshow.pwn143",
+      "local.ctfshow.pwn144",
+      "local.ctfshow.pwn159",
+      "local.ctfshow.pwn160",
+      "local.ctfshow.pwn161",
+      "local.ctfshow.pwn162",
+      "local.ctfshow.pwn163"
+    ],
+    "static_bounded_entry_loop": [
+      "local.ctfshow.pwn164"
+    ],
+    "static_try_path": [
+      "local.ctfshow.pwn164"
+    ],
+    "static_inlined_entrypoint": [
+      "local.ctfshow.pwn164"
+    ],
+    "static_heap_neutral_branch": [
+      "local.ctfshow.pwn164"
+    ],
+    "static_previewed_uninvoked_entrypoint": [
+      "local.ctfshow.pwn167",
+      "local.ctfshow.pwn168",
+      "local.ctfshow.pwn169"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

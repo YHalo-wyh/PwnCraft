@@ -1,0 +1,43 @@
+--- patches/cycle-1/resolver.py.pre	2026-09-03 19:32:19.442109600 +0800
++++ ../pwn宝/pwnbao/features/heapviz/contracts/resolver.py	2026-09-03 19:32:39.692990100 +0800
+@@ -336,6 +336,19 @@
+     recv = False
+     literals: list[str] = []
+     size_expression = ""
++    # Calls whose result is bound (assigned/returned) feed downstream data flow;
++    # bare statement calls discard their value.
++    assigned_calls: set[int] = set()
++    for parent in ast.walk(node):
++        value = None
++        if isinstance(parent, ast.Assign):
++            value = parent.value
++        elif isinstance(parent, (ast.AnnAssign, ast.AugAssign, ast.Return)):
++            value = parent.value
++        if value is not None:
++            for sub in ast.walk(value):
++                if isinstance(sub, ast.Call):
++                    assigned_calls.add(id(sub))
+     for child in ast.walk(node):
+         if isinstance(child, ast.Constant) and isinstance(child.value, (str, bytes, int)):
+             text = child.value.decode(errors="ignore") if isinstance(child.value, bytes) else str(child.value)
+@@ -344,7 +357,19 @@
+             continue
+         short = _qualified_name(child.func).rsplit(".", 1)[-1].lower()
+         if short in _RECV or short.startswith("recv"):
+-            recv = True
++            # PROMPT_SYNC vs OUTPUT_DATA_FLOW: recvuntil of a constant prompt
++            # label whose value is discarded only synchronizes the menu — it is
++            # not evidence that the helper reads chunk data back.
++            if short == "recvuntil":
++                is_prompt_sync = (
++                    bool(child.args)
++                    and isinstance(child.args[0], ast.Constant)
++                    and id(child) not in assigned_calls
++                )
++                if not is_prompt_sync:
++                    recv = True
++            else:
++                recv = True
+         if short not in _SEND and "send" not in short:
+             continue
+         # send_size(...len(x)...) proves the allocator request size when the

@@ -1,0 +1,11 @@
+----------------------------------------------------------------------
+Ran 166 tests in 19.425s
+
+OK
+{
+  "status": "model_mismatch",
+  "expected": "qwen3-coder-30b-a3b-instruct",
+  "available": [
+    "wrong-model"
+  ]
+}

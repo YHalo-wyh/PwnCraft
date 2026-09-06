@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2__libc_csu_init-hitcon-16c4c3a8",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/ret2__libc_csu_init/hitcon-level5",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "hitcon-level5",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "16c4c3a872b2cf50dfead622fee7f2087fe5472882a8179dc67eda7b7c2e7ab6",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [
+      "stdout_leak"
+    ],
+    "technique_provenance": {
+      "stdout_leak": {
+        "file": "pwn/linux/user-mode/stackoverflow/ret2__libc_csu_init/hitcon-level5/level5.c",
+        "line": 12,
+        "sample": "write(STDOUT_FILENO, \"Hello, World\\n\", 13);"
+      }
+    }
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": null,
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": []
+  }
+}

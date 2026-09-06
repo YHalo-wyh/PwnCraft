@@ -1,0 +1,40 @@
+{
+  "batch": "batch-2 (国内 ctf pwn heap 扩充, owner 指令)",
+  "date": "2026-09-05",
+  "scanned_repos": [
+    {
+      "repo": "10cks/CTF-pwn-challenges",
+      "result": "ctf-wiki 镜像扩展 (heap 11 题 HIGH, 8 与 batch-1 binary sha 重复 = DUPLICATE, 3 增量用于 enrich)"
+    },
+    {
+      "repo": "x14ngch3n/heap-pwn-tutorial",
+      "result": "原创教学题 5; baby_talk GOLD→SILVER (缺 libc), c1-c4 BRONZE (exp-only, 目标 binary 缺失)"
+    },
+    {
+      "repo": "AvavaAYA/ctf-writeup-collection",
+      "result": "克隆三次失败 (fetch-pack invalid index-pack), 本轮放弃, 记录待重试"
+    }
+  ],
+  "actions": {
+    "gold_added": 0,
+    "silver_added": [
+      "heap-hpt-baby-talk-73968df0 (baby_talk: binary+solve.py, 缺 libc UNKNOWN 保持)"
+    ],
+    "review_queue_enriched": [
+      "hitcontraning_lab11: +10cks exp.py (第二份 exp 参考)",
+      "Asis_2016_b00ks: +exp_books.py +README",
+      "hitcontraining_lab14: +10cks exp.py"
+    ],
+    "bronze_indexed": [
+      "heap-hpt-c1_double_free / c2_unsorted_leak / c3_uaf_poison / c4_safe_linking (exp-only)"
+    ],
+    "duplicates_rejected": 8,
+    "corpus_gold_count_unchanged": 8
+  },
+  "quality_gates": "GOLD 标准 (binary+exp+libc+环境) 未放松; baby_talk 缺 libc → SILVER 而非 GOLD; UNKNOWN 保持 UNKNOWN",
+  "training_value_notes": [
+    "三道 enrich 题现带第二份 exp 参考 → VNext.2 M3 source-ast/多-exp 行为标注材料",
+    "10cks/ctf-wiki 重叠证明 batch-1 选题已覆盖国内经典 heap 题核心集",
+    "CISCN/强网杯官方题 (CTF-Archives) 附件在 Releases, 需逐题下载, 建议下一批次"
+  ]
+}

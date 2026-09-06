@@ -1,0 +1,1804 @@
+{
+  "schema_version": 10,
+  "description": "v0.10 Allocator Truth Closure; all expectations are checked-in independent ground truth, never generated from engine output.",
+  "methodology": {
+    "oracle": "hand-authored semantic expectations",
+    "anti_self_proof": "expected operations, bytes, fields, transitions and aborts are stored independently of replay output"
+  },
+  "cases": [
+    {
+      "id": "normal_malloc_free_tcache",
+      "source": "add(0x20, b'A')\nadd(0x20, b'B')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x20",
+            "index": "0"
+          },
+          {
+            "kind": "alloc",
+            "request_size": "0x20",
+            "index": "1"
+          },
+          {
+            "kind": "free",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 3,
+            "chunk": "A",
+            "lifecycle": "freed",
+            "chunk_size": "0x30",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "bins": [
+          {
+            "step": 3,
+            "kind": "tcache",
+            "size": "0x30",
+            "members": [
+              "A"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cross_chunk_overflow",
+      "source": "add(0x20, b'A')\nadd(0x20, b'B')\npayload = b'A' * 0x28 + p64(0x51)\nedit(0, payload)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit",
+            "index": "0"
+          }
+        ],
+        "payload_segments": [
+          {
+            "operation": 2,
+            "offset": 0,
+            "length": 40,
+            "raw_hex": "41414141414141414141414141414141414141414141414141414141414141414141414141414141"
+          },
+          {
+            "operation": 2,
+            "offset": 40,
+            "length": 8,
+            "raw_hex": "5100000000000000"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 2,
+            "destination": "heap_base+0x2a0",
+            "length": 48
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "prev_size",
+            "payload_offset": 32,
+            "after": "0x4141414141414141"
+          },
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "payload_offset": 40,
+            "before": "0x31",
+            "after": "0x51"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 3,
+            "chunk": "B",
+            "chunk_size": "0x50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "off_by_one_size_byte",
+      "source": "add(0x20, b'A')\nadd(0x80, b'B')\nedit(0, b'A' * 0x28 + b'\\x00')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 2,
+            "destination": "heap_base+0x2a0",
+            "length": 41
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "payload_offset": 40,
+            "before": "0x91",
+            "after": "0x0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 3,
+            "chunk": "B",
+            "chunk_size": "0x0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_poison_memory_head",
+      "source": "add(0x20, b'A')\ndelete(0)\nedit(0, p64(0x404040))\nadd(0x20, b'B')\nadd(0x20, b'C')\n",
+      "glibc": "glibc 2.31",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "A",
+            "target_field": "next",
+            "payload_offset": 0,
+            "after": "0x404040"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 5,
+            "chunk": "C",
+            "user_address": "0x404040",
+            "lifecycle": "allocated"
+          }
+        ]
+      }
+    },
+    {
+      "id": "safe_linking_stored_decoded",
+      "heap_base": "0x555555559000",
+      "source": "add(0x20, b'A')\ndelete(0)\nedit(0, p64(0x404040 ^ (0x5555555592a0 >> 12)))\nadd(0x20, b'B')\nadd(0x20, b'C')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 2,
+            "destination": "0x5555555592a0",
+            "length": 8
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "A",
+            "target_field": "next",
+            "payload_offset": 0
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 5,
+            "chunk": "C",
+            "user_address": "0x404040"
+          }
+        ]
+      }
+    },
+    {
+      "id": "overlap_one_memory_multiple_views",
+      "source": "add(0x20, b'A')\nadd(0x20, b'B')\nedit(0, b'A' * 0x28 + p64(0x61))\ndelete(1)\nadd(0x50, b'C')\nadd(0x20, b'D')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "payload_offset": 40,
+            "before": "0x31",
+            "after": "0x61"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 6,
+            "chunk": "C",
+            "chunk_size": "0x60",
+            "address": "heap_base+0x2c0"
+          },
+          {
+            "step": 6,
+            "chunk": "D",
+            "chunk_size": "0x30",
+            "address": "heap_base+0x2f0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rop_chain_not_fake_chunk",
+      "source": "rop = p64(pop_rdi) + p64(bin_sh) + p64(ret) + p64(system)\nadd(0x80, rop)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "index": "0",
+            "request_size": "0x80"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 0,
+            "destination": "heap_base+0x2a0",
+            "length": 32
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "chunk_size": "0x90",
+            "lifecycle": "allocated"
+          }
+        ]
+      }
+    },
+    {
+      "id": "flat_dictionary_sparse_offsets",
+      "variables": {
+        "target": 4210752
+      },
+      "source": "target = 0x404040\npayload = flat({0x20: 0x91, 0x28: target}, filler=b'Z')\nadd(0x60, payload)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x60"
+          }
+        ],
+        "payload_segments": [
+          {
+            "operation": 0,
+            "offset": 0,
+            "length": 32,
+            "raw_hex": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+          },
+          {
+            "operation": 0,
+            "offset": 32,
+            "length": 8,
+            "raw_hex": "9100000000000000"
+          },
+          {
+            "operation": 0,
+            "offset": 40,
+            "length": 8,
+            "raw_hex": "4040400000000000"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 0,
+            "destination": "heap_base+0x2a0",
+            "length": 48
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "chunk_size": "0x70"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fastbin_to_tcache_refill",
+      "source": "for i in range(9):\n    add(0x20, bytes([i]))\nfor i in range(9):\n    delete(i)\nfor i in range(7):\n    add(0x20, b'D')\nadd(0x20,b'R')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "checkpoints": [
+          {
+            "step": 26,
+            "chunk": "Q",
+            "address": "heap_base+0x410",
+            "lifecycle": "allocated"
+          }
+        ],
+        "bins": [
+          {
+            "step": 26,
+            "kind": "tcache",
+            "size": "0x30",
+            "members": [
+              "H"
+            ]
+          },
+          {
+            "step": 26,
+            "kind": "fastbins",
+            "size": "0x30",
+            "members": []
+          }
+        ],
+        "transitions": [
+          {
+            "step": 26,
+            "action": "refill",
+            "bin_kind": "fastbin->tcache",
+            "moved_nodes": [
+              "H"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "smallbin_tail_to_tcache_refill",
+      "source": "for i in range(7):\n    add(0xf0,b'P')\nfor i in range(3):\n    add(0xf0,b'S')\n    add(0x20,b'G')\nfor i in range(7):\n    delete(i)\nfor i in range(3):\n    delete(7+i*2)\nadd(0x200,b'X')\nfor i in range(7):\n    add(0xf0,b'D')\nadd(0xf0,b'R')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "checkpoints": [
+          {
+            "step": 32,
+            "chunk": "V",
+            "address": "heap_base+0x990",
+            "lifecycle": "allocated"
+          }
+        ],
+        "bins": [
+          {
+            "step": 32,
+            "kind": "tcache",
+            "size": "0x100",
+            "members": [
+              "L",
+              "J"
+            ]
+          },
+          {
+            "step": 32,
+            "kind": "smallbins",
+            "size": "0x100",
+            "members": []
+          }
+        ],
+        "transitions": [
+          {
+            "step": 32,
+            "action": "refill",
+            "bin_kind": "smallbin->tcache",
+            "moved_nodes": [
+              "J",
+              "L"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "largebin_nextsize_representatives",
+      "source": "add(0x500,b'L1')\nadd(0x20,b'G1')\nadd(0x600,b'L2')\nadd(0x20,b'G2')\ndelete(0)\ndelete(2)\nadd(0x700,b'X')\n",
+      "glibc": "glibc 2.23",
+      "ground_truth": {
+        "bins": [
+          {
+            "step": 7,
+            "kind": "largebins",
+            "size": "0x510",
+            "members": [
+              "A"
+            ]
+          },
+          {
+            "step": 7,
+            "kind": "largebins",
+            "size": "0x610",
+            "members": [
+              "C"
+            ]
+          }
+        ],
+        "fields": [
+          {
+            "step": 7,
+            "chunk": "A",
+            "name": "fd_nextsize",
+            "value": "heap_base+0x7d0"
+          },
+          {
+            "step": 7,
+            "chunk": "A",
+            "name": "bk_nextsize",
+            "value": "heap_base+0x7d0"
+          },
+          {
+            "step": 7,
+            "chunk": "C",
+            "name": "fd_nextsize",
+            "value": "heap_base+0x290"
+          },
+          {
+            "step": 7,
+            "chunk": "C",
+            "name": "bk_nextsize",
+            "value": "heap_base+0x290"
+          }
+        ],
+        "transitions": [
+          {
+            "step": 7,
+            "action": "insert-tail",
+            "bin_kind": "largebin",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "doubly_link_corruption_survives_refresh",
+      "source": "add(0x100,b'A')\nadd(0x20,b'GA')\nadd(0x100,b'B')\nadd(0x20,b'GB')\ndelete(0)\ndelete(2)\nadd(0x300,b'X')\nedit(0,p64(0x4141414142424242))\nadd(0x350,b'Y')\n",
+      "glibc": "glibc 2.23",
+      "ground_truth": {
+        "bins": [
+          {
+            "step": 9,
+            "kind": "smallbins",
+            "size": "0x110",
+            "members": [
+              "C",
+              "A"
+            ]
+          }
+        ],
+        "fields": [
+          {
+            "step": 9,
+            "chunk": "A",
+            "name": "fd",
+            "value": "0x4141414142424242"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_zero",
+      "source": "add(0, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_one",
+      "source": "add(1, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "1",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_eight",
+      "source": "add(8, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "8",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_ten",
+      "source": "add(0x10, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x10",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_eighteen",
+      "source": "add(0x18, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x18",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x20"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_twenty",
+      "source": "add(0x20, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x20",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_twentyeight",
+      "source": "add(0x28, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x28",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x30"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_thirty",
+      "source": "add(0x30, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x30",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_thirtyeight",
+      "source": "add(0x38, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x38",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "basic_request2size_sixtyeight",
+      "source": "add(0x68, b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x68",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "lifecycle": "allocated",
+            "chunk_size": "0x70"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_30",
+      "source": "add(0x20,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x30",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_40",
+      "source": "add(0x30,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x40",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_50",
+      "source": "add(0x40,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x50",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_60",
+      "source": "add(0x50,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x60",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_70",
+      "source": "add(0x60,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x70",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_80",
+      "source": "add(0x70,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x80",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_90",
+      "source": "add(0x80,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x90",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_free_size_110",
+      "source": "add(0x100,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "bins": [
+          {
+            "step": 2,
+            "kind": "tcache",
+            "size": "0x110",
+            "members": [
+              "A"
+            ]
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "freelist_traversals": [
+          {
+            "step": 2,
+            "action": "free-push",
+            "bin_kind": "tcache",
+            "node": "A"
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_repeat4",
+      "source": "add(0x40,b'Z')\nedit(0,b'A'*4)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_p64",
+      "source": "add(0x40,b'Z')\nedit(0,p64(0x41))\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_p32_pair",
+      "source": "add(0x40,b'Z')\nedit(0,p32(1)+p32(2))\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_flat_pair",
+      "source": "add(0x40,b'Z')\nedit(0,flat(1,2))\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 16
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_ljust",
+      "source": "add(0x40,b'Z')\nedit(0,b'A'.ljust(8,b'\\x00'))\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_bytes_list",
+      "source": "add(0x40,b'Z')\nedit(0,bytes([1,2,3]))\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_mixed",
+      "source": "add(0x40,b'Z')\nedit(0,b'A'+p64(0))\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 9
+          }
+        ]
+      }
+    },
+    {
+      "id": "payload_p16",
+      "source": "add(0x40,b'Z')\nedit(0,p16(0x1234))\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 1,
+            "destination": "heap_base+0x2a0",
+            "length": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "false_positive_rop_flat",
+      "source": "payload = flat(pop_rdi, bin_sh, ret, system)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": []
+      }
+    },
+    {
+      "id": "false_positive_rop_plus",
+      "source": "payload = p64(pop_rdi)+p64(bin_sh)+p64(ret)+p64(system)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": []
+      }
+    },
+    {
+      "id": "false_positive_file_words",
+      "source": "fs = flat(flags, read_ptr, read_end, write_base)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": []
+      }
+    },
+    {
+      "id": "false_positive_ucontext_words",
+      "source": "ctx = flat(rsp, rip, rdi, rsi)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": []
+      }
+    },
+    {
+      "id": "false_positive_ordinary_ints",
+      "source": "table = flat(1,2,3,4)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": []
+      }
+    },
+    {
+      "id": "false_positive_string_data",
+      "source": "blob = b'A'*0x100\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": []
+      }
+    },
+    {
+      "id": "consolidate_backward_memory",
+      "source": "add(0x500,b'A')\nadd(0x500,b'B')\nadd(0x20,b'C')\ndelete(0)\ndelete(1)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "metadata_decisions": [
+          {
+            "step": 4,
+            "chunk": "B",
+            "field": "size",
+            "contains": "PREV_INUSE=0"
+          }
+        ],
+        "consolidations": [
+          {
+            "step": 5,
+            "representative": "A",
+            "chunk_size": "0xa20",
+            "merged": [
+              "B"
+            ]
+          }
+        ]
+      },
+      "config": {
+        "tcache_enabled": false,
+        "max_fast_chunk_size": 0
+      }
+    },
+    {
+      "id": "consolidate_prev_inuse_block",
+      "source": "add(0x500,b'A')\nadd(0x500,b'B')\nadd(0x20,b'C')\ndelete(0)\nedit(0,b'X'*0x508+p64(0x511))\ndelete(1)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "metadata_decisions": [
+          {
+            "step": 5,
+            "chunk": "B",
+            "field": "size",
+            "contains": "PREV_INUSE=1"
+          }
+        ],
+        "consolidations": [
+          {
+            "step": 6,
+            "representative": "A",
+            "not_merged": [
+              "A",
+              "B"
+            ]
+          }
+        ]
+      },
+      "config": {
+        "tcache_enabled": false,
+        "max_fast_chunk_size": 0
+      }
+    },
+    {
+      "id": "consolidate_forward_memory",
+      "source": "add(0x500,b'A')\nadd(0x500,b'B')\nadd(0x20,b'C')\ndelete(1)\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "consolidations": [
+          {
+            "step": 5,
+            "representative": "A",
+            "chunk_size": "0xa20",
+            "merged": [
+              "B"
+            ]
+          }
+        ]
+      },
+      "config": {
+        "tcache_enabled": false,
+        "max_fast_chunk_size": 0
+      }
+    },
+    {
+      "id": "consolidate_top_merge",
+      "source": "add(0x500,b'A')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 2,
+            "chunk": "A",
+            "lifecycle": "freed"
+          }
+        ],
+        "top_transitions": [
+          {
+            "step": 2,
+            "address": "heap_base+0x290",
+            "size": "0x20d70"
+          }
+        ]
+      },
+      "config": {
+        "tcache_enabled": false,
+        "max_fast_chunk_size": 0
+      }
+    },
+    {
+      "id": "top_split_20",
+      "source": "add(0x20,b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          }
+        ],
+        "top_transitions": [
+          {
+            "step": 1,
+            "address": "heap_base+0x2c0",
+            "size": "0x20d40"
+          }
+        ]
+      }
+    },
+    {
+      "id": "top_split_100",
+      "source": "add(0x100,b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          }
+        ],
+        "top_transitions": [
+          {
+            "step": 1,
+            "address": "heap_base+0x3a0",
+            "size": "0x20c60"
+          }
+        ]
+      }
+    },
+    {
+      "id": "top_split_500",
+      "source": "add(0x500,b'A')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          }
+        ],
+        "top_transitions": [
+          {
+            "step": 1,
+            "address": "heap_base+0x7a0",
+            "size": "0x20860"
+          }
+        ]
+      }
+    },
+    {
+      "id": "top_corruption_consumed",
+      "source": "add(0x20,b'A')\nedit(0,b'X'*0x28+p64(0x1001))\nadd(0x100,b'B')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 1,
+            "target_chunk": "top",
+            "target_field": "size",
+            "payload_offset": 40,
+            "before": "0x20d41",
+            "after": "0x1001"
+          }
+        ],
+        "top_transitions": [
+          {
+            "step": 2,
+            "address": "heap_base+0x2c0",
+            "size": "0x1000"
+          },
+          {
+            "step": 3,
+            "address": "heap_base+0x3d0",
+            "size": "0xef0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_duplicate_abort",
+      "source": "add(0x20,b'A')\ndelete(0)\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "tcache_duplicates": [
+          {
+            "step": 3,
+            "abort": true,
+            "reason": "tcache_double_free_abort"
+          }
+        ],
+        "integrity_aborts": [
+          {
+            "step": 3,
+            "reason": "tcache_double_free_abort"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_key_zero_bypass",
+      "source": "add(0x20,b'A')\ndelete(0)\nedit(0,p64(0)+p64(0))\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "free"
+          }
+        ],
+        "tcache_duplicates": [
+          {
+            "step": 4,
+            "abort": false
+          }
+        ],
+        "bins": [
+          {
+            "step": 4,
+            "kind": "tcache",
+            "size": "0x30",
+            "members": [
+              "A",
+              "A"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "partial_size_low_zero",
+      "source": "add(0x20,b'A')\nadd(0x80,b'B')\nedit(0,b'A'*0x28+b'\\x00')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "partial_overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "field_offset": 0,
+            "length": 1,
+            "payload_offset": 40,
+            "mask": "ff 00 00 00 00 00 00 00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "partial_size_low_fortyone",
+      "source": "add(0x20,b'A')\nadd(0x80,b'B')\nedit(0,b'A'*0x28+b'\\x41')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "partial_overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "field_offset": 0,
+            "length": 1,
+            "payload_offset": 40,
+            "mask": "ff 00 00 00 00 00 00 00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "partial_size_low_ninetyone",
+      "source": "add(0x20,b'A')\nadd(0x80,b'B')\nedit(0,b'A'*0x28+b'\\x91')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "partial_overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "field_offset": 0,
+            "length": 1,
+            "payload_offset": 40,
+            "mask": "00 00 00 00 00 00 00 00"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fake_layout_candidate",
+      "source": "layout = flat(0,0x91,fd,bk)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "fake_chunk",
+            "chunk": "layout"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "layout",
+            "view_kind": "fake_chunk",
+            "lifecycle": "fake"
+          }
+        ]
+      }
+    },
+    {
+      "id": "fake_named_candidate",
+      "source": "fake = p64(0)+p64(0x71)+p64(fd)+p64(bk)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "fake_chunk",
+            "chunk": "fake"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "fake",
+            "view_kind": "fake_chunk",
+            "lifecycle": "fake"
+          }
+        ]
+      }
+    },
+    {
+      "id": "unsorted_corruption_consumed",
+      "source": "add(0x500,b'A')\nadd(0x20,b'G')\ndelete(0)\nedit(0,p64(0)+p64(0))\nadd(0x400,b'B')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "integrity_aborts": [
+          {
+            "step": 5,
+            "reason": "corrupted_double_linked_list"
+          }
+        ]
+      },
+      "config": {
+        "tcache_enabled": false,
+        "max_fast_chunk_size": 0
+      }
+    }
+  ]
+}

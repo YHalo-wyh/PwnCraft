@@ -1,0 +1,44 @@
+{
+  "run_id": "run_0fea5f79dae74e06b1e582e7dd0fb9f9",
+  "case_id": "local.ctfshow.pwn167",
+  "source_hash": "4307958e3e49f2ff9e6e0e7f5ae4ff6eb761fed147376952abf01e2b759f8043",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-167-4307958e3e49.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.0
+}

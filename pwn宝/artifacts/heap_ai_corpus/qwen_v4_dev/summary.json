@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.student.exp",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\local.student.exp.json"
+    },
+    {
+      "case_id": "local.student.solve-local",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\local.student.solve-local.json"
+    },
+    {
+      "case_id": "how2heap.223.overlapping-chunks",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\how2heap.223.overlapping-chunks.json"
+    },
+    {
+      "case_id": "how2heap.223.poison-null-byte",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\how2heap.223.poison-null-byte.json"
+    },
+    {
+      "case_id": "how2heap.227.tcache-stashing-unlink",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\how2heap.227.tcache-stashing-unlink.json"
+    },
+    {
+      "case_id": "how2heap.231.large-bin-attack",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\how2heap.231.large-bin-attack.json"
+    },
+    {
+      "case_id": "how2heap.231.overlapping-chunks",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\how2heap.231.overlapping-chunks.json"
+    }
+  ],
+  "completed": 7,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\gap_report.json"
+}

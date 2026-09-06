@@ -1,0 +1,53 @@
+{
+  "version": "v0.13.2",
+  "platform": "nt",
+  "budgets_ms": {
+    "terminal_burst_p95": 25,
+    "heap_runtime_gui_p95": 150,
+    "drag_frame_p95": 16.7
+  },
+  "results": [
+    {
+      "name": "embedded_pty_100_context_bursts",
+      "count": 100,
+      "average_ms": 12.866,
+      "p95_ms": 21.837,
+      "maximum_ms": 145.665
+    },
+    {
+      "name": "heap_50_chunk_render",
+      "count": 8,
+      "average_ms": 24.186,
+      "p95_ms": 43.49,
+      "maximum_ms": 43.49
+    },
+    {
+      "name": "heap_100_chunk_render",
+      "count": 8,
+      "average_ms": 43.152,
+      "p95_ms": 62.839,
+      "maximum_ms": 62.839
+    },
+    {
+      "name": "canvas_100_drag_frames",
+      "count": 100,
+      "average_ms": 2.13,
+      "p95_ms": 3.812,
+      "maximum_ms": 49.244
+    },
+    {
+      "name": "long_bins_render",
+      "count": 8,
+      "average_ms": 3.314,
+      "p95_ms": 7.32,
+      "maximum_ms": 7.32
+    },
+    {
+      "name": "large_show_render",
+      "count": 8,
+      "average_ms": 8.485,
+      "p95_ms": 11.561,
+      "maximum_ms": 11.561
+    }
+  ]
+}

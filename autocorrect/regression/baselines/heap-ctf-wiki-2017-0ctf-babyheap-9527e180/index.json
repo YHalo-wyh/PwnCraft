@@ -1,0 +1,30 @@
+[
+  {
+    "file": "pre-patch__none.json",
+    "label": "pre-patch",
+    "patch_id": "none",
+    "digest": "afa9a97df34d83cf",
+    "note": "reconstructed pre-patch state after revert (bootstrap case)",
+    "intentional_delta": []
+  },
+  {
+    "file": "post-patch__cycle-1.json",
+    "label": "post-patch",
+    "patch_id": "cycle-1",
+    "digest": "7e1b426074fd9f0a",
+    "note": "cycle-1 generalization witness (bootstrap case)",
+    "intentional_delta": [
+      "recognizer_revision",
+      "helper_contracts",
+      "op_sequence"
+    ]
+  },
+  {
+    "file": "post-infra__infra-closure-1.json",
+    "label": "post-infra",
+    "patch_id": "infra-closure-1",
+    "digest": "7ba36d06037cf574",
+    "note": "INFRA-CLOSURE-1: single-run adapter/op_id/canvas truth; recognizer untouched (r4)",
+    "intentional_delta": []
+  }
+]

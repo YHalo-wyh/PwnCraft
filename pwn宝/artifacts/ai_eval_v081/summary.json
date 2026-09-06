@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.traditional.solve",
+      "status": "completed",
+      "artifact": "artifacts\\ai_eval_v081\\local.traditional.solve.json"
+    }
+  ],
+  "completed": 1,
+  "failed": 0,
+  "gap_report": "artifacts\\ai_eval_v081\\gap_report.json",
+  "learning_report": "artifacts\\ai_eval_v081\\aggressive_learning_report.json",
+  "promotion_policy": {
+    "mode": "strict",
+    "minimum_positive_cases": 2,
+    "require_holdout": true,
+    "confidence_threshold": 0.9,
+    "maximum_rejected_cases": 0,
+    "rule_source": "qwen-strict-auto"
+  }
+}

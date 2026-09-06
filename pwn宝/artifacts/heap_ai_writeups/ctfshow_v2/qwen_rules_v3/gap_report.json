@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "golden_ir_review_required": 1,
+    "static_unmapped_call": 1
+  },
+  "examples": {
+    "static_unmapped_call": [
+      "local.ctfshow.pwn144"
+    ],
+    "golden_ir_review_required": [
+      "local.ctfshow.pwn144"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

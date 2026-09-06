@@ -1,0 +1,23 @@
+{
+  "counts": {
+    "static_runtime_assertion": 3,
+    "static_heap_neutral_branch": 2,
+    "golden_ir_review_required": 1
+  },
+  "examples": {
+    "static_heap_neutral_branch": [
+      "local.traditional.solve-alt"
+    ],
+    "static_runtime_assertion": [
+      "local.traditional.solve-alt"
+    ],
+    "golden_ir_review_required": [
+      "local.traditional.solve-alt"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

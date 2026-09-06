@@ -1,0 +1,61 @@
+[31m[1mpwndbg: [0m[31m[0m[91mloaded 205 pwndbg commands. Type [35mpwndbg [filter][0m[91m for a list.[0m
+[31m[1mpwndbg: [0m[31m[0m[91mcreated 12 GDB functions (can be used with print/break). Type [35mhelp function[0m[91m to see them.[0m
+Downloading separate debug info for /usr/bin/true...
+Download failed: Invalid argument.  Continuing without separate debug info for /usr/bin/true.
+Whether to color the output or not is 'off'. See `help set disable-colors` for more information.
+Color for banner line is 'blue,bold'. See `help set banner-color` for more information.
+Downloading separate debug info for system-supplied DSO at 0x7ffff7fc3000...
+Download failed: Invalid argument.  Continuing without separate debug info for system-supplied DSO at 0x7ffff7fc3000.
+
+Program stopped.
+0x00007ffff7fe4540 in _start () from /lib64/ld-linux-x86-64.so.2
+LEGEND: [33mSTACK[0m | [34mHEAP[0m | [31mCODE[0m | [35mDATA[0m | [4m[31mWX[0m[4m[0m | [0mRODATA[0m
+[34m───────────[ 寄存器 REGISTERS / show-flags off / show-compact-regs off ]───────────[0m
+ [1mRAX [0m 0
+ [1mRBX [0m 0
+ [1mRCX [0m 0
+ [1mRDX [0m 0
+ [1mRDI [0m 0
+ [1mRSI [0m 0
+ [1mR8  [0m 0
+ [1mR9  [0m 0
+ [1mR10 [0m 0
+ [1mR11 [0m 0
+ [1mR12 [0m 0
+ [1mR13 [0m 0
+ [1mR14 [0m 0
+ [1mR15 [0m 0
+ [1mRBP [0m 0
+ [1mRSP [0m [33m0x7fffffffd520[0m ◂— 1
+ [1mRIP [0m [31m0x7ffff7fe4540 (_start)[0m ◂— [38;5;148mmov[39m[38;5;15m [39m[38;5;81mrdi[39m[38;5;15m,[39m[38;5;15m [39m[38;5;81mrsp[39m
+[34m────────────────────[ 反汇编 DISASM / x86-64 / set emulate on ]────────────────────[0m
+ ► [1m[32m0x7ffff7fe4540[0m[1m[0m [1m[32m<_start>            [0m[1m[0m   [1m[32m[38;5;148mmov[39m[38;5;15m    [39m[38;5;81mrdi[39m[38;5;15m,[39m[38;5;15m [39m[38;5;81mrsp[39m[0m[1m[0m     [31m[1mRDI[0m[31m[0m => [33m0x7fffffffd520[0m ◂— 1
+   [0m0x7ffff7fe4543[0m [0m<_start+3>          [0m   [38;5;148m[1mcall[0m[39m[38;5;15m   [39m[38;5;141m[31m_dl_start[0m[39m                   <[31m_dl_start[0m>
+ 
+   [0m0x7ffff7fe4548[0m [0m<_dl_start_user>    [0m   [38;5;148mmov[39m[38;5;15m    [39m[38;5;81mr12[39m[38;5;15m,[39m[38;5;15m [39m[38;5;81mrax[39m
+   [0m0x7ffff7fe454b[0m [0m<_dl_start_user+3>  [0m   [38;5;148mmov[39m[38;5;15m    [39m[38;5;81mr13[39m[38;5;15m,[39m[38;5;15m [39m[38;5;81mrsp[39m
+   [0m0x7ffff7fe454e[0m [0m<_dl_start_user+6>  [0m   [38;5;148mmov[39m[38;5;15m    [39m[38;5;81medx[39m[38;5;15m,[39m[38;5;15m [39m[38;5;81mdword[39m[38;5;15m [39m[38;5;81mptr[39m[38;5;15m [39m[38;5;15m[[39m[38;5;81mrip[39m[38;5;15m [39m[38;5;15m+[39m[38;5;15m [39m[38;5;141m0x19b14[39m[38;5;15m][39m     [31m[1mEDX[0m[31m[0m, [[35m_rtld_global+4200[0m]
+   [0m0x7ffff7fe4554[0m [0m<_dl_start_user+12> [0m   [38;5;148mtest[39m[38;5;15m   [39m[38;5;81medx[39m[38;5;15m,[39m[38;5;15m [39m[38;5;141m2[39m
+   [0m0x7ffff7fe455a[0m [0m<_dl_start_user+18> [0m [90m? [0m[38;5;148m[1mje[0m[39m[38;5;15m     [39m[38;5;141m[31m_dl_start_user+37[0m[39m           <[31m_dl_start_user+37[0m>
+ 
+   [0m0x7ffff7fe455c[0m [0m<_dl_start_user+20> [0m   [38;5;148mmov[39m[38;5;15m    [39m[38;5;81mesi[39m[38;5;15m,[39m[38;5;15m [39m[38;5;141m1[39m                [31m[1mESI[0m[31m[0m => 1
+   [0m0x7ffff7fe4561[0m [0m<_dl_start_user+25> [0m   [38;5;148mmov[39m[38;5;15m    [39m[38;5;81medi[39m[38;5;15m,[39m[38;5;15m [39m[38;5;141m0x5001[39m           [31m[1mEDI[0m[31m[0m => 0x5001
+   [0m0x7ffff7fe4566[0m [0m<_dl_start_user+30> [0m   [38;5;148mmov[39m[38;5;15m    [39m[38;5;81meax[39m[38;5;15m,[39m[38;5;15m [39m[38;5;141m0x9e[39m             [31m[1mEAX[0m[31m[0m => 0x9e
+   [0m0x7ffff7fe456b[0m [0m<_dl_start_user+35> [0m   [38;5;148msyscall[39m <[31mSYS_arch_prctl[0m>
+[34m──────────────────────────────────[ 栈 STACK ]───────────────────────────────────[0m
+[0m00[0m[0m:[0m[0m0000[0m[0m│[0m[0m[0m [1mrsp[0m [33m0x7fffffffd520[0m ◂— 1
+[0m01[0m[0m:[0m[0m0008[0m[0m│[0m[0m[0m [1m   [0m [33m0x7fffffffd528[0m —▸ [33m0x7fffffffd88a[0m ◂— '/usr/bin/true'
+[0m02[0m[0m:[0m[0m0010[0m[0m│[0m[0m[0m [1m   [0m [33m0x7fffffffd530[0m ◂— 0
+[0m03[0m[0m:[0m[0m0018[0m[0m│[0m[0m[0m [1m   [0m [33m0x7fffffffd538[0m —▸ [33m0x7fffffffd898[0m ◂— 'SHELL=/bin/bash'
+[0m04[0m[0m:[0m[0m0020[0m[0m│[0m[0m[0m [1m   [0m [33m0x7fffffffd540[0m —▸ [33m0x7fffffffd8a8[0m ◂— 'COLORTERM=truecolor'
+[0m05[0m[0m:[0m[0m0028[0m[0m│[0m[0m[0m [1m   [0m [33m0x7fffffffd548[0m —▸ [33m0x7fffffffd8bc[0m ◂— 'NODE_TLS_REJECT_UNAUTHORIZED='
+[0m06[0m[0m:[0m[0m0030[0m[0m│[0m[0m[0m [1m   [0m [33m0x7fffffffd550[0m —▸ [33m0x7fffffffd8da[0m ◂— 'WSL2_GUI_APPS_ENABLED=1'
+[0m07[0m[0m:[0m[0m0038[0m[0m│[0m[0m[0m [1m   [0m [33m0x7fffffffd558[0m —▸ [33m0x7fffffffd8f2[0m ◂— 'WSL_DISTRO_NAME=Ubuntu-24.04'
+[34m───────────────────────────────[ 调用栈 BACKTRACE ]────────────────────────────────[0m
+ ► 0 0x7ffff7fe4540 _start
+   1 0x1
+   2 0x7fffffffd88a
+   3 0x0
+[34m────────────────────────────────[ MOGAI TUTOR ]─────────────────────────────────[0m
+[1mRSP[0m [33m0x7fffffffd520[0m  [1mRBP[0m [0m0[0m [97mgeneral register[0m
+[34m────────────────────────────────────────────────────────────────────────────────[0m

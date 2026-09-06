@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExpectedAnalysis",
+  "description": "AI Reviewer 对一道 heap 题的独立静态分析结果。这是闭环中的'期望侧'：它必须由 AI 从 binary/源码/EXP 的证据独立推导得出，禁止把 PwnCraft 的输出抄进来，也禁止只记录最终画布（那是背题）。每个字段都必须带 evidence。",
+  "type": "object",
+  "required": ["case_id", "analyzer", "helpers"],
+  "properties": {
+    "case_id": {"type": "string"},
+    "analyzer": {
+      "type": "object",
+      "required": ["model", "date"],
+      "properties": {
+        "model": {"type": "string", "description": "执行独立分析的模型/agent 标识"},
+        "session": {"type": "string"},
+        "date": {"type": "string"},
+        "inputs_consulted": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "分析时参考了哪些材料: binary 反编译 / source / exp.py / writeup"
+        }
+      }
+    },
+    "helpers": {
+      "type": "array",
+      "description": "EXP 中识别出的每个 heap helper 的语义契约。角色判定必须基于数据流证据，而不是函数名。",
+      "items": {
+        "type": "object",
+        "required": ["function", "menu_index", "parameters", "operation"],
+        "properties": {
+          "function": {"type": "string", "description": "EXP 中的函数名，如 create"},
+          "source_line": {"type": "integer"},
+          "menu_index": {"type": ["string", "null"], "description": "对应菜单选项的输入字符串，如 \"1\"；无法证明则为 null"},
+          "operation": {
+            "type": "string",
+            "enum": ["alloc", "free", "edit", "show", "copy", "unknown"],
+            "description": "该 helper 对堆状态的原语操作"
+          },
+          "operation_evidence": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "例如: 'L30 调用 malloc(size)' / 'L41 调用 free(table[idx])'"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "role", "evidence"],
+              "properties": {
+                "name": {"type": "string", "description": "形参名，如 idx"},
+                "position": {"type": "integer", "description": "形参序号，从 0 起"},
+                "role": {
+                  "type": "string",
+                  "enum": ["index", "size", "data", "count", "flags", "unknown"],
+                  "description": "参数角色。index=chunks 表下标; size=传给 malloc/realloc 的长度; data=写入 chunk 的内容; count=循环/个数"
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {"type": "string"},
+                  "description": "数据流证据。例如: 'arg1 最终传入 malloc() (L30)'、'arg0 用作 chunk_table 下标 (L33)'、'arg2 传入 read(0, ptr, n) 的目的缓冲'"
+                }
+              },
+              "required_all": ["evidence"]
+            }
+          },
+          "returns": {"type": ["string", "null"], "description": "返回值语义描述，无则为 null"}
+        }
+      }
+    },
+    "call_trace": {
+      "type": "array",
+      "description": "EXP 主流程展开后的预期调用序列（含循环展开），每一项对应一次 helper 调用及其实参。PwnCraft 的 IR 展开必须与此对齐。",
+      "items": {
+        "type": "object",
+        "required": ["seq", "helper", "args"],
+        "properties": {
+          "seq": {"type": "integer"},
+          "helper": {"type": "string"},
+          "menu_input": {"type": ["string", "null"]},
+          "args": {"type": "array", "items": {}},
+          "source_line": {"type": "integer"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "vulnerability": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["heap_overflow", "uaf", "double_free", "off_by_one", "off_by_null",
+                   "tcache_poisoning", "fastbin_dup", "unsafe_unlink", "chunk_overlap",
+                   "unsorted_bin_attack", "largebin_attack", "house_of_force",
+                   "house_of_spirit", "house_of_botcake", "fsop", "other", "unknown"]
+        },
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]}
+      }
+    },
+    "expected_heap_effects": {
+      "type": "array",
+      "description": "关键节点上预期的堆状态摘要（只写可从代码逻辑推导的保守事实，例如: 'seq 3 之后 tcache[0x90] 含 chunk@A'）。禁止贴完整画布截图式描述。",
+      "items": {
+        "type": "object",
+        "required": ["after_seq", "fact", "evidence"],
+        "properties": {
+          "after_seq": {"type": "integer", "description": "对应 call_trace 的 seq 序号之后"},
+          "fact": {"type": "string"},
+          "evidence": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "notes": {"type": "string"}
+  }
+}

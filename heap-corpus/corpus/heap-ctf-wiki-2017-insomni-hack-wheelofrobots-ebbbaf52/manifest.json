@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots",
+    "ctf": null,
+    "year": 2017,
+    "year_provenance": "parsed_from_challenge_dirname_prefix",
+    "challenge_name": "2017_insomni'hack_wheelofrobots",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "ebbbaf52b32d2c047c140448945bd0e51986bc629d04bbe078c350a41a5a5244",
+    "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.23",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/libc.so.6 (GNU C Library, Ubuntu GLIBC 2.23-0ubuntu10)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/wheelofrobots",
+          "allocator_dynsym_imports": [
+            "calloc",
+            "free"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "def offset_bin_main_arena(idx):",
+              "offset += word_bytes * 10  # offset fastbin"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/libc.so.6",
+      "sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+      "size": 1868984
+    },
+    {
+      "path": "original/challenge/wheelofrobots",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/wheelofrobots",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/wheelofrobots",
+      "sha256": "ebbbaf52b32d2c047c140448945bd0e51986bc629d04bbe078c350a41a5a5244",
+      "size": 14632
+    },
+    {
+      "path": "original/challenge/wheelofrobots.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/wheelofrobots.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/wheelofrobots.i64",
+      "sha256": "62f13f61419a3db89a98364bdb06c66e711b1554d78342e213229633b6f92130",
+      "size": 264030
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/exp.py",
+      "sha256": "9238f2c93ceb3175ad1f362784930033fd284e007f3e3d2deb3fd1d74c20d918",
+      "size": 4265
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/exp.py",
+    "parse_ok": false,
+    "imports_pwntools": null,
+    "helpers": [],
+    "candidate_operations": [],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

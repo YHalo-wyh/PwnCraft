@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--20d0b2ae",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-blinkroot",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "2015-hitcon-quals-blinkroot",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "20d0b2ae2748f20034b50baf5188f8fa9a598565bba769f39540a6bcd56ecf37",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-blinkroot/exp-l_addr-addr.py",
+      "role": "python",
+      "size": 3076
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": []
+  }
+}

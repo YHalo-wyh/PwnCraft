@@ -1,0 +1,104 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def shownote()",
+    "expected": {
+      "semantic": "show",
+      "roles": {
+        "arg0": "index"
+      },
+      "helper_evidence": [
+        "exp.py:20-21 菜单 '2'",
+        "exp.py:22-23 recvuntil('note:') 后 sendline(str(id)) — index 绑定",
+        "helper 体内仅 PROMPT_SYNC; OUTPUT_DATA_FLOW 在调用点 L76-77 (recvuntil('is ')/recvuntil 消费后 u64 进入 atoi_addr→libcbase 计算)",
+        "exp.py:74 shownote(0) 后 L76-84 泄露链成立"
+      ]
+    },
+    "actual": {
+      "operation": "unknown",
+      "confidence": "candidate",
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 19,
+          "score": 0.35
+        }
+      ]
+    },
+    "status_detail": {
+      "helper": "shownote",
+      "expected_semantic": "show",
+      "actual_operation": "unknown",
+      "actual_candidate_operation": "show",
+      "actual_confidence": "candidate",
+      "semantic": "SEMANTIC_DIVERGED",
+      "divergence_field": "semantic"
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "newnote",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "actual_candidate_operation": "unknown",
+      "actual_confidence": "structural",
+      "semantic": "MATCH"
+    },
+    {
+      "helper": "shownote",
+      "expected_semantic": "show",
+      "actual_operation": "unknown",
+      "actual_candidate_operation": "show",
+      "actual_confidence": "candidate",
+      "semantic": "SEMANTIC_DIVERGED",
+      "divergence_field": "semantic"
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [
+    "CHUNK_MAPPING",
+    "PHYSICAL_MEMORY",
+    "SNAPSHOT",
+    "CANVAS"
+  ],
+  "root_cause": {
+    "component": "contracts/resolver.py (调用点级 OUTPUT_DATA_FLOW 缺失) — cycle-3 目标",
+    "reason": "parse 已修复; 新第一偏差推进到 HELPER_CONTRACT: shownote(id) 体内仅 PROMPT_SYNC (exp.py:20-23), 其 OUTPUT_DATA_FLOW 证据在调用点 (exp.py:76-77 recvuntil 结果被消费进入 u64→libcbase)。与 lab13 的 show 偏差同根同族 — 两个独立 case 现在共同指向同一条缺失规则 (调用点级输出数据流), 强化 cycle-3 的动机。editnote (choice+无提示词 data 的三参形状) 为后续偏差。"
+  },
+  "evidence": [
+    "exp.py:20-21 菜单 '2'",
+    "exp.py:22-23 recvuntil('note:') 后 sendline(str(id)) — index 绑定",
+    "helper 体内仅 PROMPT_SYNC; OUTPUT_DATA_FLOW 在调用点 L76-77 (recvuntil('is ')/recvuntil 消费后 u64 进入 atoi_addr→libcbase 计算)",
+    "exp.py:74 shownote(0) 后 L76-84 泄露链成立"
+  ],
+  "suggested_fix": {
+    "scope": "generic",
+    "description": null,
+    "note": "cycle-3: 调用点级 OUTPUT_DATA_FLOW (lab13 show + note2 shownote 双 case 共同需要); 禁止 candidate_operation 直接提升"
+  },
+  "confidence": 0.95,
+  "reviewer_reason_hint": "shownote 语义判定 unknown, 证据支持 show",
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\generated\\cycle-2-after\\pwncraft_output.json",
+    "comparator": "v3"
+  },
+  "downstream_effects": [
+    "py2 方言解析解锁: note2 从 0 契约/0 操作 → 4 契约/13 操作",
+    "module-level entry (无 exp() 函数, 顶层调用) 全部 9 个堆操作被识别, 行号与类型全部正确",
+    "newnote=alloc(size,data) 与 deletenote=delete(index) 直接获得 STRUCTURAL 证明, roles 正确",
+    "ops 层 L61/L67 delete, L72 edit, L74 show — 语义/行号与 expected_operations 完全一致 (ARGUMENT_BINDING 及更深层若到达比较将全部通过)"
+  ],
+  "reviewer": {
+    "model": "GLM-5.3-Flash (ZCode reviewer)",
+    "date": "2026-09-05",
+    "protocol_version": "v1.2"
+  }
+}

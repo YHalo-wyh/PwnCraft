@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2015-CSAW-contacts-96707ed2",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/fmtstr/2015-CSAW-contacts",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "2015-CSAW-contacts",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "x86",
+    "os": "linux",
+    "binary_sha256": "96707ed2a9e4e47b48efeedd6c5398f47e326be0c8ee4499596ed8b380ebc606",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "fmtstr",
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/fmtstr/2015-CSAW-contacts/contacts",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/fmtstr/2015-CSAW-contacts/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "# get heap addr and ebp addr",
+              "heap_addr = int(data[2], 16)"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/fmtstr/2015-CSAW-contacts/exp.py",
+      "role": "python",
+      "size": 2097
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": []
+  }
+}

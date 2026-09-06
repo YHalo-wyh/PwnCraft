@@ -1,0 +1,39 @@
+{
+  "version": "2026.07.29-pwndbg-mogai.14",
+  "command": "pwndbg-mogai",
+  "loaded_count": 205,
+  "required": [
+    "context",
+    "nearpc",
+    "telescope",
+    "vmmap",
+    "search",
+    "hexdump",
+    "heap",
+    "bins",
+    "tcachebins",
+    "fastbins",
+    "vis-heap-chunks",
+    "checksec",
+    "got",
+    "plt",
+    "cyclic",
+    "cyclic-find",
+    "rop",
+    "retaddr",
+    "canary",
+    "auxv",
+    "procinfo",
+    "frame-explain",
+    "return-info",
+    "rbp-info",
+    "stackof",
+    "safe-link"
+  ],
+  "missing": [],
+  "native_gdb_commands": {
+    "slash": "help verified",
+    "slash-native": "help verified",
+    "source": "pwndbg-mogai fork input framework"
+  }
+}

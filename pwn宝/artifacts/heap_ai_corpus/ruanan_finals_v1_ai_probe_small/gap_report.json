@@ -1,0 +1,15 @@
+{
+  "counts": {
+    "run_over_budget": 1
+  },
+  "examples": {
+    "run_over_budget": [
+      "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

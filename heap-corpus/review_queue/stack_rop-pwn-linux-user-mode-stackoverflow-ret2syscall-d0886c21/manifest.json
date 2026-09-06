@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2syscall-d0886c21",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/ret2syscall",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "ret2syscall",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "x86",
+    "os": "linux",
+    "binary_sha256": "d0886c2165237b999c74266dae44eeb1e206c7f4deeb25687b20e95b830d86fe",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "MEDIUM",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/stackoverflow/ret2syscall/bamboofox-ret2syscall/rop",
+          "allocator_dynsym_imports": [],
+          "heap_string_hits": [
+            "fastbin",
+            "smallbin",
+            "main_arena"
+          ],
+          "dynamic_glibc_ref": false
+        }
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/ret2syscall/bamboofox-ret2syscall/exploit.py",
+      "role": "python",
+      "size": 308
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

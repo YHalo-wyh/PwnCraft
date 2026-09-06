@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/brop",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "brop",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "c35034690e562a086462dadaf8d70bbb574102854572db5d8ccdf75af666f524",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/brop/hctf2016-brop/exploit.py",
+      "role": "python",
+      "size": 5476
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": []
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "EXP_PARSE",
+    "step": null,
+    "source_line": null,
+    "source_call": null,
+    "expected": {
+      "parseable": true,
+      "note": "expected_truth 锁定于 EXP 源码; py2 方言属 EXP 方言维度"
+    },
+    "actual": {
+      "valid": false,
+      "diagnostics": [
+        "ParseDiagnostic(severity='error', code='syntax_error', message=\"Missing parentheses in call to 'print'. Did you mean print(...)?\", start=1712, end=1713, line=78, suggestion='补全当前语句后会自动恢复；最后一次有效时间线应继续保留。')"
+      ],
+      "helper_contracts": 0,
+      "canonical_ops": 0
+    },
+    "status_detail": {
+      "layer_detail": "syntax_error"
+    }
+  },
+  "helper_contract_status": [],
+  "layers_compared": [],
+  "layers_not_compared": [
+    "CHUNK_MAPPING",
+    "PHYSICAL_MEMORY",
+    "SNAPSHOT",
+    "CANVAS"
+  ],
+  "root_cause": {
+    "component": "pwnbao/features/heapviz (analyzer.py / contracts/resolver.py / api_profile.py 的模块级 ast.parse 入口)",
+    "reason": "EXP 为 Python 2 方言 (print 语句), py3 ast.parse 直接 SyntaxError → valid=False, 0 契约 0 操作, 全下游层不可用。真实公开 CTF EXP 大量为 py2 写法, 这是 Static Recognition 的第 0 层网关能力缺失。"
+  },
+  "evidence": [
+    "EXP 为 Python 2 方言 (L78/80/88 print 语句) — py3 ast.parse 预期失败; 本轮 cycle 的预期第一偏差即 EXP 解析层"
+  ],
+  "suggested_fix": {
+    "scope": "generic",
+    "description": "新增 source_compat.parse_module_source: 先常规 ast.parse; 失败时用 tokenize 引导的语句级改写 (仅语句首 print 词法单元, 字符串字面量永不触碰, 行号保持) 将 py2 print 语句包裹为函数调用形式后重解析; 仍失败则返回原始错误。接入 5 个模块级解析点 (analyzer×2 / resolver×2 / api_profile)。纯词法规则, 无题目/方言特判; print 的运行时语义对静态识别无关。"
+  },
+  "confidence": 0.95,
+  "reviewer_reason_hint": "EXP 无法解析 (py2 print 语句等方言), 全下游层不可用",
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\generated\\pre-patch\\pwncraft_output.json",
+    "comparator": "v3"
+  },
+  "reviewer": {
+    "model": "GLM-5.3-Flash (ZCode reviewer)",
+    "date": "2026-09-05",
+    "protocol_version": "v1.2"
+  }
+}

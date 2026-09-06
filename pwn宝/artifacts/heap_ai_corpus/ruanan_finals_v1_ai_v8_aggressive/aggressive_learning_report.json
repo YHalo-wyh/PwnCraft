@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "promotion_policy": {
+    "mode": "aggressive",
+    "minimum_positive_cases": 1,
+    "require_holdout": false,
+    "confidence_threshold": 0.8,
+    "maximum_rejected_cases": 0,
+    "rule_source": "qwen-strict-auto:aggressive"
+  },
+  "counters": {
+    "cases": 12,
+    "completed_or_cached": 6,
+    "strict_preview_accepted": 0,
+    "strict_preview_rejected": 3,
+    "feedback_compiled": 0,
+    "rules_enabled": 0,
+    "rules_pending": 0,
+    "over_budget": 6,
+    "offline_or_model": 0,
+    "failed": 0
+  },
+  "blocked_reasons": {
+    "over_budget": 6,
+    "strict replay rejected": 3,
+    "strict_replay_rejected": 3
+  },
+  "examples": [
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "technique": "heap-general",
+      "kind": "strict_preview",
+      "index": 0,
+      "accepted": false,
+      "message": "候选重复了源码范围内已有 Heap IR",
+      "semantic_changed": false
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "technique": "heap-general",
+      "kind": "feedback_compilation",
+      "accepted": false,
+      "rule_enabled": false,
+      "message": "strict replay rejected",
+      "promotion": {}
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "technique": "unsorted-bin",
+      "kind": "strict_preview",
+      "index": 0,
+      "accepted": false,
+      "message": "op.* 候选源码锚点语义不匹配: source=alloc, candidate=show",
+      "semantic_changed": false
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "technique": "unsorted-bin",
+      "kind": "feedback_compilation",
+      "accepted": false,
+      "rule_enabled": false,
+      "message": "strict replay rejected",
+      "promotion": {}
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "technique": "unsorted-bin",
+      "kind": "strict_preview",
+      "index": 0,
+      "accepted": false,
+      "message": "候选步骤无法严格执行: free_unknown",
+      "semantic_changed": false
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "technique": "unsorted-bin",
+      "kind": "feedback_compilation",
+      "accepted": false,
+      "rule_enabled": false,
+      "message": "strict replay rejected",
+      "promotion": {}
+    }
+  ],
+  "note": "只有 strict replay accepted 的候选会进入规则审核；rejected/over_budget 只作为负反馈、提示词和静态分析 gap，不会直接改 chunk/bin/画布事实。"
+}

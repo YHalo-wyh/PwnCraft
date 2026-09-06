@@ -1,0 +1,68 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def delete()",
+    "expected": {
+      "semantic": "free",
+      "roles": {
+        "arg0": "index"
+      },
+      "helper_evidence": [
+        "exp.py:40 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "exp.py:36 函数名 delete (弱证据, 仅用于消歧)",
+        "heapcreator.c:111-113 free(content); free(struct); heaparray[idx]=NULL (强)"
+      ]
+    },
+    "actual": {
+      "operation": "show",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "idx",
+          "position": 0,
+          "expression": "idx"
+        }
+      }
+    }
+  },
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [
+    "CHUNK_MAPPING",
+    "PHYSICAL_MEMORY",
+    "SNAPSHOT",
+    "CANVAS"
+  ],
+  "root_cause": {
+    "component": "pwnbao/features/heapviz/contracts/resolver.py::_structural_contract (recv 判定)",
+    "reason": "recv 标志把 PROMPT_SYNC (recvuntil 常量提示词且返回值丢弃) 与 OUTPUT_DATA_FLOW (读回数据) 混为一谈。pwntools 菜单 helper 必然 recvuntil 提示词, 于是 'index+recv→SHOW' (原 L391-392) 对所有单 index helper 先行命中; 而后置的 delete 消歧分支 (原 L407) 要求 not recv, 对任何正常菜单 helper 不可达 → delete(idx) 被判 SHOW。"
+  },
+  "evidence": [
+    "exp.py:40 sendline(str(idx)) 应答 Index 提示 (中等)",
+    "exp.py:36 函数名 delete (弱证据, 仅用于消歧)",
+    "heapcreator.c:111-113 free(content); free(struct); heaparray[idx]=NULL (强)"
+  ],
+  "suggested_fix": {
+    "scope": "generic",
+    "description": "recv 判定改为数据流判定: recvuntil(常量字面量) 且返回值未被绑定(赋值/返回) ⇒ PROMPT_SYNC, 不构成输出证据; 其余 recv 族调用(recv/recvn/recvline*/非字面量 recvuntil/返回值被绑定) ⇒ OUTPUT_DATA_FLOW。SHOW 证据与 not recv 守卫均改用该语义。无函数名分支。"
+  },
+  "confidence": 0.95,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\before\\pwncraft_output.json"
+  },
+  "reviewer": {
+    "model": "GLM-5.3-Flash (ZCode reviewer role)",
+    "date": "2026-09-03",
+    "note": "机械比较由 comparator_v2 生成, 本文件为 Reviewer 定稿版"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "run_id": "run_ea5252c97ad94433b9880734958940d2",
+  "case_id": "how2heap.227.tcache-poisoning",
+  "source_hash": "fe7531d3224784a5babf1ce0aef9916434ae3f2a5e40d2806545d38008684945",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\qwen_v4_train\\sources\\fe7531d3224784a5babf1ce0aef9916434ae3f2a5e40d2806545d38008684945.c",
+  "purpose": "allocator_truth",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.015
+}

@@ -1,0 +1,44 @@
+{
+  "run_id": "run_a2c2ba96a37c4b82a0ff28bce5778aea",
+  "case_id": "how2heap.227.fastbin-reverse-into-tcache",
+  "source_hash": "985157c8316fb3de41fd6ce34d04563726c81e11fbe27c89228b19c7a14e6974",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_v070\\sources\\985157c8316fb3de41fd6ce34d04563726c81e11fbe27c89228b19c7a14e6974.c",
+  "purpose": "allocator_truth",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.656
+}

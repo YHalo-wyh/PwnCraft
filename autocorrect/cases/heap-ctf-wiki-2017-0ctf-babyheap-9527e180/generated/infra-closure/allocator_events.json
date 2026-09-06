@@ -1,0 +1,299 @@
+{
+  "run_id": "run-dbb0ff7ec6581f50",
+  "per_step": [
+    {
+      "step": 0,
+      "op_id": "initial",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 1,
+      "op_id": "op_001",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "A",
+          "request_size": "0x10",
+          "chunk_size": "0x20",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 2,
+      "op_id": "op_002",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "B",
+          "request_size": "0x10",
+          "chunk_size": "0x20",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 3,
+      "op_id": "op_003",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "C",
+          "request_size": "0x10",
+          "chunk_size": "0x20",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 4,
+      "op_id": "op_004",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "D",
+          "request_size": "0x10",
+          "chunk_size": "0x20",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 5,
+      "op_id": "op_005",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "E",
+          "request_size": "0x80",
+          "chunk_size": "0x90",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 6,
+      "op_id": "op_006",
+      "alloc_events": [],
+      "free_events": [
+        {
+          "kind": "free",
+          "chunk": "C",
+          "destination_bin": "fastbin[0x20]"
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "op_id": "op_007",
+      "alloc_events": [],
+      "free_events": [
+        {
+          "kind": "free",
+          "chunk": "B",
+          "destination_bin": "fastbin[0x20]"
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "op_id": "op_008",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 9,
+      "op_id": "op_009",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 10,
+      "op_id": "op_010",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "F",
+          "request_size": "0x10",
+          "chunk_size": "0x20",
+          "source": "fastbin"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 11,
+      "op_id": "op_011",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "G",
+          "request_size": "0x10",
+          "chunk_size": "0x20",
+          "source": "fastbin"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 12,
+      "op_id": "op_012",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 13,
+      "op_id": "op_013",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "H",
+          "request_size": "0x80",
+          "chunk_size": "0x90",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 14,
+      "op_id": "op_014",
+      "alloc_events": [],
+      "free_events": [
+        {
+          "kind": "free",
+          "chunk": "E",
+          "destination_bin": "unsorted"
+        }
+      ]
+    },
+    {
+      "step": 15,
+      "op_id": "op_015",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 16,
+      "op_id": "op_016",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 17,
+      "op_id": "op_017",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 18,
+      "op_id": "op_018",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 19,
+      "op_id": "op_019",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "I",
+          "request_size": "0x60",
+          "chunk_size": "0x70",
+          "source": "unsorted"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 20,
+      "op_id": "op_020",
+      "alloc_events": [],
+      "free_events": [
+        {
+          "kind": "free",
+          "chunk": "I",
+          "destination_bin": "fastbin[0x70]"
+        }
+      ]
+    },
+    {
+      "step": 21,
+      "op_id": "op_021",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 22,
+      "op_id": "op_022",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 23,
+      "op_id": "op_023",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "J",
+          "request_size": "0x60",
+          "chunk_size": "0x70",
+          "source": "fastbin"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 24,
+      "op_id": "op_024",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "K",
+          "request_size": "0x60",
+          "chunk_size": "0x70",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    },
+    {
+      "step": 25,
+      "op_id": "op_025",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 26,
+      "op_id": "op_026",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 27,
+      "op_id": "op_027",
+      "alloc_events": [],
+      "free_events": []
+    },
+    {
+      "step": 28,
+      "op_id": "op_028",
+      "alloc_events": [
+        {
+          "kind": "alloc",
+          "chunk": "L",
+          "request_size": "0x100",
+          "chunk_size": "0x110",
+          "source": "top"
+        }
+      ],
+      "free_events": []
+    }
+  ]
+}

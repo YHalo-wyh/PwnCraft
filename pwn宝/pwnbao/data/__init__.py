@@ -1,0 +1,2 @@
+"""Bundled block catalog data."""
+

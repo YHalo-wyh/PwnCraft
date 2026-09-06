@@ -1,0 +1,410 @@
+{
+  "batch": "batch-3 (全 pwn 技术栈扩充)",
+  "date": "2026-09-05",
+  "added": [],
+  "already_present": [
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/2015-CSAW-contacts",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2015-CSAW-contacts-96707ed2",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/2016-CCTF-pwn3",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/2017-UIUCTF-pwn200-GoodLuck",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2017-UIUCTF-pwn200-GoodLuck-66daf236",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/blind_fmt_got",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_got-3087984b",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/blind_fmt_stack",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_stack-07c30b49",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/leakmemory",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-leakmemory-5418ca21",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/overwrite",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-overwrite-8e4893a8",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/fmtstr/三个白帽-pwnme_k0",
+      "tech": "fmtstr",
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-三个白帽-pwnme_k0-56276f9d",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/brop",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/fake_frame/StarCTF2018-note",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-StarCTF2018-not-97cad9a0",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/fake_frame/over",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-over-376262cd",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/partial_overwrite/2018-xnuca-gets",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-partial_overwrite-2018-xnu-1531c6e9",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2__libc_csu_init/hitcon-level5",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2__libc_csu_init-hitcon-16c4c3a8",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-blinkroot",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--20d0b2ae",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-readable",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--1f442466",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/no-relro",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-fc0bbe4c",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/partial-relro",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-5efaa745",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/no-relro",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-90e17e42",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/partial-relro",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-39d477bf",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc2",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc2-dbad0d86",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc3",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc3-f3683777",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/train.cs.nctu.edu.tw",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-train.cs.nctu.edu-96d465d5",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2shellcode/ret2shellcode-example",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-ret2shellcod-ef0b9645",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2shellcode/sniperoj-pwn100-shellcode-x86-64",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-sniperoj-pwn-22817a72",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2syscall",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2syscall-d0886c21",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2text",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2text-edf54bc1",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/rop/2013-PlaidCTF-ropasaurusrex",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2013-PlaidCTF-ropasaur-fec23fd9",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/rop/2015-Defcon Qualifier R0pbaby",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2015-Defcon Qualifier -b23aea39",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/srop/2016-360春秋杯-srop",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-srop-2016-360春秋杯-srop-a8d58b7f",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/stackoverflow-intro",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackoverflow-intro-3c514d6e",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/stackprivot/X-CTF Quals 2016 - b0verfl0w",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackprivot-X-CTF Quals 20-1e7d1285",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/stacksmashes/guess",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-guess-ec95cf56",
+      "dup_of": null
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/stacksmashes/smashes",
+      "tech": "stack_rop",
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-smashes-8f220a72",
+      "dup_of": null
+    }
+  ],
+  "duplicates": [],
+  "bronze": [
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/conf",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/Sections",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/pow",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/text",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/ui",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/checker",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/deployer",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/interface",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/utils/prettyprint",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/Randomness/hctf2018/bet2loss/bet2loss",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/Randomness/hctf2018/bet2loss/core",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/Randomness/hctf2018/bet2loss/web/migrations",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2018/hctf/bet2loss/bet2loss",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2018/hctf/bet2loss/core",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2018/hctf/bet2loss/web/migrations",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2018/hctf/ethre",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/conf",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/Sections",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/pow",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/text",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/ui",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/checker",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/deployer",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/interface",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/utils/prettyprint",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "executable/elf",
+      "tech": "other",
+      "reason": "binary without exp"
+    },
+    {
+      "unit": "misc/cap/Xman三期夏令营排位赛练习题-AutoKey/Cryptanalysis-of-the-Autokey-Cipher",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "misc/cap/Xman三期夏令营排位赛练习题-AutoKey/example",
+      "tech": "other",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "pwn/linux/kernel-mode/0CTF2018-baby",
+      "tech": "other",
+      "reason": "kernel: simulator 范围外, 仅索引"
+    },
+    {
+      "unit": "pwn/linux/kernel-mode/CISCN2017-babydriver",
+      "tech": "other",
+      "reason": "kernel: simulator 范围外, 仅索引"
+    },
+    {
+      "unit": "pwn/linux/kernel-mode/QWB2018-core",
+      "tech": "other",
+      "reason": "kernel: simulator 范围外, 仅索引"
+    },
+    {
+      "unit": "pwn/linux/kernel-mode/XHLJ2021-easykernel",
+      "tech": "other",
+      "reason": "kernel: simulator 范围外, 仅索引"
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2__libc_csu_init/2016-XDCTF-pwn100",
+      "tech": "stack_rop",
+      "reason": "binary without exp"
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/full-relro",
+      "tech": "stack_rop",
+      "reason": "binary without exp"
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/rop/train.cs.nctu.edu.tw-rop",
+      "tech": "stack_rop",
+      "reason": "NO_BINARY"
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/srop/2015-defcon-fakeup",
+      "tech": "stack_rop",
+      "reason": "binary without exp"
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/stackprivot/EkoPartyCTF 2016 fuckzing-exploit-200",
+      "tech": "stack_rop",
+      "reason": "binary without exp"
+    },
+    {
+      "unit": "pwn/linux/user-mode/stackoverflow/windows",
+      "tech": "stack_rop",
+      "reason": "binary without exp"
+    }
+  ],
+  "skipped": [],
+  "summary": {
+    "tier_counts": {},
+    "technique_counts": {},
+    "global_unique_binaries": 53
+  }
+}

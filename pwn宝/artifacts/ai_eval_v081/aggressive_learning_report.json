@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "promotion_policy": {
+    "mode": "strict",
+    "minimum_positive_cases": 2,
+    "require_holdout": true,
+    "confidence_threshold": 0.9,
+    "maximum_rejected_cases": 0,
+    "rule_source": "qwen-strict-auto"
+  },
+  "counters": {
+    "cases": 1,
+    "completed_or_cached": 1,
+    "strict_preview_accepted": 0,
+    "strict_preview_rejected": 0,
+    "feedback_compiled": 0,
+    "rules_enabled": 0,
+    "rules_pending": 0,
+    "over_budget": 0,
+    "offline_or_model": 0,
+    "failed": 0
+  },
+  "blocked_reasons": {},
+  "examples": [],
+  "note": "只有 strict replay accepted 的候选会进入规则审核；rejected/over_budget 只作为负反馈、提示词和静态分析 gap，不会直接改 chunk/bin/画布事实。"
+}

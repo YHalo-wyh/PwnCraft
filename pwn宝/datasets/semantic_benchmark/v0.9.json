@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "description": "Deterministic HeapViz semantic ground truth; a case passes only when every declared fact matches.",
+  "cases": [
+    {
+      "id": "normal_malloc_free_tcache",
+      "source": "add(0x20, b'A')\nadd(0x20, b'B')\ndelete(0)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x20",
+            "index": "0"
+          },
+          {
+            "kind": "alloc",
+            "request_size": "0x20",
+            "index": "1"
+          },
+          {
+            "kind": "free",
+            "index": "0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 3,
+            "chunk": "A",
+            "lifecycle": "freed",
+            "chunk_size": "0x30",
+            "view_kind": "tcache_entry"
+          }
+        ],
+        "bins": [
+          {
+            "step": 3,
+            "kind": "tcache",
+            "size": "0x30",
+            "members": [
+              "A"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "cross_chunk_overflow",
+      "source": "add(0x20, b'A')\nadd(0x20, b'B')\npayload = b'A' * 0x28 + p64(0x51)\nedit(0, payload)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit",
+            "index": "0"
+          }
+        ],
+        "payload_segments": [
+          {
+            "operation": 2,
+            "offset": 0,
+            "length": 40,
+            "raw_hex": "41414141414141414141414141414141414141414141414141414141414141414141414141414141"
+          },
+          {
+            "operation": 2,
+            "offset": 40,
+            "length": 8,
+            "raw_hex": "5100000000000000"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 2,
+            "destination": "heap_base+0x2a0",
+            "length": 48
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "prev_size",
+            "payload_offset": 32,
+            "after": "0x4141414141414141"
+          },
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "payload_offset": 40,
+            "before": "0x31",
+            "after": "0x51"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 3,
+            "chunk": "B",
+            "chunk_size": "0x50"
+          }
+        ]
+      }
+    },
+    {
+      "id": "off_by_one_size_byte",
+      "source": "add(0x20, b'A')\nadd(0x80, b'B')\nedit(0, b'A' * 0x28 + b'\\x00')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 2,
+            "destination": "heap_base+0x2a0",
+            "length": 41
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "payload_offset": 40,
+            "before": "0x91",
+            "after": "0x0"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 3,
+            "chunk": "B",
+            "chunk_size": "0x0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tcache_poison_memory_head",
+      "source": "add(0x20, b'A')\ndelete(0)\nedit(0, p64(0x404040))\nadd(0x20, b'B')\nadd(0x20, b'C')\n",
+      "glibc": "glibc 2.31",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "A",
+            "target_field": "next",
+            "payload_offset": 0,
+            "after": "0x404040"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 5,
+            "chunk": "C",
+            "user_address": "0x404040",
+            "lifecycle": "allocated"
+          }
+        ]
+      }
+    },
+    {
+      "id": "safe_linking_stored_decoded",
+      "heap_base": "0x555555559000",
+      "source": "add(0x20, b'A')\ndelete(0)\nedit(0, p64(0x404040 ^ (0x5555555592a0 >> 12)))\nadd(0x20, b'B')\nadd(0x20, b'C')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 2,
+            "destination": "0x5555555592a0",
+            "length": 8
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "A",
+            "target_field": "next",
+            "payload_offset": 0
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 5,
+            "chunk": "C",
+            "user_address": "0x404040"
+          }
+        ]
+      }
+    },
+    {
+      "id": "overlap_one_memory_multiple_views",
+      "source": "add(0x20, b'A')\nadd(0x20, b'B')\nedit(0, b'A' * 0x28 + p64(0x61))\ndelete(1)\nadd(0x50, b'C')\nadd(0x20, b'D')\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "edit"
+          },
+          {
+            "kind": "free"
+          },
+          {
+            "kind": "alloc"
+          },
+          {
+            "kind": "alloc"
+          }
+        ],
+        "overwrites": [
+          {
+            "operation": 2,
+            "target_chunk": "B",
+            "target_field": "size",
+            "payload_offset": 40,
+            "before": "0x31",
+            "after": "0x61"
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 6,
+            "chunk": "C",
+            "chunk_size": "0x60",
+            "address": "heap_base+0x2c0"
+          },
+          {
+            "step": 6,
+            "chunk": "D",
+            "chunk_size": "0x30",
+            "address": "heap_base+0x2f0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "rop_chain_not_fake_chunk",
+      "source": "rop = p64(pop_rdi) + p64(bin_sh) + p64(ret) + p64(system)\nadd(0x80, rop)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "index": "0",
+            "request_size": "0x80"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 0,
+            "destination": "heap_base+0x2a0",
+            "length": 32
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "chunk_size": "0x90",
+            "lifecycle": "allocated"
+          }
+        ]
+      }
+    },
+    {
+      "id": "flat_dictionary_sparse_offsets",
+      "variables": {
+        "target": 4210752
+      },
+      "source": "target = 0x404040\npayload = flat({0x20: 0x91, 0x28: target}, filler=b'Z')\nadd(0x60, payload)\n",
+      "glibc": "glibc 2.35",
+      "ground_truth": {
+        "operations": [
+          {
+            "kind": "alloc",
+            "request_size": "0x60"
+          }
+        ],
+        "payload_segments": [
+          {
+            "operation": 0,
+            "offset": 0,
+            "length": 32,
+            "raw_hex": "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a"
+          },
+          {
+            "operation": 0,
+            "offset": 32,
+            "length": 8,
+            "raw_hex": "9100000000000000"
+          },
+          {
+            "operation": 0,
+            "offset": 40,
+            "length": 8,
+            "raw_hex": "4040400000000000"
+          }
+        ],
+        "writes": [
+          {
+            "operation": 0,
+            "destination": "heap_base+0x2a0",
+            "length": 48
+          }
+        ],
+        "checkpoints": [
+          {
+            "step": 1,
+            "chunk": "A",
+            "chunk_size": "0x70"
+          }
+        ]
+      }
+    }
+  ]
+}

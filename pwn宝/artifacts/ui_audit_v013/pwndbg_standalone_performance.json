@@ -1,0 +1,45 @@
+{
+  "version": "2026.07.29-pwnbao.13",
+  "results": [
+    {
+      "name": "standalone_ni_100",
+      "command": "ni",
+      "count": 100,
+      "average_ms": 0.814,
+      "p95_ms": 1.155,
+      "maximum_ms": 1.592
+    },
+    {
+      "name": "standalone_si_50",
+      "command": "si",
+      "count": 50,
+      "average_ms": 0.828,
+      "p95_ms": 1.112,
+      "maximum_ms": 2.226
+    },
+    {
+      "name": "standalone_telescope",
+      "command": "telescope $rsp 8",
+      "count": 5,
+      "average_ms": 7.854,
+      "p95_ms": 35.019,
+      "maximum_ms": 35.019
+    },
+    {
+      "name": "standalone_vmmap",
+      "command": "vmmap",
+      "count": 5,
+      "average_ms": 0.309,
+      "p95_ms": 0.509,
+      "maximum_ms": 0.509
+    },
+    {
+      "name": "standalone_bins",
+      "command": "bins",
+      "count": 5,
+      "average_ms": 47.583,
+      "p95_ms": 162.433,
+      "maximum_ms": 162.433
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-90e17e42",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/no-relro",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "no-relro",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "90e17e426f8fc21c943fc10201832965758e2da36cd80c21947c5c4a80dc018c",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/no-relro/exp-no-relro-stack-pivot.py",
+      "role": "python",
+      "size": 2338
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

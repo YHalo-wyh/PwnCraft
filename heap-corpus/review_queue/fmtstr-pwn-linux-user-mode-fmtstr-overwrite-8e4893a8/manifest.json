@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-overwrite-8e4893a8",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/fmtstr/overwrite",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "overwrite",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "x86",
+    "os": "linux",
+    "binary_sha256": "8e4893a8d267efe6149d748a5a42f78db0a7372218918719af621f8ca1a14f22",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "fmtstr",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/fmtstr/overwrite/exploit.py",
+      "role": "python",
+      "size": 1404
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

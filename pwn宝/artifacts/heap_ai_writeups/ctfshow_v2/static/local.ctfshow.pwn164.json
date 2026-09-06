@@ -1,0 +1,54 @@
+{
+  "run_id": "run_8c43924201c84a37b37f3ec7af381a2d",
+  "case_id": "local.ctfshow.pwn164",
+  "source_hash": "bb1d1970e2a43e182f02485fb647d084f7820211f63f08353463fc0ea66b8754",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-164-bb1d1970e2a4.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [
+      {
+        "severity": "info",
+        "code": "heap_neutral_branch",
+        "message": "条件 `__name__ == \"__main__\"` 只影响调试/辅助流程，已继续解析共同后缀。",
+        "start": 1515,
+        "end": 1710,
+        "line": 60,
+        "suggestion": ""
+      }
+    ],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.0
+}

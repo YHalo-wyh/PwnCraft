@@ -1,0 +1,62 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def show()",
+    "expected": {
+      "semantic": "show",
+      "roles": {
+        "arg0": "index"
+      },
+      "helper_evidence": [
+        "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+        "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+      ]
+    },
+    "actual": {
+      "operation": "unknown",
+      "confidence": "candidate",
+      "evidence_sources": [
+        "NAME_CANDIDATE"
+      ],
+      "roles": {}
+    }
+  },
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [
+    "CHUNK_MAPPING",
+    "PHYSICAL_MEMORY",
+    "SNAPSHOT",
+    "CANVAS"
+  ],
+  "root_cause": {
+    "component": "contracts/resolver.py::_candidate_contract (name-candidate fallback)",
+    "reason": "PRE-EXISTING LATENT GAP (被 cycle-1 patch 揭露, 非本 patch 引入): delete/show 形体相同时, show 依赖的旧规则(index+prompt-sync→SHOW)被修正后, name-candidate fallback 的 operation 字段恒为 UNKNOWN (candidate_operation 中虽持有 SHOW 但未暴露), 导致 show 契约 operation=unknown。"
+  },
+  "evidence": [
+    "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+    "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+    "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+  ],
+  "suggested_fix": {
+    "scope": "generic",
+    "description": null,
+    "note": "下一 Cycle 的 first divergence; 候选通用规则: fallback 契约暴露 candidate_operation 为 operation (置信 CANDIDATE), 或调用点 OUTPUT_DATA_FLOW 分析 (exp.py:58-61 show(1) 后读回进入 u64→libc_base)"
+  },
+  "confidence": 0.9,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\after\\pwncraft_output.json"
+  },
+  "reviewer": {
+    "model": "GLM-5.3-Flash (ZCode reviewer role)",
+    "date": "2026-09-03",
+    "protocol_tension": "新偏差 show 在 helper 遍历序上先于被修复的 delete, 字面触及接受条件②; 判定为 unmasking 而非回归的依据: (a) show 修复前的 ✓ 由被修缺陷规则以错误推理给出(假阳性式正确); (b) helper 匹配数 3/4→3/4 未变; (c) 364 个既有测试全部通过, 旧行为未被任何测试锁定; (d) 净真值提升 (delete 修复 + babyheap free 修复)。已提请协议措辞修订: '更早的新 divergence' 应排除 unmasking 情形, 判据改为 mismatch 总数不增且修复处证据等级不降。待协议所有者批准。"
+  }
+}

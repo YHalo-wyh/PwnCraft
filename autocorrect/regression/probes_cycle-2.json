@@ -1,0 +1,135 @@
+[
+  {
+    "case": "heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52",
+    "dialect": "py2",
+    "rule_under_probe": "py2 print tolerance (cycle-2, r4)",
+    "previous_result": "ast.parse SyntaxError L76: Missing parentheses in call to 'print'. Did you mean print(...)?",
+    "current_result": {
+      "valid": true,
+      "revision": "recognizer-2026.09-r4",
+      "n_contracts": 8,
+      "n_ops": 26,
+      "contracts": [
+        [
+          "add",
+          "unknown",
+          "candidate"
+        ],
+        [
+          "change",
+          "edit",
+          "structural"
+        ],
+        [
+          "exp",
+          "unknown",
+          "unknown"
+        ],
+        [
+          "offset_bin_main_arena",
+          "unknown",
+          "unknown"
+        ],
+        [
+          "overflow_benderinuse",
+          "unknown",
+          "unknown"
+        ],
+        [
+          "remove",
+          "delete",
+          "structural"
+        ],
+        [
+          "start_robot",
+          "unknown",
+          "unknown"
+        ],
+        [
+          "write",
+          "unknown",
+          "candidate"
+        ]
+      ],
+      "replay": "replay ok, 27 steps | NOTE: under the case's own glibc-2.23 allocator profile the engine raised MemoryError in _changed_byte_mask (huge derived write length); allocator-layer robustness gap recorded for future curriculum, NOT fixed (probe discipline)"
+    },
+    "verdict": "improved / GENERALIZATION_SUCCESS"
+  },
+  {
+    "case": "heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59",
+    "dialect": "py2",
+    "rule_under_probe": "py2 print tolerance (cycle-2, r4)",
+    "previous_result": "ast.parse SyntaxError L70: Missing parentheses in call to 'print'. Did you mean print(...)?",
+    "current_result": {
+      "valid": true,
+      "revision": "recognizer-2026.09-r4",
+      "n_contracts": 5,
+      "n_ops": 5,
+      "contracts": [
+        [
+          "delete",
+          "unknown",
+          "candidate"
+        ],
+        [
+          "edit",
+          "unknown",
+          "candidate"
+        ],
+        [
+          "exp",
+          "unknown",
+          "unknown"
+        ],
+        [
+          "fmt",
+          "unknown",
+          "unknown"
+        ],
+        [
+          "submit",
+          "unknown",
+          "unknown"
+        ]
+      ],
+      "replay": "replay ok, 6 steps"
+    },
+    "verdict": "improved / GENERALIZATION_SUCCESS"
+  },
+  {
+    "case": "heap-ctf-wiki-2014-hitcon-stkof-13e0c84f",
+    "dialect": "py3-control",
+    "rule_under_probe": "py2 print tolerance (cycle-2, r4)",
+    "previous_result": "parse OK (py3)",
+    "current_result": {
+      "valid": true,
+      "revision": "recognizer-2026.09-r4",
+      "n_contracts": 4,
+      "n_ops": 15,
+      "contracts": [
+        [
+          "alloc",
+          "unknown",
+          "candidate"
+        ],
+        [
+          "edit",
+          "edit",
+          "structural"
+        ],
+        [
+          "exp",
+          "unknown",
+          "unknown"
+        ],
+        [
+          "free",
+          "delete",
+          "structural"
+        ]
+      ],
+      "replay": "replay ok, 16 steps"
+    },
+    "verdict": "unchanged (expected: rule inert on py3)"
+  }
+]

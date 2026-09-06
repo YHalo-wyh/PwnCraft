@@ -1,0 +1,182 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def shownote()",
+    "expected": {
+      "semantic": "show",
+      "roles": {
+        "arg0": "index"
+      },
+      "helper_evidence": [
+        "exp.py:20-21 菜单 '2'",
+        "exp.py:22-23 recvuntil('note:') 后 sendline(str(id)) — index 绑定",
+        "helper 体内仅 PROMPT_SYNC; OUTPUT_DATA_FLOW 在调用点 L76-77 (recvuntil('is ')/recvuntil 消费后 u64 进入 atoi_addr→libcbase 计算)",
+        "exp.py:74 shownote(0) 后 L76-84 泄露链成立"
+      ]
+    },
+    "actual": {
+      "operation": "unknown",
+      "confidence": "candidate",
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 19,
+          "score": 0.35
+        }
+      ]
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "newnote",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "shownote",
+      "expected_semantic": "show",
+      "semantic": "SEMANTIC_DIVERGED",
+      "actual_operation": "unknown",
+      "divergence_field": "semantic"
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT",
+    "STATIC_RECOGNITION",
+    "CANONICAL_IR",
+    "ARGUMENT_BINDING",
+    "TARGET_BEHAVIOR",
+    "ALLOCATOR",
+    "PHYSICAL_MEMORY",
+    "BINS",
+    "SNAPSHOT",
+    "CANVAS_TRUTH",
+    "RENDERER_PLAN"
+  ],
+  "layers_not_compared": [],
+  "layer_results": [
+    {
+      "layer": "HELPER_CONTRACT",
+      "status": "DIVERGED",
+      "semantic_status": "SEMANTIC_DIVERGED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "shownote: unknown ≠ show"
+    },
+    {
+      "layer": "STATIC_RECOGNITION",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "CANONICAL_IR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "ARGUMENT_BINDING",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "TARGET_BEHAVIOR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "ALLOCATOR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "PHYSICAL_MEMORY",
+      "status": "DIVERGED",
+      "semantic_status": "DIVERGED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "op op_005 object count"
+    },
+    {
+      "layer": "BINS",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "SNAPSHOT",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "CANVAS_TRUTH",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "RENDERER_PLAN",
+      "status": "SKIPPED",
+      "semantic_status": "SKIPPED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "plan artifact not provided"
+    }
+  ],
+  "root_cause": {
+    "component": "HelperContractResolver",
+    "reason": null
+  },
+  "evidence": [
+    "exp.py:20-21 菜单 '2'",
+    "exp.py:22-23 recvuntil('note:') 后 sendline(str(id)) — index 绑定",
+    "helper 体内仅 PROMPT_SYNC; OUTPUT_DATA_FLOW 在调用点 L76-77 (recvuntil('is ')/recvuntil 消费后 u64 进入 atoi_addr→libcbase 计算)",
+    "exp.py:74 shownote(0) 后 L76-84 泄露链成立"
+  ],
+  "reviewer_reason_hint": "shownote 语义判定 unknown, 证据支持 show",
+  "confidence": null,
+  "diagnostic_mode": true
+}

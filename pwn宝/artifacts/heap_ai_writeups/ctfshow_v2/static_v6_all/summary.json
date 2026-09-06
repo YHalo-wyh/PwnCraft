@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "model": "static-only",
+  "cases": [
+    {
+      "case_id": "local.ctfshow.pwn142",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn142.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn143",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn143.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn144",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn144.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn159",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn159.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn160",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn160.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn161",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn161.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn162",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn162.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn163",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn163.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn164",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn164.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn166",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn166.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn167",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn167.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn168",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn168.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn169",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn169.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn171",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn171.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn172",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn172.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn173",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn173.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn174",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn174.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn175",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn175.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn176",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn176.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn177",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn177.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn178",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn178.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn179",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn179.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn180",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\local.ctfshow.pwn180.json"
+    }
+  ],
+  "completed": 23,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v6_all\\gap_report.json"
+}

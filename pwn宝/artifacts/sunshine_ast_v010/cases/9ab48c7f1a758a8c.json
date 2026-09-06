@@ -1,0 +1,238 @@
+{
+  "schema_version": 2,
+  "path": "比赛/SCTF2026/UBW(堆)/attchment/exp_try.py",
+  "source_hash": "9ab48c7f1a758a8ca779c6d7e20c8d30e756b7ee6ab89eae306731941cd2ee40",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "PARTIAL_REPLAY",
+  "analysis_variant": "zero-argument entrypoint candidate: case_dup_realloc()",
+  "failure_reasons": [
+    "zero-argument entrypoint candidate: case_dup_realloc(); runtime selection unresolved"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {
+    "alloc": "trace",
+    "free": "discard",
+    "show": "reveal_raw",
+    "copy": "temper"
+  },
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "chunk": "p",
+      "index": "0",
+      "request_size": "0x20",
+      "data": "b\"A\" * 8",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: trace(io, 0, 0x20, b\"A\" * 8)",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_cfafc3d58cf42785",
+        "call_target": "trace",
+        "call_origin": "user_helper",
+        "evidence": "helper body `trace` is defined in this EXP",
+        "source_line": "98",
+        "source_end_line": "98",
+        "source_id": "source_cfafc3d58cf42785",
+        "ast_fingerprint": "3208c9f964a6d863"
+      }
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "chunk": "B",
+      "index": "1",
+      "request_size": "0x20",
+      "data": "b\"B\" * 8",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: trace(io, 1, 0x20, b\"B\" * 8)",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_0a691c05abb6c734",
+        "call_target": "trace",
+        "call_origin": "user_helper",
+        "evidence": "helper body `trace` is defined in this EXP",
+        "source_line": "99",
+        "source_end_line": "99",
+        "source_id": "source_0a691c05abb6c734",
+        "ast_fingerprint": "05cee04d7ed90641"
+      }
+    },
+    {
+      "op_id": "op_003",
+      "kind": "free",
+      "chunk": "p",
+      "index": "0",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: discard(io, 0)",
+      "meta": {
+        "program_event_id": "event_9af97da7928a2e5e",
+        "call_target": "discard",
+        "call_origin": "user_helper",
+        "evidence": "helper body `discard` is defined in this EXP",
+        "source_line": "101",
+        "source_end_line": "101",
+        "source_id": "source_9af97da7928a2e5e",
+        "ast_fingerprint": "190a87503ecd0af2"
+      }
+    },
+    {
+      "op_id": "op_004",
+      "kind": "alloc",
+      "chunk": "q",
+      "index": "2",
+      "request_size": "0x20",
+      "data": "b\"C\" * 8",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: trace(io, 2, 0x20, b\"C\" * 8)",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_5e92b456f9795ae6",
+        "call_target": "trace",
+        "call_origin": "user_helper",
+        "evidence": "helper body `trace` is defined in this EXP",
+        "source_line": "102",
+        "source_end_line": "102",
+        "source_id": "source_5e92b456f9795ae6",
+        "ast_fingerprint": "c8c0a94ba6b0aa8f"
+      }
+    },
+    {
+      "op_id": "op_005",
+      "kind": "show",
+      "chunk": "",
+      "index": "io",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: show(io)",
+      "meta": {
+        "function": "show",
+        "expression": "show(io)",
+        "result_var": "leak",
+        "program_event_id": "event_6090ce8716fd62e9",
+        "call_target": "show",
+        "call_origin": "user_helper",
+        "evidence": "helper body `show` is defined in this EXP",
+        "source_line": "106",
+        "source_end_line": "106",
+        "source_id": "source_6090ce8716fd62e9",
+        "ast_fingerprint": "c513e8b389074a0d"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `main`。",
+      "start": 2772,
+      "end": 2778,
+      "line": 123,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "inlined_heap_helper",
+      "message": "已静态内联局部堆 helper `case_dup_realloc`。",
+      "start": 2780,
+      "end": 2798,
+      "line": 125,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "try_path",
+      "message": "静态时间线采用 try 主路径；异常分支保留为诊断。",
+      "start": 2456,
+      "end": 2511,
+      "line": 105,
+      "suggestion": ""
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 5,
+    "aborted": false,
+    "chunks": {
+      "p": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "request_size": "0x20",
+        "chunk_size": "0x30",
+        "lifecycle": "stale",
+        "bin_location": "reused by q",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "B": {
+        "address": "heap_base+0x2c0",
+        "user_address": "heap_base+0x2d0",
+        "request_size": "0x20",
+        "chunk_size": "0x30",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "q": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "request_size": "0x20",
+        "chunk_size": "0x30",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": [
+      {
+        "severity": "WARNING",
+        "code": "show_unknown",
+        "title": "查看未知 chunk",
+        "message": "无法把 show 关联到已知 chunk。",
+        "operation_id": "op_005",
+        "related_chunks": []
+      }
+    ]
+  }
+}

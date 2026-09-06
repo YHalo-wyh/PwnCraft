@@ -1,0 +1,22 @@
+--- patches/cycle-2/api_profile.py.pre	2026-09-05 16:22:49.203321400 +0800
++++ ../pwn宝/pwnbao/features/heapviz/api_profile.py	2026-09-05 16:25:19.348180600 +0800
+@@ -5,6 +5,7 @@
+ from dataclasses import replace
+ 
+ from pwnbao.features.heapviz.models import HeapApiProfile
++from pwnbao.features.heapviz.source_compat import parse_module_source
+ 
+ 
+ ROLE_ALIASES = {
+@@ -189,9 +190,8 @@
+     text = (source or "").strip()
+     if not text:
+         return base, {}
+-    try:
+-        tree = ast.parse(text)
+-    except SyntaxError:
++    tree, _parse_error = parse_module_source(text)
++    if tree is None:
+         return base, {}
+ 
+     updates: dict[str, str] = {"definitions": text + "\n"}

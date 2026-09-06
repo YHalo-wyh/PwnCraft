@@ -1,0 +1,43 @@
+{
+  "run_id": "run_48badc5e6b1d4e5ead3342f668d378c0",
+  "case_id": "how2heap.227.house-of-botcake",
+  "source_hash": "3681ce6c9c936583b87f36e406ad16ab52c6ad8df8e43c49807b07188d1c363b",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_baseline\\sources\\3681ce6c9c936583b87f36e406ad16ab52c6ad8df8e43c49807b07188d1c363b.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "elapsed_s": 0.656
+}

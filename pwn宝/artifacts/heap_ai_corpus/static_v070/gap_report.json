@@ -1,0 +1,50 @@
+{
+  "counts": {
+    "intent_only_not_allocator_fact": 12,
+    "allocator_oracle_review_required": 6,
+    "golden_ir_review_required": 5,
+    "static_heap_neutral_branch": 5,
+    "static_runtime_assertion": 4
+  },
+  "examples": {
+    "static_heap_neutral_branch": [
+      "local.traditional.exp",
+      "local.traditional.solve-alt",
+      "local.student.solve-local"
+    ],
+    "golden_ir_review_required": [
+      "local.traditional.exp",
+      "local.traditional.solve",
+      "local.traditional.solve-alt",
+      "local.student.exp",
+      "local.student.solve-local"
+    ],
+    "static_runtime_assertion": [
+      "local.traditional.solve",
+      "local.traditional.solve-alt"
+    ],
+    "allocator_oracle_review_required": [
+      "how2heap.223.fastbin-dup",
+      "how2heap.223.fastbin-dup-consolidate",
+      "how2heap.227.tcache-poisoning",
+      "how2heap.227.fastbin-reverse-into-tcache",
+      "how2heap.235.tcache-poisoning",
+      "how2heap.239.tcache-poisoning"
+    ],
+    "intent_only_not_allocator_fact": [
+      "how2heap.223.overlapping-chunks",
+      "how2heap.223.poison-null-byte",
+      "how2heap.223.unsafe-unlink",
+      "how2heap.223.unsorted-bin-attack",
+      "how2heap.227.house-of-botcake",
+      "how2heap.227.tcache-stashing-unlink",
+      "how2heap.231.large-bin-attack",
+      "how2heap.231.house-of-lore"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

@@ -1,0 +1,442 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap",
+    "ctf": null,
+    "year": 2017,
+    "year_provenance": "parsed_from_challenge_dirname_prefix",
+    "challenge_name": "2017_0ctf_babyheap",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "9527e180a38782c25fa909c5ca6000a29647cc320bbc230df9d2aaa350aaa121",
+    "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.23",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/libc.so.6 (GNU C Library, Ubuntu GLIBC 2.23-0ubuntu10)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/babyheap",
+          "allocator_dynsym_imports": [
+            "calloc",
+            "free"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "def offset_bin_main_arena(idx):",
+              "offset += word_bytes * 10  # offset fastbin"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/babyheap",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/babyheap",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/babyheap",
+      "sha256": "9527e180a38782c25fa909c5ca6000a29647cc320bbc230df9d2aaa350aaa121",
+      "size": 10232
+    },
+    {
+      "path": "original/challenge/babyheap.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/babyheap.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/babyheap.i64",
+      "sha256": "458f35824db1ef91fb2ca0a98b3f3da08bd9fcfb634d78e47e045448043036a3",
+      "size": 206667
+    },
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/libc.so.6",
+      "sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+      "size": 1868984
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/exp.py",
+      "sha256": "2ca161e9e2ec8a506b1a50516811fc4dc28487f00025e63fdb4edaa49b39afcd",
+      "size": 3328
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/exp.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "offset_bin_main_arena",
+        "source_line": 14,
+        "end_line": 22,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [],
+        "io_call_examples": [],
+        "menu_strings": [],
+        "operation": "unknown",
+        "confidence": "LOW"
+      },
+      {
+        "function": "allocate",
+        "source_line": 28,
+        "end_line": 32,
+        "parameter_names": [
+          "size"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Command: ')",
+          "p.sendline('1')",
+          "p.recvuntil('Size: ')",
+          "p.sendline(str(size))"
+        ],
+        "menu_strings": [
+          "Command: ",
+          "1",
+          "Size: "
+        ],
+        "operation": "alloc",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "fill",
+        "source_line": 35,
+        "end_line": 43,
+        "parameter_names": [
+          "idx",
+          "size",
+          "content"
+        ],
+        "calls": [
+          "recvuntil",
+          "send",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Command: ')",
+          "p.sendline('2')",
+          "p.recvuntil('Index: ')",
+          "p.sendline(str(idx))",
+          "p.recvuntil('Size: ')",
+          "p.sendline(str(size))"
+        ],
+        "menu_strings": [
+          "Command: ",
+          "2",
+          "Index: ",
+          "Size: ",
+          "Content: "
+        ],
+        "operation": "edit",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "free",
+        "source_line": 46,
+        "end_line": 50,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Command: ')",
+          "p.sendline('3')",
+          "p.recvuntil('Index: ')",
+          "p.sendline(str(idx))"
+        ],
+        "menu_strings": [
+          "Command: ",
+          "3",
+          "Index: "
+        ],
+        "operation": "free",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "dump",
+        "source_line": 53,
+        "end_line": 57,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Command: ')",
+          "p.sendline('4')",
+          "p.recvuntil('Index: ')",
+          "p.sendline(str(idx))"
+        ],
+        "menu_strings": [
+          "Command: ",
+          "4",
+          "Index: "
+        ],
+        "operation": "show",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "exp",
+        "source_line": 60,
+        "end_line": 111,
+        "parameter_names": [],
+        "calls": [
+          "allocate",
+          "dump",
+          "fill",
+          "free",
+          "hex",
+          "interactive",
+          "len",
+          "p64",
+          "p8",
+          "recv",
+          "recvuntil",
+          "success",
+          "u64"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Content: \\n')",
+          "p.interactive()",
+          "p.recv(8)"
+        ],
+        "menu_strings": [
+          "Content: \n",
+          "main arena addr: ",
+          "libc base addr: ",
+          "a",
+          "a",
+          "a",
+          "a"
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      }
+    ],
+    "candidate_operations": [
+      {
+        "operation": "alloc",
+        "helper": "allocate",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:28 def allocate(size)",
+          "io: p.recvuntil('Command: ')",
+          "io: p.sendline('1')"
+        ]
+      },
+      {
+        "operation": "edit",
+        "helper": "fill",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:35 def fill(idx, size, content)",
+          "io: p.recvuntil('Command: ')",
+          "io: p.sendline('2')"
+        ]
+      },
+      {
+        "operation": "free",
+        "helper": "free",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:46 def free(idx)",
+          "io: p.recvuntil('Command: ')",
+          "io: p.sendline('3')"
+        ]
+      },
+      {
+        "operation": "show",
+        "helper": "dump",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:53 def dump(idx)",
+          "io: p.recvuntil('Command: ')",
+          "io: p.sendline('4')"
+        ]
+      }
+    ],
+    "aliases": [],
+    "wrappers": [
+      {
+        "function": "exp",
+        "wraps": [
+          "allocate",
+          "dump",
+          "fill",
+          "free"
+        ],
+        "source_line": 60
+      }
+    ],
+    "call_examples": [
+      {
+        "helper": "allocate",
+        "source_line": 62,
+        "call": "allocate(0x10)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 63,
+        "call": "allocate(0x10)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 64,
+        "call": "allocate(0x10)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 65,
+        "call": "allocate(0x10)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 66,
+        "call": "allocate(0x80)"
+      },
+      {
+        "helper": "free",
+        "source_line": 68,
+        "call": "free(2)"
+      },
+      {
+        "helper": "free",
+        "source_line": 69,
+        "call": "free(1)"
+      },
+      {
+        "helper": "fill",
+        "source_line": 72,
+        "call": "fill(0, len(payload), payload)"
+      },
+      {
+        "helper": "fill",
+        "source_line": 75,
+        "call": "fill(3, len(payload), payload)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 76,
+        "call": "allocate(0x10)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 77,
+        "call": "allocate(0x10)"
+      },
+      {
+        "helper": "fill",
+        "source_line": 80,
+        "call": "fill(3, len(payload), payload)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 82,
+        "call": "allocate(0x80)"
+      },
+      {
+        "helper": "free",
+        "source_line": 83,
+        "call": "free(4)"
+      },
+      {
+        "helper": "dump",
+        "source_line": 85,
+        "call": "dump(2)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 96,
+        "call": "allocate(0x60)"
+      },
+      {
+        "helper": "free",
+        "source_line": 97,
+        "call": "free(4)"
+      },
+      {
+        "helper": "fill",
+        "source_line": 101,
+        "call": "fill(2, len(fake_chunk), fake_chunk)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 103,
+        "call": "allocate(0x60)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 104,
+        "call": "allocate(0x60)"
+      },
+      {
+        "helper": "fill",
+        "source_line": 108,
+        "call": "fill(6, len(payload), payload)"
+      },
+      {
+        "helper": "allocate",
+        "source_line": 110,
+        "call": "allocate(0x100)"
+      }
+    ],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

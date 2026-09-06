@@ -1,0 +1,358 @@
+{
+  "run_id": "run_c22b97b9bde04294a0ff380ea7b46f4a",
+  "case_id": "local.ctfshow.pwn167",
+  "source_hash": "4307958e3e49f2ff9e6e0e7f5ae4ff6eb761fed147376952abf01e2b759f8043",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-167-4307958e3e49.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x100",
+        "data": "p64(0) + p64(0x421) + 'a'*0xF0",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0,0x100,p64(0) + p64(0x421) + 'a'*0xF0)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x20",
+        "data": "p64(0) + p64(0x21) + 'b'*0x10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0x420,0x20,p64(0) + p64(0x21) + 'b'*0x10)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x20",
+        "data": "p64(0) + p64(0x21) + 'b'*0x10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0x440,0x20,p64(0) + p64(0x21) + 'b'*0x10)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_004",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x100",
+        "data": "p64(0) + p64(0x431) + 'c'*0xF0",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0x880,0x100,p64(0) + p64(0x431) + 'c'*0xF0)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_005",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x20",
+        "data": "p64(0) + p64(0x21) + 'd'*0x10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0xCB0,0x20,p64(0) + p64(0x21) + 'd'*0x10)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_006",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x90",
+        "data": "p64(0) + p64(0x91) + 'e'*0x80",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0xCD0,0x90,p64(0) + p64(0x91) + 'e'*0x80)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_007",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x20",
+        "data": "p64(0) + p64(0x21) + 'f'*0x10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0xD60,0x20,p64(0) + p64(0x21) + 'f'*0x10)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_008",
+        "kind": "edit",
+        "chunk": "",
+        "index": "",
+        "request_size": "0x20",
+        "data": "p64(0) + p64(0x21) + 'g'*0x10",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: edit(0xD80,0x20,p64(0) + p64(0x21) + 'g'*0x10)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_009",
+        "kind": "free",
+        "chunk": "",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: delete(0x10)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      },
+      {
+        "op_id": "op_010",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "0x430",
+        "data": "b'A'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x430)",
+        "meta": {
+          "parse_confidence": "inferred",
+          "entrypoint_preview": "uninvoked"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_47600df8a231c1fb",
+        "start": 580,
+        "end": 624,
+        "line": 22,
+        "end_line": 22,
+        "fingerprint": "3ed50b8a148212ad",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_fdca048aa9e07e18",
+        "start": 629,
+        "end": 675,
+        "line": 23,
+        "end_line": 23,
+        "fingerprint": "ce923cbfbb78141a",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_2cf4716d20398b2c",
+        "start": 680,
+        "end": 726,
+        "line": 24,
+        "end_line": 24,
+        "fingerprint": "39d431db85c0e325",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_af48ab60caef5c1c",
+        "start": 731,
+        "end": 779,
+        "line": 25,
+        "end_line": 25,
+        "fingerprint": "5a991ab4ea6d6e0e",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ad520261bbf4392c",
+        "start": 784,
+        "end": 830,
+        "line": 26,
+        "end_line": 26,
+        "fingerprint": "14ec7695e6bc630b",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_6bed533890c09e9d",
+        "start": 835,
+        "end": 881,
+        "line": 27,
+        "end_line": 27,
+        "fingerprint": "efb0cded4bf5fca7",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a20057b76d446376",
+        "start": 886,
+        "end": 932,
+        "line": 28,
+        "end_line": 28,
+        "fingerprint": "a481e499b497fc55",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a59e7c099a698d5f",
+        "start": 937,
+        "end": 983,
+        "line": 29,
+        "end_line": 29,
+        "fingerprint": "343f724245e2b247",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_7ee3d000435c54fe",
+        "start": 993,
+        "end": 1005,
+        "line": 31,
+        "end_line": 31,
+        "fingerprint": "7097d177f7835f4f",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_42573cf2ee61fedc",
+        "start": 1010,
+        "end": 1020,
+        "line": 32,
+        "end_line": 32,
+        "fingerprint": "3e8ec15ff3979571",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [
+      {
+        "severity": "info",
+        "code": "previewed_uninvoked_entrypoint",
+        "message": "源码只定义了入口 `exploit`；已按未调用预览展开，步骤不代表真实执行。",
+        "start": 561,
+        "end": 1020,
+        "line": 21,
+        "suggestion": ""
+      }
+    ],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 10,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "chunk_size": "0x440",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 10,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 10,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "feedback_compilation": [],
+  "elapsed_s": 0.031
+}

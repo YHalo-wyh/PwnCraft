@@ -1,0 +1,75 @@
+{
+  "version": "2026.07.29-pwndbg-mogai.15",
+  "results": [
+    {
+      "name": "standalone_pty_ni_100",
+      "count": 100,
+      "average_ms": 11.969,
+      "p95_ms": 10.011,
+      "maximum_ms": 388.657
+    },
+    {
+      "name": "standalone_pty_si_50",
+      "count": 50,
+      "average_ms": 9.181,
+      "p95_ms": 12.168,
+      "maximum_ms": 14.75
+    },
+    {
+      "name": "standalone_pty_telescope_3",
+      "count": 3,
+      "average_ms": 1.426,
+      "p95_ms": 1.586,
+      "maximum_ms": 1.586
+    },
+    {
+      "name": "standalone_pty_vmmap_3",
+      "count": 3,
+      "average_ms": 0.773,
+      "p95_ms": 0.846,
+      "maximum_ms": 0.846
+    },
+    {
+      "name": "standalone_pty_bins_3",
+      "count": 3,
+      "average_ms": 118.946,
+      "p95_ms": 298.941,
+      "maximum_ms": 298.941
+    },
+    {
+      "name": "embedded_relay_pty_ni_100",
+      "count": 100,
+      "average_ms": 10.392,
+      "p95_ms": 17.55,
+      "maximum_ms": 91.882
+    },
+    {
+      "name": "embedded_relay_pty_si_50",
+      "count": 50,
+      "average_ms": 8.805,
+      "p95_ms": 10.503,
+      "maximum_ms": 12.05
+    },
+    {
+      "name": "embedded_relay_pty_telescope_3",
+      "count": 3,
+      "average_ms": 1.615,
+      "p95_ms": 1.861,
+      "maximum_ms": 1.861
+    },
+    {
+      "name": "embedded_relay_pty_vmmap_3",
+      "count": 3,
+      "average_ms": 0.751,
+      "p95_ms": 0.808,
+      "maximum_ms": 0.808
+    },
+    {
+      "name": "embedded_relay_pty_bins_3",
+      "count": 3,
+      "average_ms": 112.713,
+      "p95_ms": 301.819,
+      "maximum_ms": 301.819
+    }
+  ]
+}

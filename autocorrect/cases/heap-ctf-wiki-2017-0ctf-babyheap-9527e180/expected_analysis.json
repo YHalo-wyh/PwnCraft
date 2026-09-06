@@ -1,0 +1,155 @@
+{
+  "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+  "analyzer": {
+    "model": "bigmodel-coding-plan/GLM-5.3-Flash (ZCode collector session)",
+    "session": "sess_1a713a9b-4b5f-433e-897d-3e18ab7ec7d4",
+    "date": "2026-09-03",
+    "inputs_consulted": [
+      "original/solution/exp.py 全文 (唯一输入, 未参考 PwnCraft 输出)",
+      "manifest.json: glibc 2.23 (libc banner 证据, HIGH)"
+    ],
+    "note": "未拿到 binary 反编译; 所有断言仅基于 EXP 源码自身可复核的交互序列。菜单数字与提示词字符串均出自 exp.py 的 sendline/recvuntil 字面量。"
+  },
+  "helpers": [
+    {
+      "function": "allocate",
+      "source_line": 28,
+      "menu_index": "1",
+      "operation": "alloc",
+      "operation_evidence": [
+        "exp.py:29-32 菜单 '1', 随后 recvuntil('Size: ') 并 sendline(str(size)) — 实参是对 Size 提示词的应答",
+        "exp.py:62-66 全部调用点传 chunk 尺寸字面量 (0x10/0x80), 注释 'idx 4, 0x80' 表明 0x80 为请求大小",
+        "无 index 形参 — 分配槽位由目标端顺序分配决定"
+      ],
+      "parameters": [
+        {
+          "name": "size",
+          "position": 0,
+          "role": "size",
+          "evidence": [
+            "exp.py:31 p.recvuntil('Size: ') 后 exp.py:32 p.sendline(str(size)) — 参数流入 Size 应答",
+            "exp.py:66 allocate(0x80) 与注释 'idx 4, 0x80' 对应, 说明该参数决定分配字节数"
+          ]
+        }
+      ],
+      "returns": null
+    },
+    {
+      "function": "fill",
+      "source_line": 35,
+      "menu_index": "2",
+      "operation": "edit",
+      "operation_evidence": [
+        "exp.py:36-43 菜单 '2' → Index → Size → Content 的三段式应答, 内容写入已存在 chunk",
+        "exp.py:71-72 fill(0, 0x21, payload) 写入字节超过 idx0 的 0x18 可用区, 是越界写 (edit 语义)"
+      ],
+      "parameters": [
+        {
+          "name": "idx",
+          "position": 0,
+          "role": "index",
+          "evidence": ["exp.py:38 recvuntil('Index: ') 后 exp.py:39 sendline(str(idx))"]
+        },
+        {
+          "name": "size",
+          "position": 1,
+          "role": "size",
+          "evidence": ["exp.py:40 recvuntil('Size: ') 后 exp.py:41 sendline(str(size)); 调用点均为 len(payload)"]
+        },
+        {
+          "name": "content",
+          "position": 2,
+          "role": "data",
+          "evidence": ["exp.py:42 recvuntil('Content: ') 后 exp.py:43 p.send(content) — 参数即写入数据本体"]
+        }
+      ],
+      "returns": null
+    },
+    {
+      "function": "free",
+      "source_line": 46,
+      "menu_index": "3",
+      "operation": "free",
+      "operation_evidence": [
+        "exp.py:47-50 菜单 '3', 仅提交 Index 应答, 无 Size/Content 交互",
+        "exp.py:67 注释 'free idx 1, 2, fastbin[0]->idx1->idx2->NULL' 直接说明语义与 fastbin 效果",
+        "exp.py:78 注释 'if want to free idx4 to unsorted bin' 再次说明释放语义"
+      ],
+      "parameters": [
+        {
+          "name": "idx",
+          "position": 0,
+          "role": "index",
+          "evidence": ["exp.py:48 recvuntil('Index: ') 后 exp.py:49 sendline(str(idx))"]
+        }
+      ],
+      "returns": null
+    },
+    {
+      "function": "dump",
+      "source_line": 53,
+      "menu_index": "4",
+      "operation": "show",
+      "operation_evidence": [
+        "exp.py:54-57 菜单 '4', 仅提交 Index 应答",
+        "exp.py:86-87 随后 recvuntil('Content: \\n') 并 recv(8) 读回 8 字节 — 读取 chunk 内容即 show 语义"
+      ],
+      "parameters": [
+        {
+          "name": "idx",
+          "position": 0,
+          "role": "index",
+          "evidence": ["exp.py:56 recvuntil('Index: ') 后 exp.py:57 sendline(str(idx))"]
+        }
+      ],
+      "returns": "返回前 8 字节内容被 exp.py:87 u64 解析为 unsortedbin_addr"
+    }
+  ],
+  "call_trace": [
+    {"seq": 1, "helper": "allocate", "menu_input": "1", "args": [16], "source_line": 62},
+    {"seq": 2, "helper": "allocate", "menu_input": "1", "args": [16], "source_line": 63},
+    {"seq": 3, "helper": "allocate", "menu_input": "1", "args": [16], "source_line": 64},
+    {"seq": 4, "helper": "allocate", "menu_input": "1", "args": [16], "source_line": 65},
+    {"seq": 5, "helper": "allocate", "menu_input": "1", "args": [128], "source_line": 66},
+    {"seq": 6, "helper": "free", "menu_input": "3", "args": [2], "source_line": 68},
+    {"seq": 7, "helper": "free", "menu_input": "3", "args": [1], "source_line": 69},
+    {"seq": 8, "helper": "fill", "menu_input": "2", "args": [0, 33, "payloadA"], "source_line": 72, "note": "payloadA=0x10*'a'+p64(0)+p64(0x21)+p8(0x80), 部分覆写 idx1 的 fd 低位"},
+    {"seq": 9, "helper": "fill", "menu_input": "2", "args": [3, 32, "payloadB"], "source_line": 75, "note": "把 idx4 的 size 伪造成 0x21"},
+    {"seq": 10, "helper": "allocate", "menu_input": "1", "args": [16], "source_line": 76, "note": "取回 fastbin 头 (原 idx1)"},
+    {"seq": 11, "helper": "allocate", "menu_input": "1", "args": [16], "source_line": 77, "note": "fastbin attack: 返回指向 idx4 区域的指针"},
+    {"seq": 12, "helper": "fill", "menu_input": "2", "args": [3, 32, "payloadC"], "source_line": 80, "note": "恢复 idx4 size 为 0x91"},
+    {"seq": 13, "helper": "allocate", "menu_input": "1", "args": [128], "source_line": 82, "note": "防 top consolidation 的隔离块"},
+    {"seq": 14, "helper": "free", "menu_input": "3", "args": [4], "source_line": 83, "note": "idx4 进入 unsorted bin"},
+    {"seq": 15, "helper": "dump", "menu_input": "4", "args": [2], "source_line": 85, "note": "idx2 与 idx4 物理重叠, 读出 unsorted fd"},
+    {"seq": 16, "helper": "allocate", "menu_input": "1", "args": [96], "source_line": 96},
+    {"seq": 17, "helper": "free", "menu_input": "3", "args": [4], "source_line": 97},
+    {"seq": 18, "helper": "fill", "menu_input": "2", "args": [2, 8, "fake_chunk"], "source_line": 101, "note": "fd 改写为 main_arena-0x33 (malloc_hook 附近 fake chunk)"},
+    {"seq": 19, "helper": "allocate", "menu_input": "1", "args": [96], "source_line": 103},
+    {"seq": 20, "helper": "allocate", "menu_input": "1", "args": [96], "source_line": 104, "note": "返回 fake chunk (__malloc_hook 附近)"},
+    {"seq": 21, "helper": "fill", "menu_input": "2", "args": [6, 27, "payloadD"], "source_line": 108, "note": "写 one_gadget 覆盖 __malloc_hook"},
+    {"seq": 22, "helper": "allocate", "menu_input": "1", "args": [256], "source_line": 110, "note": "触发 __malloc_hook → one_gadget"}
+  ],
+  "vulnerability": {
+    "kind": "heap_overflow",
+    "confidence": "HIGH",
+    "evidence": [
+      "exp.py:71-72 fill(0, 33, payload): idx0 请求 0x10 → 可用 0x18, 写入 33 字节越过下一个 chunk 头",
+      "exp.py:71 p64(0x21)+p8(0x80): 伪造 idx1 的 size 并部分覆写其 fd — 只有越界写才可能达成",
+      "binary 侧 fill 未做长度校验 (由 exp.py:40-41 任意 size 应答佐证)"
+    ]
+  },
+  "expected_heap_effects": [
+    {"after_seq": 5, "fact": "5 次分配后堆上有 5 个活跃 chunk: 4×0x20 + 1×0x90 (glibc 2.23 无 tcache)", "evidence": ["exp.py:62-66"]},
+    {"after_seq": 7, "fact": "fastbin[0x20] 头=原idx1, 尾=原idx2 (LIFO: 先 free(2) 后 free(1))", "evidence": ["exp.py:68-69", "exp.py:67 注释 'fastbin[0]->idx1->idx2->NULL'"]},
+    {"after_seq": 11, "fact": "两次分配后 fastbin[0x20] 清空; 第二次返回的指针因 seq8 的 fd 改写指向 idx4 区域", "evidence": ["exp.py:76-77", "exp.py:71-72"]},
+    {"after_seq": 14, "fact": "free(4) 后 0x90 chunk 进入 unsorted bin", "evidence": ["exp.py:80 (size 修复为 0x91)", "exp.py:83", "exp.py:78 注释"]},
+    {"after_seq": 15, "fact": "dump(2) 经 idx2↔idx4 重叠读出 unsorted fd → main_arena → libc base", "evidence": ["exp.py:85-92"]}
+  ],
+  "machine_checks": [
+    {"after_seq": 5, "check": "live_chunks", "value": 5, "fact": "5 个活跃 chunk", "evidence": ["exp.py:62-66"]},
+    {"after_seq": 7, "check": "fastbin_nonempty", "value": true, "fact": "fastbin[0x20] 含 2 chunk", "evidence": ["exp.py:67-69"]},
+    {"after_seq": 11, "check": "fastbin_empty", "value": true, "fact": "fastbin 取空", "evidence": ["exp.py:76-77"]},
+    {"after_seq": 14, "check": "unsorted_nonempty", "value": true, "fact": "unsorted bin 含 idx4 (0x90)", "evidence": ["exp.py:80-83"]}
+  ],
+  "notes": "利用链 = fill 越界写 (heap_overflow) → fastbin fd 部分改写 → 分配到 idx4 区域 → unsorted bin 泄露 libc → fastbin attack 打 __malloc_hook → one_gadget。glibc 2.23 无 tcache/safe-linking, fd 为裸指针。若 Reviewer 后续拿到 binary 反编译, 应补 fill 的边界检查缺失证据。"
+}

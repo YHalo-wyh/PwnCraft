@@ -1,0 +1,43 @@
+{
+  "run_id": "run_4152611d5aa940beb8e76ee003be2802",
+  "case_id": "how2heap.223.fastbin-dup",
+  "source_hash": "7059aa98999a9f4c824908b1629c6e5518921fbb0886cb658ae471b22b278a45",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_baseline\\sources\\7059aa98999a9f4c824908b1629c6e5518921fbb0886cb658ae471b22b278a45.c",
+  "purpose": "allocator_truth",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "elapsed_s": 0.687
+}

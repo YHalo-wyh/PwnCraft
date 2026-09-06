@@ -1,0 +1,28 @@
+{
+  "run_id": "run-acddb727f811e606",
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "exp_file": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\original\\solution\\exp.py",
+  "exp_sha256": "6124b250f1320ab825d4f087b88207d5e89e3317aaade289da0491462f20cf95",
+  "binary_sha256": "bae716d582d0070fdf1121b55871ab07c37f135a48ce68b5830e013fd3d59398",
+  "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+  "glibc_version_claimed": "2.23",
+  "recognizer_revision": "recognizer-2026.09-r4",
+  "allocator_profile_id": "glibc-2.23-amd64",
+  "allocator_profile_revision": "2026.09-r1",
+  "allocator_requested_version": "2.23",
+  "allocator_mechanisms": {
+    "tcache": false,
+    "tcache_count_limit": 7,
+    "tcache_max": "0x410",
+    "safe_linking": false,
+    "tcache_key_check": false,
+    "hooks": true,
+    "top_size_check": false,
+    "io_vtable_validation": false,
+    "max_fast": "0x80"
+  },
+  "memory_revision": "13:0:0:0:12",
+  "snapshot_id": "f0cda5c9c5bd",
+  "analysis_valid": true
+}

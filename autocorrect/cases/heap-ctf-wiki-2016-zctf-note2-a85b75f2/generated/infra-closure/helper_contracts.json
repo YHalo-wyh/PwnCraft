@@ -1,0 +1,97 @@
+{
+  "run_id": "run-90412475f6ac0cde",
+  "contracts": [
+    {
+      "function": "deletenote",
+      "operation": "delete",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "single index outbound body; delete verb disambiguates",
+          "line": 36,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "id",
+          "position": 0,
+          "expression": "id"
+        }
+      }
+    },
+    {
+      "function": "editnote",
+      "operation": "unknown",
+      "candidate_operation": "edit",
+      "confidence": "candidate",
+      "evidence_sources": [
+        "NAME_CANDIDATE"
+      ],
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: edit",
+          "line": 26,
+          "score": 0.35
+        }
+      ],
+      "roles": {}
+    },
+    {
+      "function": "newnote",
+      "operation": "alloc",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "body sends size and data",
+          "line": 10,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "size": {
+          "role": "size",
+          "parameter": "length",
+          "position": 0,
+          "expression": "length"
+        },
+        "data": {
+          "role": "data",
+          "parameter": "content",
+          "position": 1,
+          "expression": "content"
+        }
+      }
+    },
+    {
+      "function": "shownote",
+      "operation": "unknown",
+      "candidate_operation": "show",
+      "confidence": "candidate",
+      "evidence_sources": [
+        "NAME_CANDIDATE"
+      ],
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 19,
+          "score": 0.35
+        }
+      ],
+      "roles": {}
+    }
+  ]
+}

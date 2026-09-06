@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DivergenceReport",
+  "description": "AI Reviewer 比较 [自己的 ExpectedAnalysis] vs [PwnCraft 静态识别输出] 后的裁决。核心纪律: 只报第一处偏差(first_divergence)；根因必须落在一条可泛化的识别规则上；禁止建议按函数名硬编码。",
+  "type": "object",
+  "required": ["case_id", "verdict"],
+  "properties": {
+    "case_id": {"type": "string"},
+    "compared_artifacts": {
+      "type": "object",
+      "properties": {
+        "expected_analysis": {"type": "string", "description": "expected/<case>.json 路径"},
+        "pwncraft_output": {"type": "string", "description": "PwnCraft 运行输出路径 (IR/snapshots/canvas)"},
+        "pwncraft_version": {"type": "string", "description": "识别代码的 commit 或版本"}
+      }
+    },
+    "verdict": {
+      "type": "string",
+      "enum": ["MATCH", "DIVERGED", "INCONCLUSIVE"],
+      "description": "MATCH=逐层一致; DIVERGED=找到第一处偏差; INCONCLUSIVE=无法判定(如 EXP 依赖远端交互无法静态展开)"
+    },
+    "first_divergence": {
+      "type": "object",
+      "description": "管道分层，只允许报最深的第一处。顺序: exp_parser → helper_contract → loop_unroll → ir → chunk_mapping → allocator → physical_memory → canvas_renderer",
+      "properties": {
+        "layer": {
+          "type": "string",
+          "enum": ["exp_parser", "helper_contract", "loop_unroll", "ir",
+                   "chunk_mapping", "allocator", "physical_memory", "canvas_renderer"]
+        },
+        "location": {
+          "type": "object",
+          "properties": {
+            "file": {"type": "string"},
+            "line": {"type": "integer"},
+            "call": {"type": "string", "description": "引发偏差的 EXP 源码调用, 如 create(0, 0x80, b'A')"}
+          }
+        },
+        "pwncraft_output": {
+          "type": "object",
+          "description": "PwnCraft 在该点的实际理解, 例如 {\"op\": \"alloc\", \"size\": 0}"
+        },
+        "expected": {
+          "type": "object",
+          "description": "依据 ExpectedAnalysis 应有的理解, 例如 {\"op\": \"alloc\", \"index\": 0, \"size\": 128, \"data\": \"AAAA...\"}"
+        },
+        "downstream_effects": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "该偏差向下传播造成的错误, 例如: 'Canonical IR chunk size=0x10 而非 0x90'、'tcache[0x90] 计数错'、'canvas 第3格 size 错'"
+        }
+      }
+    },
+    "root_cause": {
+      "type": "string",
+      "description": "一句话根因, 必须指向通用识别机制, 例如: 'create() 的形参角色推断缺少 data-flow 分析, 默认按 (idx,size) 截断'"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "可复核的证据条目, 带文件:行号。例如: 'arg1 最终传入 malloc() (decompile L30)'、'arg0 用作 chunk_table 下标 (L33)'"
+    },
+    "suggested_recognizer_improvement": {
+      "type": "object",
+      "required": ["target_component", "rule_type", "description"],
+      "properties": {
+        "target_component": {
+          "type": "string",
+          "description": "要修改的 PwnCraft 组件, 如 HelperContract inference / loop unroller / allocator model"
+        },
+        "rule_type": {
+          "type": "string",
+          "enum": ["data_flow", "type_inference", "constant_propagation", "control_flow",
+                   "library_semantics", "layout", "rendering", "other"],
+          "description": "规则类别。data_flow = 追踪实参在 helper 体内的流向 (malloc 参数来源→size, 表下标→index, read 目的→data)"
+        },
+        "description": {
+          "type": "string",
+          "description": "泛化规则描述, 不得包含针对特定函数名的硬编码逻辑; 可举例但规则本体必须覆盖一类函数"
+        },
+        "anti_hardcode_check": {
+          "type": "boolean",
+          "description": "提议者必须自检: 该规则若删去所有 '函数名 == X' 式分支后仍然成立?"
+        }
+      }
+    },
+    "fix_attempt": {
+      "type": "object",
+      "description": "由 Code Agent 在修复后回填",
+      "properties": {
+        "commit": {"type": "string"},
+        "changed_files": {"type": "array", "items": {"type": "string"}},
+        "rule_summary": {"type": "string"},
+        "same_case_result": {"type": "string", "enum": ["MATCH", "DIVERGED", "INCONCLUSIVE"]},
+        "regression_suite_result": {
+          "type": "object",
+          "properties": {
+            "total": {"type": "integer"},
+            "passed": {"type": "integer"},
+            "failed_cases": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "case_id": {"type": "string"},
+                  "divergence_layer": {"type": "string"},
+                  "summary": {"type": "string"}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

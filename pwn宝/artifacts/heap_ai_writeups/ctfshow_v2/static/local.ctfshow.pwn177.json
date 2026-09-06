@@ -1,0 +1,290 @@
+{
+  "run_id": "run_f7230557bb354f5faeaa38b186169efe",
+  "case_id": "local.ctfshow.pwn177",
+  "source_hash": "4a76c03270dfa045b6465dca4b22290b472dba4c3ae04338d4c6af739b97fb8b",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-177-4a76c03270df.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "0xa8",
+        "request_size": "'aaaa'",
+        "data": "'aaaa'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0xa8,'aaaa','aaaa')",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "alloc",
+        "chunk": "B",
+        "index": "0x68",
+        "request_size": "'bbbb'",
+        "data": "'bbbb'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x68,'bbbb','bbbb')",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "alloc",
+        "chunk": "C",
+        "index": "0x68",
+        "request_size": "'a'",
+        "data": "'a'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x68,'a','a')",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_004",
+        "kind": "free",
+        "chunk": "",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: free(0)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_005",
+        "kind": "alloc",
+        "chunk": "D",
+        "index": "0x78",
+        "request_size": "'a'*7",
+        "data": "'a'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add(0x78,'a'*7,'a')",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_006",
+        "kind": "show",
+        "chunk": "",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: show()",
+        "meta": {
+          "function": "show",
+          "expression": "show()",
+          "result_var": "leak"
+        }
+      },
+      {
+        "op_id": "op_007",
+        "kind": "derive_value",
+        "chunk": "libc_base",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(io.recv(6)+'\\x00\\x00') - 0x3C4B78",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: libc_base = u64(io.recv(6)+'\\x00\\x00') - 0x3C4B78",
+        "meta": {
+          "result_var": "libc_base",
+          "expression": "u64(io.recv(6)+'\\x00\\x00') - 0x3C4B78",
+          "dependencies": "leak",
+          "source_kind": "recv",
+          "source": "libc_base = u64(io.recv(6)+'\\x00\\x00') - 0x3C4B78",
+          "provenance": "inferred",
+          "byte_width": "8",
+          "endian": "little"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_40c05fc54e2b3f8a",
+        "start": 547,
+        "end": 570,
+        "line": 16,
+        "end_line": 16,
+        "fingerprint": "4b6cf520cad4c9b0",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_37709b9d9718baf2",
+        "start": 571,
+        "end": 594,
+        "line": 17,
+        "end_line": 17,
+        "fingerprint": "1e797ee5e3a4f0c1",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_bfce362beed461a9",
+        "start": 595,
+        "end": 612,
+        "line": 18,
+        "end_line": 18,
+        "fingerprint": "9156edc80c238e0d",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5981abbaa6ce51fd",
+        "start": 613,
+        "end": 620,
+        "line": 19,
+        "end_line": 19,
+        "fingerprint": "bde161d99a88bcb6",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_7b944c13d3686792",
+        "start": 621,
+        "end": 640,
+        "line": 20,
+        "end_line": 20,
+        "fingerprint": "b5a2105a2a591c84",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_b093887b6fad8dc7",
+        "start": 641,
+        "end": 647,
+        "line": 21,
+        "end_line": 21,
+        "fingerprint": "17de1d33f8a8bd4c",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_a15c9a728cb6ac74",
+        "start": 675,
+        "end": 724,
+        "line": 23,
+        "end_line": 23,
+        "fingerprint": "342229c276101d65",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 7,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+?<A:chunk>",
+        "user_address": "heap_base+?<A:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "B": {
+        "address": "heap_base+?<B:chunk>",
+        "user_address": "heap_base+?<B:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "C": {
+        "address": "heap_base+?<C:chunk>",
+        "user_address": "heap_base+?<C:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "D": {
+        "address": "heap_base+?<D:chunk>",
+        "user_address": "heap_base+?<D:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 7,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 7,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.016
+}

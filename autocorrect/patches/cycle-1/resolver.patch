@@ -1,0 +1,29 @@
+--- patches/cycle-1/resolver.py.pre	2026-09-03 20:05:10.024098600 +0800
++++ ../pwn宝/pwnbao/features/heapviz/contracts/resolver.py	2026-09-03 20:05:32.144415600 +0800
+@@ -336,6 +336,17 @@
+     recv = False
+     literals: list[str] = []
+     size_expression = ""
++    # PROMPT_SYNC vs OUTPUT_DATA_FLOW (protocol v1.2 §H): a recv-family call
++    # whose value is discarded (bare expression statement) carries no data
++    # flow — an unused recvuntil only synchronizes a prompt, an unused recv
++    # drops its value. Only consumed results (assigned / returned / printed /
++    # flowing into a computation) are output data flow and may structurally
++    # prove SHOW. FREE/DELETE never depends on this flag.
++    discarded_calls = {
++        id(parent.value)
++        for parent in ast.walk(node)
++        if isinstance(parent, ast.Expr) and isinstance(parent.value, ast.Call)
++    }
+     for child in ast.walk(node):
+         if isinstance(child, ast.Constant) and isinstance(child.value, (str, bytes, int)):
+             text = child.value.decode(errors="ignore") if isinstance(child.value, bytes) else str(child.value)
+@@ -343,7 +354,7 @@
+         if not isinstance(child, ast.Call):
+             continue
+         short = _qualified_name(child.func).rsplit(".", 1)[-1].lower()
+-        if short in _RECV or short.startswith("recv"):
++        if (short in _RECV or short.startswith("recv")) and id(child) not in discarded_calls:
+             recv = True
+         if short not in _SEND and "send" not in short:
+             continue

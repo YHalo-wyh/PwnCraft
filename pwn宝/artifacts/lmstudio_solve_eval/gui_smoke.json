@@ -1,0 +1,23 @@
+{
+  "model": "qwen3.6-27b",
+  "enabled": true,
+  "analysis_mode": "manual",
+  "context_budget_tokens": 4096,
+  "max_input_tokens": 3200,
+  "max_tokens": 768,
+  "json_prefill": true,
+  "static_operations": 56,
+  "learned_rule_ids": [
+    "rule_a82c425bd8b5d802cbee75a7",
+    "rule_6eedec0711d4a720e7377d2a"
+  ],
+  "prompt_budget": {
+    "estimated_input_tokens": 3162,
+    "context_budget_tokens": 4096,
+    "reserved_output_tokens": 768,
+    "max_input_tokens": 3200,
+    "encoded_bytes": 9004,
+    "fits": true,
+    "diagnostic": "预计输入 3162 tokens / 可用 3200"
+  }
+}

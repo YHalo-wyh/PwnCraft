@@ -1,0 +1,220 @@
+{
+  "run_id": "run_1c1fe96c1b1344dd907595a71db46aee",
+  "case_id": "local.ctfshow.pwn173",
+  "source_hash": "656e0e5855e7fc932e72fa340358a602c06fe6dbaf0c3cddecc912e549012822",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-173-656e0e5855e7.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "unknown",
+        "data": "'aaaa'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add_dog('aaaa',0)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "alloc",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "unknown",
+        "data": "'bbbb'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add_dog('bbbb',1)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "free",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: remove(0)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_004",
+        "kind": "alloc",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "unknown",
+        "data": "'a'*0x48+p64(6312832+len(shellcode))",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: add_dog('a'*0x48+p64(name+len(shellcode)),2)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_005",
+        "kind": "show",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: listen(0)",
+        "meta": {
+          "function": "listen",
+          "expression": "listen(0)",
+          "result_var": "leak"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_aefebdeb37d6cc55",
+        "start": 971,
+        "end": 988,
+        "line": 27,
+        "end_line": 27,
+        "fingerprint": "b40c97812eb12b99",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_2557a9cff817c60f",
+        "start": 989,
+        "end": 1006,
+        "line": 28,
+        "end_line": 28,
+        "fingerprint": "ffbd343e5ac602d2",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_88b8c8f8ea960c88",
+        "start": 1007,
+        "end": 1016,
+        "line": 29,
+        "end_line": 29,
+        "fingerprint": "529baefee812d82f",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_04090b6153666bfc",
+        "start": 1017,
+        "end": 1061,
+        "line": 30,
+        "end_line": 30,
+        "fingerprint": "1f1888bfd1625075",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_c577199770e84bb2",
+        "start": 1062,
+        "end": 1071,
+        "line": 31,
+        "end_line": 31,
+        "fingerprint": "62c3ad6ef674c350",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {
+      "name": "6312832"
+    }
+  },
+  "snapshot": {
+    "step": 5,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+?<A:chunk>",
+        "user_address": "heap_base+?<A:user>",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "B": {
+        "address": "heap_base+?<B:chunk>",
+        "user_address": "heap_base+?<B:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "C": {
+        "address": "heap_base+?<C:chunk>",
+        "user_address": "heap_base+?<C:user>",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 5,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 5,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "feedback_compilation": [],
+  "elapsed_s": 0.016
+}

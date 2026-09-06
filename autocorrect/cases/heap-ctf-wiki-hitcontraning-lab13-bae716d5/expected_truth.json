@@ -1,0 +1,510 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "evidence": {
+    "binary": [
+      "binary 动态链接 glibc (manifest: libc.so.6 banner '2.23', HIGH)",
+      "EXP L43 free_got=0x602018 为该 binary 的 GOT 地址 (0x602000 段, 非 PIE)"
+    ],
+    "exp": [
+      "exp.py:11-17 create(size, content): recvuntil(':')+sendline('1') → sendline(str(size)) → sendline(content)",
+      "exp.py:20-26 edit(idx, content): 菜单 '2' → sendline(str(idx)) → sendline(content)",
+      "exp.py:29-33 show(idx): 菜单 '3' → sendline(str(idx)); helper 体内无数据读回",
+      "exp.py:36-40 delete(idx): 菜单 '4' → sendline(str(idx)); helper 体内无数据读回",
+      "exp.py:58-61 show(1) 调用点之后 recvuntil('Content : ')/recvuntil('Done !') 的返回值经 u64 进入 libc_base 计算 → OUTPUT_DATA_FLOW",
+      "exp.py:47 edit(0, 25 字节 payload) 末字节 \\x41 — 依赖越界写改写相邻 chunk 的 size 字段",
+      "exp.py:50,55,57,67,69 利用链: 双 free 制造 fastbin 重叠 → show 泄露 free@got → edit 改 GOT → delete 触发"
+    ],
+    "source": [
+      "heapcreator.c:34-60 create_heap: malloc(sizeof(struct heap))(=0x10) + 读 size + malloc(size) + read_input(content, size) — 每次 Create 产生两次 malloc",
+      "heapcreator.c:62-79 edit_heap: read_input(heaparray[idx]->content, heaparray[idx]->size + 1) — 写入长度为存储 size+1 (off-by-one 漏洞本体)",
+      "heapcreator.c:81-98 show_heap: printf Size/Content (%s) — 输出 chunk 内容",
+      "heapcreator.c:100-119 delete_heap: free(content) 后 free(struct) 且 heaparray[idx]=NULL — 每次 Delete 产生两次 free, 无 UAF",
+      "heapcreator.c:19 heaparray[10]: 以 slot 下标管理的指针表 (logical handle = 数组下标)",
+      "heapcreator.c:21-32 menu: 1 Create / 2 Edit / 3 Show / 4 Delete / 5 Exit, 提示符 'Your choice :'"
+    ],
+    "libc": [
+      "glibc 2.23 (manifest banner 证据): 无 tcache, 无 safe-linking; fastbin 单链 LIFO 裸 fd; fastbin size 校验允许 0x40 伪造尺寸 (L47 的 \\x41)"
+    ]
+  },
+  "helpers": [
+    {
+      "function": "create",
+      "semantic": "alloc",
+      "evidence_tier": "binary_source_dataflow",
+      "roles": {
+        "arg0": "size",
+        "arg1": "data"
+      },
+      "confidence": 0.97,
+      "evidence": [
+        "exp.py:15 sendline(str(size)) 应答 Size 提示 (prompt→参数数据流, 中等)",
+        "heapcreator.c:48 malloc(size) — 参数经 atoi 流入 malloc 调用 (强)",
+        "exp.py:17 sendline(content); heapcreator.c:55 read_input(content_ptr, size) (data 强证据)"
+      ]
+    },
+    {
+      "function": "edit",
+      "semantic": "edit",
+      "evidence_tier": "binary_source_dataflow",
+      "roles": {
+        "arg0": "index",
+        "arg1": "data"
+      },
+      "confidence": 0.97,
+      "evidence": [
+        "exp.py:24 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "heapcreator.c:67 idx=atoi(buf); heapcreator.c:74 read_input(heaparray[idx]->content, ...) — arg1 是写入数据本体 (强)"
+      ]
+    },
+    {
+      "function": "show",
+      "semantic": "show",
+      "evidence_tier": "binary_source_dataflow",
+      "roles": {
+        "arg0": "index"
+      },
+      "confidence": 0.9,
+      "evidence": [
+        "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+        "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+      ]
+    },
+    {
+      "function": "delete",
+      "semantic": "free",
+      "evidence_tier": "binary_source_dataflow",
+      "roles": {
+        "arg0": "index"
+      },
+      "confidence": 0.95,
+      "evidence": [
+        "exp.py:40 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "exp.py:36 函数名 delete (弱证据, 仅用于消歧)",
+        "heapcreator.c:111-113 free(content); free(struct); heaparray[idx]=NULL (强)"
+      ]
+    }
+  ],
+  "target_behavior": {
+    "schema_migration": "2026-09-03 v1.2 §I (owner 指令): 由 allocator_events 拆分出 target_behavior; 事实内容不变, 仅层归属调整",
+    "note": "target binary/source 语义 (heapcreator.c)。HelperContract 不得被要求单独凭 EXP 推出这些隐藏内部动作 (协议 v1.2 §I)。",
+    "create": {
+      "menu": "1",
+      "internal_actions": [
+        {
+          "action": "malloc",
+          "request": "0x10",
+          "role": "management_struct",
+          "evidence": [
+            "heapcreator.c:40 malloc(sizeof(struct heap))"
+          ]
+        },
+        {
+          "action": "malloc",
+          "argument": "size",
+          "role": "content",
+          "evidence": [
+            "heapcreator.c:48 malloc(size)"
+          ]
+        }
+      ]
+    },
+    "edit": {
+      "menu": "2",
+      "internal_actions": [
+        {
+          "action": "write",
+          "target": "content",
+          "length": "stored_size+1",
+          "evidence": [
+            "heapcreator.c:74 read_input(heaparray[idx]->content, heaparray[idx]->size+1)"
+          ]
+        }
+      ]
+    },
+    "show": {
+      "menu": "3",
+      "internal_actions": [
+        {
+          "action": "print",
+          "target": "content",
+          "evidence": [
+            "heapcreator.c:92 printf Size/Content (%s)"
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "menu": "4",
+      "internal_actions": [
+        {
+          "action": "free",
+          "target": "content",
+          "evidence": [
+            "heapcreator.c:111 free(heaparray[idx]->content)"
+          ]
+        },
+        {
+          "action": "free",
+          "target": "struct",
+          "evidence": [
+            "heapcreator.c:112 free(heaparray[idx])"
+          ]
+        },
+        {
+          "action": "slot_clear",
+          "evidence": [
+            "heapcreator.c:113 heaparray[idx]=NULL"
+          ]
+        }
+      ]
+    }
+  },
+  "allocator_events": {
+    "note": "1:N 真值, 由 target_behavior + glibc 2.23 语义推导。术语: delete 为 two free calls (free(content)+free(struct)), 不是 double_free 漏洞。",
+    "per_call": [
+      {
+        "source_line": 44,
+        "call": "create(0x18, 'dada')",
+        "events": [
+          {
+            "kind": "malloc",
+            "request": "0x10",
+            "role": "management_struct",
+            "evidence": [
+              "heapcreator.c:40 malloc(sizeof(struct heap))"
+            ]
+          },
+          {
+            "kind": "malloc",
+            "request": "0x18",
+            "role": "content",
+            "evidence": [
+              "heapcreator.c:48 malloc(size)"
+            ]
+          }
+        ]
+      },
+      {
+        "source_line": 45,
+        "call": "create(0x10, 'ddaa')",
+        "events": [
+          {
+            "kind": "malloc",
+            "request": "0x10",
+            "role": "management_struct",
+            "evidence": [
+              "heapcreator.c:40"
+            ]
+          },
+          {
+            "kind": "malloc",
+            "request": "0x10",
+            "role": "content",
+            "evidence": [
+              "heapcreator.c:48"
+            ]
+          }
+        ]
+      },
+      {
+        "source_line": 50,
+        "call": "delete(1)",
+        "events": [
+          {
+            "kind": "free",
+            "target": "content_chunk_of_idx1",
+            "evidence": [
+              "heapcreator.c:111 free(heaparray[idx]->content)"
+            ]
+          },
+          {
+            "kind": "free",
+            "target": "struct_chunk_of_idx1",
+            "evidence": [
+              "heapcreator.c:112 free(heaparray[idx])"
+            ]
+          }
+        ],
+        "terminology": "two free calls, NOT double_free"
+      },
+      {
+        "source_line": 55,
+        "call": "create(0x30, ...)",
+        "events": [
+          {
+            "kind": "malloc",
+            "request": "0x10",
+            "role": "management_struct",
+            "evidence": [
+              "heapcreator.c:40"
+            ]
+          },
+          {
+            "kind": "malloc",
+            "request": "0x30",
+            "role": "content",
+            "evidence": [
+              "heapcreator.c:48"
+            ]
+          }
+        ]
+      },
+      {
+        "source_line": 69,
+        "call": "delete(0)",
+        "events": [
+          {
+            "kind": "free",
+            "target": "content_chunk_of_idx0",
+            "evidence": [
+              "heapcreator.c:111"
+            ]
+          },
+          {
+            "kind": "free",
+            "target": "struct_chunk_of_idx0",
+            "evidence": [
+              "heapcreator.c:112"
+            ]
+          }
+        ],
+        "terminology": "two free calls, NOT double_free"
+      }
+    ]
+  },
+  "expected_operations": [
+    {
+      "source_line": 44,
+      "source_call": "create(0x18, 'dada')",
+      "kind": "alloc",
+      "arguments": {
+        "arg0": "0x18",
+        "arg1": "'dada'"
+      },
+      "allocator_request": "0x18",
+      "confidence": 0.97,
+      "evidence": [
+        "heapcreator.c:48 malloc(size)",
+        "heapcreator.c:40 隐含第二次 malloc(0x10) (struct)"
+      ]
+    },
+    {
+      "source_line": 45,
+      "source_call": "create(0x10, 'ddaa')",
+      "kind": "alloc",
+      "arguments": {
+        "arg0": "0x10",
+        "arg1": "'ddaa'"
+      },
+      "allocator_request": "0x10",
+      "confidence": 0.97,
+      "evidence": [
+        "heapcreator.c:48 malloc(size)"
+      ]
+    },
+    {
+      "source_line": 47,
+      "source_call": "edit(0, '/bin/sh\\x00'+'a'*0x10+'\\x41')",
+      "kind": "edit",
+      "arguments": {
+        "arg0": "0",
+        "arg1": "25 字节 payload"
+      },
+      "allocator_request": null,
+      "confidence": 0.95,
+      "evidence": [
+        "heapcreator.c:74 写入长度 = heap0 存储的 size(0x18)+1 = 25 = payload 实际长度",
+        "写穿 heap0.content chunk 边界, 覆写相邻 heap1.struct 的 size 字段为 0x41 (伪造 0x40 chunk)"
+      ]
+    },
+    {
+      "source_line": 50,
+      "source_call": "delete(1)",
+      "kind": "free",
+      "arguments": {
+        "arg0": "1"
+      },
+      "allocator_request": null,
+      "confidence": 0.95,
+      "evidence": [
+        "heapcreator.c:111-112 双 free: content chunk (0x20) → fastbin[0x20], struct chunk (伪造 0x40) → fastbin[0x40]"
+      ]
+    },
+    {
+      "source_line": 55,
+      "source_call": "create(0x30, p64(0)*4+p64(0x30)+p64(free@got))",
+      "kind": "alloc",
+      "arguments": {
+        "arg0": "0x30",
+        "arg1": "48 字节 payload"
+      },
+      "allocator_request": "0x30",
+      "confidence": 0.9,
+      "evidence": [
+        "隐含 struct malloc(0x10) 取走 fastbin[0x20] (content1 chunk)",
+        "malloc(0x30)→chunk 0x40 取走 fastbin[0x40] (旧 struct1) → 新 content 与旧 struct 物理重叠"
+      ]
+    },
+    {
+      "source_line": 57,
+      "source_call": "show(1)",
+      "kind": "show",
+      "arguments": {
+        "arg0": "1"
+      },
+      "allocator_request": null,
+      "confidence": 0.95,
+      "evidence": [
+        "经重叠读到 free@got 内容; exp.py:58-61 读回进入利用计算"
+      ]
+    },
+    {
+      "source_line": 67,
+      "source_call": "edit(1, p64(system_addr))",
+      "kind": "edit",
+      "arguments": {
+        "arg0": "1",
+        "arg1": "8 字节"
+      },
+      "allocator_request": null,
+      "confidence": 0.85,
+      "evidence": [
+        "heapcreator.c:74 长度=新 heap1.struct.size+1; 写入落点经被改写的 struct content 指针落在 free@got (依赖重叠布局, 标注中等置信)"
+      ]
+    },
+    {
+      "source_line": 69,
+      "source_call": "delete(0)",
+      "kind": "free",
+      "arguments": {
+        "arg0": "0"
+      },
+      "allocator_request": null,
+      "confidence": 0.95,
+      "evidence": [
+        "free(heap0.content) 经已被覆写的 free@got → system('/bin/sh\\0')"
+      ]
+    }
+  ],
+  "allocator_expectations": [
+    {
+      "fact": "每次 Create = 两次 malloc: 先 malloc(0x10) (struct), 后 malloc(size) (content)",
+      "confidence": 0.99,
+      "evidence": [
+        "heapcreator.c:40",
+        "heapcreator.c:48"
+      ]
+    },
+    {
+      "fact": "每次 Delete = 两次 free 调用 (free(content) + free(struct), two free calls, 非 double_free 漏洞): 先 content chunk, 后 struct chunk; 表项置 NULL, 无 UAF",
+      "confidence": 0.99,
+      "evidence": [
+        "heapcreator.c:111-113"
+      ]
+    },
+    {
+      "fact": "edit 写入长度 = 存储大小 + 1 (off-by-one)",
+      "confidence": 0.99,
+      "evidence": [
+        "heapcreator.c:74"
+      ]
+    },
+    {
+      "fact": "delete(1) 后 fastbin[0x20] 头 = heap1 content chunk; fastbin[0x40] 头 = heap1 struct chunk (size 被 L47 伪造成 0x41)",
+      "confidence": 0.9,
+      "evidence": [
+        "exp.py:47-50",
+        "heapcreator.c:111-112",
+        "glibc 2.23 fastbin LIFO"
+      ]
+    },
+    {
+      "fact": "create(0x30) 消费两个 fastbin: struct←0x20 桶, content←0x40 桶; 完成后 fastbin[0x40] 空",
+      "confidence": 0.85,
+      "evidence": [
+        "heapcreator.c:40,48 分配顺序",
+        "exp.py:51-55 注释与 L55"
+      ]
+    }
+  ],
+  "physical_expectations": [
+    {
+      "fact": "连续布局 [struct0][content0][struct1][content1] (每 create 先分配 struct 后分配 content)",
+      "confidence": 0.9,
+      "evidence": [
+        "heapcreator.c:40,48 分配顺序",
+        "heap_base 起始无预分配 (2.23 无 tcache struct)"
+      ]
+    },
+    {
+      "fact": "heap0.content chunk 与 heap1.struct chunk 物理相邻 — L47 的 +1 字节正好落在 struct1 的 size 字段",
+      "confidence": 0.95,
+      "evidence": [
+        "heapcreator.c:74",
+        "exp.py:46-47 注释"
+      ]
+    },
+    {
+      "fact": "L55 之后 heap1.content 指向旧 struct1 地址 (物理重叠), 其写入可控制在旧 struct 区域",
+      "confidence": 0.8,
+      "evidence": [
+        "exp.py:51-54 注释",
+        "fastbin[0x40] LIFO"
+      ]
+    }
+  ],
+  "uncertainties": [
+    "PwnCraft 的 IR 以单个 alloc 操作表示一次 create 调用; binary 真值为每次 create 两个 malloc (struct 0x10 + content size)。expected_operations.allocator_request 记录 content 侧请求; struct 侧是否建模记为 UNKNOWN, 留给 allocator 层比较时按建模事实仲裁。",
+    "show 的输出长度由 %s 的 NUL 截止决定 (heapcreator.c:92), EXP 侧以 recvuntil('Done !') 定界; IR 的 length 字段预期无法静态确定, 记 UNKNOWN。",
+    "L67 edit 的写入落点依赖重叠布局推导 (非直接参数), PwnCraft 能否推导 UNKNOWN; 本条断言置信 0.85, 若在 chunk_mapping 层分歧属预期。",
+    "exp.py:61 data.split('\\n')[0] 假设 Content 单行输出, 属 EXP 假设, 不构成堆状态断言。"
+  ],
+  "machine_checks": [
+    {
+      "check": "live_chunks",
+      "after_line": 45,
+      "value": 4,
+      "fact": "两次 create × 每次 2 个 malloc = 4 个活跃 chunk (含 struct 侧)",
+      "evidence": [
+        "heapcreator.c:40",
+        "heapcreator.c:48"
+      ],
+      "arbitration_note": "若识别器不建模 struct 侧 malloc, 此检查失败属 ALLOCATOR 层真实分歧 (binary truth 优先)"
+    },
+    {
+      "check": "bin_nonempty",
+      "after_line": 50,
+      "bin": "fastbins",
+      "fact": "delete(1) 后 fastbin 非空 (content chunk 0x20 + 被伪造成 0x40 的 struct chunk)",
+      "evidence": [
+        "exp.py:47-50",
+        "heapcreator.c:111-112"
+      ]
+    },
+    {
+      "check": "bin_nonempty",
+      "after_line": 50,
+      "bin": "fastbins",
+      "size_class": "0x40",
+      "fact": "伪造 size 生效: struct chunk 进入 fastbin[0x40]",
+      "evidence": [
+        "exp.py:47 (\\x41)",
+        "heapcreator.c:74 (size+1 写入)"
+      ]
+    }
+  ],
+  "truth_lock": {
+    "truth_id": "truth-060bebfe645dbd51",
+    "content_sha256": "060bebfe645dbd51d8d82660fa07350d68e0edb02afea7f8550410db0c6d7d16",
+    "schema_version": "1.0-flat",
+    "locked_at": "2026-09-05T17:08:22",
+    "analyst_input_hashes": {
+      "binary_sha256": "bae716d582d0070fdf1121b55871ab07c37f135a48ce68b5830e013fd3d59398",
+      "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+      "exp_sha256": "f62b4802233364f9d704b35709e2ed131752814de2bb4f3388280ae1b247f089"
+    },
+    "truth_revision": 1,
+    "superseded_by": null
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "case": "Magic Numbers",
+  "inputs": {
+    "exp": {
+      "path": "/mnt/c/Users/WYH/Desktop/霄元杯/pwn/exp.py",
+      "sha256": "50d8061396983906336d91ec2c9644711065bbb23eb5c1957cb4d6aadfcfd679"
+    },
+    "writeup": {
+      "path": "/mnt/c/Users/WYH/Desktop/霄元杯/pwn/pwn_wp.md",
+      "sha256": "0af40e5481f685d5ae74a0cf4571fc0a9b37ec3334a5ce7c647dbcaf21695acd"
+    },
+    "supplied_work_binary": {
+      "path": "/mnt/c/Users/WYH/Desktop/霄元杯/16：00/pwn_work/httpd",
+      "sha256": "677e46bf8ca7e8ffcaad785dc09072f0121262e1742255d260d686a66b2bc4be",
+      "format": "ELF64 AArch64 PIE stripped"
+    },
+    "matching_challenge_binary": {
+      "path": "/mnt/c/Users/WYH/Desktop/霄元杯/race/questions/PWN/e5e9af35b74948d7b4d47107f4f57dad/pwn",
+      "sha256": "22eef448b929231dddb461a40b136402a84fcfac216ff47e778271f2c6be597f",
+      "format": "ELF32 i386 PIE with debug_info"
+    }
+  },
+  "path_corrections": [
+    "16：00/pwn/_work -> 16：00/pwn_work",
+    "pwn/pwn/_wp.md -> pwn/pwn_wp.md"
+  ],
+  "analyzer": {
+    "valid": true,
+    "heap_operations": 0,
+    "heap_snapshots": 1,
+    "final_chunks": 0,
+    "final_handles": 0,
+    "final_bins": {
+      "tcache": {},
+      "fastbins": {},
+      "unsorted": [],
+      "smallbins": {},
+      "largebins": {}
+    },
+    "program_event_targets": [
+      "bytes.fromhex",
+      "SC.ljust",
+      "start",
+      "io.sendlineafter",
+      "io.sendlineafter",
+      "io.sendlineafter",
+      "io.sendlineafter",
+      "io.sendafter",
+      "io.interactive"
+    ],
+    "diagnostics": [
+      {
+        "code": "runtime_assertion",
+        "severity": "info",
+        "line": 63,
+        "message": "assert 是运行时约束，静态分析保留后续路径但不假定条件成立。"
+      },
+      {
+        "code": "runtime_assertion",
+        "severity": "info",
+        "line": 65,
+        "message": "assert 是运行时约束，静态分析保留后续路径但不假定条件成立。"
+      }
+    ]
+  },
+  "conclusion": "No heap model is applicable. The EXP is a zero-polynomial validation bypass followed by a fixed 0x280-byte NUL-free i386 ORW shellcode send; generating chunks/bins would be a false positive."
+}

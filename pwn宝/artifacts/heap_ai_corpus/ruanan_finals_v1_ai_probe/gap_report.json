@@ -1,0 +1,15 @@
+{
+  "counts": {
+    "run_over_budget": 1
+  },
+  "examples": {
+    "run_over_budget": [
+      "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

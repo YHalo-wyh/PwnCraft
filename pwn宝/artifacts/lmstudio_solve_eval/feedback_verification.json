@@ -1,0 +1,31 @@
+{
+  "knowledge_path": "C:\\Users\\WYH\\AppData\\Local\\pwnbao\\ai\\knowledge.sqlite3",
+  "persistent": true,
+  "saved": [
+    {
+      "feedback_id": "fb_fc414cade7a1b9021344f167",
+      "rule_id": "rule_a82c425bd8b5d802cbee75a7",
+      "semantic": "alloc",
+      "function": "add",
+      "roles": [
+        "size",
+        "index"
+      ]
+    },
+    {
+      "feedback_id": "fb_4007c483c1dc6d3410abb61d",
+      "rule_id": "rule_6eedec0711d4a720e7377d2a",
+      "semantic": "copy",
+      "function": "copy",
+      "roles": [
+        "src",
+        "dst",
+        "length"
+      ]
+    }
+  ],
+  "replay_valid": true,
+  "replay_operations": 56,
+  "learned_add_operations": 27,
+  "learned_copy_operations": 2
+}

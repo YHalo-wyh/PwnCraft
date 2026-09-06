@@ -1,0 +1,6 @@
+{
+  "prompt_available": true,
+  "architecture_aarch64": true,
+  "no_internal_error": true,
+  "no_debuginfod_download": true
+}

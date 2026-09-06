@@ -1,0 +1,9 @@
+{
+  "started": true,
+  "new_processes_alive_after_5s": [
+    55988,
+    56368
+  ],
+  "initial_launcher_returncode": null,
+  "exe": "C:\\Users\\WYH\\Desktop\\Pwn宝\\pwn宝_v0.5.0\\dist\\pwn宝.exe"
+}

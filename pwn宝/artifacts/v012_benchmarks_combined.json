@@ -1,0 +1,1056 @@
+{
+  "helper": {
+    "benchmark": "helper_variant",
+    "total": 120,
+    "passed": 120,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "cases": [
+      {
+        "case_id": "contract:4c731fcd93b96f83",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:6015edef7c823e0e",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:ec7cb43d53548b8b",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:c4d7d985d6af2f87",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:534b0c7590350789",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:0e9dc461aa737e2d",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:49234d034fcbd6a6",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:63c229c72366e701",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:22b814f8fdec3c2c",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:811180d35f06fb32",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:c0365e3d2e0a613c",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:1943c18f2d6d915e",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:652c11769fd121a4",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:9ee4fe472488a2bb",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:2055c228505d2b96",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:793744d45df948b6",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:50e722e580323f6d",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:03e3f61c42884f38",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:a976fb11ee303bb5",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:8115695fc8675686",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:1611ad4136dc7157",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:186c06938782d363",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:f65c5408756c1ff9",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:a0cf511a19bdd0d9",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:e353a784fedc90fb",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:96456628c3cecbc1",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:c7a64f2eb0256e94",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:9b7b697fd26790b7",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:5af4b161b2dc137d",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:f164461497b9f80c",
+        "category": "alloc",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:549df9ed230d0700",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:e01f2e6bcac5dcd4",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:333ed92cfad669ae",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:52eed9c699c07edc",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:55314c0c0abb2285",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:5d9d52bfd3f3e1f7",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:bde2d70c431dd26e",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:f38ca1ddcb004842",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:678665efbbb29391",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:84d4588f3b4f761a",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:95d61cfd737d78a0",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:ad7a3791449e3f7a",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:a675c3a60490089f",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:6ee0cd5d44aeee62",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:6efc302c78589957",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:6a1be7a86f346f36",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:95d81ff641a114e8",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:b156bab5574b3f75",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:368488f738f8a9a9",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:a22b2508f7c8daef",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:147f8b6dbdd976b3",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:701847b9dbcb98a0",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:bf46977073df219d",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:12f0edeec1fc8912",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:bfa94653df0221f8",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:20356553eafa308a",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:180f276e7d85f226",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:360b11abb34adf3e",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:89d1e6edd3b5599f",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:1effdb4d86a6091c",
+        "category": "delete",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:8c4c2be670b9bdf4",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:d238421bd5f668b8",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:52b258bd51277657",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:eff35c4fec68b7c2",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:3a7a1db34459ae4e",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:c50693cd5e5f3b6f",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:f0d6c57c4e4dc71b",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:966d05553267c33c",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:807f5541c807d064",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:8a818386f5977c63",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:581b8dd235f4bd52",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:abb9fc8b329fe019",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:7533a9d4980d7285",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:8c23460aafc34169",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:4814933345582891",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:5f3eff042f6b32a7",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:68b173245023cd9b",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:613479220eae8ead",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:495998bc4df1d641",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:90e3187bdb0b574a",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:85cf82d49b1d25c8",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:4b3b83936fe0f251",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:9d6b05f614d5292f",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:61e256cb7536616f",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:bcf20ebc5b5a5a24",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:8821e7a3b0d70276",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:f9c09f9f6b79f029",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:7f8b5d72f3608084",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:43e00c67e3538b7e",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:18d996f3a5d9e48a",
+        "category": "edit",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:8b80ef8c325fd2a3",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:034baef2f91d9e37",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:e8139e29c11721b0",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:9a552854b702bcf1",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:9fcce83a38ed1466",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:ff1fea56ab06696d",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:360fd8aaabce190e",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:fa802887d5e9d18d",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:f2da13d0d8f8579a",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:3025acb845127ed8",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:0a758532d0f2e46d",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:287dbdc38b52c89f",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:fd4d9288eb2bffc0",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:decb1e347e84fac5",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:df65096dc0f4e532",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:d20f425e473dfed8",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:077333d0feb8ec9e",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:53a4828b10f308ef",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:2b323175b534a605",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:b1d67ce618b8cd1a",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:a77dfb8685ea3c80",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:cf6dc9e48bf9f1a6",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:294ec41e4d39244f",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:509df5be6b35f1d0",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:172f5d0b397b6e2d",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:23cc7b4432b05f15",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:04626072fee04d57",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:5f160ca3e7d8072e",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:f510a4090cfda7c0",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      },
+      {
+        "case_id": "contract:e62af4706d7bf18d",
+        "category": "show",
+        "expected": "proven and lowered once",
+        "actual": "proven=True, calls=1",
+        "passed": true
+      }
+    ]
+  },
+  "correction": {
+    "benchmark": "correction",
+    "total": 28,
+    "passed": 28,
+    "failed": 0,
+    "pass_rate": 1.0,
+    "cases": [
+      {
+        "case_id": "memory_patch_0",
+        "category": "memory patch",
+        "expected": "b'A'",
+        "actual": "b'A'",
+        "passed": true
+      },
+      {
+        "case_id": "memory_patch_1",
+        "category": "memory patch",
+        "expected": "b'B'",
+        "actual": "b'B'",
+        "passed": true
+      },
+      {
+        "case_id": "memory_patch_2",
+        "category": "memory patch",
+        "expected": "b'C'",
+        "actual": "b'C'",
+        "passed": true
+      },
+      {
+        "case_id": "memory_patch_3",
+        "category": "memory patch",
+        "expected": "b'D'",
+        "actual": "b'D'",
+        "passed": true
+      },
+      {
+        "case_id": "memory_patch_4",
+        "category": "memory patch",
+        "expected": "b'E'",
+        "actual": "b'E'",
+        "passed": true
+      },
+      {
+        "case_id": "memory_patch_5",
+        "category": "memory patch",
+        "expected": "b'F'",
+        "actual": "b'F'",
+        "passed": true
+      },
+      {
+        "case_id": "memory_patch_6",
+        "category": "memory patch",
+        "expected": "b'G'",
+        "actual": "b'G'",
+        "passed": true
+      },
+      {
+        "case_id": "memory_patch_7",
+        "category": "memory patch",
+        "expected": "b'H'",
+        "actual": "b'H'",
+        "passed": true
+      },
+      {
+        "case_id": "invalid_size_0",
+        "category": "validation",
+        "expected": "invalid",
+        "actual": "invalid",
+        "passed": true
+      },
+      {
+        "case_id": "invalid_size_1",
+        "category": "validation",
+        "expected": "invalid",
+        "actual": "invalid",
+        "passed": true
+      },
+      {
+        "case_id": "invalid_size_2",
+        "category": "validation",
+        "expected": "invalid",
+        "actual": "invalid",
+        "passed": true
+      },
+      {
+        "case_id": "invalid_size_3",
+        "category": "validation",
+        "expected": "invalid",
+        "actual": "invalid",
+        "passed": true
+      },
+      {
+        "case_id": "corrupt_next_0",
+        "category": "validation",
+        "expected": "representable_corruption",
+        "actual": "representable_corruption",
+        "passed": true
+      },
+      {
+        "case_id": "corrupt_next_1",
+        "category": "validation",
+        "expected": "representable_corruption",
+        "actual": "representable_corruption",
+        "passed": true
+      },
+      {
+        "case_id": "corrupt_next_2",
+        "category": "validation",
+        "expected": "representable_corruption",
+        "actual": "representable_corruption",
+        "passed": true
+      },
+      {
+        "case_id": "corrupt_next_3",
+        "category": "validation",
+        "expected": "representable_corruption",
+        "actual": "representable_corruption",
+        "passed": true
+      },
+      {
+        "case_id": "undo_redo_0",
+        "category": "undo",
+        "expected": "b'A' -> b'Z'",
+        "actual": "b'A' -> b'Z'",
+        "passed": true
+      },
+      {
+        "case_id": "undo_redo_1",
+        "category": "undo",
+        "expected": "b'A' -> b'Z'",
+        "actual": "b'A' -> b'Z'",
+        "passed": true
+      },
+      {
+        "case_id": "undo_redo_2",
+        "category": "undo",
+        "expected": "b'A' -> b'Z'",
+        "actual": "b'A' -> b'Z'",
+        "passed": true
+      },
+      {
+        "case_id": "undo_redo_3",
+        "category": "undo",
+        "expected": "b'A' -> b'Z'",
+        "actual": "b'A' -> b'Z'",
+        "passed": true
+      },
+      {
+        "case_id": "valid_size_0",
+        "category": "validation",
+        "expected": "valid",
+        "actual": "valid",
+        "passed": true
+      },
+      {
+        "case_id": "valid_size_1",
+        "category": "validation",
+        "expected": "valid",
+        "actual": "valid",
+        "passed": true
+      },
+      {
+        "case_id": "valid_size_2",
+        "category": "validation",
+        "expected": "valid",
+        "actual": "valid",
+        "passed": true
+      },
+      {
+        "case_id": "valid_size_3",
+        "category": "validation",
+        "expected": "valid",
+        "actual": "valid",
+        "passed": true
+      },
+      {
+        "case_id": "contract_correction_0",
+        "category": "contract correction",
+        "expected": "affected_calls=2",
+        "actual": "affected_calls=2",
+        "passed": true
+      },
+      {
+        "case_id": "contract_correction_1",
+        "category": "contract correction",
+        "expected": "affected_calls=2",
+        "actual": "affected_calls=2",
+        "passed": true
+      },
+      {
+        "case_id": "rebase_0",
+        "category": "rebase",
+        "expected": "matched",
+        "actual": "matched",
+        "passed": true
+      },
+      {
+        "case_id": "rebase_1",
+        "category": "rebase",
+        "expected": "stale",
+        "actual": "stale",
+        "passed": true
+      }
+    ]
+  }
+}

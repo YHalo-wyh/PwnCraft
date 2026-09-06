@@ -1,0 +1,44 @@
+{
+  "run_id": "run_1c19b6db0f06477ebc66e479e0b795a0",
+  "case_id": "how2heap.235.safe-link-double-protect",
+  "source_hash": "896f45cabf5b84b073ee8284749a78259079e1cf3a690a15525032b0b397b56f",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_v070\\sources\\896f45cabf5b84b073ee8284749a78259079e1cf3a690a15525032b0b397b56f.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.969
+}

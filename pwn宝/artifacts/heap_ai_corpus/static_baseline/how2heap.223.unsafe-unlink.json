@@ -1,0 +1,43 @@
+{
+  "run_id": "run_bb415c8fe4714f9089ca7637fcac27f6",
+  "case_id": "how2heap.223.unsafe-unlink",
+  "source_hash": "84be5e372606625178c5a073cfd27e6c99f480a809a0b80ee957da48c883db3f",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_baseline\\sources\\84be5e372606625178c5a073cfd27e6c99f480a809a0b80ee957da48c883db3f.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "elapsed_s": 0.625
+}

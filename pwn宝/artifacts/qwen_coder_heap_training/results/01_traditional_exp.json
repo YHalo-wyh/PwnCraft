@@ -1,0 +1,39 @@
+{
+  "file": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\exp.py",
+  "static_operation_count": 3,
+  "static_diagnostics": [
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `args.GDB` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 458,
+      "end": 489,
+      "line": 18,
+      "suggestion": ""
+    }
+  ],
+  "prompt_budget": {
+    "estimated_input_tokens": 1822,
+    "context_budget_tokens": 4096,
+    "reserved_output_tokens": 512,
+    "max_input_tokens": 3584,
+    "encoded_bytes": 4985,
+    "fits": true,
+    "diagnostic": "预计输入 1822 tokens / 可用 3584"
+  },
+  "compact_static_ir": false,
+  "result": {
+    "generation": 1,
+    "source_hash": "b3583b20cecc9ca9a03a3de16f0a4530d9a6c43a471540df8c073d675944aaeb",
+    "proposals": [],
+    "diagnostics": [
+      "候选 1: 源码锚点无法唯一重绑",
+      "候选 2: operation 不能为空",
+      "info: heap_neutral_branch - condition `args.GDB` only affects debug flow; parsing continues to common suffix."
+    ],
+    "elapsed_ms": 31563,
+    "model": "qwen3-coder-30b-a3b-instruct",
+    "cached": false,
+    "prompt_version": "pwnbao-heap-ai-v3-qwen-coder"
+  }
+}

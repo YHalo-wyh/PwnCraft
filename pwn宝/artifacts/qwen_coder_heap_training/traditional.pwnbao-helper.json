@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "scope": "scenario",
+  "source": "Qwen3-Coder reviewed traditional/exp.py",
+  "rules": [
+    {
+      "rule_id": "traditional_cmd_1_alloc",
+      "semantic": "alloc",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 1
+        }
+      },
+      "output": {
+        "roles": [
+          "size",
+          "index"
+        ],
+        "semantic": "alloc",
+        "arg_offset": 1
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_4_free",
+      "semantic": "free",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 4
+        }
+      },
+      "output": {
+        "roles": [
+          "index"
+        ],
+        "semantic": "free",
+        "arg_offset": 1
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_2_edit",
+      "semantic": "edit",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 2
+        }
+      },
+      "output": {
+        "roles": [
+          "index",
+          "data"
+        ],
+        "arg_offset": 1,
+        "semantic": "edit"
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_3_show",
+      "semantic": "show",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 3
+        }
+      },
+      "output": {
+        "roles": [
+          "index"
+        ],
+        "arg_offset": 1,
+        "semantic": "show"
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    },
+    {
+      "rule_id": "traditional_cmd_7_copy",
+      "semantic": "copy",
+      "matcher": {
+        "function": "cmd",
+        "argument_equals": {
+          "0": 7
+        }
+      },
+      "output": {
+        "arg_offset": 1,
+        "roles": [
+          "src",
+          "dst",
+          "length"
+        ],
+        "semantic": "copy"
+      },
+      "enabled": true,
+      "source": "qwen-coder-reviewed-scenario"
+    }
+  ]
+}

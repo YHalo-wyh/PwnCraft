@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.ctfshow.pwn143",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\qwen_rules_v6\\local.ctfshow.pwn143.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn167",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\qwen_rules_v6\\local.ctfshow.pwn167.json"
+    },
+    {
+      "case_id": "local.ctfshow.pwn169",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\qwen_rules_v6\\local.ctfshow.pwn169.json"
+    }
+  ],
+  "completed": 3,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_writeups\\ctfshow_v2\\qwen_rules_v6\\gap_report.json"
+}

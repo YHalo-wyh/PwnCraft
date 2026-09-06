@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "static_inlined_entrypoint": 2,
+    "golden_ir_review_required": 1
+  },
+  "examples": {
+    "static_inlined_entrypoint": [
+      "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b"
+    ],
+    "golden_ir_review_required": [
+      "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

@@ -1,0 +1,30 @@
+[
+  {
+    "file": "pre-patch__none.json",
+    "label": "pre-patch",
+    "patch_id": "none",
+    "digest": "3f71135f8fae078a",
+    "note": "pre-patch state after revert of cycle-1 patch; strict first divergence = show EVIDENCE_DIVERGED",
+    "intentional_delta": []
+  },
+  {
+    "file": "post-patch__cycle-1.json",
+    "label": "post-patch",
+    "patch_id": "cycle-1",
+    "digest": "0d110c139424ee46",
+    "note": "cycle-1 accepted: prompt-sync vs output-dataflow evidence reclassification (r3)",
+    "intentional_delta": [
+      "recognizer_revision",
+      "helper_contracts",
+      "op_sequence"
+    ]
+  },
+  {
+    "file": "post-infra__infra-closure-1.json",
+    "label": "post-infra",
+    "patch_id": "infra-closure-1",
+    "digest": "f6622dfb3a121d7e",
+    "note": "INFRA-CLOSURE-1: single-run adapter/op_id/canvas truth; recognizer untouched (r4)",
+    "intentional_delta": []
+  }
+]

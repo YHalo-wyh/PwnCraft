@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_ai_probe_traditional_v7_gate\\local.ruanan.traditional-Traditional.83065a44.json"
+    }
+  ],
+  "completed": 1,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_ai_probe_traditional_v7_gate\\gap_report.json"
+}

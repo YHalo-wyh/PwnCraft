@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Adapter: run PwnCraft's static recognition pipeline on a corpus case and
+serialize a normalized view for the AI Reviewer loop.
+
+Static only: analyze_heap_source is pure AST; GlibcHeapEngine is a simulator.
+No challenge binary is ever executed.
+"""
+from __future__ import annotations
+
+import json
+import os
+import sys
+from pathlib import Path
+
+# Project root contains the `pwnbao` package: C:\...\pwn宝\pwn宝\
+_OUTER = Path(__file__).resolve().parents[1]
+_PROJECT_ROOT = _OUTER / "pwn宝"
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+
+def _enum(v):
+    return getattr(v, "value", v)
+
+
+def _abstract_value(v) -> dict:
+    """AbstractValue -> {kind, value/expression/reason}."""
+    name = type(v).__name__
+    for attr, kind in (("value", "concrete"), ("expression", "symbolic")):
+        if hasattr(v, attr):
+            try:
+                val = getattr(v, attr)
+                json.dumps(val)
+                return {"kind": kind, name: val, "source": str(getattr(v, "source", ""))}
+            except (TypeError, ValueError):
+                pass
+    reason = getattr(v, "reason", None)
+    if reason:
+        return {"kind": "unknown", "reason": reason, "source": str(getattr(v, "source", ""))}
+    return {"kind": "opaque", "repr": str(v)}
+
+
+def run_analyzer(exp_source: str) -> dict:
+    from pwnbao.features.heapviz import analyze_heap_source
+
+    result = analyze_heap_source(exp_source)
+
+    contracts = []
+    for c in result.helper_contracts:
+        roles = {}
+        for role, b in (c.roles or {}).items():
+            roles[role] = {
+                "role": b.role,
+                "parameter": b.parameter,
+                "position": b.position,
+                "expression": getattr(b, "expression", "") or "",
+            }
+        # full provenance: evidence tuples with source/detail/line/score
+        evidence = []
+        for e in (c.evidence or ()):
+            evidence.append({
+                "source": getattr(e.source, "name", str(e.source)),
+                "detail": str(getattr(e, "detail", "") or "")[:200],
+                "line": getattr(e, "line", None),
+                "score": getattr(e, "score", None),
+            })
+        # candidate_operation is a NAME-DERIVED CANDIDATE, never a proven
+        # operation (protocol v1.1 §F): exposed separately, clearly labeled.
+        cand = getattr(c, "candidate_operation", None)
+        contracts.append({
+            "function": c.function,
+            "operation": _enum(c.operation),
+            "candidate_operation": _enum(cand) if cand is not None else None,
+            "confidence": _enum(c.confidence),
+            "evidence_sources": sorted({e["source"] for e in evidence}),
+            "evidence": evidence,
+            "roles": roles,
+        })
+
+    ops = []
+    for step, c in enumerate(result.canonical_operations):
+        sb = c.source_binding
+        ops.append({
+            "step": step,
+            "kind": _enum(c.kind),
+            "handle": _abstract_value(c.handle),
+            "menu_request": _abstract_value(c.menu_request),
+            "allocator_request": _abstract_value(c.allocator_request),
+            "length": _abstract_value(c.length),
+            "payload": _abstract_value(c.payload),
+            "source_line": getattr(sb, "line", 0) if sb else 0,
+            "source_call": (getattr(sb, "source_text", "") or "") if sb else "",
+            "confidence": _enum(c.confidence),
+        })
+
+    rec = result.recognition_report if isinstance(result.recognition_report, dict) else {}
+    return {
+        "valid": result.valid,
+        "recognizer_revision": rec.get("recognizer_revision"),
+        "recognition": {k: rec.get(k) for k in
+                        ("candidate_calls", "recognized", "ambiguous", "unknown", "ignored", "truncated")},
+        "helper_contracts": contracts,
+        "canonical_ops": ops,
+        "diagnostics": [str(d) for d in (result.diagnostics or [])][:40],
+    }
+
+
+def run_replay(exp_source: str, glibc_version: str | None) -> dict:
+    """Full session load: recognition + glibc replay -> per-step heap facts."""
+    from pwnbao.features.heapviz.bridge_session import HeapSession
+
+    session = HeapSession()
+    allocator = {"version": glibc_version} if glibc_version else None
+    state = session.load(source=exp_source, allocator=allocator)
+
+    steps = []
+    for s in state.get("steps", []):
+        if not isinstance(s, dict):
+            steps.append({"raw": str(s)[:200]})
+            continue
+        chunks = s.get("chunks") or {}
+        if isinstance(chunks, dict):
+            chunk_iter = [
+                dict(cid=str(cid), **(cs if isinstance(cs, dict) else {"repr": str(cs)[:120]}))
+                for cid, cs in chunks.items()
+            ]
+        else:  # serialized as a list of chunk dicts
+            chunk_iter = [c for c in chunks if isinstance(c, dict)]
+        chunk_view = {}
+        for c in chunk_iter:
+            cid = str(c.get("chunk_id") or c.get("cid") or len(chunk_view))
+            chunk_view[cid] = {
+                "size": c.get("chunk_size"),
+                "request_size": c.get("request_size"),
+                "lifecycle": c.get("lifecycle"),
+                "bin": c.get("bin_location") or "",
+                "fd": (c.get("fd") or "")[:24],
+                "bk": (c.get("bk") or "")[:24],
+                "physical_id": c.get("physical_id"),
+            }
+        bins = s.get("bins") or {}
+
+        def _event(ev, kind):
+            if not isinstance(ev, dict):
+                return {"kind": kind, "repr": str(ev)[:80]}
+            out = {"kind": kind, "chunk": ev.get("chunk")}
+            if kind == "alloc":
+                out["request_size"] = ev.get("request_size")
+                out["chunk_size"] = ev.get("chunk_size")
+                out["source"] = ev.get("allocation_source") or ev.get("source")
+            else:
+                out["destination_bin"] = ev.get("destination_bin")
+            return out
+
+        steps.append({
+            "step": s.get("step"),
+            "op_id": s.get("op_id") or s.get("operation_id"),
+            "n_chunks": len(chunk_iter),
+            "chunks": chunk_view,
+            "handles": [(h.get("index"), h.get("chunk_id"), h.get("status"))
+                        for h in (s.get("handles") or []) if isinstance(h, dict)],
+            "tcache": _bin_summary(bins.get("tcache")),
+            "fastbins": _bin_summary(bins.get("fastbins")),
+            "unsorted": _bin_summary(bins.get("unsorted")),
+            "alloc_events": [_event(e, "alloc") for e in (s.get("alloc_events") or [])],
+            "free_events": [_event(e, "free") for e in (s.get("free_events") or [])],
+            "aborted": s.get("aborted"),
+            "allocator_abort": s.get("allocator_abort"),
+            "warnings": [str(w)[:120] for w in (s.get("warnings") or [])][:5],
+        })
+    return {
+        "n_steps": len(state.get("steps", [])),
+        "steps": steps,
+        "model_divergences": state.get("cache_divergence"),
+        "state_keys": sorted(state.keys()),
+    }
+
+
+def _bin_summary(v):
+    if v is None:
+        return None
+    if isinstance(v, dict):
+        out = {}
+        for k, lst in v.items():
+            out[str(k)] = [str(x)[:40] for x in lst] if isinstance(lst, (list, tuple)) else str(lst)[:120]
+        return out
+    if isinstance(v, (list, tuple)):
+        return [str(x)[:40] for x in v]
+    return str(v)[:160]
+
+
+def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
+    case_dir = Path(case_dir)
+    manifest = json.loads((case_dir / "manifest.json").read_text(encoding="utf-8"))
+    exp_rel = manifest["exp_analysis"]["entry_file"]
+    exp_path = case_dir / "original" / "solution" / Path(exp_rel).name
+    if not exp_path.exists():
+        # fall back: search solution dir
+        cands = list((case_dir / "original" / "solution").glob("*.py"))
+        if not cands:
+            raise FileNotFoundError(f"no EXP under {case_dir}/original/solution")
+        exp_path = cands[0]
+    exp_source = exp_path.read_text(encoding="utf-8")
+    glibc = manifest.get("glibc", {}).get("version")
+
+    from pwnbao.features.heapviz.bridge_session import HeapSession
+    from pwnbao.features.heapviz.canvas_model import (
+        build_canvas_semantic_model, check_canvas_invariants,
+    )
+    session = HeapSession()
+    allocator = {"version": glibc} if glibc else None
+    state = session.load(source=exp_source, allocator=allocator)
+    canvas_models = []
+    invariant_reports = []
+    for st in state.get("steps", []):
+        if not isinstance(st, dict):
+            continue
+        model = build_canvas_semantic_model(st)
+        canvas_models.append(model)
+        invariant_reports.append({
+            "step": model["step"],
+            "violations": check_canvas_invariants(model, st),
+        })
+
+    out = {
+        "case_id": manifest["case_id"],
+        "case_dir": str(case_dir),
+        "exp_file": str(exp_path),
+        "glibc_version_claimed": glibc,
+        "analyzer": run_analyzer(exp_source),
+        "replay": run_replay(exp_source, glibc),
+        "canvas_semantic_model": {
+            "n_steps": len(canvas_models),
+            "steps": canvas_models,
+        },
+        "canvas_invariants": invariant_reports,
+    }
+    if out_path:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(json.dumps(out, ensure_ascii=False, indent=2, default=str),
+                            encoding="utf-8")
+        # side-car: renderer-input view only (token-friendly for review)
+        cm_path = out_path.parent / "canvas_semantic_model.json"
+        cm_path.write_text(json.dumps({
+            "case_id": out["case_id"],
+            "n_steps": len(canvas_models),
+            "steps": canvas_models,
+            "invariants": invariant_reports,
+        }, ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    return out

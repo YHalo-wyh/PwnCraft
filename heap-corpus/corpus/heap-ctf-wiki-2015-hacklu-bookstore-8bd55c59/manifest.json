@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore",
+    "ctf": null,
+    "year": 2015,
+    "year_provenance": "parsed_from_challenge_dirname_prefix",
+    "challenge_name": "2015_hacklu_bookstore",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "8bd55c59f21a73c06ae50ac064ff24bf63e8cb01a05f33a97f7b7c0d8efa917b",
+    "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.23",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/libc.so.6 (GNU C Library, Ubuntu GLIBC 2.23-0ubuntu10)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/books",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "log.info('step 1. chunk extend.')",
+              "payload += '\\x00' * 0x140  # padding for fake chunk"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/books",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/books",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/books",
+      "sha256": "8bd55c59f21a73c06ae50ac064ff24bf63e8cb01a05f33a97f7b7c0d8efa917b",
+      "size": 7272
+    },
+    {
+      "path": "original/challenge/books.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/books.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/books.i64",
+      "sha256": "6c0266bb21b811549aab913e6ddbb37eaef971250c0875fde825d388439cc9af",
+      "size": 181624
+    },
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/libc.so.6",
+      "sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+      "size": 1868984
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/exp.py",
+      "sha256": "532506f72b37dfaaf1caf6e34168b915364bd5eb95c11c62ce703bc17d025d65",
+      "size": 2506
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/exp.py",
+    "parse_ok": false,
+    "imports_pwntools": null,
+    "helpers": [],
+    "candidate_operations": [],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

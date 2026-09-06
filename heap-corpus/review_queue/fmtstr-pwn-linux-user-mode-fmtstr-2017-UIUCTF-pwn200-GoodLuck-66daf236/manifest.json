@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2017-UIUCTF-pwn200-GoodLuck-66daf236",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/fmtstr/2017-UIUCTF-pwn200-GoodLuck",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "2017-UIUCTF-pwn200-GoodLuck",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "66daf236ffea0308652cb08ae3c59ca52f2c55bb775c0200e1d8614992ad4e26",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "fmtstr",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/fmtstr/2017-UIUCTF-pwn200-GoodLuck/exp.py",
+      "role": "python",
+      "size": 315
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

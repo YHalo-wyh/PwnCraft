@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-eval' blob: data:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; worker-src 'self' blob: data:;" />
+  <title>PwnCraft</title>
+  <link rel="stylesheet" href="../node_modules/@xterm/xterm/css/xterm.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <nav id="activitybar" aria-label="活动栏"></nav>
+
+    <main id="main">
+      <div id="workspace-bar" hidden></div>
+
+      <div id="pages">
+        <section id="page-welcome" class="page" hidden></section>
+        <section id="page-binary" class="page" hidden></section>
+        <section id="page-exp" class="page" hidden>
+          <div id="exp-toolbar">
+            <span class="exp-title">exp.py</span>
+            <span class="flex-spacer"></span>
+            <button id="exp-template" class="btn">初始化模板</button>
+            <button id="exp-copy" class="btn">复制全部</button>
+            <button id="exp-save" class="btn primary">保存 (Ctrl+S)</button>
+          </div>
+          <div id="exp-body">
+            <div id="monaco-host"></div>
+            <div id="exp-tools"></div>
+            <div id="exp-chip-palette" class="pwncraft-palette"></div>
+          </div>
+        </section>
+        <section id="page-heap" class="page" hidden></section>
+        <section id="page-rop" class="page" hidden></section>
+        <section id="page-debug" class="page" hidden></section>
+        <section id="page-format" class="page" hidden></section>
+        <section id="page-syscall" class="page" hidden></section>
+        <section id="page-stack" class="page" hidden></section>
+        <section id="page-tools" class="page" hidden></section>
+      </div>
+
+      <div id="panel">
+        <div id="panel-tabs">
+          <span class="panel-title">终端</span>
+          <div id="terminal-tabs"></div>
+          <button class="panel-tab" data-panel="logs">日志 / 诊断</button>
+          <span class="flex-spacer"></span>
+          <span id="panel-cwd" class="panel-cwd" title=""></span>
+        </div>
+        <div id="panel-body">
+          <div id="terminal-page" class="panel-page">
+            <div id="terminal-hosts"></div>
+          </div>
+          <div id="logs-page" class="panel-page" hidden>
+            <div id="logs-filter-row">
+              <input id="logs-filter" type="text" placeholder="筛选日志消息…" />
+              <button id="logs-clear" class="btn">清空</button>
+            </div>
+            <div id="logs-list"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer id="statusbar">
+    <span id="status-left">PwnCraft</span>
+    <span class="flex-spacer"></span>
+    <span id="status-right">WSL · Electron</span>
+  </footer>
+
+  <div id="palette-overlay" hidden>
+    <div id="palette">
+      <input id="palette-input" type="text" placeholder="输入命令…" />
+      <div id="palette-list" role="listbox"></div>
+    </div>
+  </div>
+
+  <script src="../node_modules/@xterm/xterm/lib/xterm.js"></script>
+  <script src="../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+  <script src="icons.js"></script>
+  <script src="exp_completions.js"></script>
+  <script src="debug_completions.js"></script>
+  <script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+  <script src="heap.js"></script>
+  <script src="pages.js"></script>
+  <script src="exp_dnd.js"></script>
+  <script src="exp_palette.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

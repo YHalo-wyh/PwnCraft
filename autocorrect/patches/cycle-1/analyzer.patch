@@ -1,0 +1,11 @@
+--- patches/cycle-1/analyzer.py.pre	2026-09-03 20:05:10.058340600 +0800
++++ ../pwn宝/pwnbao/features/heapviz/analyzer.py	2026-09-03 20:05:38.711863400 +0800
+@@ -15,7 +15,7 @@
+ # 识别器行为修订号：进入训练样本 engine.recognizer_revision。任何影响
+ # 识别结果的改动（语义表/规则消费/报告结构）都必须递增 —— 三个月后旧
+ # 样本是哪个识别器生成的，靠它回答。
+-RECOGNIZER_REVISION = "recognizer-2026.09-r2"
++RECOGNIZER_REVISION = "recognizer-2026.09-r3"  # r3: cycle-1 prompt-sync vs output-dataflow evidence reclassification
+ from pwnbao.features.heapviz.semantics import (
+     BehaviorEffectExpander,
+     CallTarget,

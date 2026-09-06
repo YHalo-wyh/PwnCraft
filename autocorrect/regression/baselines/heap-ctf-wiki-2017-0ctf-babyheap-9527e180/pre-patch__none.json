@@ -1,0 +1,710 @@
+{
+  "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+  "label": "pre-patch",
+  "patch_id": "none",
+  "digest": "afa9a97df34d83cf",
+  "fingerprint": {
+    "recognizer_revision": "recognizer-2026.09-r2",
+    "n_ops": 28,
+    "helper_contracts": [
+      {
+        "function": "allocate",
+        "operation": "unknown",
+        "candidate_operation": "alloc",
+        "confidence": "candidate",
+        "evidence_sources": [
+          "NAME_CANDIDATE"
+        ],
+        "roles": [],
+        "role_params": []
+      },
+      {
+        "function": "dump",
+        "operation": "show",
+        "candidate_operation": "unknown",
+        "confidence": "structural",
+        "evidence_sources": [
+          "STRUCTURAL_BODY"
+        ],
+        "roles": [
+          "index"
+        ],
+        "role_params": [
+          [
+            "idx",
+            "index"
+          ]
+        ]
+      },
+      {
+        "function": "exp",
+        "operation": "unknown",
+        "candidate_operation": "unknown",
+        "confidence": "unknown",
+        "evidence_sources": [],
+        "roles": [],
+        "role_params": []
+      },
+      {
+        "function": "fill",
+        "operation": "edit",
+        "candidate_operation": "unknown",
+        "confidence": "structural",
+        "evidence_sources": [
+          "STRUCTURAL_BODY"
+        ],
+        "roles": [
+          "data",
+          "index",
+          "length",
+          "offset",
+          "size"
+        ],
+        "role_params": [
+          [
+            "",
+            "length"
+          ],
+          [
+            "",
+            "offset"
+          ],
+          [
+            "content",
+            "data"
+          ],
+          [
+            "idx",
+            "index"
+          ],
+          [
+            "size",
+            "size"
+          ]
+        ]
+      },
+      {
+        "function": "free",
+        "operation": "show",
+        "candidate_operation": "unknown",
+        "confidence": "structural",
+        "evidence_sources": [
+          "STRUCTURAL_BODY"
+        ],
+        "roles": [
+          "index"
+        ],
+        "role_params": [
+          [
+            "idx",
+            "index"
+          ]
+        ]
+      },
+      {
+        "function": "offset_bin_main_arena",
+        "operation": "unknown",
+        "candidate_operation": "unknown",
+        "confidence": "unknown",
+        "evidence_sources": [],
+        "roles": [],
+        "role_params": []
+      }
+    ],
+    "op_sequence": [
+      [
+        62,
+        "alloc",
+        0,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        63,
+        "alloc",
+        1,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        64,
+        "alloc",
+        2,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        65,
+        "alloc",
+        3,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        66,
+        "alloc",
+        4,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        68,
+        "show",
+        2,
+        "?allocator request unproven"
+      ],
+      [
+        69,
+        "show",
+        1,
+        "?allocator request unproven"
+      ],
+      [
+        72,
+        "edit",
+        0,
+        "?allocator request unproven"
+      ],
+      [
+        75,
+        "edit",
+        3,
+        "?allocator request unproven"
+      ],
+      [
+        76,
+        "alloc",
+        5,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        77,
+        "alloc",
+        6,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        80,
+        "edit",
+        3,
+        "?allocator request unproven"
+      ],
+      [
+        82,
+        "alloc",
+        7,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        83,
+        "show",
+        4,
+        "?allocator request unproven"
+      ],
+      [
+        85,
+        "show",
+        2,
+        "?allocator request unproven"
+      ],
+      [
+        87,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        88,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        91,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        96,
+        "alloc",
+        8,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        97,
+        "show",
+        4,
+        "?allocator request unproven"
+      ],
+      [
+        99,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        101,
+        "edit",
+        2,
+        "?allocator request unproven"
+      ],
+      [
+        103,
+        "alloc",
+        9,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        104,
+        "alloc",
+        10,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        106,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        107,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        108,
+        "edit",
+        6,
+        "?allocator request unproven"
+      ],
+      [
+        110,
+        "alloc",
+        11,
+        "?menu request is not proof of allocator r"
+      ]
+    ],
+    "replay_steps": [
+      [
+        0,
+        0,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        1,
+        1,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x10"
+          ]
+        ]
+      ],
+      [
+        2,
+        2,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x10"
+          ]
+        ]
+      ],
+      [
+        3,
+        3,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x10"
+          ]
+        ]
+      ],
+      [
+        4,
+        4,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x10"
+          ]
+        ]
+      ],
+      [
+        5,
+        5,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x80"
+          ]
+        ]
+      ],
+      [
+        6,
+        5,
+        false,
+        [
+          [
+            "0x20",
+            [
+              "C"
+            ]
+          ]
+        ],
+        [],
+        [],
+        [
+          [
+            "free",
+            "fastbin[0x20]"
+          ]
+        ]
+      ],
+      [
+        7,
+        5,
+        false,
+        [
+          [
+            "0x20",
+            [
+              "B",
+              "C"
+            ]
+          ]
+        ],
+        [],
+        [],
+        [
+          [
+            "free",
+            "fastbin[0x20]"
+          ]
+        ]
+      ],
+      [
+        8,
+        5,
+        false,
+        [
+          [
+            "0x20",
+            [
+              "B",
+              "C"
+            ]
+          ]
+        ],
+        [],
+        [],
+        []
+      ],
+      [
+        9,
+        5,
+        false,
+        [
+          [
+            "0x20",
+            [
+              "B",
+              "C"
+            ]
+          ]
+        ],
+        [],
+        [],
+        []
+      ],
+      [
+        10,
+        6,
+        false,
+        [
+          [
+            "0x20",
+            [
+              "C"
+            ]
+          ]
+        ],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x10"
+          ]
+        ]
+      ],
+      [
+        11,
+        7,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x10"
+          ]
+        ]
+      ],
+      [
+        12,
+        7,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        13,
+        8,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x80"
+          ]
+        ]
+      ],
+      [
+        14,
+        8,
+        false,
+        [],
+        [],
+        [
+          "E"
+        ],
+        [
+          [
+            "free",
+            "unsorted"
+          ]
+        ]
+      ],
+      [
+        15,
+        8,
+        false,
+        [],
+        [],
+        [
+          "E"
+        ],
+        []
+      ],
+      [
+        16,
+        8,
+        false,
+        [],
+        [],
+        [
+          "E"
+        ],
+        []
+      ],
+      [
+        17,
+        8,
+        false,
+        [],
+        [],
+        [
+          "E"
+        ],
+        []
+      ],
+      [
+        18,
+        8,
+        false,
+        [],
+        [],
+        [
+          "E"
+        ],
+        []
+      ],
+      [
+        19,
+        10,
+        false,
+        [],
+        [],
+        [
+          "remainder_0007"
+        ],
+        [
+          [
+            "alloc",
+            "0x60"
+          ]
+        ]
+      ],
+      [
+        20,
+        10,
+        false,
+        [
+          [
+            "0x70",
+            [
+              "I"
+            ]
+          ]
+        ],
+        [],
+        [
+          "remainder_0007"
+        ],
+        [
+          [
+            "free",
+            "fastbin[0x70]"
+          ]
+        ]
+      ],
+      [
+        21,
+        10,
+        false,
+        [
+          [
+            "0x70",
+            [
+              "I"
+            ]
+          ]
+        ],
+        [],
+        [
+          "remainder_0007"
+        ],
+        []
+      ],
+      [
+        22,
+        10,
+        false,
+        [
+          [
+            "0x70",
+            [
+              "I"
+            ]
+          ]
+        ],
+        [],
+        [
+          "remainder_0007"
+        ],
+        []
+      ],
+      [
+        23,
+        11,
+        false,
+        [],
+        [],
+        [
+          "remainder_0007"
+        ],
+        [
+          [
+            "alloc",
+            "0x60"
+          ]
+        ]
+      ],
+      [
+        24,
+        12,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x60"
+          ]
+        ]
+      ],
+      [
+        25,
+        12,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        26,
+        12,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        27,
+        12,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        28,
+        13,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x100"
+          ]
+        ]
+      ]
+    ],
+    "replay_n_steps": 29
+  },
+  "note": "reconstructed pre-patch state after revert (bootstrap case)",
+  "intentional_delta": []
+}

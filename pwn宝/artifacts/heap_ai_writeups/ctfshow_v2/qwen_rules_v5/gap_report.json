@@ -1,0 +1,23 @@
+{
+  "counts": {
+    "golden_ir_review_required": 3,
+    "static_previewed_uninvoked_entrypoint": 3
+  },
+  "examples": {
+    "static_previewed_uninvoked_entrypoint": [
+      "local.ctfshow.pwn167",
+      "local.ctfshow.pwn168",
+      "local.ctfshow.pwn169"
+    ],
+    "golden_ir_review_required": [
+      "local.ctfshow.pwn167",
+      "local.ctfshow.pwn168",
+      "local.ctfshow.pwn169"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

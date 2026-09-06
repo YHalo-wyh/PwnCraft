@@ -1,0 +1,22 @@
+{
+  "name": "pwnbao-electron",
+  "productName": "PwnCraft",
+  "version": "0.32.0",
+  "description": "PwnCraft Electron Workbench (Phase B): 全功能迁移 + 堆物理仿真重构 + 画布自学习 + pwndbg-mogai 调试终端",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "smoke": "electron . --smoke"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  },
+  "dependencies": {
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
+    "lucide-static": "^0.462.0",
+    "monaco-editor": "^0.52.0",
+    "node-pty": "^1.0.0"
+  }
+}

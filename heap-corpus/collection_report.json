@@ -1,0 +1,1517 @@
+{
+  "schema_version": "1.0",
+  "batch": "batch-1",
+  "generated_at": "2026-09-03T09:53:51.250710Z",
+  "repositories_scanned": [
+    {
+      "url": "https://github.com/shellphish/how2heap",
+      "owner": "shellphish",
+      "repository": "how2heap",
+      "commit_sha": "02da6aa26a44e5af2a67057876d7c6669a207f56",
+      "license": "MIT (LICENSE at repo root, Copyright (c) 2020 Shellphish)",
+      "ctf": null,
+      "year": null,
+      "source_class": "curator_archive",
+      "kind": "technique_demo_collection",
+      "staged_units": 17,
+      "staging_path": "C:/Users/WYH/Desktop/pwn宝/heap-corpus/_repos/how2heap"
+    },
+    {
+      "url": "https://github.com/ctf-wiki/ctf-challenges",
+      "owner": "ctf-wiki",
+      "repository": "ctf-challenges",
+      "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+      "license": null,
+      "ctf": null,
+      "year": null,
+      "source_class": "curator_archive",
+      "kind": "ctf_example_collection",
+      "staged_units": 162,
+      "staging_path": "C:/Users/WYH/Desktop/pwn宝/heap-corpus/_repos/ctf-challenges"
+    }
+  ],
+  "scan_scope": [
+    "how2heap: full checkout (excluding glibc-all-in-one submodule and ci/)",
+    "ctf-wiki/ctf-challenges: full checkout at commit 18d67d1 (2588 files, 162 challenge units incl. kernel/mips/arm/fmtstr/stack dirs; scope rules rejected them)"
+  ],
+  "challenges_found": 179,
+  "heap_candidates": 35,
+  "gold_cases": 8,
+  "silver_cases": 3,
+  "review_queue": 2,
+  "bronze_indexed": 22,
+  "rejected_cases": 144,
+  "rejection_reasons": {
+    "NO_BINARY": 79,
+    "UNSUPPORTED_ARCH": 29,
+    "WINDOWS_HEAP": 3,
+    "INSUFFICIENT_EVIDENCE": 19,
+    "NO_EXP": 4,
+    "KERNEL": 10
+  },
+  "duplicates": {
+    "groups": 0,
+    "detail": []
+  },
+  "method_notes": [
+    "Static analysis only; no challenge binary was executed.",
+    "Candidate universe per repo = challenge units clustered from staged (sparse) checkouts curated by the collector.",
+    "heap_confidence HIGH requires >=2 independent evidence classes (source/binary, exp, docs).",
+    "glibc version only claimed from shipped libc/ld banner strings; Dockerfile FROM recorded as hint only.",
+    "EXP correctness NOT verified (collector role, not solver); recorded as exp_correctness_unverified.",
+    "Original files copied verbatim; SHA256 verified after copy; staging repos are pristine clones.",
+    "Duplicate grouping by binary SHA256; non-canonical duplicates excluded from corpus, provenance kept."
+  ],
+  "cases": {
+    "gold": [
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore",
+        "challenge_name": "2015_hacklu_bookstore",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59\\manifest.json",
+        "issues": []
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13",
+        "challenge_name": "hitcontraning_lab13",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\manifest.json",
+        "issues": []
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine",
+        "challenge_name": "2015_9447ctf_search-engine",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-2015-9447ctf-search-engine-3a28f615",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2015-9447ctf-search-engine-3a28f615\\manifest.json",
+        "issues": []
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap",
+        "challenge_name": "2017_0ctf_babyheap",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\manifest.json",
+        "issues": []
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof",
+        "challenge_name": "2014_hitcon_stkof",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-2014-hitcon-stkof-13e0c84f",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2014-hitcon-stkof-13e0c84f\\manifest.json",
+        "issues": []
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2",
+        "challenge_name": "2016_zctf_note2",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\manifest.json",
+        "issues": []
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots",
+        "challenge_name": "2017_insomni'hack_wheelofrobots",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52\\manifest.json",
+        "issues": []
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage",
+        "challenge_name": "zerostorage",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "GOLD",
+        "case_id": "heap-ctf-wiki-zerostorage-c06ff06c",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-zerostorage-c06ff06c\\manifest.json",
+        "issues": []
+      }
+    ],
+    "silver": [
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11",
+        "challenge_name": "hitcontraning_lab11",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "SILVER",
+        "case_id": "heap-ctf-wiki-hitcontraning-lab11-6f1c67fb",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-hitcontraning-lab11-6f1c67fb\\manifest.json",
+        "issues": [
+          "environment incomplete (no shipped libc/ld/docker)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks",
+        "challenge_name": "Asis_2016_b00ks",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "SILVER",
+        "case_id": "heap-ctf-wiki-asis-2016-b00ks-2db4fc27",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-asis-2016-b00ks-2db4fc27\\manifest.json",
+        "issues": [
+          "environment incomplete (no shipped libc/ld/docker)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14",
+        "challenge_name": "hitcontraining_lab14",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "HIGH",
+        "tier": "SILVER",
+        "case_id": "heap-ctf-wiki-hitcontraining-lab14-0fd2b3ed",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-hitcontraining-lab14-0fd2b3ed\\manifest.json",
+        "issues": [
+          "environment incomplete (no shipped libc/ld/docker)"
+        ]
+      }
+    ],
+    "review": [
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/fake_frame/over",
+        "challenge_name": "over",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "REVIEW",
+        "reason": null,
+        "case_id": "heap-ctf-wiki-over-376262cd",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-over-376262cd\\manifest.json",
+        "issues": [
+          "heap evidence MEDIUM: awaiting second review"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "reverse/instrument/NDH2k13-crackme-500",
+        "challenge_name": "NDH2k13-crackme-500",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "REVIEW",
+        "reason": null,
+        "case_id": "heap-ctf-wiki-ndh2k13-crackme-500-0757146d",
+        "manifest": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-ndh2k13-crackme-500-0757146d\\manifest.json",
+        "issues": [
+          "heap evidence MEDIUM: awaiting second review"
+        ]
+      }
+    ],
+    "bronze": [
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.23",
+        "challenge_name": "glibc_2.23",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.24",
+        "challenge_name": "glibc_2.24",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.27",
+        "challenge_name": "glibc_2.27",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.31",
+        "challenge_name": "glibc_2.31",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.32",
+        "challenge_name": "glibc_2.32",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.33",
+        "challenge_name": "glibc_2.33",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.34",
+        "challenge_name": "glibc_2.34",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.35",
+        "challenge_name": "glibc_2.35",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.36",
+        "challenge_name": "glibc_2.36",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.37",
+        "challenge_name": "glibc_2.37",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.38",
+        "challenge_name": "glibc_2.38",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.39",
+        "challenge_name": "glibc_2.39",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.40",
+        "challenge_name": "glibc_2.40",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.41",
+        "challenge_name": "glibc_2.41",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.42",
+        "challenge_name": "glibc_2.42",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "glibc_2.43",
+        "challenge_name": "glibc_2.43",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/shellphish/how2heap",
+        "unit": "obsolete",
+        "challenge_name": "obsolete",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "misc/cap/Xman三期夏令营排位赛练习题-AutoKey/Cryptanalysis-of-the-Autokey-Cipher",
+        "challenge_name": "Cryptanalysis-of-the-Autokey-Cipher",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_BINARY)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/chunk-extend-shrink/2016_NuitduHack_nightdeamonicheap",
+        "challenge_name": "2016_NuitduHack_nightdeamonicheap",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_EXP)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/off_by_one/2015_plaidctf_datastore",
+        "challenge_name": "2015_plaidctf_datastore",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_EXP)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/unlink/ZCTF_2016_note3",
+        "challenge_name": "ZCTF_2016_note3",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_EXP)"
+        ]
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/unsorted_bin_attack/how2heap",
+        "challenge_name": "how2heap",
+        "ctf": null,
+        "year": null,
+        "heap_confidence": "MEDIUM",
+        "tier": "BRONZE",
+        "issues": [
+          "attachments/writeup only (pre-reject=NO_EXP)"
+        ]
+      }
+    ],
+    "rejected": [
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "android/basic_reverse/dynamic/2014-阿里安全挑战赛-自毁程序密码/AliCrackme-O",
+        "challenge_name": "AliCrackme-O",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "android/basic_reverse/dynamic/基本动态调试",
+        "challenge_name": "基本动态调试",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "android/basic_reverse/static/2015-海峡两岸一个APK，逆向试试吧",
+        "challenge_name": "2015-海峡两岸一个APK，逆向试试吧",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "android/basic_reverse/static/2017-ISCC-crackone",
+        "challenge_name": "2017-ISCC-crackone",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "android/basic_reverse/static/2017-NJCTF-easycrack",
+        "challenge_name": "2017-NJCTF-easycrack",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "android/basic_reverse/static/2017-XMAN-HelloSmali2",
+        "challenge_name": "2017-XMAN-HelloSmali2",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "android/basic_reverse/static/2018-QWB-picturelock",
+        "challenge_name": "2018-QWB-picturelock",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/conf",
+        "challenge_name": "conf",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/Sections",
+        "challenge_name": "Sections",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/pow",
+        "challenge_name": "pow",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/text",
+        "challenge_name": "text",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/ui",
+        "challenge_name": "ui",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/checker",
+        "challenge_name": "checker",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/deployer",
+        "challenge_name": "deployer",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/interface",
+        "challenge_name": "interface",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/JOP/realworld2021/rwctf3rd-Re-Montagy/deploy/ethbot/src/utils/prettyprint",
+        "challenge_name": "prettyprint",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/Randomness/hctf2018/bet2loss/bet2loss",
+        "challenge_name": "bet2loss",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/Randomness/hctf2018/bet2loss/core",
+        "challenge_name": "core",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/Randomness/hctf2018/bet2loss/web/migrations",
+        "challenge_name": "migrations",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2018/hctf/bet2loss/bet2loss",
+        "challenge_name": "bet2loss",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2018/hctf/bet2loss/core",
+        "challenge_name": "core",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2018/hctf/bet2loss/web/migrations",
+        "challenge_name": "migrations",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2018/hctf/ethre",
+        "challenge_name": "ethre",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2018/wctf/BelluminarBank/mimicdb/server/bower_components",
+        "challenge_name": "bower_components",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2019/de1ctf/EasyEOS/attack",
+        "challenge_name": "attack",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2019/de1ctf/EasyEOS/attack4",
+        "challenge_name": "attack4",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2019/de1ctf/EasyEOS/easyeos",
+        "challenge_name": "easyeos",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/conf",
+        "challenge_name": "conf",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/Sections",
+        "challenge_name": "Sections",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/pow",
+        "challenge_name": "pow",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/text",
+        "challenge_name": "text",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/banner/ui",
+        "challenge_name": "ui",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/checker",
+        "challenge_name": "checker",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/deployer",
+        "challenge_name": "deployer",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/interface",
+        "challenge_name": "interface",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "blockchain/all_challenges/2021/realworld/rwctf3rd-Re-Montagy/deploy/ethbot/src/utils/prettyprint",
+        "challenge_name": "prettyprint",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/discrete-log/2013 SECCON CTF quals Cryptanalysis",
+        "challenge_name": "2013 SECCON CTF quals Cryptanalysis",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/discrete-log/2013-SECCON-CTF-quals-Cryptanalysis",
+        "challenge_name": "2013-SECCON-CTF-quals-Cryptanalysis",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/discrete-log/2015-MMA-CTF Alicegame",
+        "challenge_name": "2015-MMA-CTF Alicegame",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/discrete-log/2018-CodeBlue-lagalem",
+        "challenge_name": "2018-CodeBlue-lagalem",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/chosen-plain-cipher-attack/2018-Googlectf-Perfect-Secrecy",
+        "challenge_name": "2018-Googlectf-Perfect-Secrecy",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/chosen-plain-cipher-attack/2018-hitcon-lostkey",
+        "challenge_name": "2018-hitcon-lostkey",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/complex/2018-TokyoWestern-MixedCipher",
+        "challenge_name": "2018-TokyoWestern-MixedCipher",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/complex/2018-WCTF-rsa",
+        "challenge_name": "2018-WCTF-rsa",
+        "reason": "WINDOWS_HEAP",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/coppersmith-related-attack/2015-PlaidCTF-CTF-Curious",
+        "challenge_name": "2015-PlaidCTF-CTF-Curious",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/coppersmith-related-attack/2016-HCTF-RSA2",
+        "challenge_name": "2016-HCTF-RSA2",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/coppersmith-related-attack/2017-xman-奇怪的RSA/attach",
+        "challenge_name": "attach",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/coppersmith-related-attack/2017-xman-奇怪的RSA/writeup",
+        "challenge_name": "writeup",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/coppersmith-related-attack/2019-defcon-quals-ASRybaB",
+        "challenge_name": "2019-defcon-quals-ASRybaB",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/coppersmith-related-attack/sctf-rsa3-level3/mayday",
+        "challenge_name": "mayday",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/coppersmith-related-attack/sctf-rsa3-level4",
+        "challenge_name": "sctf-rsa3-level4",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/d-attack/2016-HCTF-RSA1/rsa-wiener-attack",
+        "challenge_name": "rsa-wiener-attack",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/e-attack/Jarvis OJ-Extremely hard RSA",
+        "challenge_name": "Jarvis OJ-Extremely hard RSA",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/e-attack/Jarvis OJ-hard RSA",
+        "challenge_name": "Jarvis OJ-hard RSA",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/module-attack/2016-ASIS-rsa",
+        "challenge_name": "2016-ASIS-rsa",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/module-attack/2017_SECCON_verysmooth",
+        "challenge_name": "2017_SECCON_verysmooth",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/module-attack/JarvisOJ-veryhardRSA",
+        "challenge_name": "JarvisOJ-veryhardRSA",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/module-attack/Xman-1-class-exercise",
+        "challenge_name": "Xman-1-class-exercise",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/module-attack/sctf-rsa2",
+        "challenge_name": "sctf-rsa2",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/rsa-theory/2018-codegate-rsababy",
+        "challenge_name": "2018-codegate-rsababy",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/rsa-theory/2018-pwnhub-lhy",
+        "challenge_name": "2018-pwnhub-lhy",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/rsa-theory/2018-国家安全周第一场-puremath",
+        "challenge_name": "2018-国家安全周第一场-puremath",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/rsa-theory/JarvisOJ-Basic-easyRSA",
+        "challenge_name": "JarvisOJ-Basic-easyRSA",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/rsa-theory/JarvisOJ-Basic-veryeasyRSA",
+        "challenge_name": "JarvisOJ-Basic-veryeasyRSA",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/tobedone/sctf-rsa1/level0",
+        "challenge_name": "level0",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/tobedone/sctf-rsa1/level1",
+        "challenge_name": "level1",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/asymmetric/rsa/tobedone/sctf-rsa1/level2",
+        "challenge_name": "level2",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/blockcipher/aes/cracemec",
+        "challenge_name": "cracemec",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/blockcipher/aes/revolver",
+        "challenge_name": "revolver",
+        "reason": "NO_EXP",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/blockcipher/des/baby_N1ES/.ropeproject",
+        "challenge_name": ".ropeproject",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/blockcipher/des/partdes-CISCN-2019",
+        "challenge_name": "partdes-CISCN-2019",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/blockcipher/padding-oracle-attack/2017_hitcon_secret_server",
+        "challenge_name": "2017_hitcon_secret_server",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/blockcipher/padding-oracle-attack/2017_hitcon_secret_server_revenge/secretserver2zip",
+        "challenge_name": "secretserver2zip",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/blockcipher/padding-oracle-attack/2018-Teaser-Dragon-CTF-AES-128-TSB",
+        "challenge_name": "2018-Teaser-Dragon-CTF-AES-128-TSB",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/hash/2017_34c3_software_update/software_update/software_update_",
+        "challenge_name": "software_update_",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/hash/2017_34c3_software_update/software_update/src",
+        "challenge_name": "src",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/hash/2017_seccon_sha1_is_dead",
+        "challenge_name": "2017_seccon_sha1_is_dead",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/hash/2018-网鼎杯-hashcoll",
+        "challenge_name": "2018-网鼎杯-hashcoll",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/signature/rsa/2018-BackdoorCTF-Awesome-mix1",
+        "challenge_name": "2018-BackdoorCTF-Awesome-mix1",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/signature/rsa/2018-BackdoorCTF-Awesome-mix2",
+        "challenge_name": "2018-BackdoorCTF-Awesome-mix2",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/streamcipher/fsr/lfsr/2018-CISCN-start-oldstreamgame",
+        "challenge_name": "2018-CISCN-start-oldstreamgame",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/streamcipher/fsr/lfsr/2018-强网杯-streamgame1",
+        "challenge_name": "2018-强网杯-streamgame1",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/streamcipher/prng/2016_google_ctf_woodman",
+        "challenge_name": "2016_google_ctf_woodman",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "crypto/streamcipher/prng/2017_tokyowesterns_backpackers_problem",
+        "challenge_name": "2017_tokyowesterns_backpackers_problem",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "executable/elf",
+        "challenge_name": "elf",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "misc/cap/Xman三期夏令营排位赛练习题-AutoKey/example",
+        "challenge_name": "example",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/0CTF2018-baby",
+        "challenge_name": "0CTF2018-baby",
+        "reason": "KERNEL",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/CISCN2017-babydriver",
+        "challenge_name": "CISCN2017-babydriver",
+        "reason": "KERNEL",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/D3CTF2023-d3kcache",
+        "challenge_name": "D3CTF2023-d3kcache",
+        "reason": "KERNEL",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/MINILCTF2022-kgadget",
+        "challenge_name": "MINILCTF2022-kgadget",
+        "reason": "KERNEL",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/QWB2018-core",
+        "challenge_name": "QWB2018-core",
+        "reason": "KERNEL",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/RWCTF2022-digging-into-kernel-2",
+        "challenge_name": "RWCTF2022-digging-into-kernel-2",
+        "reason": "KERNEL",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/RWCTF2023-digging-into-kernel-3",
+        "challenge_name": "RWCTF2023-digging-into-kernel-3",
+        "reason": "KERNEL",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/Unknown2023-kbook",
+        "challenge_name": "Unknown2023-kbook",
+        "reason": "KERNEL",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/XHLJ2021-easykernel",
+        "challenge_name": "XHLJ2021-easykernel",
+        "reason": "KERNEL",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/kernel-mode/corCTF2022-cache-of-castaways",
+        "challenge_name": "corCTF2022-cache-of-castaways",
+        "reason": "KERNEL",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/arm/Codegate2018_Melong/lib",
+        "challenge_name": "lib",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/arm/Shanghai2018_baby_arm",
+        "challenge_name": "Shanghai2018_baby_arm",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/arm/jarvisOJ_typo",
+        "challenge_name": "jarvisOJ_typo",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/2015-CSAW-contacts",
+        "challenge_name": "2015-CSAW-contacts",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "HIGH"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/2016-CCTF-pwn3",
+        "challenge_name": "2016-CCTF-pwn3",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/2017-UIUCTF-pwn200-GoodLuck",
+        "challenge_name": "2017-UIUCTF-pwn200-GoodLuck",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/blind_fmt_got",
+        "challenge_name": "blind_fmt_got",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/blind_fmt_stack",
+        "challenge_name": "blind_fmt_stack",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/leakmemory",
+        "challenge_name": "leakmemory",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/overwrite",
+        "challenge_name": "overwrite",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/fmtstr/三个白帽-pwnme_k0",
+        "challenge_name": "三个白帽-pwnme_k0",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/fastbin-attack/2014_hack.lu_oreo",
+        "challenge_name": "2014_hack.lu_oreo",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "HIGH"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/house-of-force/2016_bctf_bcloud",
+        "challenge_name": "2016_bctf_bcloud",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "HIGH"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/heap/house-of-force/2016_boston_key_party_ctf_cookbook",
+        "challenge_name": "2016_boston_key_party_ctf_cookbook",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/brop",
+        "challenge_name": "brop",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/fake_frame/StarCTF2018-note",
+        "challenge_name": "StarCTF2018-note",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/partial_overwrite/2018-xnuca-gets",
+        "challenge_name": "2018-xnuca-gets",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2__libc_csu_init/2016-XDCTF-pwn100",
+        "challenge_name": "2016-XDCTF-pwn100",
+        "reason": "NO_EXP",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2__libc_csu_init/hitcon-level5",
+        "challenge_name": "hitcon-level5",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-blinkroot",
+        "challenge_name": "2015-hitcon-quals-blinkroot",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-readable",
+        "challenge_name": "2015-hitcon-quals-readable",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/full-relro",
+        "challenge_name": "full-relro",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/no-relro",
+        "challenge_name": "no-relro",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/partial-relro",
+        "challenge_name": "partial-relro",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/no-relro",
+        "challenge_name": "no-relro",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/partial-relro",
+        "challenge_name": "partial-relro",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1",
+        "challenge_name": "ret2libc1",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc2",
+        "challenge_name": "ret2libc2",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc3",
+        "challenge_name": "ret2libc3",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2libc/train.cs.nctu.edu.tw",
+        "challenge_name": "train.cs.nctu.edu.tw",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2shellcode/ret2shellcode-example",
+        "challenge_name": "ret2shellcode-example",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2shellcode/sniperoj-pwn100-shellcode-x86-64",
+        "challenge_name": "sniperoj-pwn100-shellcode-x86-64",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2syscall",
+        "challenge_name": "ret2syscall",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "MEDIUM"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/ret2text",
+        "challenge_name": "ret2text",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/rop/2013-PlaidCTF-ropasaurusrex",
+        "challenge_name": "2013-PlaidCTF-ropasaurusrex",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/rop/2015-Defcon Qualifier R0pbaby",
+        "challenge_name": "2015-Defcon Qualifier R0pbaby",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/rop/train.cs.nctu.edu.tw-rop",
+        "challenge_name": "train.cs.nctu.edu.tw-rop",
+        "reason": "NO_BINARY",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/srop/2015-defcon-fakeup",
+        "challenge_name": "2015-defcon-fakeup",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/srop/2016-360春秋杯-srop",
+        "challenge_name": "2016-360春秋杯-srop",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/stackoverflow-intro",
+        "challenge_name": "stackoverflow-intro",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/stackprivot/EkoPartyCTF 2016 fuckzing-exploit-200",
+        "challenge_name": "EkoPartyCTF 2016 fuckzing-exploit-200",
+        "reason": "NO_EXP",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/stackprivot/X-CTF Quals 2016 - b0verfl0w",
+        "challenge_name": "X-CTF Quals 2016 - b0verfl0w",
+        "reason": "UNSUPPORTED_ARCH",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/stacksmashes/guess",
+        "challenge_name": "guess",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/stacksmashes/smashes",
+        "challenge_name": "smashes",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "pwn/linux/user-mode/stackoverflow/windows",
+        "challenge_name": "windows",
+        "reason": "WINDOWS_HEAP",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "reverse/anti-debug/2016_seccon",
+        "challenge_name": "2016_seccon",
+        "reason": "WINDOWS_HEAP",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "reverse/instrument/hxpCTF-2017-main_strip",
+        "challenge_name": "hxpCTF-2017-main_strip",
+        "reason": "NO_EXP",
+        "heap_confidence": "LOW"
+      },
+      {
+        "repo_url": "https://github.com/ctf-wiki/ctf-challenges",
+        "unit": "reverse/instrument/xman2018_ollvm",
+        "challenge_name": "xman2018_ollvm",
+        "reason": "INSUFFICIENT_EVIDENCE",
+        "heap_confidence": "LOW"
+      }
+    ]
+  }
+}

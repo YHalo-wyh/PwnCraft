@@ -1,0 +1,13 @@
+[
+  {
+    "from_version_file": "pre-patch__none.json",
+    "patch_id": "cycle-2",
+    "dimensions": [
+      "recognizer_revision",
+      "helper_contracts",
+      "op_sequence",
+      "replay_steps"
+    ],
+    "note": "parse unlock: 0->4 contracts, 0->13 ops"
+  }
+]

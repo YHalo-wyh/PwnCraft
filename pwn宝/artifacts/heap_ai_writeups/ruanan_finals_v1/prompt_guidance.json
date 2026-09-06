@@ -1,0 +1,1105 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "purpose": "local prompt/rule guidance; not model-weight training",
+  "prompt_reminders": [
+    "EXP 是源码事实；不要执行 EXP，也不要把注释/利用意图提升为 allocator 事实。",
+    "只输出 JSON；最多给一个最高价值 proposal；没有把握时 proposals 为空。",
+    "source_start/source_end 必须是 exp_source 的字节偏移，source_text 必须等于 exp_source[start:end]。",
+    "helper_mapping 只描述 helper 的语义、函数名、参数 roles；menu choice 常量不能当成 chunk index。",
+    "copy/move/memcpy 统一用 semantic=copy，roles 使用 src/dst/length；方向不确定时不要提交。",
+    "login/select/use 之后的 edit_bio(size,payload) 这类对象字段写入使用 active index；size 不是 index。",
+    "fd/bk、consolidate、safe-linking 等只能通过 heap_rule_call 或可重放 operation 表达，不能直接改图。",
+    "Pwndbg 粘贴才是 observed；静态源码和 AI 推断只能标 inferred/assumed。"
+  ],
+  "structured_output_contract": {
+    "root_keys": [
+      "source_hash",
+      "proposals",
+      "diagnostics"
+    ],
+    "proposal_keys": [
+      "proposal_id",
+      "action",
+      "source_start",
+      "source_end",
+      "source_text",
+      "confidence",
+      "rationale",
+      "payload_json"
+    ],
+    "preferred_actions": [
+      "helper_mapping",
+      "heap_rule_call",
+      "replace_operation",
+      "insert_after",
+      "branch_choice",
+      "memory_annotation"
+    ]
+  },
+  "rule_output_examples": [
+    {
+      "name": "custom delete/free helper",
+      "proposal": {
+        "action": "helper_mapping",
+        "payload_json": "{\"semantic\":\"free\",\"function\":\"destroy\",\"roles\":[\"index\"],\"arity\":1,\"parameter_names\":[\"idx\"]}"
+      }
+    },
+    {
+      "name": "copy helper",
+      "proposal": {
+        "action": "helper_mapping",
+        "payload_json": "{\"semantic\":\"copy\",\"function\":\"copy_chunk\",\"roles\":[\"src\",\"dst\",\"length\"],\"arity\":3,\"parameter_names\":[\"src\",\"dst\",\"length\"]}"
+      }
+    },
+    {
+      "name": "selected object field edit",
+      "proposal": {
+        "action": "helper_mapping",
+        "payload_json": "{\"semantic\":\"edit\",\"function\":\"edit_bio\",\"roles\":[\"size\",\"data\"],\"arity\":2,\"parameter_names\":[\"size\",\"payload\"]}"
+      }
+    },
+    {
+      "name": "catalog rule call",
+      "proposal": {
+        "action": "heap_rule_call",
+        "payload_json": "{\"rule_id\":\"allocator.consolidate\",\"arguments\":{\"trigger\":\"large_malloc\"},\"placement\":\"insert_after\"}"
+      }
+    }
+  ],
+  "discovered_helper_summary": {
+    "by_semantic": {
+      "alloc": 9,
+      "copy": 9,
+      "edit": 15,
+      "free": 12,
+      "show": 17
+    },
+    "top_functions": {
+      "edit": 12,
+      "add": 9,
+      "show": 9,
+      "delete": 9,
+      "copy": 8,
+      "free": 3,
+      "leak_qword_after_bio": 3,
+      "edit_bio": 3,
+      "view": 3,
+      "read_ptr": 2,
+      "copy_chunk": 1
+    }
+  },
+  "review_candidates": [
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/exp.py",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "",
+      "line": 28
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/exp.py",
+      "function": "free",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 33
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/exp.py",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 37
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/exp.py",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 41
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/exp.py",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 46
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/exp.py",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "receiver": "",
+      "line": 51
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "",
+      "line": 27
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "free",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 32
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 36
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 40
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 45
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "receiver": "",
+      "line": 50
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "",
+      "line": 26
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "free",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 31
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 35
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 39
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 44
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16",
+      "source_path": "open_materials_ui/全国总决赛_1f14b813/ctf_web_quick_audit/downloads/004_solution_problemInstanceId_100efd03_1_583477d9c0e3bd162f416cb9ae39cccfwp_20260511165131625/wp/WP.md",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "receiver": "",
+      "line": 49
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+      "source_path": "poc库/pwn_student_fsop_refactor - 副本.txt",
+      "function": "leak_qword_after_bio",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "io"
+      ],
+      "roles": [
+        "io"
+      ],
+      "receiver": "",
+      "line": 44
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+      "source_path": "poc库/pwn_student_fsop_refactor - 副本.txt",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "sid"
+      ],
+      "roles": [
+        "sid"
+      ],
+      "receiver": "self",
+      "line": 28
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+      "source_path": "poc库/pwn_student_fsop_refactor - 副本.txt",
+      "function": "edit_bio",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "payload"
+      ],
+      "roles": [
+        "size",
+        "data"
+      ],
+      "receiver": "self",
+      "line": 32
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+      "source_path": "poc库/pwn_student_fsop_refactor - 副本.txt",
+      "function": "view",
+      "semantic": "show",
+      "arity": 0,
+      "parameters": [],
+      "roles": [],
+      "receiver": "self",
+      "line": 37
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "source_path": "poc库/pwn_student_fsop_refactor.py",
+      "function": "leak_qword_after_bio",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "io"
+      ],
+      "roles": [
+        "io"
+      ],
+      "receiver": "",
+      "line": 46
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "source_path": "poc库/pwn_student_fsop_refactor.py",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "sid"
+      ],
+      "roles": [
+        "sid"
+      ],
+      "receiver": "self",
+      "line": 30
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "source_path": "poc库/pwn_student_fsop_refactor.py",
+      "function": "edit_bio",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "payload"
+      ],
+      "roles": [
+        "size",
+        "data"
+      ],
+      "receiver": "self",
+      "line": 34
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "source_path": "poc库/pwn_student_fsop_refactor.py",
+      "function": "view",
+      "semantic": "show",
+      "arity": 0,
+      "parameters": [],
+      "roles": [],
+      "receiver": "self",
+      "line": 39
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor - 副本.txt",
+      "function": "read_ptr",
+      "semantic": "show",
+      "arity": 2,
+      "parameters": [
+        "tube",
+        "nbytes"
+      ],
+      "roles": [
+        "tube",
+        "nbytes"
+      ],
+      "receiver": "",
+      "line": 49
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor - 副本.txt",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "self",
+      "line": 24
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor - 副本.txt",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "self",
+      "line": 29
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor - 副本.txt",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "self",
+      "line": 33
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor - 副本.txt",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "self",
+      "line": 37
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor - 副本.txt",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "receiver": "self",
+      "line": 42
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor.py",
+      "function": "read_ptr",
+      "semantic": "show",
+      "arity": 2,
+      "parameters": [
+        "tube",
+        "nbytes"
+      ],
+      "roles": [
+        "tube",
+        "nbytes"
+      ],
+      "receiver": "",
+      "line": 52
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor.py",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "self",
+      "line": 27
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor.py",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "self",
+      "line": 32
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor.py",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "self",
+      "line": 36
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor.py",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "self",
+      "line": 40
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "source_path": "poc库/pwn_traditional_base64_heap_refactor.py",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "size"
+      ],
+      "receiver": "self",
+      "line": 45
+    },
+    {
+      "case_id": "local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6",
+      "source_path": "Studentmanagement/题目附件/pwn_student_fsop_refactor.py",
+      "function": "leak_qword_after_bio",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "io"
+      ],
+      "roles": [
+        "io"
+      ],
+      "receiver": "",
+      "line": 46
+    },
+    {
+      "case_id": "local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6",
+      "source_path": "Studentmanagement/题目附件/pwn_student_fsop_refactor.py",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "sid"
+      ],
+      "roles": [
+        "sid"
+      ],
+      "receiver": "self",
+      "line": 30
+    },
+    {
+      "case_id": "local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6",
+      "source_path": "Studentmanagement/题目附件/pwn_student_fsop_refactor.py",
+      "function": "edit_bio",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "payload"
+      ],
+      "roles": [
+        "size",
+        "data"
+      ],
+      "receiver": "self",
+      "line": 34
+    },
+    {
+      "case_id": "local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6",
+      "source_path": "Studentmanagement/题目附件/pwn_student_fsop_refactor.py",
+      "function": "view",
+      "semantic": "show",
+      "arity": 0,
+      "parameters": [],
+      "roles": [],
+      "receiver": "self",
+      "line": 39
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve.e1258658",
+      "source_path": "traditional/solve.py",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "",
+      "line": 20
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve.e1258658",
+      "source_path": "traditional/solve.py",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 24
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve.e1258658",
+      "source_path": "traditional/solve.py",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 28
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve.e1258658",
+      "source_path": "traditional/solve.py",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 33
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve.e1258658",
+      "source_path": "traditional/solve.py",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "len"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "length"
+      ],
+      "receiver": "",
+      "line": 38
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve_alt.a981ba78",
+      "source_path": "traditional/solve_alt.py",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "",
+      "line": 58
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve_alt.a981ba78",
+      "source_path": "traditional/solve_alt.py",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 62
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve_alt.a981ba78",
+      "source_path": "traditional/solve_alt.py",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 66
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve_alt.a981ba78",
+      "source_path": "traditional/solve_alt.py",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 71
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve_alt.a981ba78",
+      "source_path": "traditional/solve_alt.py",
+      "function": "copy_chunk",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "length"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "length"
+      ],
+      "receiver": "",
+      "line": 75
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "source_path": "traditional/Traditional.md",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "",
+      "line": 20
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "source_path": "traditional/Traditional.md",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 24
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "source_path": "traditional/Traditional.md",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 28
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "source_path": "traditional/Traditional.md",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 33
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "source_path": "traditional/Traditional.md",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "len"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "length"
+      ],
+      "receiver": "",
+      "line": 38
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "source_path": "traditional/Traditional.md",
+      "function": "add",
+      "semantic": "alloc",
+      "arity": 2,
+      "parameters": [
+        "size",
+        "idx"
+      ],
+      "roles": [
+        "size",
+        "index"
+      ],
+      "receiver": "",
+      "line": 20
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "source_path": "traditional/Traditional.md",
+      "function": "edit",
+      "semantic": "edit",
+      "arity": 2,
+      "parameters": [
+        "idx",
+        "content"
+      ],
+      "roles": [
+        "index",
+        "data"
+      ],
+      "receiver": "",
+      "line": 24
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "source_path": "traditional/Traditional.md",
+      "function": "show",
+      "semantic": "show",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 28
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "source_path": "traditional/Traditional.md",
+      "function": "delete",
+      "semantic": "free",
+      "arity": 1,
+      "parameters": [
+        "idx"
+      ],
+      "roles": [
+        "index"
+      ],
+      "receiver": "",
+      "line": 33
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "source_path": "traditional/Traditional.md",
+      "function": "copy",
+      "semantic": "copy",
+      "arity": 3,
+      "parameters": [
+        "src",
+        "dst",
+        "len"
+      ],
+      "roles": [
+        "src",
+        "dst",
+        "length"
+      ],
+      "receiver": "",
+      "line": 38
+    }
+  ],
+  "negative_examples": [
+    "sendlineafter(b'choice:', enc(1)) 只是 helper 内菜单选择，不是 free/show 操作本身。",
+    "sendMessage(payload) / io.send(payload) 只有 payload 发送语义，不能单独映射成 heap free。",
+    "注释里的 Layout/House 名称只能作为 intent，不能直接产生 chunk/bin 事实。"
+  ]
+}

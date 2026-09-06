@@ -1,0 +1,337 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-2014-hitcon-stkof-13e0c84f",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof",
+    "ctf": null,
+    "year": 2014,
+    "year_provenance": "parsed_from_challenge_dirname_prefix",
+    "challenge_name": "2014_hitcon_stkof",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "13e0c84f8d548f9269bff7a0568dd19ffedf40a245bf52459a3a87e680c49b0d",
+    "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.23",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/libc.so.6 (GNU C Library, Ubuntu GLIBC 2.23-0ubuntu10)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/stkof",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "# small chunk size inorder to trigger unlink",
+              "# a fake chunk at global[2]=head+16 who's size is 0x20"
+            ],
+            "io_calls": true
+          },
+          {
+            "file": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/tcache_entry.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "for chunk in heap:",
+              "address = chunk[0]"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/libc.so.6",
+      "sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+      "size": 1868984
+    },
+    {
+      "path": "original/challenge/stkof",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/stkof",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/stkof",
+      "sha256": "13e0c84f8d548f9269bff7a0568dd19ffedf40a245bf52459a3a87e680c49b0d",
+      "size": 10448
+    },
+    {
+      "path": "original/challenge/stkof.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/stkof.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/stkof.i64",
+      "sha256": "1f1dea88f8b39d622b133bb3e9eeb9e3d87ae6e6f28adafc9f3c3369c86856b2",
+      "size": 181781
+    },
+    {
+      "path": "original/challenge/tcache_entry.py",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/tcache_entry.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/tcache_entry.py",
+      "sha256": "0a53634661e07c2553f6fccf5a205b4efdec8b2743e228017bdda1d567a9c26f",
+      "size": 4490
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/exp.py",
+      "sha256": "39eaa2b29f13e60fea0a5c4c92d8ae063e3d6e5466b16e88854c69798ea6b1d0",
+      "size": 2599
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/exp.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "alloc",
+        "source_line": 16,
+        "end_line": 19,
+        "parameter_names": [
+          "size"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.sendline('1')",
+          "p.sendline(str(size))",
+          "p.recvuntil('OK\\n')"
+        ],
+        "menu_strings": [
+          "1",
+          "OK\n"
+        ],
+        "operation": "alloc",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "edit",
+        "source_line": 22,
+        "end_line": 27,
+        "parameter_names": [
+          "idx",
+          "size",
+          "content"
+        ],
+        "calls": [
+          "recvuntil",
+          "send",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.sendline('2')",
+          "p.sendline(str(idx))",
+          "p.sendline(str(size))",
+          "p.send(content)",
+          "p.recvuntil('OK\\n')"
+        ],
+        "menu_strings": [
+          "2",
+          "OK\n"
+        ],
+        "operation": "edit",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "free",
+        "source_line": 30,
+        "end_line": 32,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.sendline('3')",
+          "p.sendline(str(idx))"
+        ],
+        "menu_strings": [
+          "3"
+        ],
+        "operation": "free",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "exp",
+        "source_line": 35,
+        "end_line": 82,
+        "parameter_names": [],
+        "calls": [
+          "alloc",
+          "edit",
+          "free",
+          "hex",
+          "interactive",
+          "len",
+          "ljust",
+          "next",
+          "p64",
+          "recvuntil",
+          "search",
+          "send",
+          "success",
+          "u64"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('OK\\n')",
+          "p.send(p64(binsh_addr))",
+          "p.interactive()",
+          "p.recvuntil('\\nOK\\n', drop=True)"
+        ],
+        "menu_strings": [
+          "a",
+          "OK\n",
+          "\u0000",
+          "puts",
+          "puts addr: ",
+          "puts",
+          "system",
+          "libc base: "
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      }
+    ],
+    "candidate_operations": [
+      {
+        "operation": "alloc",
+        "helper": "alloc",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:16 def alloc(size)",
+          "io: p.sendline('1')",
+          "io: p.sendline(str(size))"
+        ]
+      },
+      {
+        "operation": "edit",
+        "helper": "edit",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:22 def edit(idx, size, content)",
+          "io: p.sendline('2')",
+          "io: p.sendline(str(idx))"
+        ]
+      },
+      {
+        "operation": "free",
+        "helper": "free",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:30 def free(idx)",
+          "io: p.sendline('3')",
+          "io: p.sendline(str(idx))"
+        ]
+      }
+    ],
+    "aliases": [],
+    "wrappers": [
+      {
+        "function": "exp",
+        "wraps": [
+          "alloc",
+          "edit",
+          "free"
+        ],
+        "source_line": 35
+      }
+    ],
+    "call_examples": [
+      {
+        "helper": "alloc",
+        "source_line": 37,
+        "call": "alloc(0x100)"
+      },
+      {
+        "helper": "alloc",
+        "source_line": 39,
+        "call": "alloc(0x30)"
+      },
+      {
+        "helper": "alloc",
+        "source_line": 41,
+        "call": "alloc(0x80)"
+      },
+      {
+        "helper": "edit",
+        "source_line": 54,
+        "call": "edit(2, len(payload), payload)"
+      },
+      {
+        "helper": "free",
+        "source_line": 56,
+        "call": "free(3)"
+      },
+      {
+        "helper": "edit",
+        "source_line": 62,
+        "call": "edit(2, len(payload), payload)"
+      },
+      {
+        "helper": "edit",
+        "source_line": 65,
+        "call": "edit(0, len(payload), payload)"
+      },
+      {
+        "helper": "free",
+        "source_line": 68,
+        "call": "free(1)"
+      },
+      {
+        "helper": "edit",
+        "source_line": 80,
+        "call": "edit(2, len(payload), payload)"
+      }
+    ],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

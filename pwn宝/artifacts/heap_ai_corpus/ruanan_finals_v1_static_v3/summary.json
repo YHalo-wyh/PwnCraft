@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "model": "static-only",
+  "cases": [
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7.json"
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6.json"
+    },
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16.json"
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.poc-pwn_student_fsop_refactor.77e52492.json"
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.poc-pwn_student_fsop_refactor.36d8197b.json"
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf.json"
+    },
+    {
+      "case_id": "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f.json"
+    },
+    {
+      "case_id": "local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6.json"
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve.e1258658",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.traditional-solve.e1258658.json"
+    },
+    {
+      "case_id": "local.ruanan.traditional-solve_alt.a981ba78",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.traditional-solve_alt.a981ba78.json"
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.83065a44",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.traditional-Traditional.83065a44.json"
+    },
+    {
+      "case_id": "local.ruanan.traditional-Traditional.a31b426a",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\local.ruanan.traditional-Traditional.a31b426a.json"
+    }
+  ],
+  "completed": 12,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_static_v3\\gap_report.json"
+}

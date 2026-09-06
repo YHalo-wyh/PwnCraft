@@ -1,0 +1,237 @@
+--- autocorrect/patches/infra-closure-1/loop.py.pre	2026-09-05 17:09:30.846479600 +0800
++++ autocorrect/loop.py	2026-09-05 17:08:21.997327600 +0800
+@@ -23,7 +23,8 @@
+ 
+ import pwncraft_adapter  # noqa: E402
+ import comparator  # noqa: E402
+-import comparator_v3  # noqa: E402
++import comparator_v3  # noqa: E402  (kept for audit trail)
++import comparator_v4  # noqa: E402
+ import regression  # noqa: E402
+ 
+ CORPUS = HERE.parent / "heap-corpus" / "corpus"
+@@ -43,37 +44,21 @@
+ 
+ 
+ def cmd_generate(args):
+-    """Phase B: run PwnCraft on the case, save raw baseline artifacts."""
+-    import shutil
++    """Phase B: ONE authoritative run -> atomic artifact directory (P0-2/P1-4).
++
++    Truth lock is verified before any run (P1-2)."""
+     case_dir = resolve_case(args.case)
+     cid = case_dir.name
+     cdir = HERE / "cases" / cid
++    _check_truth_lock(cdir, strict=False)
+     gen_dir = cdir / "generated" / (args.label or "baseline")
+     result = pwncraft_adapter.run_case(case_dir, out_path=gen_dir / "pwncraft_output.json")
+     a = result["analyzer"]
+-    (gen_dir / "recognition.json").write_text(
+-        json.dumps(a["recognition"], ensure_ascii=False, indent=2), encoding="utf-8")
+-    (gen_dir / "helper_contracts.json").write_text(
+-        json.dumps(a["helper_contracts"], ensure_ascii=False, indent=2), encoding="utf-8")
+-    (gen_dir / "canonical_ir.json").write_text(
+-        json.dumps(a["canonical_ops"], ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+-    (gen_dir / "operations.json").write_text(
+-        json.dumps(result["replay"].get("steps"), ensure_ascii=False, indent=2, default=str),
+-        encoding="utf-8")
+-    (gen_dir / "snapshots.json").write_text(
+-        json.dumps({"n_steps": result["replay"]["n_steps"],
+-                    "model_divergences": result["replay"].get("model_divergences")},
+-                   ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+-    (gen_dir / "bins.json").write_text(
+-        json.dumps([{k: s.get(k) for k in ("step", "tcache", "fastbins", "unsorted")}
+-                    for s in result["replay"].get("steps", [])],
+-                   ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+-    (gen_dir / "UNSUPPORTED_ARTIFACTS.txt").write_text(
+-        "physical_memory.json / paint_spans.json: adapter 未接入 PhysicalMemory 序列化与渲染层, 本层未比较\n",
+-        encoding="utf-8")
++    rm = result["run_manifest"]
+     print(f"[generate] {cid} label={args.label or 'baseline'} -> {gen_dir}")
+-    print(f"           ops={len(a['canonical_ops'])} contracts={len(a['helper_contracts'])} "
+-          f"steps={result['replay']['n_steps']} revision={a['recognizer_revision']}")
++    print(f"           run_id={rm['run_id']} ops={len(a['canonical_ops'])} "
++          f"contracts={len(a['helper_contracts'])} steps={result['replay']['n_steps']} "
++          f"revision={rm['recognizer_revision']} profile={rm['allocator_profile_id']}")
+ 
+ 
+ def cmd_diverge(args):
+@@ -93,11 +78,16 @@
+         cands = list((case_dir / "original" / "solution").glob("*.py"))
+         exp_path = cands[0] if cands else None
+     exp_source = exp_path.read_text(encoding="utf-8") if exp_path else ""
+-    report = comparator_v3.compare(expected, actual, exp_source=exp_source)
++    plan_path = cdir / "generated" / gen_name / "renderer_plan.json"
++    renderer_plan = json.loads(plan_path.read_text(encoding="utf-8")) if plan_path.exists() else None
++    report = comparator_v4.compare(expected, actual, exp_source=exp_source,
++                                   renderer_plan=renderer_plan)
+     report["compared_artifacts"] = {
+         "expected_truth": str(cdir / "expected_truth.json"),
+         "pwncraft_output": str(actual_path),
+-        "comparator": "v3",
++        "renderer_plan": str(plan_path) if renderer_plan else None,
++        "run_id": (actual.get("run_manifest") or {}).get("run_id"),
++        "comparator": "v4",
+     }
+     out = cdir / f"divergence_report.{gen_name}.json"
+     out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+@@ -117,13 +107,12 @@
+ 
+ def cmd_run(args):
+     case_dir = resolve_case(args.case)
+-    out = HERE / "cases" / case_dir.name / "pwncraft_output.json"
+-    result = pwncraft_adapter.run_case(case_dir, out_path=out)
+-    print(f"[run] {result['case_id']} -> {out}")
++    result = pwncraft_adapter.run_case(case_dir)  # in-memory only; artifacts via generate
++    print(f"[run] {result['case_id']} run_id={result['run_id']}")
+     print(f"      ops={len(result['analyzer']['canonical_ops'])} "
+           f"contracts={len(result['analyzer']['helper_contracts'])} "
+           f"steps={result['replay']['n_steps']} "
+-          f"revision={result['analyzer']['recognizer_revision']}")
++          f"revision={result['run_manifest']['recognizer_revision']}")
+ 
+ 
+ def cmd_compare(args):
+@@ -158,8 +147,7 @@
+ 
+ def cmd_baseline(args):
+     case_dir = resolve_case(args.case)
+-    out = HERE / "cases" / case_dir.name / "pwncraft_output.json"
+-    result = pwncraft_adapter.run_case(case_dir, out_path=out)
++    result = pwncraft_adapter.run_case(case_dir)  # single authoritative run, no sidecar write
+     rec = regression.save_version(
+         result, HERE / "regression" / "baselines",
+         label=args.label, patch_id=args.patch_id, note=args.note or "",
+@@ -183,8 +171,7 @@
+         if baselines_root.exists() else []
+     for case_id in case_ids:
+         case_dir = resolve_case(case_id)
+-        out = HERE / "cases" / case_dir.name / "pwncraft_output.json"
+-        result = pwncraft_adapter.run_case(case_dir, out_path=out)
++        result = pwncraft_adapter.run_case(case_dir)
+         results.append(regression.check_all_versions(result, baselines_root))
+     (HERE / "regression" / "last_run.json").write_text(
+         json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+@@ -198,6 +185,102 @@
+     sys.exit(1 if bad else 0)
+ 
+ 
++
++def _truth_path(cdir):
++    for name in ("expected_truth.json", "expected_analysis.json"):
++        p = cdir / name
++        if p.exists():
++            return p
++    return cdir / "expected_truth.json"
++
++
++def _check_truth_lock(cdir, strict=True):
++    import hashlib
++    p = _truth_path(cdir)
++    if not p.exists():
++        return
++    data = json.loads(p.read_text(encoding="utf-8"))
++    lock = data.get("truth_lock")
++    if not lock:
++        msg = f"truth not locked: {p} (run: python loop.py lock-truth <case>)"
++        if strict:
++            raise SystemExit(f"[lock] {msg}")
++        print(f"[lock] WARNING {msg}")
++        return
++    payload = {k: v for k, v in data.items() if k != "truth_lock"}
++    digest = hashlib.sha256(json.dumps(payload, ensure_ascii=False,
++                                       sort_keys=True).encode("utf-8")).hexdigest()
++    if lock.get("content_sha256") != digest:
++        raise SystemExit(f"[lock] content hash mismatch for {p}: truth edited in place "
++                         "-- forbidden (P1-2). Create a new revision instead.")
++
++
++def cmd_lock_truth(args):
++    import hashlib
++    import datetime
++    case_dir = resolve_case(args.case)
++    p = _truth_path(HERE / "cases" / case_dir.name)
++    if not p.exists():
++        raise SystemExit(f"[lock] no truth file for {case_dir.name}")
++    data = json.loads(p.read_text(encoding="utf-8"))
++    if data.get("truth_lock"):
++        print(f"[lock] already locked: {p}")
++        return
++    manifest = json.loads((case_dir / "manifest.json").read_text(encoding="utf-8"))
++    payload = dict(data)
++    digest = hashlib.sha256(json.dumps(payload, ensure_ascii=False,
++                                       sort_keys=True).encode("utf-8")).hexdigest()
++    exp_file = next((case_dir / "original" / "solution").glob("*.py"))
++    data["truth_lock"] = {
++        "truth_id": "truth-" + digest[:16],
++        "content_sha256": digest,
++        "schema_version": "1.2-layered" if "truth_layers" in data else "1.0-flat",
++        "locked_at": datetime.datetime.now().isoformat(timespec="seconds"),
++        "analyst_input_hashes": {
++            "binary_sha256": (manifest.get("target") or {}).get("binary_sha256"),
++            "libc_sha256": (manifest.get("target") or {}).get("libc_sha256"),
++            "exp_sha256": hashlib.sha256(exp_file.read_bytes()).hexdigest(),
++        },
++        "truth_revision": 1,
++        "superseded_by": None,
++    }
++    p.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
++    print(f"[lock] locked {p} truth_id={data['truth_lock']['truth_id']}")
++
++
++def cmd_truthregress(args):
++    """P1-1 Truth Regression: fresh authoritative run + strict comparator for
++    every ACCEPTED case (registry). ACCEPTED case turning DIVERGED = reject."""
++    registry = HERE / "accepted_cases.json"
++    accepted = json.loads(registry.read_text(encoding="utf-8")) if registry.exists() else []
++    if not accepted:
++        accepted = sorted(q.name for q in (HERE / "cases").iterdir()
++                          if (q / "expected_truth.json").exists())
++        print("[truthregress] registry empty -- running over locked-truth cases "
++              "(none ACCEPTED yet; proves executability)")
++    results = []
++    for case_id in accepted:
++        case_dir = resolve_case(case_id)
++        cdir = HERE / "cases" / case_dir.name
++        if not (cdir / "expected_truth.json").exists():
++            continue
++        _check_truth_lock(cdir, strict=False)
++        expected = json.loads((cdir / "expected_truth.json").read_text(encoding="utf-8"))
++        exp_path = next((case_dir / "original" / "solution").glob("*.py"))
++        result = pwncraft_adapter.run_case(case_dir)
++        report = comparator_v4.compare(expected, result,
++                                       exp_source=exp_path.read_text(encoding="utf-8"))
++        fd = report.get("first_divergence") or {}
++        results.append({"case_id": case_id, "verdict": report["verdict"],
++                        "layer": fd.get("layer"),
++                        "run_id": (result.get("run_manifest") or {}).get("run_id")})
++        print(f"[truthregress] {case_id}: {report['verdict']}"
++              + (f" @ {fd.get('layer')}" if fd.get("layer") else ""))
++    (HERE / "regression" / "truth_regression.json").write_text(
++        json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
++    print(f"[truthregress] {len(results)} cases -> regression/truth_regression.json")
++
++
+ def main():
+     ap = argparse.ArgumentParser(prog="autocorrect")
+     sub = ap.add_subparsers(dest="cmd", required=True)
+@@ -211,6 +294,9 @@
+     b.add_argument("--note", default="")
+     b.add_argument("--intentional-delta", default="",
+                    help="comma-separated fingerprint dimensions explained by patch_id")
++    lt = sub.add_parser("lock-truth")
++    lt.add_argument("case", help="case_id or corpus dir")
++    tr = sub.add_parser("truthregress")
+     e = sub.add_parser("explain")
+     e.add_argument("case", help="case_id")
+     e.add_argument("--from-version", required=True, help="baseline version file (e.g. pre-patch__none.json)")
+@@ -229,7 +315,8 @@
+     args = ap.parse_args()
+     {"run": cmd_run, "compare": cmd_compare, "generate": cmd_generate,
+      "diverge": cmd_diverge, "baseline": cmd_baseline, "regress": cmd_regress,
+-     "explain": cmd_explain}[args.cmd](args)
++     "explain": cmd_explain, "lock-truth": cmd_lock_truth,
++     "truthregress": cmd_truthregress}[args.cmd](args)
+ 
+ 
+ if __name__ == "__main__":

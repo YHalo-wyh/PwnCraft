@@ -1,0 +1,38 @@
+{
+  "candidates_files": [
+    "candidates/how2heap.jsonl",
+    "candidates/ctfwiki.jsonl"
+  ],
+  "repos_scanned": [
+    {
+      "url": "https://github.com/shellphish/how2heap",
+      "owner": "shellphish",
+      "repository": "how2heap",
+      "commit_sha": "02da6aa26a44e5af2a67057876d7c6669a207f56",
+      "license": "MIT (LICENSE at repo root, Copyright (c) 2020 Shellphish)",
+      "ctf": null,
+      "year": null,
+      "source_class": "curator_archive",
+      "kind": "technique_demo_collection",
+      "staged_units": 17,
+      "staging_path": "C:/Users/WYH/Desktop/pwn宝/heap-corpus/_repos/how2heap"
+    },
+    {
+      "url": "https://github.com/ctf-wiki/ctf-challenges",
+      "owner": "ctf-wiki",
+      "repository": "ctf-challenges",
+      "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+      "license": null,
+      "ctf": null,
+      "year": null,
+      "source_class": "curator_archive",
+      "kind": "ctf_example_collection",
+      "staged_units": 162,
+      "staging_path": "C:/Users/WYH/Desktop/pwn宝/heap-corpus/_repos/ctf-challenges"
+    }
+  ],
+  "scan_scope": [
+    "how2heap: full checkout (excluding glibc-all-in-one submodule and ci/)",
+    "ctf-wiki/ctf-challenges: full checkout at commit 18d67d1 (2588 files, 162 challenge units incl. kernel/mips/arm/fmtstr/stack dirs; scope rules rejected them)"
+  ]
+}

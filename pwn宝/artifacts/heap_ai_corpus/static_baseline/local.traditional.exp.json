@@ -1,0 +1,164 @@
+{
+  "run_id": "run_5ada1154192340bc877dce4b62bea8f5",
+  "case_id": "local.traditional.exp",
+  "source_hash": "b3583b20cecc9ca9a03a3de16f0a4530d9a6c43a471540df8c073d675944aaeb",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\软安决赛\\traditional\\exp.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "derive_value",
+        "chunk": "libc.address",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(io.recvn(6).ljust(8, b'\\0')) - 0x233c20",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: libc.address = u64(io.recvn(6).ljust(8, b'\\0')) - 0x233c20",
+        "meta": {
+          "result_var": "libc.address",
+          "expression": "u64(io.recvn(6).ljust(8, b'\\0')) - 0x233c20",
+          "dependencies": "",
+          "source_kind": "recv",
+          "source": "libc.address = u64(io.recvn(6).ljust(8, b'\\0')) - 0x233c20",
+          "provenance": "inferred",
+          "byte_width": "8",
+          "endian": "little"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "derive_value",
+        "chunk": "heap",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(io.recvn(5).ljust(8, b'\\0')) << 12",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: heap = u64(io.recvn(5).ljust(8, b'\\0')) << 12",
+        "meta": {
+          "result_var": "heap",
+          "expression": "u64(io.recvn(5).ljust(8, b'\\0')) << 12",
+          "dependencies": "",
+          "source_kind": "recv",
+          "source": "heap = u64(io.recvn(5).ljust(8, b'\\0')) << 12",
+          "provenance": "inferred",
+          "byte_width": "8",
+          "endian": "little"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "derive_value",
+        "chunk": "stack",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(io.recvn(6).ljust(8, b'\\0'))",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: stack = u64(io.recvn(6).ljust(8, b'\\0'))",
+        "meta": {
+          "result_var": "stack",
+          "expression": "u64(io.recvn(6).ljust(8, b'\\0'))",
+          "dependencies": "",
+          "source_kind": "recv",
+          "source": "stack = u64(io.recvn(6).ljust(8, b'\\0'))",
+          "provenance": "inferred",
+          "byte_width": "8",
+          "endian": "little"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_a0b39da7b181e70e",
+        "start": 1191,
+        "end": 1249,
+        "line": 48,
+        "end_line": 48,
+        "fingerprint": "9a6d54cabfeabf84",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_42ae818fb850288c",
+        "start": 1261,
+        "end": 1306,
+        "line": 51,
+        "end_line": 51,
+        "fingerprint": "7932dd7b0c5df945",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_862fa1aed33cb665",
+        "start": 1547,
+        "end": 1587,
+        "line": 63,
+        "end_line": 63,
+        "fingerprint": "7b0908f9bd17496a",
+        "loop_env": [],
+        "confidence": "inferred",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [
+      {
+        "severity": "info",
+        "code": "heap_neutral_branch",
+        "message": "条件 `args.GDB` 只影响调试/辅助流程，已继续解析共同后缀。",
+        "start": 458,
+        "end": 489,
+        "line": 18,
+        "suggestion": ""
+      }
+    ],
+    "symbols": {
+      "std": "b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'",
+      "custom": "b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/'",
+      "i": "7"
+    }
+  },
+  "snapshot": {
+    "step": 3,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 3,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 3,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "elapsed_s": 0.047
+}

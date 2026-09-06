@@ -1,0 +1,134 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def show()",
+    "expected": {
+      "semantic": "show",
+      "evidence_tier": "binary_source_dataflow",
+      "evidence": [
+        "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+        "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+      ]
+    },
+    "actual": {
+      "operation": "show",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "body selects index then receives output",
+          "line": 29,
+          "score": 0.94
+        }
+      ],
+      "provenance_recheck": {
+        "parse_ok": true,
+        "found": true,
+        "prompt_syncs": 2,
+        "output_flows": 0
+      }
+    },
+    "status_detail": {
+      "helper": "show",
+      "expected_semantic": "show",
+      "actual_operation": "show",
+      "actual_candidate_operation": "unknown",
+      "actual_confidence": "structural",
+      "semantic": "SEMANTIC_MATCH",
+      "evidence": "EVIDENCE_DIVERGED",
+      "divergence_field": "evidence_type/provenance",
+      "expected_evidence_tier": "binary_source_dataflow",
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "provenance_recheck": {
+        "parse_ok": true,
+        "found": true,
+        "prompt_syncs": 2,
+        "output_flows": 0
+      },
+      "unsound_provenance": "show 的函数体无任何输出数据流 (prompt_syncs=2, output_flows=0), 但契约以 STRUCTURAL_BODY 证据判定 show; 该证据只能来自 prompt-sync 误判 (index+recvuntil(prompt))"
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "create",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "actual_candidate_operation": "unknown",
+      "actual_confidence": "structural",
+      "semantic": "MATCH"
+    },
+    {
+      "helper": "edit",
+      "expected_semantic": "edit",
+      "actual_operation": "edit",
+      "actual_candidate_operation": "unknown",
+      "actual_confidence": "structural",
+      "semantic": "MATCH"
+    },
+    {
+      "helper": "show",
+      "expected_semantic": "show",
+      "actual_operation": "show",
+      "actual_candidate_operation": "unknown",
+      "actual_confidence": "structural",
+      "semantic": "SEMANTIC_MATCH",
+      "evidence": "EVIDENCE_DIVERGED",
+      "divergence_field": "evidence_type/provenance",
+      "expected_evidence_tier": "binary_source_dataflow",
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "provenance_recheck": {
+        "parse_ok": true,
+        "found": true,
+        "prompt_syncs": 2,
+        "output_flows": 0
+      },
+      "unsound_provenance": "show 的函数体无任何输出数据流 (prompt_syncs=2, output_flows=0), 但契约以 STRUCTURAL_BODY 证据判定 show; 该证据只能来自 prompt-sync 误判 (index+recvuntil(prompt))"
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [
+    "CHUNK_MAPPING",
+    "PHYSICAL_MEMORY",
+    "SNAPSHOT",
+    "CANVAS"
+  ],
+  "root_cause": {
+    "component": "pwnbao/features/heapviz/contracts/resolver.py::_structural_contract (recv 判定) + 契约证据分级",
+    "reason": "recv 标志未区分 PROMPT_SYNC 与 OUTPUT_DATA_FLOW (v1.2 §H): show(idx) 函数体仅含 recvuntil(常量提示词) 且返回值丢弃 (provenance_recheck: prompt_syncs=2, output_flows=0), 但 index+recv→SHOW 规则仍以 STRUCTURAL_BODY 证据给出 show。语义碰巧正确 (SEMANTIC_MATCH), 证据/来源错误 (EVIDENCE_DIVERGED)。注: FREE/DELETE 不依赖 OUTPUT_DATA_FLOW (§H), 本偏差只涉及 SHOW 的证据来源; delete(idx) 被同一缺陷判成 show 属后续表现, 由其自身证据路径另行处理。"
+  },
+  "evidence": [
+    "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+    "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+    "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+  ],
+  "suggested_fix": {
+    "scope": "generic",
+    "description": "最小通用修改, 仅重分类 PROMPT_SYNC / OUTPUT_DATA_FLOW (v1.2 §H): (1) OUTPUT_DATA_FLOW = recv 族调用且返回值被消费 (非裸语句: 赋值/返回/打印/进入后续计算), 仅此可作为 SHOW 的强结构证据; (2) 返回值被丢弃的 recvuntil = PROMPT_SYNC candidate, 其后紧邻 send/sendline(parameter) 构成 strong prompt-sync evidence — 只证明交互同步与参数绑定, 不证明输出; (3) 返回值被丢弃的 recv/recvn/recvline 无数据流, 亦不构成 SHOW 证据; (4) FREE/DELETE 不依赖 OUTPUT_DATA_FLOW, 走独立正证据路径 — 本 patch 不新增 DELETE 证据, 仅使既有 single-index-outbound 动词消歧分支恢复可达, 若触发记为 downstream effect。"
+  },
+  "confidence": 0.95,
+  "reviewer_reason_hint": "show 的函数体无任何输出数据流 (prompt_syncs=2, output_flows=0), 但契约以 STRUCTURAL_BODY 证据判定 show; 该证据只能来自 prompt-sync 误判 (index+recvuntil(prompt))",
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\pre-patch-v3\\pwncraft_output.json",
+    "comparator": "v3"
+  },
+  "reviewer": {
+    "model": "GLM-5.3-Flash (ZCode reviewer role)",
+    "date": "2026-09-03",
+    "protocol_version": "v1.2",
+    "note": "comparator v3 (§H 修正版) 机械判定; expected_truth.json 仅按 owner 指令做 target_behavior/allocator_events 拆分迁移, 事实不变"
+  }
+}

@@ -1,0 +1,244 @@
+{
+  "schema_version": 2,
+  "path": "比赛/SCTF2026/heapmage(堆)/exp2.py",
+  "source_hash": "dbf823db1a81bf7eeed82b3cc4e095cf5c6f7aad2791db45cbf7deead64024cd",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "PARTIAL_REPLAY",
+  "analysis_variant": "default",
+  "failure_reasons": [
+    "unknown allocation size"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.39",
+    "mode": "strict"
+  },
+  "api_profile": {
+    "alloc": "add",
+    "free": "delete",
+    "edit": "edit"
+  },
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "chunk": "A",
+      "index": "0",
+      "request_size": "unknown",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(0, 2)",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_e4d8719ac302e08e",
+        "call_target": "add",
+        "call_origin": "user_helper",
+        "evidence": "helper body `add` is defined in this EXP",
+        "source_line": "59",
+        "source_end_line": "59",
+        "source_id": "source_e4d8719ac302e08e",
+        "ast_fingerprint": "0b47d744641fbbea"
+      }
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "chunk": "B",
+      "index": "1",
+      "request_size": "unknown",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(1, 1)",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_fce84cae29c9a779",
+        "call_target": "add",
+        "call_origin": "user_helper",
+        "evidence": "helper body `add` is defined in this EXP",
+        "source_line": "60",
+        "source_end_line": "60",
+        "source_id": "source_fce84cae29c9a779",
+        "ast_fingerprint": "ef535d2f67f9d323"
+      }
+    },
+    {
+      "op_id": "op_003",
+      "kind": "alloc",
+      "chunk": "C",
+      "index": "2",
+      "request_size": "unknown",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(2, 2)",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_40655e95b0c01126",
+        "call_target": "add",
+        "call_origin": "user_helper",
+        "evidence": "helper body `add` is defined in this EXP",
+        "source_line": "61",
+        "source_end_line": "61",
+        "source_id": "source_40655e95b0c01126",
+        "ast_fingerprint": "a14dc0743d956c32"
+      }
+    },
+    {
+      "op_id": "op_004",
+      "kind": "alloc",
+      "chunk": "D",
+      "index": "3",
+      "request_size": "unknown",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: add(3, 2)",
+      "meta": {
+        "parse_confidence": "confirmed",
+        "program_event_id": "event_dc6f1c5ae407bfab",
+        "call_target": "add",
+        "call_origin": "user_helper",
+        "evidence": "helper body `add` is defined in this EXP",
+        "source_line": "62",
+        "source_end_line": "62",
+        "source_id": "source_dc6f1c5ae407bfab",
+        "ast_fingerprint": "f435bfb34aa89a24"
+      }
+    },
+    {
+      "op_id": "op_005",
+      "kind": "free",
+      "chunk": "A",
+      "index": "0",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(0)",
+      "meta": {
+        "program_event_id": "event_68ddb78c396da4d9",
+        "call_target": "delete",
+        "call_origin": "user_helper",
+        "evidence": "helper body `delete` is defined in this EXP",
+        "source_line": "66",
+        "source_end_line": "66",
+        "source_id": "source_68ddb78c396da4d9",
+        "ast_fingerprint": "3ec7da9fc208557d"
+      }
+    },
+    {
+      "op_id": "op_006",
+      "kind": "free",
+      "chunk": "C",
+      "index": "2",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: delete(2)",
+      "meta": {
+        "program_event_id": "event_d19a627aa357fa07",
+        "call_target": "delete",
+        "call_origin": "user_helper",
+        "evidence": "helper body `delete` is defined in this EXP",
+        "source_line": "67",
+        "source_end_line": "67",
+        "source_id": "source_d19a627aa357fa07",
+        "ast_fingerprint": "540d74f78a986542"
+      }
+    }
+  ],
+  "diagnostics": [],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 6,
+    "aborted": false,
+    "chunks": {
+      "A": {
+        "address": "heap_base+?<A:chunk>",
+        "user_address": "heap_base+?<A:user>",
+        "request_size": "unknown",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "B": {
+        "address": "heap_base+?<B:chunk>",
+        "user_address": "heap_base+?<B:user>",
+        "request_size": "unknown",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "C": {
+        "address": "heap_base+?<C:chunk>",
+        "user_address": "heap_base+?<C:user>",
+        "request_size": "unknown",
+        "chunk_size": "未知",
+        "lifecycle": "freed",
+        "bin_location": "unknown",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "D": {
+        "address": "heap_base+?<D:chunk>",
+        "user_address": "heap_base+?<D:user>",
+        "request_size": "unknown",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      }
+    },
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": [
+      {
+        "severity": "WARNING",
+        "code": "unknown_free_bin",
+        "title": "free 后 bin 无法确定",
+        "message": "chunk size 未被源码或 Pwndbg 证明，不能推测 tcache/fastbin/unsorted。",
+        "operation_id": "op_006",
+        "related_chunks": [
+          "C"
+        ]
+      }
+    ]
+  }
+}

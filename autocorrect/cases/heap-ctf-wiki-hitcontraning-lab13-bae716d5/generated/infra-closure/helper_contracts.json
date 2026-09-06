@@ -1,0 +1,122 @@
+{
+  "run_id": "run-9c750f34de363581",
+  "contracts": [
+    {
+      "function": "create",
+      "operation": "alloc",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "body sends size and data",
+          "line": 11,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "size": {
+          "role": "size",
+          "parameter": "size",
+          "position": 0,
+          "expression": "size"
+        },
+        "data": {
+          "role": "data",
+          "parameter": "content",
+          "position": 1,
+          "expression": "content"
+        }
+      }
+    },
+    {
+      "function": "delete",
+      "operation": "delete",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "single index outbound body; delete verb disambiguates",
+          "line": 36,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "idx",
+          "position": 0,
+          "expression": "idx"
+        }
+      }
+    },
+    {
+      "function": "edit",
+      "operation": "edit",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "body sends index and data",
+          "line": 20,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "idx",
+          "position": 0,
+          "expression": "idx"
+        },
+        "data": {
+          "role": "data",
+          "parameter": "content",
+          "position": 1,
+          "expression": "content"
+        },
+        "offset": {
+          "role": "offset",
+          "parameter": "",
+          "position": -1,
+          "expression": "0"
+        },
+        "length": {
+          "role": "length",
+          "parameter": "",
+          "position": -1,
+          "expression": "len(content)"
+        }
+      }
+    },
+    {
+      "function": "show",
+      "operation": "unknown",
+      "candidate_operation": "show",
+      "confidence": "candidate",
+      "evidence_sources": [
+        "NAME_CANDIDATE"
+      ],
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 29,
+          "score": 0.35
+        }
+      ],
+      "roles": {}
+    }
+  ]
+}

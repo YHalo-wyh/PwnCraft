@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-hitcontraning-lab11-6f1c67fb",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11",
+    "ctf": null,
+    "year": null,
+    "year_provenance": null,
+    "challenge_name": "hitcontraning_lab11",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "6f1c67fb3f210b773d9578caa167b72591bdac44a49423043c17090d151ee7f3",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "allocator_api_in_source",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox.c",
+            "allocator_api_calls": 3
+          }
+        ]
+      },
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "# we must alloc enough size, so as to successfully alloc from fake topchunk",
+              "payload += 'a' * 8 + p64(0xffffffffffffffff)  # top chunk's prev_size and size"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/bamboobox",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox",
+      "sha256": "6f1c67fb3f210b773d9578caa167b72591bdac44a49423043c17090d151ee7f3",
+      "size": 13648
+    },
+    {
+      "path": "original/challenge/bamboobox.c",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox.c",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox.c",
+      "sha256": "83b7191c58101c6006cfea9f404bc74f266c46bff5e9ddc955483cfd14ab6e65",
+      "size": 3872
+    },
+    {
+      "path": "original/challenge/bamboobox.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/bamboobox.i64",
+      "sha256": "2bdff7132ab30dedeb9c67ed26a1f11670cb96ba508ccd0fab52330cefccb0ea",
+      "size": 181726
+    },
+    {
+      "path": "original/challenge/flag",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/flag",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/flag",
+      "sha256": "dd15ef9df48dcc966c8315292eaad803cec761f3401e701ce9a3a668e906f269",
+      "size": 22
+    },
+    {
+      "path": "original/challenge/Makefile",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/Makefile",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/Makefile",
+      "sha256": "3faea1412613d8db215665477ea5fb58864b28f5b4a12b219b75073b9850c4a4",
+      "size": 54
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/exp.py",
+      "sha256": "c7f362079d5ebb3014093ddbe92802965035deea22a262e8b17923aa8fa3bf03",
+      "size": 1233
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/exp.py",
+    "parse_ok": false,
+    "imports_pwntools": null,
+    "helpers": [],
+    "candidate_operations": [],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "environment incomplete (no shipped libc/ld/docker)",
+      "exp_correctness_unverified"
+    ]
+  }
+}

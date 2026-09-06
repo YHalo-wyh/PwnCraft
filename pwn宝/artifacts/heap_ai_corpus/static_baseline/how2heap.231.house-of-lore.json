@@ -1,0 +1,43 @@
+{
+  "run_id": "run_5f404eea521b48688bba4aa9e9885612",
+  "case_id": "how2heap.231.house-of-lore",
+  "source_hash": "238ee0e9210467c4f5f67443358d8e515e47da5f71947f3cdb0f8856647be367",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_baseline\\sources\\238ee0e9210467c4f5f67443358d8e515e47da5f71947f3cdb0f8856647be367.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "elapsed_s": 0.781
+}

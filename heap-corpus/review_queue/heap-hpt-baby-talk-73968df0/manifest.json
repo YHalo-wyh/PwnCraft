@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-hpt-baby-talk-73968df0",
+  "source": {
+    "repository_url": "https://github.com/x14ngch3n/heap-pwn-tutorial",
+    "commit_sha": "HEAD(depth-1)",
+    "challenge_path": "challenges/baby_talk",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "baby_talk",
+    "license": null,
+    "source_class": "tutorial_repo"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "73968df044529ab3b458f105ff07004c2b8c35f10936889236785410ccfafe18",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": [
+      "binary 无内置 libc; fetch.sh 需网络, 离线不可用 (UNKNOWN 保持)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "binary",
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": "solve.py 含菜单交互+堆操作"
+      }
+    ]
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": "solve.py",
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc/ld (SILVER: binary+exp 证据完整, 环境不完整)",
+      "exp_correctness_unverified"
+    ]
+  }
+}

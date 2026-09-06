@@ -1,0 +1,371 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-asis-2016-b00ks-2db4fc27",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks",
+    "ctf": null,
+    "year": null,
+    "year_provenance": null,
+    "challenge_name": "Asis_2016_b00ks",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "2db4fc27fd99e0ee9a9fc0735da8fc007720091d51eeaf9c42b68e8e0df1a1c2",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/b00ks",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/exp_books.py",
+            "heap_relevant": true,
+            "reason": "menu_helpers:['alloc', 'edit', 'free', 'show']",
+            "heap_kw_hits": [],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/b00ks",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/b00ks",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/b00ks",
+      "sha256": "2db4fc27fd99e0ee9a9fc0735da8fc007720091d51eeaf9c42b68e8e0df1a1c2",
+      "size": 10272
+    },
+    {
+      "path": "original/docs/README.md",
+      "role": "docs",
+      "repo_relative_path": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/README.md",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/README.md",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "size": 2
+    },
+    {
+      "path": "original/solution/exp_books.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/exp_books.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/exp_books.py",
+      "sha256": "e846df080a82258f3aa5acf088084a73f287d453c4c5cb5fcb44e1b404992d0e",
+      "size": 2230
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/exp_books.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "createbook",
+        "source_line": 9,
+        "end_line": 19,
+        "parameter_names": [
+          "name_size",
+          "name",
+          "des_size",
+          "des"
+        ],
+        "calls": [
+          "readuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "io.sendline(\"1\")",
+          "io.sendline(str(name_size))",
+          "io.sendline(name)",
+          "io.sendline(str(des_size))",
+          "io.sendline(des)"
+        ],
+        "menu_strings": [
+          "> ",
+          "1",
+          ": ",
+          ": ",
+          ": ",
+          ": "
+        ],
+        "operation": "alloc",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "printbook",
+        "source_line": 21,
+        "end_line": 33,
+        "parameter_names": [
+          "id"
+        ],
+        "calls": [
+          "int",
+          "range",
+          "readline",
+          "readuntil",
+          "sendline"
+        ],
+        "io_call_examples": [
+          "io.sendline(\"4\")"
+        ],
+        "menu_strings": [
+          "> ",
+          "4",
+          ": ",
+          ": ",
+          ": ",
+          ": "
+        ],
+        "operation": "show",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "createname",
+        "source_line": 35,
+        "end_line": 37,
+        "parameter_names": [
+          "name"
+        ],
+        "calls": [
+          "readuntil",
+          "sendline"
+        ],
+        "io_call_examples": [
+          "io.sendline(name)"
+        ],
+        "menu_strings": [
+          "name: "
+        ],
+        "operation": "alloc",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "changename",
+        "source_line": 39,
+        "end_line": 43,
+        "parameter_names": [
+          "name"
+        ],
+        "calls": [
+          "readuntil",
+          "sendline"
+        ],
+        "io_call_examples": [
+          "io.sendline(\"5\")",
+          "io.sendline(name)"
+        ],
+        "menu_strings": [
+          "> ",
+          "5",
+          ": "
+        ],
+        "operation": "edit",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "editbook",
+        "source_line": 45,
+        "end_line": 51,
+        "parameter_names": [
+          "book_id",
+          "new_des"
+        ],
+        "calls": [
+          "readuntil",
+          "sendline",
+          "str",
+          "writeline"
+        ],
+        "io_call_examples": [
+          "io.sendline(\"3\")",
+          "io.sendline(new_des)"
+        ],
+        "menu_strings": [
+          "> ",
+          "3",
+          ": ",
+          ": "
+        ],
+        "operation": "edit",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "deletebook",
+        "source_line": 53,
+        "end_line": 57,
+        "parameter_names": [
+          "book_id"
+        ],
+        "calls": [
+          "readuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "io.sendline(\"2\")",
+          "io.sendline(str(book_id))"
+        ],
+        "menu_strings": [
+          "> ",
+          "2",
+          ": "
+        ],
+        "operation": "free",
+        "confidence": "HIGH"
+      }
+    ],
+    "candidate_operations": [
+      {
+        "operation": "alloc",
+        "helper": "createbook",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp_books.py:9 def createbook(name_size, name, des_size, des)",
+          "io: io.sendline(\"1\")",
+          "io: io.sendline(str(name_size))"
+        ]
+      },
+      {
+        "operation": "show",
+        "helper": "printbook",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp_books.py:21 def printbook(id)",
+          "io: io.sendline(\"4\")"
+        ]
+      },
+      {
+        "operation": "alloc",
+        "helper": "createname",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp_books.py:35 def createname(name)",
+          "io: io.sendline(name)"
+        ]
+      },
+      {
+        "operation": "edit",
+        "helper": "changename",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp_books.py:39 def changename(name)",
+          "io: io.sendline(\"5\")",
+          "io: io.sendline(name)"
+        ]
+      },
+      {
+        "operation": "edit",
+        "helper": "editbook",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp_books.py:45 def editbook(book_id, new_des)",
+          "io: io.sendline(\"3\")",
+          "io: io.sendline(new_des)"
+        ]
+      },
+      {
+        "operation": "free",
+        "helper": "deletebook",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp_books.py:53 def deletebook(book_id)",
+          "io: io.sendline(\"2\")",
+          "io: io.sendline(str(book_id))"
+        ]
+      }
+    ],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [
+      {
+        "helper": "createname",
+        "source_line": 59,
+        "call": "createname(\"A\"*32)"
+      },
+      {
+        "helper": "createbook",
+        "source_line": 60,
+        "call": "createbook(128,\"a\",32,\"a\")"
+      },
+      {
+        "helper": "createbook",
+        "source_line": 61,
+        "call": "createbook(0x21000,\"a\",0x21000,\"b\")"
+      },
+      {
+        "helper": "printbook",
+        "source_line": 64,
+        "call": "printbook(1)"
+      },
+      {
+        "helper": "editbook",
+        "source_line": 69,
+        "call": "editbook(book_id_1,payload)"
+      },
+      {
+        "helper": "changename",
+        "source_line": 70,
+        "call": "changename(\"A\"*32)"
+      },
+      {
+        "helper": "printbook",
+        "source_line": 71,
+        "call": "printbook(1)"
+      },
+      {
+        "helper": "editbook",
+        "source_line": 83,
+        "call": "editbook(1,p64(free_hook)*2)"
+      },
+      {
+        "helper": "editbook",
+        "source_line": 84,
+        "call": "editbook(2,p64(one_gadget))"
+      },
+      {
+        "helper": "deletebook",
+        "source_line": 88,
+        "call": "deletebook(2)"
+      }
+    ],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "environment incomplete (no shipped libc/ld/docker)",
+      "exp_correctness_unverified"
+    ]
+  }
+}

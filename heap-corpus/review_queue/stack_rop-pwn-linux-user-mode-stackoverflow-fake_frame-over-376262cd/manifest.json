@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-over-376262cd",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/fake_frame/over",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "over",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "376262cd75220c9a8fa50ca72d4eb0ba44527a3bc04bb86a64b623a7d65aafc0",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "stack_rop",
+  "heap": {
+    "confidence": "MEDIUM",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/stackoverflow/fake_frame/over/core",
+          "allocator_dynsym_imports": [],
+          "heap_string_hits": [
+            "tcache_struct",
+            "fastbin",
+            "smallbin",
+            "main_arena"
+          ],
+          "dynamic_glibc_ref": true
+        }
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/stackoverflow/fake_frame/over/exp.py",
+      "role": "python",
+      "size": 1036
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

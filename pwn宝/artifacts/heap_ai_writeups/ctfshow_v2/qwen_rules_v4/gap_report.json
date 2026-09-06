@@ -1,0 +1,17 @@
+{
+  "counts": {
+    "golden_ir_review_required": 3
+  },
+  "examples": {
+    "golden_ir_review_required": [
+      "local.ctfshow.pwn144",
+      "local.ctfshow.pwn173",
+      "local.ctfshow.pwn179"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

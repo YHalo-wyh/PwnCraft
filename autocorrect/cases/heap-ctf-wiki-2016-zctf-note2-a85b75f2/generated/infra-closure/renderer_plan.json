@@ -1,0 +1,656 @@
+{
+  "run_id": "run-90412475f6ac0cde",
+  "source": "pwnbao-electron/renderer/heap.js exportRendererPlan (real geometry pipeline, node headless)",
+  "snapshot_id": "6d29650cb459",
+  "memory_revision": "14:0:0:0:13",
+  "exported_steps": [
+    4,
+    6
+  ],
+  "steps": [
+    {
+      "step": 4,
+      "op_id": "op_004",
+      "snapshot_id": "6d29650cb459",
+      "memory_revision": "14:0:0:0:13",
+      "edit_mode": false,
+      "cards": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "offset": 656,
+          "size": 144,
+          "geometry": {
+            "x": 148,
+            "y": 96,
+            "w": 400,
+            "h": 156
+          },
+          "geometry_basis": "physical_extent_size",
+          "size_triple": {
+            "header_raw_size": "0x91",
+            "decoded_chunksize": "144",
+            "physical_extent_size": "144"
+          },
+          "grid_height": 156,
+          "word": 8,
+          "user_row_bytes": 16,
+          "row_count": 5,
+          "rows": [
+            {
+              "kind": "header",
+              "name": "prev_size|size",
+              "off": 0,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 0,
+                  "end": 8
+                },
+                {
+                  "start": 8,
+                  "end": 16
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 16,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 16,
+                  "end": 24
+                },
+                {
+                  "start": 24,
+                  "end": 32
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 32,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 32,
+                  "end": 40
+                },
+                {
+                  "start": 40,
+                  "end": 48
+                }
+              ]
+            },
+            {
+              "kind": "marker",
+              "name": "",
+              "bytes": 80,
+              "full": false,
+              "cells": []
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 128,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 128,
+                  "end": 136
+                },
+                {
+                  "start": 136,
+                  "end": 144
+                }
+              ]
+            }
+          ],
+          "truncated": false,
+          "virtualized": false,
+          "virtualization_regime": "rowLimit=4096",
+          "spans": {
+            "cross": [],
+            "overlap": []
+          },
+          "covered_byte_range": [
+            0,
+            144
+          ]
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "B",
+          "offset": 800,
+          "size": 32,
+          "geometry": {
+            "x": 148,
+            "y": 252,
+            "w": 400,
+            "h": 78
+          },
+          "geometry_basis": "physical_extent_size",
+          "size_triple": {
+            "header_raw_size": "0x21",
+            "decoded_chunksize": "32",
+            "physical_extent_size": "32"
+          },
+          "grid_height": 78,
+          "word": 8,
+          "user_row_bytes": 16,
+          "row_count": 2,
+          "rows": [
+            {
+              "kind": "header",
+              "name": "prev_size|size",
+              "off": 0,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 0,
+                  "end": 8
+                },
+                {
+                  "start": 8,
+                  "end": 16
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 16,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 16,
+                  "end": 24
+                },
+                {
+                  "start": 24,
+                  "end": 32
+                }
+              ]
+            }
+          ],
+          "truncated": false,
+          "virtualized": false,
+          "virtualization_regime": "rowLimit=4096",
+          "spans": {
+            "cross": [],
+            "overlap": []
+          },
+          "covered_byte_range": [
+            0,
+            32
+          ]
+        },
+        {
+          "physical_id": "phys_0003",
+          "chunk_id": "C",
+          "offset": 832,
+          "size": 144,
+          "geometry": {
+            "x": 148,
+            "y": 330,
+            "w": 400,
+            "h": 156
+          },
+          "geometry_basis": "physical_extent_size",
+          "size_triple": {
+            "header_raw_size": "0x91",
+            "decoded_chunksize": "144",
+            "physical_extent_size": "144"
+          },
+          "grid_height": 156,
+          "word": 8,
+          "user_row_bytes": 16,
+          "row_count": 5,
+          "rows": [
+            {
+              "kind": "header",
+              "name": "prev_size|size",
+              "off": 0,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 0,
+                  "end": 8
+                },
+                {
+                  "start": 8,
+                  "end": 16
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 16,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 16,
+                  "end": 24
+                },
+                {
+                  "start": 24,
+                  "end": 32
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 32,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 32,
+                  "end": 40
+                },
+                {
+                  "start": 40,
+                  "end": 48
+                }
+              ]
+            },
+            {
+              "kind": "marker",
+              "name": "",
+              "bytes": 80,
+              "full": false,
+              "cells": []
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 128,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 128,
+                  "end": 136
+                },
+                {
+                  "start": 136,
+                  "end": 144
+                }
+              ]
+            }
+          ],
+          "truncated": false,
+          "virtualized": false,
+          "virtualization_regime": "rowLimit=4096",
+          "spans": {
+            "cross": [],
+            "overlap": []
+          },
+          "covered_byte_range": [
+            0,
+            144
+          ]
+        }
+      ],
+      "top_card": {
+        "x": 148,
+        "y": 486,
+        "w": 400,
+        "h": 48,
+        "chunk": {
+          "chunk_id": "TOP",
+          "view_kind": "top_chunk",
+          "chunk_size": "0x20c30"
+        }
+      },
+      "bins_layout": [
+        {
+          "kind": "fastbin",
+          "label": "fastbin[0x20]",
+          "size": "0x20",
+          "chain": [
+            "B"
+          ],
+          "color": "#d0a23a",
+          "doubly": false,
+          "x": 12,
+          "y": 6,
+          "nodeW": 92,
+          "nodeH": 36,
+          "perRow": 2,
+          "rows": 2,
+          "height": 145,
+          "topPad": 0,
+          "arenaBookends": false,
+          "endW": 58,
+          "endGap": 20
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "op_id": "op_006",
+      "snapshot_id": "6d29650cb459",
+      "memory_revision": "14:0:0:0:13",
+      "edit_mode": false,
+      "cards": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "offset": 656,
+          "size": 144,
+          "geometry": {
+            "x": 148,
+            "y": 96,
+            "w": 400,
+            "h": 156
+          },
+          "geometry_basis": "physical_extent_size",
+          "size_triple": {
+            "header_raw_size": "0x91",
+            "decoded_chunksize": "144",
+            "physical_extent_size": "144"
+          },
+          "grid_height": 156,
+          "word": 8,
+          "user_row_bytes": 16,
+          "row_count": 5,
+          "rows": [
+            {
+              "kind": "header",
+              "name": "prev_size|size",
+              "off": 0,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 0,
+                  "end": 8
+                },
+                {
+                  "start": 8,
+                  "end": 16
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 16,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 16,
+                  "end": 24
+                },
+                {
+                  "start": 24,
+                  "end": 32
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 32,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 32,
+                  "end": 40
+                },
+                {
+                  "start": 40,
+                  "end": 48
+                }
+              ]
+            },
+            {
+              "kind": "marker",
+              "name": "",
+              "bytes": 80,
+              "full": false,
+              "cells": []
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 128,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 128,
+                  "end": 136
+                },
+                {
+                  "start": 136,
+                  "end": 144
+                }
+              ]
+            }
+          ],
+          "truncated": false,
+          "virtualized": false,
+          "virtualization_regime": "rowLimit=4096",
+          "spans": {
+            "cross": [],
+            "overlap": []
+          },
+          "covered_byte_range": [
+            0,
+            144
+          ]
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "D",
+          "offset": 800,
+          "size": 32,
+          "geometry": {
+            "x": 148,
+            "y": 252,
+            "w": 400,
+            "h": 78
+          },
+          "geometry_basis": "physical_extent_size",
+          "size_triple": {
+            "header_raw_size": "0x21",
+            "decoded_chunksize": "32",
+            "physical_extent_size": "32"
+          },
+          "grid_height": 78,
+          "word": 8,
+          "user_row_bytes": 16,
+          "row_count": 2,
+          "rows": [
+            {
+              "kind": "header",
+              "name": "prev_size|size",
+              "off": 0,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 0,
+                  "end": 8
+                },
+                {
+                  "start": 8,
+                  "end": 16
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 16,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 16,
+                  "end": 24
+                },
+                {
+                  "start": 24,
+                  "end": 32
+                }
+              ]
+            }
+          ],
+          "truncated": false,
+          "virtualized": false,
+          "virtualization_regime": "rowLimit=4096",
+          "spans": {
+            "cross": [],
+            "overlap": []
+          },
+          "covered_byte_range": [
+            0,
+            32
+          ]
+        },
+        {
+          "physical_id": "phys_0003",
+          "chunk_id": "C",
+          "offset": 832,
+          "size": 144,
+          "geometry": {
+            "x": 148,
+            "y": 330,
+            "w": 400,
+            "h": 156
+          },
+          "geometry_basis": "physical_extent_size",
+          "size_triple": {
+            "header_raw_size": "0x20cc1",
+            "decoded_chunksize": "134336",
+            "physical_extent_size": "144"
+          },
+          "grid_height": 156,
+          "word": 8,
+          "user_row_bytes": 16,
+          "row_count": 5,
+          "rows": [
+            {
+              "kind": "header",
+              "name": "prev_size|size",
+              "off": 0,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 0,
+                  "end": 8
+                },
+                {
+                  "start": 8,
+                  "end": 16
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 16,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 16,
+                  "end": 24
+                },
+                {
+                  "start": 24,
+                  "end": 32
+                }
+              ]
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 32,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 32,
+                  "end": 40
+                },
+                {
+                  "start": 40,
+                  "end": 48
+                }
+              ]
+            },
+            {
+              "kind": "marker",
+              "name": "",
+              "bytes": 80,
+              "full": false,
+              "cells": []
+            },
+            {
+              "kind": "user",
+              "name": "",
+              "off": 128,
+              "bytes": 0,
+              "full": false,
+              "cells": [
+                {
+                  "start": 128,
+                  "end": 136
+                },
+                {
+                  "start": 136,
+                  "end": 144
+                }
+              ]
+            }
+          ],
+          "truncated": false,
+          "virtualized": false,
+          "virtualization_regime": "rowLimit=4096",
+          "spans": {
+            "cross": [
+              {}
+            ],
+            "overlap": []
+          },
+          "covered_byte_range": [
+            0,
+            144
+          ]
+        }
+      ],
+      "top_card": {
+        "x": 148,
+        "y": 486,
+        "w": 400,
+        "h": 48,
+        "chunk": {
+          "chunk_id": "TOP",
+          "view_kind": "top_chunk",
+          "chunk_size": "0x20cc0"
+        }
+      },
+      "bins_layout": []
+    }
+  ]
+}

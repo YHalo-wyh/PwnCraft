@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_ai_probe_medium_v7\\local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7.json"
+    }
+  ],
+  "completed": 1,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_ai_probe_medium_v7\\gap_report.json"
+}

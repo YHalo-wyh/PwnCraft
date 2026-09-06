@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "model": "static-only",
+  "cases": [
+    {
+      "case_id": "local.ctfshow.pwn164",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v3\\local.ctfshow.pwn164.json"
+    }
+  ],
+  "completed": 1,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_writeups\\ctfshow_v2\\static_v3\\gap_report.json"
+}

@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "model": "static-only",
+  "cases": [
+    {
+      "case_id": "local.traditional.exp",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\local.traditional.exp.json"
+    },
+    {
+      "case_id": "local.traditional.solve",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\local.traditional.solve.json"
+    },
+    {
+      "case_id": "local.traditional.solve-alt",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\local.traditional.solve-alt.json"
+    },
+    {
+      "case_id": "local.student.exp",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\local.student.exp.json"
+    },
+    {
+      "case_id": "local.student.solve-local",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\local.student.solve-local.json"
+    },
+    {
+      "case_id": "how2heap.223.fastbin-dup",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.223.fastbin-dup.json"
+    },
+    {
+      "case_id": "how2heap.223.fastbin-dup-consolidate",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.223.fastbin-dup-consolidate.json"
+    },
+    {
+      "case_id": "how2heap.223.overlapping-chunks",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.223.overlapping-chunks.json"
+    },
+    {
+      "case_id": "how2heap.223.poison-null-byte",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.223.poison-null-byte.json"
+    },
+    {
+      "case_id": "how2heap.223.unsafe-unlink",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.223.unsafe-unlink.json"
+    },
+    {
+      "case_id": "how2heap.223.unsorted-bin-attack",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.223.unsorted-bin-attack.json"
+    },
+    {
+      "case_id": "how2heap.227.tcache-poisoning",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.227.tcache-poisoning.json"
+    },
+    {
+      "case_id": "how2heap.227.house-of-botcake",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.227.house-of-botcake.json"
+    },
+    {
+      "case_id": "how2heap.227.fastbin-reverse-into-tcache",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.227.fastbin-reverse-into-tcache.json"
+    },
+    {
+      "case_id": "how2heap.227.tcache-stashing-unlink",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.227.tcache-stashing-unlink.json"
+    },
+    {
+      "case_id": "how2heap.231.large-bin-attack",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.231.large-bin-attack.json"
+    },
+    {
+      "case_id": "how2heap.231.house-of-lore",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.231.house-of-lore.json"
+    },
+    {
+      "case_id": "how2heap.231.overlapping-chunks",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.231.overlapping-chunks.json"
+    },
+    {
+      "case_id": "how2heap.235.safe-link-double-protect",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.235.safe-link-double-protect.json"
+    },
+    {
+      "case_id": "how2heap.235.tcache-poisoning",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.235.tcache-poisoning.json"
+    },
+    {
+      "case_id": "how2heap.235.house-of-water",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.235.house-of-water.json"
+    },
+    {
+      "case_id": "how2heap.239.tcache-poisoning",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.239.tcache-poisoning.json"
+    },
+    {
+      "case_id": "how2heap.239.house-of-botcake",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_corpus\\static_v070\\how2heap.239.house-of-botcake.json"
+    }
+  ],
+  "completed": 23,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_corpus\\static_v070\\gap_report.json"
+}

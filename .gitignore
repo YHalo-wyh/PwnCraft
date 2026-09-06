@@ -1,0 +1,37 @@
+# ---- PwnCraft workspace .gitignore ----
+# 第三方克隆与体积大户 (语料仓库本体在 heap-corpus/corpus, 克隆缓存不入库)
+heap-corpus/_repos/
+pwn宝/pwnbao-electron/node_modules/
+pwn宝/pwnbao-electron/package-lock.json
+
+# 训练审查快照 (内容与 corpus/autocorrect 重复, 可随时由 build_review_bundle.py 重建)
+PwnCraft_training_review/
+PwnCraft_training_review_*.zip
+
+# 工作区生成物
+.pwnbao/
+**/.pwnbao/
+crash_elf/.pwnbao/
+__pycache__/
+**/__pycache__/
+*.pyc
+.pytest_cache/
+**/.pytest_cache/
+.zcode/
+.codex-backups/
+.playwright-cli/
+
+# 日志与临时
+pwncraft-launch.log
+*.log
+/tmp/
+
+# 训练工作区的可重建运行时 (基线/报告保留, 临时缓存排除)
+autocorrect/regression/baselines/**/explanations.json.keep 2>/dev/null
+
+# OS
+Thumbs.db
+.DS_Store
+
+# 事故取证隔离区 (磁盘保留, 不入 git: 21MB+ 生成件)
+**/recovered_misdirected_promote/

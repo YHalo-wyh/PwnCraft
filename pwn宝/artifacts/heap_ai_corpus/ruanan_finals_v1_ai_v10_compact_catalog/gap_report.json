@@ -1,0 +1,49 @@
+{
+  "counts": {
+    "golden_ir_review_required": 10,
+    "static_inlined_entrypoint": 10,
+    "static_runtime_assertion": 6,
+    "run_over_budget": 2,
+    "static_heap_neutral_branch": 2
+  },
+  "examples": {
+    "golden_ir_review_required": [
+      "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.28183cb7",
+      "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+      "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6",
+      "local.ruanan.traditional-solve.e1258658",
+      "local.ruanan.traditional-solve_alt.a981ba78"
+    ],
+    "run_over_budget": [
+      "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.b86973f6",
+      "local.ruanan.open_materials_ui-_1f14b813-ctf_web_quick_audit-downloads-004_solution_problemInstanceId_100efd03_1.05901b16"
+    ],
+    "static_inlined_entrypoint": [
+      "local.ruanan.poc-pwn_student_fsop_refactor.77e52492",
+      "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "local.ruanan.poc-pwn_traditional_base64_heap_refactor.a874ddcf",
+      "local.ruanan.poc-pwn_traditional_base64_heap_refactor.fb7cb12f",
+      "local.ruanan.Studentmanagement-pwn_student_fsop_refactor.8406c9a6"
+    ],
+    "static_runtime_assertion": [
+      "local.ruanan.traditional-solve.e1258658",
+      "local.ruanan.traditional-solve_alt.a981ba78",
+      "local.ruanan.traditional-Traditional.83065a44",
+      "local.ruanan.traditional-Traditional.a31b426a"
+    ],
+    "static_heap_neutral_branch": [
+      "local.ruanan.traditional-solve_alt.a981ba78"
+    ]
+  },
+  "promotion_policy": {
+    "mode": "aggressive",
+    "minimum_positive_cases": 1,
+    "require_holdout": false,
+    "confidence_threshold": 0.8,
+    "maximum_rejected_cases": 0,
+    "rule_source": "qwen-strict-auto:aggressive"
+  }
+}

@@ -1,0 +1,42 @@
+pwndbg: loaded 199 pwndbg commands. Type pwndbg [filter] for a list.
+pwndbg: created 12 GDB functions (can be used with print/break). Type help function to see them.
+Reading symbols from /mnt/c/Users/WYH/Desktop/霄元杯/16：00/pwn_work/httpd...
+(No debugging symbols found in /mnt/c/Users/WYH/Desktop/霄元杯/16：00/pwn_work/httpd)
+The target architecture is set to "auto" (currently "aarch64").
+------- tip of the day (disable with set show-tips off) -------
+GDB's set directories <path> parameter can be used to debug e.g. glibc sources like the malloc/free functions!
+pwndbg>show architecture
+The target architecture is set to "auto" (currently "aarch64").
+pwndbg>info files
+Symbols from "/mnt/c/Users/WYH/Desktop/霄元杯/16：00/pwn_work/httpd".
+Local exec file:
+	`/mnt/c/Users/WYH/Desktop/霄元杯/16：00/pwn_work/httpd', file type elf64-littleaarch64.
+	Entry point: 0xbd00
+	0x0000000000000270 - 0x000000000000028b is .interp
+	0x000000000000028c - 0x00000000000002b0 is .note.gnu.build-id
+	0x00000000000002b0 - 0x00000000000002d0 is .note.ABI-tag
+	0x00000000000002d0 - 0x0000000000000338 is .gnu.hash
+	0x0000000000000338 - 0x0000000000001e08 is .dynsym
+	0x0000000000001e08 - 0x0000000000004d18 is .dynstr
+	0x0000000000004d18 - 0x0000000000004f54 is .gnu.version
+	0x0000000000004f58 - 0x0000000000005108 is .gnu.version_r
+	0x0000000000005108 - 0x0000000000009728 is .rela.dyn
+	0x0000000000009728 - 0x000000000000ad90 is .rela.plt
+	0x000000000000ad90 - 0x000000000000ada8 is .init
+	0x000000000000adb0 - 0x000000000000bcc0 is .plt
+	0x000000000000bcc0 - 0x00000000000424b0 is .text
+	0x00000000000424b0 - 0x00000000000424c4 is .fini
+	0x00000000000424c8 - 0x000000000004484d is .rodata
+	0x0000000000044850 - 0x0000000000044b62 is protodesc_cold
+	0x0000000000044b64 - 0x0000000000048a08 is .eh_frame_hdr
+	0x0000000000048a08 - 0x0000000000058484 is .eh_frame
+	0x0000000000058484 - 0x0000000000059a95 is .gcc_except_table
+	0x000000000006dbb0 - 0x000000000006dbb8 is .tbss
+	0x000000000006dbb0 - 0x000000000006dbd8 is .init_array
+	0x000000000006dbd8 - 0x000000000006dbe0 is .fini_array
+	0x000000000006dbe0 - 0x000000000006f590 is .data.rel.ro
+	0x000000000006f590 - 0x000000000006f7d0 is .dynamic
+	0x000000000006f7d0 - 0x0000000000070000 is .got
+	0x0000000000070000 - 0x00000000000702b0 is .data
+	0x00000000000702b0 - 0x0000000000071450 is .bss
+pwndbg>quit

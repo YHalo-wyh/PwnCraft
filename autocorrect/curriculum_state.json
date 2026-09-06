@@ -1,0 +1,115 @@
+{
+  "updated": "2026-09-05 (post cycle-2)",
+  "completed_cases": [
+    {
+      "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+      "role": "cycle-0-bootstrap-invalidated (Analyst 污染, 不作 held-out; 仅作泛化 witness)",
+      "cycles": [
+        "cycle-0(作废)"
+      ]
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "role": "cycle-1 正式训练",
+      "cycles": [
+        "cycle-1 ACCEPTED"
+      ]
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "role": "cycle-2 正式训练 (py2 方言网关维度)",
+      "cycles": [
+        "cycle-2 ACCEPTED (待 owner 确认)"
+      ]
+    }
+  ],
+  "accepted_rules": [
+    {
+      "rule_id": "R-EVIDENCE-PROMPTSYNC-VS-OUTPUT",
+      "cycle": "cycle-1",
+      "patch_id": "cycle-1",
+      "recognizer_revision": "recognizer-2026.09-r3",
+      "statement": "丢弃的 recv 族调用(裸语句)不构成输出证据; 仅被消费的(赋值/返回/打印/进入计算) recv 结果 = OUTPUT_DATA_FLOW, 可作 SHOW 强结构证据; FREE/DELETE 不依赖输出流",
+      "synthetic_tests": "tests/test_contract_output_dataflow_evidence.py (7)",
+      "generalization": "babyheap 自动生效 (free show->delete, dump 伪证据摘除)"
+    },
+    {
+      "rule_id": "R-EXP-PY2-PRINT-TOLERANCE",
+      "cycle": "cycle-2",
+      "patch_id": "cycle-2",
+      "recognizer_revision": "recognizer-2026.09-r4",
+      "statement": "EXP 模块级解析失败时, tokenize 引导的语句级 print 改写 (字符串安全/行号保持) 后重解析; py3 路径不变",
+      "synthetic_tests": "tests/test_source_compat_py2_print.py (8)",
+      "generalization": "wheelofrobots + hacklu-bookstore 自动解锁 (SyntaxError→完整识别); stkof(py3 对照)不变"
+    }
+  ],
+  "coverage": {
+    "semantic": {
+      "alloc": "lab13(create)/babyheap(allocate)",
+      "free": "lab13(delete)/babyheap(free)",
+      "edit": "lab13(edit)/babyheap(fill)",
+      "show": "lab13(show, 契约级仍 unknown—cycle-2 目标)/babyheap(dump 同)",
+      "copy": null
+    },
+    "role_shapes": {
+      "size": "babyheap allocate(size) [契约级仍未证明]",
+      "index,size,data": "lab13 fill / babyheap fill",
+      "size,data": "lab13 create(size,content)",
+      "index": "lab13 free/dump",
+      "data_only_derived_size": null,
+      "index_choice_data": "note2 editnote (契约仍 unknown—后续 cycle)",
+      "src_dst": null,
+      "default_param": null,
+      "index_arithmetic_callsite": null
+    },
+    "wrapper_shapes": {
+      "direct_wrapper": "lab13/babyheap 全部",
+      "wrapper_of_wrapper": null,
+      "helper_alias": null,
+      "no_arg_helper": null,
+      "conditional_inside_helper": null,
+      "promptless_sends": null,
+      "module_level_entry": "note2 (顶层调用全部识别)"
+    },
+    "control_flow": {
+      "sequential": "lab13/babyheap",
+      "for_loop": null,
+      "conditional": null,
+      "repeated_calls": "lab13(多次 create/delete)",
+      "indirect_call": null
+    },
+    "recv_semantics": {
+      "prompt_sync_only": "lab13 全部 helper",
+      "ack_sync_discarded": null,
+      "output_dataflow_in_body": null,
+      "recv_result_returned": null,
+      "callsite_leak_calc": "lab13(L58-61)/babyheap(L87) [识别器尚无调用点级分析—cycle-2 目标]"
+    },
+    "target_behavior": {
+      "one_to_one": null,
+      "one_to_N": "lab13 (create=malloc(0x10)+malloc(size); 识别器尚未实现—TARGET_BEHAVIOR 层待修)",
+      "object_multi_alloc": "lab13",
+      "delete_multi_free": "lab13"
+    },
+    "allocator_context": {
+      "normal": "lab13/babyheap",
+      "fastbin": "lab13/babyheap",
+      "tcache": null,
+      "unsorted": null,
+      "overlap": null,
+      "corruption": "lab13(size 伪造)/babyheap(fd 改写)"
+    },
+    "exp_dialect": {
+      "python3": "lab13/babyheap",
+      "python2_print": "note2 (cycle-2)"
+    }
+  },
+  "capability_queue": [
+    "调用点级 OUTPUT_DATA_FLOW — 双 case 共同需要 (lab13 show + note2 shownote), cycle-3 首选",
+    "size-only alloc 契约 (babyheap allocate 有提示词 / stkof alloc 无提示词 两种形状)",
+    "TARGET_BEHAVIOR 1:N 事件展开 (lab13)",
+    "editnote 型三参 (choice+无提示词 data) 契约",
+    "wheelofrobots 引擎 MemoryError (2.23 profile, _changed_byte_mask 巨长写) — allocator 层健壮性",
+    "loop expansion"
+  ]
+}

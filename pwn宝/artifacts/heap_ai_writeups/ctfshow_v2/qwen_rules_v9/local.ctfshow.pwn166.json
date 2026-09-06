@@ -1,0 +1,12 @@
+{
+  "run_id": "run_0be2f0e217fe48bd93d6268cb2a932d5",
+  "case_id": "local.ctfshow.pwn166",
+  "source_hash": "2a0916d5ef03583ef8f6a86d62c233f7443a554d25ed77319e0b64ef0adb73a3",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "response",
+  "error": "模型输出不包含 JSON 对象。",
+  "retryable": false,
+  "details": {},
+  "elapsed_s": 58.172
+}

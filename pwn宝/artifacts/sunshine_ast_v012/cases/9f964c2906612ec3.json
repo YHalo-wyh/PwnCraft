@@ -1,0 +1,96 @@
+{
+  "schema_version": 2,
+  "path": "比赛/polarisctf招新赛/pwn-throne-hazard(堆)/attachments/solve.py",
+  "source_hash": "9f964c2906612ec3fc2193f239773b2876813783d0ab7834b5d0ca87d1d7ba37",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "PARSE_ONLY",
+  "static_eligibility": "RUNTIME_REQUIRED",
+  "eligibility_reason": "no in-file deterministic heap operation; imported/runtime helper or non-heap candidate",
+  "analysis_variant": "default",
+  "failure_reasons": [
+    "external runtime dependency"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {},
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "note",
+      "chunk": "",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "dynamic for: iterable is unknown",
+      "meta": {
+        "analysis_status": "unresolved",
+        "source_line": "167",
+        "source_end_line": "178",
+        "source_id": "source_dfa05867c23740d4",
+        "ast_fingerprint": "d6f7d6841a929707"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `main`。",
+      "start": 5401,
+      "end": 5407,
+      "line": 184,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `not path.endswith(b'\\x00')` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 4720,
+      "end": 4774,
+      "line": 159,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `len(path) > 0x20` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 4780,
+      "end": 4847,
+      "line": 162,
+      "suggestion": ""
+    },
+    {
+      "severity": "warning",
+      "code": "dynamic_iterable",
+      "message": "for iterable 无法静态确定，未展开循环。",
+      "start": 4895,
+      "end": 5330,
+      "line": 167,
+      "suggestion": "改用静态 range/list，或在时间线中人工绑定。"
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 1,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

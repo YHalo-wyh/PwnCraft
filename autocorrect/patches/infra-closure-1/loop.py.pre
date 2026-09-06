@@ -1,0 +1,236 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""PwnCraft AI auto-correction loop CLI.
+
+Workflow (reviewer_protocol.md):
+  run      : corpus case -> PwnCraft static recognition + replay (pwncraft_output.json)
+  compare  : expected_analysis.json vs pwncraft_output.json -> first divergence report
+  baseline : record current behavior fingerprint of a case
+  regress  : re-run all baselined cases, flag any drift (must be STABLE or
+             explicitly refreshed together with an accepted fix)
+
+Static analysis only; challenge binaries are never executed.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+
+import pwncraft_adapter  # noqa: E402
+import comparator  # noqa: E402
+import comparator_v3  # noqa: E402
+import regression  # noqa: E402
+
+CORPUS = HERE.parent / "heap-corpus" / "corpus"
+
+
+def resolve_case(case: str) -> Path:
+    p = Path(case)
+    if p.is_dir():
+        return p
+    guess = CORPUS / case
+    if guess.is_dir():
+        return guess
+    matches = list(CORPUS.glob(f"{case}*"))
+    if len(matches) == 1:
+        return matches[0]
+    raise FileNotFoundError(f"case dir not found for: {case}")
+
+
+def cmd_generate(args):
+    """Phase B: run PwnCraft on the case, save raw baseline artifacts."""
+    import shutil
+    case_dir = resolve_case(args.case)
+    cid = case_dir.name
+    cdir = HERE / "cases" / cid
+    gen_dir = cdir / "generated" / (args.label or "baseline")
+    result = pwncraft_adapter.run_case(case_dir, out_path=gen_dir / "pwncraft_output.json")
+    a = result["analyzer"]
+    (gen_dir / "recognition.json").write_text(
+        json.dumps(a["recognition"], ensure_ascii=False, indent=2), encoding="utf-8")
+    (gen_dir / "helper_contracts.json").write_text(
+        json.dumps(a["helper_contracts"], ensure_ascii=False, indent=2), encoding="utf-8")
+    (gen_dir / "canonical_ir.json").write_text(
+        json.dumps(a["canonical_ops"], ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    (gen_dir / "operations.json").write_text(
+        json.dumps(result["replay"].get("steps"), ensure_ascii=False, indent=2, default=str),
+        encoding="utf-8")
+    (gen_dir / "snapshots.json").write_text(
+        json.dumps({"n_steps": result["replay"]["n_steps"],
+                    "model_divergences": result["replay"].get("model_divergences")},
+                   ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    (gen_dir / "bins.json").write_text(
+        json.dumps([{k: s.get(k) for k in ("step", "tcache", "fastbins", "unsorted")}
+                    for s in result["replay"].get("steps", [])],
+                   ensure_ascii=False, indent=2, default=str), encoding="utf-8")
+    (gen_dir / "UNSUPPORTED_ARTIFACTS.txt").write_text(
+        "physical_memory.json / paint_spans.json: adapter 未接入 PhysicalMemory 序列化与渲染层, 本层未比较\n",
+        encoding="utf-8")
+    print(f"[generate] {cid} label={args.label or 'baseline'} -> {gen_dir}")
+    print(f"           ops={len(a['canonical_ops'])} contracts={len(a['helper_contracts'])} "
+          f"steps={result['replay']['n_steps']} revision={a['recognizer_revision']}")
+
+
+def cmd_diverge(args):
+    """Reviewer: compare locked expected_truth vs generated output.
+    v3 comparator (protocol v1.1): six-field helper comparison,
+    SEMANTIC_MATCH/EVIDENCE_DIVERGED provenance check, 1:N allocator events."""
+    case_dir = resolve_case(args.case)
+    cid = case_dir.name
+    cdir = HERE / "cases" / cid
+    expected = json.loads((cdir / "expected_truth.json").read_text(encoding="utf-8"))
+    gen_name = args.label or "baseline"
+    actual_path = cdir / "generated" / gen_name / "pwncraft_output.json"
+    actual = json.loads(actual_path.read_text(encoding="utf-8"))
+    exp_rel = expected.get("exp_file") or ""
+    exp_path = case_dir / "original" / "solution" / "exp.py"
+    if not exp_path.exists():
+        cands = list((case_dir / "original" / "solution").glob("*.py"))
+        exp_path = cands[0] if cands else None
+    exp_source = exp_path.read_text(encoding="utf-8") if exp_path else ""
+    report = comparator_v3.compare(expected, actual, exp_source=exp_source)
+    report["compared_artifacts"] = {
+        "expected_truth": str(cdir / "expected_truth.json"),
+        "pwncraft_output": str(actual_path),
+        "comparator": "v3",
+    }
+    out = cdir / f"divergence_report.{gen_name}.json"
+    out.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[diverge] verdict={report['verdict']} -> {out}")
+    fd = report.get("first_divergence")
+    if fd:
+        print(f"          first_divergence layer={fd['layer']} "
+              f"line={fd.get('source_line')} call={fd.get('source_call')}")
+        sd = fd.get("status_detail") or {}
+        print(f"          status: {sd.get('semantic')} / {sd.get('evidence', sd.get('layer_detail', ''))}"
+              + (f" field={sd.get('divergence_field')}" if sd.get('divergence_field') else ""))
+        print(f"          hint: {report.get('reviewer_reason_hint', '')[:220]}")
+    for h in report.get("helper_contract_status", []):
+        print(f"          helper {h.get('helper'):10} {h.get('semantic')}"
+              + (f" / {h.get('evidence')}" if h.get("evidence") else ""))
+
+
+def cmd_run(args):
+    case_dir = resolve_case(args.case)
+    out = HERE / "cases" / case_dir.name / "pwncraft_output.json"
+    result = pwncraft_adapter.run_case(case_dir, out_path=out)
+    print(f"[run] {result['case_id']} -> {out}")
+    print(f"      ops={len(result['analyzer']['canonical_ops'])} "
+          f"contracts={len(result['analyzer']['helper_contracts'])} "
+          f"steps={result['replay']['n_steps']} "
+          f"revision={result['analyzer']['recognizer_revision']}")
+
+
+def cmd_compare(args):
+    case_dir = resolve_case(args.case)
+    cdir = HERE / "cases" / case_dir.name
+    expected_path = cdir / "expected_analysis.json"
+    actual_path = cdir / "pwncraft_output.json"
+    if not actual_path.exists():
+        cmd_run(argparse.Namespace(case=str(case_dir)))
+    expected = json.loads(expected_path.read_text(encoding="utf-8"))
+    actual = json.loads(actual_path.read_text(encoding="utf-8"))
+    expected["_path"] = str(expected_path)
+    actual["_path"] = str(actual_path)
+    report = comparator.compare(expected, actual)
+    report["compared_artifacts"]["expected_analysis"] = str(expected_path)
+    report["compared_artifacts"]["pwncraft_output"] = str(actual_path)
+    out_path = cdir / "divergence_report.json"
+    out_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[compare] verdict={report['verdict']} -> {out_path}")
+    fd = report.get("first_divergence")
+    if fd:
+        print(f"          first_divergence layer={fd['layer']} loc={fd.get('location')}")
+        print(f"          root_cause: {report.get('root_cause')}")
+
+
+def _case_ids():
+    ids = []
+    for p in sorted((HERE / "regression" / "baselines").glob("*.json")):
+        ids.append(p.stem)
+    return ids
+
+
+def cmd_baseline(args):
+    case_dir = resolve_case(args.case)
+    out = HERE / "cases" / case_dir.name / "pwncraft_output.json"
+    result = pwncraft_adapter.run_case(case_dir, out_path=out)
+    rec = regression.save_version(
+        result, HERE / "regression" / "baselines",
+        label=args.label, patch_id=args.patch_id, note=args.note or "",
+        intentional_delta=[x for x in (args.intentional_delta or "").split(",") if x])
+    print(f"[baseline] {result['case_id']} {args.label}__{args.patch_id} digest={rec['digest']}")
+
+
+def cmd_explain(args):
+    baselines_root = HERE / "regression" / "baselines"
+    rec = regression.add_explanation(
+        baselines_root, args.case, args.from_version, args.patch_id,
+        [x for x in args.dimensions.split(",") if x], args.note or "")
+    print(f"[explain] {args.case}: patch {args.patch_id} explains "
+          f"{rec['dimensions']} vs {args.from_version}")
+
+
+def cmd_regress(args):
+    results = []
+    baselines_root = HERE / "regression" / "baselines"
+    case_ids = sorted(p.name for p in baselines_root.iterdir() if p.is_dir()) \
+        if baselines_root.exists() else []
+    for case_id in case_ids:
+        case_dir = resolve_case(case_id)
+        out = HERE / "cases" / case_dir.name / "pwncraft_output.json"
+        result = pwncraft_adapter.run_case(case_dir, out_path=out)
+        results.append(regression.check_all_versions(result, baselines_root))
+    (HERE / "regression" / "last_run.json").write_text(
+        json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    bad = [r for r in results if r["status"] == "REGRESSION"]
+    for r in results:
+        print(f"[regress] {r['case_id']}: {r['status']}")
+        for v in r.get("versions", []):
+            extra = f" drift={v['unexplained_drift']}" if v.get("unexplained_drift") else ""
+            print(f"          vs {v['label']}__{v['patch_id']}: {v['status']}{extra}")
+    print(f"[regress] total={len(results)} regressions={len(bad)}")
+    sys.exit(1 if bad else 0)
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="autocorrect")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    for name in ("run", "compare"):
+        p = sub.add_parser(name)
+        p.add_argument("case", help="case_id or corpus dir")
+    b = sub.add_parser("baseline")
+    b.add_argument("case", help="case_id or corpus dir")
+    b.add_argument("--label", required=True, help="version label (pre-patch/post-patch/...)")
+    b.add_argument("--patch-id", default="", help="patch id this baseline belongs to")
+    b.add_argument("--note", default="")
+    b.add_argument("--intentional-delta", default="",
+                   help="comma-separated fingerprint dimensions explained by patch_id")
+    e = sub.add_parser("explain")
+    e.add_argument("case", help="case_id")
+    e.add_argument("--from-version", required=True, help="baseline version file (e.g. pre-patch__none.json)")
+    e.add_argument("--patch-id", required=True)
+    e.add_argument("--dimensions", required=True, help="comma-separated drift dimensions")
+    e.add_argument("--note", default="")
+    r = sub.add_parser("regress")
+    g = sub.add_parser("generate")
+    g.add_argument("case", help="case_id or corpus dir")
+    g.add_argument("--label", default="baseline",
+                   help="artifact subdirectory label (baseline / after / ...)")
+    d = sub.add_parser("diverge")
+    d.add_argument("case", help="case_id or corpus dir")
+    d.add_argument("--label", default="baseline",
+                   help="which generated/ run to compare against")
+    args = ap.parse_args()
+    {"run": cmd_run, "compare": cmd_compare, "generate": cmd_generate,
+     "diverge": cmd_diverge, "baseline": cmd_baseline, "regress": cmd_regress,
+     "explain": cmd_explain}[args.cmd](args)
+
+
+if __name__ == "__main__":
+    main()

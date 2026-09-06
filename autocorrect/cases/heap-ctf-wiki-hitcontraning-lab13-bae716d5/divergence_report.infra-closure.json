@@ -1,0 +1,75 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def create()",
+    "expected": {
+      "evidence_predicates": [
+        "dataflow_strong"
+      ]
+    },
+    "actual": {
+      "evidence_predicates": [
+        "interaction"
+      ],
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    "status_detail": {
+      "helper": "create",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "SEMANTIC_MATCH",
+      "evidence": "EVIDENCE_DIVERGED",
+      "divergence_field": "evidence_predicates",
+      "required_predicates": [
+        "dataflow_strong"
+      ],
+      "actual_predicates": [
+        "interaction"
+      ]
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "create",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "SEMANTIC_MATCH",
+      "evidence": "EVIDENCE_DIVERGED",
+      "divergence_field": "evidence_predicates",
+      "required_predicates": [
+        "dataflow_strong"
+      ],
+      "actual_predicates": [
+        "interaction"
+      ]
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [],
+  "root_cause": {
+    "component": "HelperContractResolver (evidence predicates)",
+    "reason": null
+  },
+  "evidence": [
+    "exp.py:15 sendline(str(size)) 应答 Size 提示 (prompt→参数数据流, 中等)",
+    "heapcreator.c:48 malloc(size) — 参数经 atoi 流入 malloc 调用 (强)",
+    "exp.py:17 sendline(content); heapcreator.c:55 read_input(content_ptr, size) (data 强证据)"
+  ],
+  "reviewer_reason_hint": "create 缺少证据谓词 ['dataflow_strong']",
+  "confidence": null,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\infra-closure\\pwncraft_output.json",
+    "renderer_plan": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\infra-closure\\renderer_plan.json",
+    "run_id": "run-d409cf919de44901",
+    "comparator": "v4"
+  }
+}

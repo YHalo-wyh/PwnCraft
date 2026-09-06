@@ -1,0 +1,58 @@
+{
+  "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+  "compared_artifacts": {
+    "expected_analysis": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\expected_analysis.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180\\pwncraft_output.json",
+    "pwncraft_recognizer_revision": "recognizer-2026.09-r2"
+  },
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "helper_contract",
+    "location": {
+      "file": "exp.py",
+      "line": 28,
+      "call": "def allocate(...)"
+    },
+    "pwncraft_output": {
+      "operation": "unknown",
+      "confidence": "candidate",
+      "evidence_sources": [
+        "NAME_CANDIDATE"
+      ],
+      "roles": {}
+    },
+    "expected": {
+      "operation": "alloc",
+      "operation_evidence": [
+        "exp.py:29-32 菜单 '1', 随后 recvuntil('Size: ') 并 sendline(str(size)) — 实参是对 Size 提示词的应答",
+        "exp.py:62-66 全部调用点传 chunk 尺寸字面量 (0x10/0x80), 注释 'idx 4, 0x80' 表明 0x80 为请求大小",
+        "无 index 形参 — 分配槽位由目标端顺序分配决定"
+      ]
+    },
+    "downstream_effects": [
+      "helper contract 为空 → canonical 层 allocator_request 保持 UnknownValue('menu request is not proof of allocator request') (pwncraft_output.json canonical_ops L62-110)",
+      "分配大小只能靠 legacy op 层的菜单启发式兜底, 无法作为已证契约参与 chunk 映射",
+      "同层后续偏差(下一轮将命中): free(idx) 被判 SHOW → 引擎全程无释放, fastbin/unsorted 恒空, seq6-22 的利用链画布失真"
+    ]
+  },
+  "root_cause": "HelperContract 结构化推断 (_structural_contract) 的 operation 决策链缺少 'size-only' 形状: 对只有 size 参数、无 index/data 的 alloc wrapper (菜单1只问Size的经典 allocate(size)), 现有全部分支 (offset+data / index+size+data / size+data / data+index / index+recv / src+dst) 均不命中 → 返回 None → roles 一并不产出, 只剩 NAME_CANDIDATE 级候选契约 (operation=unknown)。参数角色绑定依赖 _ROLE_ALIASES 名字别名表, 缺少 prompt-label → 角色的数据流证据通道。",
+  "evidence": [
+    "exp.py:31-32: p.recvuntil('Size: ') 后 p.sendline(str(size)) — 实参是对 'Size' 提示词的应答 (数据流可证)",
+    "exp.py:62-66: allocate 调用点实参均为尺寸字面量; exp.py:66 注释 'idx 4, 0x80'",
+    "pwncraft_output.json: allocate contract = {operation: unknown, confidence: candidate, evidence_sources: [NAME_CANDIDATE], roles: {}}",
+    "pwncraft_output.json: canonical_ops L62-110 全部 alloc 的 allocator_request = UnknownValue('menu request is not proof of allocator request')",
+    "pwnbao/features/heapviz/contracts/resolver.py:392-407 _structural_contract 决策链无 size-only 分支; :404 'index+recv → SHOW' 与 :405-406 delete/free 提示词分支的先后顺序问题 (次级偏差, 下一轮处理)"
+  ],
+  "suggested_recognizer_improvement": {
+    "target_component": "HelperContract inference (contracts/resolver.py: _structural_contract + prompt-role 绑定)",
+    "rule_type": "data_flow",
+    "description": "三条泛化规则, 全部基于交互数据流而非函数名: (1) prompt-label 绑定: 函数体内出现 recvuntil(P) 后紧跟 send*(str(param)) / send(param) ⇒ 形参 param 绑定角色 role(P) ('size'→size, 'index'→index, 'content'→data; 标签集合可随语料扩展, 匹配用小写包含而非全等)。(2) 形状→operation 补 size-only 分支: 参数恰好只绑定 size 角色 (无 index/data) 且存在菜单交互 ⇒ operation=ALLOC, allocator_request 绑定该 size 形参。(3) SHOW 证据修正: recvuntil(固定提示词字面量) 属于菜单协议, 不构成 show 证据; show 证据 = recv/recvn/recvline 等对非常量参数的读回, 或 recvuntil 后接数据读取。'index+recv' 分支必须改为 'index+data_readback' 才能判 SHOW。",
+    "anti_hardcode_check": true
+  },
+  "reviewer": {
+    "model": "bigmodel-coding-plan/GLM-5.3-Flash (ZCode, reviewer role)",
+    "date": "2026-09-03",
+    "expected_revisits": 0,
+    "note": "按'只报第一处'纪律: 本轮只展开 allocate 契约缺失; free→SHOW 为次级偏差预览, 待本偏差修复后由下一轮 compare 命中。regression 基线 be5273c564609d8e 已存 (pre-fix)。"
+  }
+}

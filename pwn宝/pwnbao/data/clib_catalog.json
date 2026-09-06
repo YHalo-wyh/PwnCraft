@@ -1,0 +1,1548 @@
+{
+  "functions": [
+    {
+      "name": "printf",
+      "prototype": "int printf(const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "格式化输出到屏幕（stdout）",
+      "params": [
+        {"name": "format", "type": "const char *", "note": "格式化字符串（%d %s %p %n 等）"},
+        {"name": "...", "type": "", "note": "可变参数，按 format 中的占位符对应传入"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "输出的字符个数"},
+        {"condition": "失败", "value": "负值"}
+      ],
+      "notes": [
+        "%n 会把已输出的字符数写入对应参数指向的地址——格式化字符串漏洞的核心行为",
+        "%p / %x 常用于泄露栈上 / 寄存器值"
+      ],
+      "tags": ["stdio", "format", "输出"]
+    },
+    {
+      "name": "sprintf",
+      "prototype": "int sprintf(char *str, const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "格式化写入内存字符串（无长度限制，不安全）",
+      "params": [
+        {"name": "str", "type": "char *", "note": "目标缓冲区，写入位置"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串，与 printf 完全一样"},
+        {"name": "...", "type": "", "note": "可变参数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "写入的字符个数（不含结尾 \\0）"}
+      ],
+      "notes": [
+        "没有长度限制，没有边界检查——缓冲区溢出的经典来源",
+        "安全替代：snprintf"
+      ],
+      "tags": ["stdio", "format", "不安全"]
+    },
+    {
+      "name": "snprintf",
+      "prototype": "int snprintf(char *str, size_t size, const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "带长度上限的格式化写入（安全版）",
+      "params": [
+        {"name": "str", "type": "char *", "note": "目标缓冲区"},
+        {"name": "size", "type": "size_t", "note": "缓冲区总大小：最多写 size-1 个字符，留 1 位存 \\0"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串"},
+        {"name": "...", "type": "", "note": "可变参数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "理想长度（假设缓冲区足够大时应写入的字符总数，可能 ≥ size-1）"}
+      ],
+      "notes": [
+        "返回值是「想要写入」的长度，不是实际写入长度——判断截断要看它是否 ≥ size",
+        "size 包含结束符的位置"
+      ],
+      "tags": ["stdio", "format", "安全"]
+    },
+    {
+      "name": "__printf_chk",
+      "prototype": "int __printf_chk(int flag, const char *format, ...);",
+      "header": "<stdio.h>（glibc 内部导出）",
+      "category": "输入输出",
+      "summary": "FORTIFY_SOURCE 加固版 printf",
+      "params": [
+        {"name": "flag", "type": "int", "note": "只传 0 或 1：1 = 开启栈保护、格式串检查（FORTIFY_SOURCE 加固）；0 = 等价普通 printf"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串，和 printf 完全一样"},
+        {"name": "...", "type": "", "note": "可变参数，和 printf 用法一样"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "输出字符个数，和 printf 相同"}
+      ],
+      "notes": [
+        "编译开 -D_FORTIFY_SOURCE=2 时 printf 会被替换成 __printf_chk",
+        "逆向里看到 *_chk 后缀 = 加固版（__strcpy_chk / __memcpy_chk 同理），第一个参数永远是 flag"
+      ],
+      "tags": ["glibc", "fortify", "format"]
+    },
+    {
+      "name": "puts",
+      "prototype": "int puts(const char *s);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "输出字符串到 stdout，末尾自动补换行",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "要输出的字符串首地址"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "非负值"},
+        {"condition": "失败", "value": "EOF"}
+      ],
+      "notes": [
+        "遇到 \\0 停止输出，最后自动加一个 \\n",
+        "pwn 中 puts(某地址) = 从该地址开始打印字符串——泄露 libc / 任意地址内容的常用方式"
+      ],
+      "tags": ["stdio", "输出", "leak"]
+    },
+    {
+      "name": "fgets",
+      "prototype": "char *fgets(char *str, int n, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "从流中读一行，最多 n-1 个字符（安全读入）",
+      "params": [
+        {"name": "str", "type": "char *", "note": "字符缓冲区，存放读取到的字符串"},
+        {"name": "n", "type": "int", "note": "最多读取字符个数（实际最多读 n-1 个，留 1 位存结束符 \\0）"},
+        {"name": "stream", "type": "FILE *", "note": "文件指针：可读标准输入 stdin、普通文件流"}
+      ],
+      "returns": [
+        {"condition": "读取成功", "value": "返回 str 指针"},
+        {"condition": "读到文件末尾 / 出错", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "遇到 \\n 停止且 \\n 会保留在缓冲区里",
+        "按 n 截断，不会溢出——题目用 fgets 基本堵死栈溢出"
+      ],
+      "tags": ["stdio", "输入", "安全"]
+    },
+    {
+      "name": "scanf",
+      "prototype": "int scanf(const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "格式化读取标准输入",
+      "params": [
+        {"name": "format", "type": "const char *", "note": "格式字符串：%s %d %x %u 等"},
+        {"name": "...", "type": "", "note": "对应变量的地址（写成 &x）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "成功匹配并赋值的字段个数"},
+        {"condition": "读到文件末尾", "value": "EOF"},
+        {"condition": "第一个就匹配失败", "value": "0"}
+      ],
+      "notes": [
+        "%s 无长度限制会溢出；%48s 最多读 48 字符",
+        "%*s 读取但直接丢弃，不做其他操作",
+        "读取字符串会自动在末尾补 \\x00"
+      ],
+      "tags": ["stdio", "输入", "溢出"]
+    },
+    {
+      "name": "setbuf",
+      "prototype": "void setbuf(FILE *stream, char *buf);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "设置流的缓冲区；buf 传 NULL 关闭缓冲",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流：stdout / stdin 等"},
+        {"name": "buf", "type": "char *", "note": "缓冲区地址；传 NULL = 关闭缓冲"}
+      ],
+      "returns": [],
+      "notes": [
+        "题目 main 开头常见 setbuf(stdout, NULL)：关闭缓冲后输出立即上屏",
+        "交互题里它决定 recv 的时机——没关缓冲时输出可能攒在缓冲区里"
+      ],
+      "tags": ["stdio", "缓冲"]
+    },
+    {
+      "name": "open",
+      "prototype": "int open(const char *pathname, int flags);",
+      "header": "<fcntl.h>",
+      "category": "文件描述符",
+      "summary": "打开文件，返回文件描述符 fd",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "文件路径字符串（如 /tmp/123.txt、/flag）"},
+        {"name": "flags", "type": "int", "note": "打开方式（必须填），见下方说明"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "文件描述符 fd（整数，>=0，从 3 开始分配：0/1/2 已被 stdin/stdout/stderr 占用）"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "flags 常用值：O_RDONLY 只读 / O_WRONLY 只写 / O_RDWR 读写 / O_CREAT 不存在则创建 / O_APPEND 追加写 / O_TRUNC 清空文件",
+        "ORW（open-read-write）利用链的第一步"
+      ],
+      "tags": ["fd", "orw", "文件"]
+    },
+    {
+      "name": "read",
+      "prototype": "ssize_t read(int fd, void *buf, size_t count);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "从文件描述符读数据到缓冲区",
+      "params": [
+        {"name": "fd", "type": "int", "note": "文件描述符：0 = 标准输入 stdin，1 = stdout，2 = stderr；open 的返回值"},
+        {"name": "buf", "type": "void *", "note": "读取的数据存到哪里（一块内存地址）"},
+        {"name": "count", "type": "size_t", "note": "期望读取的字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际读到的字节数（可能小于 count）"},
+        {"condition": "读到文件末尾", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1，并设置 errno"}
+      ],
+      "notes": [
+        "read(0, buf, n) 是菜单题 / 交互题最常见的输入路径",
+        "count 大于缓冲区实际大小 = 栈溢出 / 堆溢出入口",
+        "ORW 第二步"
+      ],
+      "tags": ["io", "fd", "输入", "orw"]
+    },
+    {
+      "name": "write",
+      "prototype": "ssize_t write(int fd, const void *buf, size_t count);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "把缓冲区数据写入文件描述符",
+      "params": [
+        {"name": "fd", "type": "int", "note": "文件描述符（打开的文件、标准输出、套接字等）"},
+        {"name": "buf", "type": "const void *", "note": "要写入的数据缓冲区指针"},
+        {"name": "count", "type": "size_t", "note": "期望写入的字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际写入的字节数（可能小于 count）"},
+        {"condition": "失败", "value": "返回 -1，并设置 errno 错误码"}
+      ],
+      "notes": [
+        "fd=1 时等价于输出到屏幕；fd=2 输出到标准错误",
+        "ORW 第三步：write(1, buf, n)"
+      ],
+      "tags": ["io", "fd", "输出", "orw"]
+    },
+    {
+      "name": "close",
+      "prototype": "int close(int fd);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "关闭文件描述符",
+      "params": [
+        {"name": "fd", "type": "int", "note": "要关闭的文件描述符"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "关闭后 fd 号可被再次分配——fd 复用"
+      ],
+      "tags": ["fd", "文件"]
+    },
+    {
+      "name": "malloc",
+      "prototype": "void *malloc(size_t size);",
+      "header": "<stdlib.h>",
+      "category": "内存",
+      "summary": "申请一块未初始化的堆内存",
+      "params": [
+        {"name": "size", "type": "size_t", "note": "请求的字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "指向 user data 的指针（内容未初始化，残留旧数据）"},
+        {"condition": "失败", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "glibc 实际分配 chunk 大小 = request2size(size)：向上对齐 16 字节并加 header 开销",
+        "未初始化残留的旧数据是 UAF 泄露的来源之一"
+      ],
+      "tags": ["heap", "堆"]
+    },
+    {
+      "name": "calloc",
+      "prototype": "void *calloc(size_t nmemb, size_t size);",
+      "header": "<stdlib.h>",
+      "category": "内存",
+      "summary": "申请 nmemb×size 字节并全部清零",
+      "params": [
+        {"name": "nmemb", "type": "size_t", "note": "元素个数"},
+        {"name": "size", "type": "size_t", "note": "每个元素的字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "指向清零后内存的指针"},
+        {"condition": "失败", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "与 malloc 的区别：内容保证为 0，且 nmemb×size 有整数溢出检查",
+        "calloc 出来的内存看不到残留数据——泄露路线不同"
+      ],
+      "tags": ["heap", "堆"]
+    },
+    {
+      "name": "realloc",
+      "prototype": "void *realloc(void *ptr, size_t size);",
+      "header": "<stdlib.h>",
+      "category": "内存",
+      "summary": "调整已申请堆块的大小（可扩可缩）",
+      "params": [
+        {"name": "ptr", "type": "void *", "note": "之前 malloc / calloc / realloc 申请出来的有效堆指针；传 NULL 等价于 malloc(size)"},
+        {"name": "size", "type": "size_t", "note": "调整后的新大小（字节数），可以比原来大（扩容）也可以小（缩容）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新内存块的起始地址——扩容时地址可能变（系统找新的连续空间），缩容时地址一般不变；旧数据自动复制过去"},
+        {"condition": "失败", "value": "返回 NULL（此时原来的旧内存不会被释放）"}
+      ],
+      "notes": [
+        "扩容搬家后旧指针悬垂——realloc UAF 的常见形态",
+        "glibc 的 realloc 走自己的 chunk 扩展 / 搬移逻辑，画布可逐事件回放"
+      ],
+      "tags": ["heap", "堆", "realloc"]
+    },
+    {
+      "name": "free",
+      "prototype": "void free(void *ptr);",
+      "header": "<stdlib.h>",
+      "category": "内存",
+      "summary": "释放堆内存",
+      "params": [
+        {"name": "ptr", "type": "void *", "note": "malloc 系列返回的指针；传 NULL 无操作"}
+      ],
+      "returns": [],
+      "notes": [
+        "释放后指针本身的值不变（悬垂指针 / UAF 根源），需要程序自己置 NULL",
+        "glibc 中 free 后 chunk 进入 tcache/fastbin，user 区前 16 字节被写入 fd、key 字段"
+      ],
+      "tags": ["heap", "堆", "uaf"]
+    },
+    {
+      "name": "memset",
+      "prototype": "void *memset(void *ptr, int value, size_t num);",
+      "header": "<string.h>",
+      "category": "内存",
+      "summary": "把内存区域每个字节设为指定值",
+      "params": [
+        {"name": "ptr", "type": "void *", "note": "要操作的内存起始地址（任意类型指针都可以传）"},
+        {"name": "value", "type": "int", "note": "要设置的字节值。重点：只取低 8 位（1 字节）写入，不是按 4 字节 / 8 字节写！"},
+        {"name": "num", "type": "size_t", "note": "要清零 / 设置的字节个数"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "返回传入的 ptr 地址本身，一般不用管"}
+      ],
+      "notes": [
+        "value=0 即清零；菜单题的 init / clear 功能常见",
+        "想清零就传 0，不要传其他值期待它写满 int"
+      ],
+      "tags": ["内存", "清零"]
+    },
+    {
+      "name": "memcpy",
+      "prototype": "void *memcpy(void *dest, const void *src, size_t n);",
+      "header": "<string.h>",
+      "category": "内存",
+      "summary": "从 src 拷贝 n 字节到 dest",
+      "params": [
+        {"name": "dest", "type": "void *", "note": "目标地址（要拷贝到哪里去）"},
+        {"name": "src", "type": "const void *", "note": "源地址（从哪里拷贝数据）；const 表示不会修改原数据"},
+        {"name": "n", "type": "size_t", "note": "要拷贝的字节数"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "返回 dest（一般不用管）"}
+      ],
+      "notes": [
+        "不检查源和目标是否重叠——重叠区域行为未定义，重叠场景应该用 memmove",
+        "n 大于目标缓冲区 = 溢出"
+      ],
+      "tags": ["内存", "拷贝"]
+    },
+    {
+      "name": "strchr",
+      "prototype": "char *strchr(const char *str, int c);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "查找字符在字符串中第一次出现的位置",
+      "params": [
+        {"name": "str", "type": "const char *", "note": "待查找的字符串首地址；const 表示不会修改原字符串"},
+        {"name": "c", "type": "int", "note": "要查找的单个字符。注意类型是 int 不是 char：实际传的是 ASCII 值，高位会被忽略，只取低 8 位"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "返回第一次出现该字符的地址指针"},
+        {"condition": "没找到", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "逆向中常用于解析分隔符 / 命令字符"
+      ],
+      "tags": ["字符串", "查找"]
+    },
+    {
+      "name": "strcmp",
+      "prototype": "int strcmp(const char *s1, const char *s2);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "逐字节比较两个字符串",
+      "params": [
+        {"name": "s1", "type": "const char *", "note": "第一个字符串"},
+        {"name": "s2", "type": "const char *", "note": "第二个字符串"}
+      ],
+      "returns": [
+        {"condition": "相等", "value": "返回 0"},
+        {"condition": "s1 较小", "value": "返回 < 0"},
+        {"condition": "s1 较大", "value": "返回 > 0"}
+      ],
+      "notes": [
+        "遇到 \\0 或第一个不相同的字节即停止",
+        "题目常用 !(strcmp(input, password)) 判断通过——比较的是内容不是地址"
+      ],
+      "tags": ["字符串", "比较"]
+    },
+    {
+      "name": "strlen",
+      "prototype": "size_t strlen(const char *s);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "计算字符串长度（不含结尾 \\0）",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "目标字符串"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "长度（字节数，不含 \\0）"}
+      ],
+      "notes": [
+        "从首地址扫到第一个 \\0 为止",
+        "heap 题里若用 strlen 决定输出长度，payload 里的 \\x00 会截断泄露"
+      ],
+      "tags": ["字符串", "长度"]
+    },
+    {
+      "name": "strcpy",
+      "prototype": "char *strcpy(char *dest, const char *src);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "拷贝字符串到 dest（无长度限制，不安全）",
+      "params": [
+        {"name": "dest", "type": "char *", "note": "目标缓冲区"},
+        {"name": "src", "type": "const char *", "note": "源字符串"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "返回 dest"}
+      ],
+      "notes": [
+        "遇 \\0 停止拷贝且会拷入 \\0；没有边界检查——溢出经典来源"
+      ],
+      "tags": ["字符串", "不安全"]
+    },
+    {
+      "name": "strtol",
+      "prototype": "long strtol(const char *nptr, char **endptr, int base);",
+      "header": "<stdlib.h>",
+      "category": "数值转换",
+      "summary": "字符串按指定进制转 long",
+      "params": [
+        {"name": "nptr", "type": "const char *", "note": "待转换的字符串起始地址"},
+        {"name": "endptr", "type": "char **", "note": "传出参数：存放转换结束位置的指针，传 NULL 可不接收；例 \"123abc\" 转换完 *endptr 指向 'a'"},
+        {"name": "base", "type": "int", "note": "进制 2~36；填 0 自动识别（0x 开头十六进制、0 开头八进制、普通十进制）"}
+      ],
+      "returns": [
+        {"condition": "转换成功", "value": "长整型 long 数值"},
+        {"condition": "超出范围", "value": "返回 LONG_MAX 或 LONG_MIN，并设置 errno"},
+        {"condition": "开头没有可转换数字", "value": "返回 0"}
+      ],
+      "notes": [
+        "会跳过开头的空白字符；支持正负号"
+      ],
+      "tags": ["转换", "进制"]
+    },
+    {
+      "name": "strtoul",
+      "prototype": "unsigned long strtoul(const char *nptr, char **endptr, int base);",
+      "header": "<stdlib.h>",
+      "category": "数值转换",
+      "summary": "字符串按指定进制转 unsigned long",
+      "params": [
+        {"name": "nptr", "type": "const char *", "note": "待转换的字符串起始地址"},
+        {"name": "endptr", "type": "char **", "note": "输出型参数：传 NULL 不接收；传入地址则 *endptr 指向转换结束后的第一个无效字符"},
+        {"name": "base", "type": "int", "note": "进制：0=自动识别，10=十进制，16=十六进制，支持 2~36"}
+      ],
+      "returns": [
+        {"condition": "转换成功", "value": "unsigned long 无符号长整型数值"},
+        {"condition": "超出 unsigned long 范围", "value": "返回 ULONG_MAX，同时设置 errno = ERANGE"},
+        {"condition": "开头没有合法数字", "value": "返回 0"}
+      ],
+      "notes": [
+        "64 位下 unsigned long 与指针同宽——pwn 里常用来把输入转成地址"
+      ],
+      "tags": ["转换", "进制"]
+    },
+    {
+      "name": "atoi",
+      "prototype": "int atoi(const char *nptr);",
+      "header": "<stdlib.h>",
+      "category": "数值转换",
+      "summary": "字符串转 int（十进制）",
+      "params": [
+        {"name": "nptr", "type": "const char *", "note": "待转换的字符串"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "转换后的 int 值"},
+        {"condition": "无可转换数字", "value": "返回 0"}
+      ],
+      "notes": [
+        "等价于 (int)strtol(nptr, NULL, 10)，但没有错误报告（出错也返回 0）",
+        "菜单题读选项最常见：choice = atoi(buf)"
+      ],
+      "tags": ["转换", "菜单"]
+    },
+    {
+      "name": "getrandom",
+      "prototype": "ssize_t getrandom(void *buf, size_t buflen, unsigned int flags);",
+      "header": "<sys/random.h>",
+      "category": "随机数",
+      "summary": "从内核熵池读取随机字节",
+      "params": [
+        {"name": "buf", "type": "void *", "note": "输出缓冲区，内核写入随机字节"},
+        {"name": "buflen", "type": "size_t", "note": "要读取的随机字节长度"},
+        {"name": "flags", "type": "unsigned int", "note": "0 = 默认，从 /dev/urandom 取，熵池未初始化会阻塞；GRND_RANDOM = 从 /dev/random 阻塞式真随机池；GRND_NONBLOCK = 非阻塞，没熵直接返回 -EAGAIN"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际读到的字节数"},
+        {"condition": "失败", "value": "返回 -1，设置 errno"}
+      ],
+      "notes": [
+        "逆向见到 getrandom 说明程序要内核级真随机——预测 / 重放种子路线不可行",
+        "与 rand 的区别：rand 是确定性伪随机，同种子可复现"
+      ],
+      "tags": ["随机数", "内核"]
+    },
+    {
+      "name": "rand",
+      "prototype": "int rand(void);",
+      "header": "<stdlib.h>",
+      "category": "随机数",
+      "summary": "生成伪随机数",
+      "params": [],
+      "returns": [
+        {"condition": "恒定", "value": "0 ~ RAND_MAX 之间的整数"}
+      ],
+      "notes": [
+        "默认种子为 1；未调用 srand 时等价于 srand(1) 后的序列",
+        "同一颗种子产生的序列完全可复现——预测随机数题的基础"
+      ],
+      "tags": ["随机数"]
+    },
+    {
+      "name": "srand",
+      "prototype": "void srand(unsigned int seed);",
+      "header": "<stdlib.h>",
+      "category": "随机数",
+      "summary": "设置 rand 的随机种子",
+      "params": [
+        {"name": "seed", "type": "unsigned int", "note": "种子值；相同种子 → 之后 rand() 序列完全相同"}
+      ],
+      "returns": [],
+      "notes": [
+        "题目用 time(NULL) 做种子时可按时间窗口爆破",
+        "种子固定（或可知）时随机数序列可完全预测"
+      ],
+      "tags": ["随机数"]
+    },
+    {
+      "name": "__errno_location",
+      "prototype": "int *__errno_location(void);",
+      "header": "<errno.h>（glibc 内部导出）",
+      "category": "错误诊断",
+      "summary": "返回全局变量 errno 的地址（glibc 线程安全实现）",
+      "params": [],
+      "returns": [
+        {"condition": "恒定", "value": "errno 变量的指针（*返回值 即 errno）"}
+      ],
+      "notes": [
+        "errno 保存系统调用失败的错误码",
+        "errno=4 对应 EINTR：系统调用被信号中断",
+        "逆向中 __errno_location() 常出现在系统调用的错误处理分支里"
+      ],
+      "tags": ["glibc", "errno"]
+    },
+    {
+      "name": "strncpy",
+      "prototype": "char *strncpy(char *dest, const char *src, size_t n);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "拷贝最多 n 个字节（注意结尾符陷阱）",
+      "params": [
+        {"name": "dest", "type": "char *", "note": "目标缓冲区"},
+        {"name": "src", "type": "const char *", "note": "源字符串"},
+        {"name": "n", "type": "size_t", "note": "最多拷贝的字节数"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "返回 dest"}
+      ],
+      "notes": [
+        "src 长度小于 n：拷完后剩余空间全部补 \\0",
+        "src 长度大于等于 n：只拷 n 字节且不会补结尾 \\0——dest 可能没有终止符，经典陷阱",
+        "比 strcpy 安全的前提是 n 不超过 dest 的大小"
+      ],
+      "tags": ["字符串", "拷贝"]
+    },
+    {
+      "name": "strncmp",
+      "prototype": "int strncmp(const char *s1, const char *s2, size_t n);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "只比较前 n 个字节",
+      "params": [
+        {"name": "s1", "type": "const char *", "note": "第一个字符串"},
+        {"name": "s2", "type": "const char *", "note": "第二个字符串"},
+        {"name": "n", "type": "size_t", "note": "最多比较的字节数"}
+      ],
+      "returns": [
+        {"condition": "前 n 字节相等", "value": "返回 0"},
+        {"condition": "s1 较小", "value": "返回 < 0"},
+        {"condition": "s1 较大", "value": "返回 > 0"}
+      ],
+      "notes": [
+        "比较途中遇到 \\0 或差异字节即停，但最多只看 n 字节"
+      ],
+      "tags": ["字符串", "比较"]
+    },
+    {
+      "name": "strcat",
+      "prototype": "char *strcat(char *dest, const char *src);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "把 src 追接到 dest 末尾（无边界检查，不安全）",
+      "params": [
+        {"name": "dest", "type": "char *", "note": "目标缓冲区：从它的 \\0 开始覆盖写入"},
+        {"name": "src", "type": "const char *", "note": "要追加的字符串"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "返回 dest"}
+      ],
+      "notes": [
+        "先扫到 dest 的结尾 \\0，再把 src 整个拷进去——dest 空间不够就溢出"
+      ],
+      "tags": ["字符串", "不安全"]
+    },
+    {
+      "name": "strncat",
+      "prototype": "char *strncat(char *dest, const char *src, size_t n);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "最多从 src 取 n 个字符追接到 dest（总是补 \\0）",
+      "params": [
+        {"name": "dest", "type": "char *", "note": "目标缓冲区"},
+        {"name": "src", "type": "const char *", "note": "源字符串"},
+        {"name": "n", "type": "size_t", "note": "最多从 src 取的字符数"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "返回 dest"}
+      ],
+      "notes": [
+        "与 strncpy 的关键区别：追接后总是补一个 \\0，所以 dest 需要 n+1 的余量"
+      ],
+      "tags": ["字符串"]
+    },
+    {
+      "name": "strdup",
+      "prototype": "char *strdup(const char *s);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "malloc 一块内存并拷贝字符串",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "要复制的字符串"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新分配内存中的字符串指针（需要自己 free）"},
+        {"condition": "失败", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "内部等价 malloc(strlen(s)+1) + memcpy",
+        "忘记 free = 内存泄漏；menu 题的 name 字段常见"
+      ],
+      "tags": ["字符串", "heap"]
+    },
+    {
+      "name": "strstr",
+      "prototype": "char *strstr(const char *haystack, const char *needle);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "查找子串第一次出现的位置",
+      "params": [
+        {"name": "haystack", "type": "const char *", "note": "被查找的字符串"},
+        {"name": "needle", "type": "const char *", "note": "要找的子串"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "返回第一次出现位置的指针"},
+        {"condition": "没找到", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "needle 为空串时返回 haystack 本身",
+        "后门判断常见：strstr(input, \"admin\")"
+      ],
+      "tags": ["字符串", "查找"]
+    },
+    {
+      "name": "strrchr",
+      "prototype": "char *strrchr(const char *str, int c);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "查找字符最后一次出现的位置",
+      "params": [
+        {"name": "str", "type": "const char *", "note": "被查找的字符串"},
+        {"name": "c", "type": "int", "note": "要找的字符（只取低 8 位）"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "返回最后一次出现该字符的指针"},
+        {"condition": "没找到", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "取文件名常用：strrchr(path, '/') + 1"
+      ],
+      "tags": ["字符串", "查找"]
+    },
+    {
+      "name": "strtok",
+      "prototype": "char *strtok(char *str, const char *delim);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "按分隔符切分字符串（会修改原字符串）",
+      "params": [
+        {"name": "str", "type": "char *", "note": "第一次传要切的字符串；后续调用传 NULL 继续切"},
+        {"name": "delim", "type": "const char *", "note": "分隔符集合（里面任意字符都算分隔）"}
+      ],
+      "returns": [
+        {"condition": "切到 token", "value": "返回该 token 的指针（原字符串内部的位置）"},
+        {"condition": "没有更多", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "实现方式是把分隔符原地替换成 \\0——所以会破坏原字符串",
+        "内部用静态指针保存进度，非线程安全（多线程用 strtok_r）"
+      ],
+      "tags": ["字符串", "切分"]
+    },
+    {
+      "name": "strcasecmp",
+      "prototype": "int strcasecmp(const char *s1, const char *s2);",
+      "header": "<strings.h>",
+      "category": "字符串",
+      "summary": "忽略大小写比较字符串（POSIX）",
+      "params": [
+        {"name": "s1", "type": "const char *", "note": "第一个字符串"},
+        {"name": "s2", "type": "const char *", "note": "第二个字符串"}
+      ],
+      "returns": [
+        {"condition": "忽略大小写后相等", "value": "返回 0"},
+        {"condition": "s1 较小", "value": "返回 < 0"},
+        {"condition": "s1 较大", "value": "返回 > 0"}
+      ],
+      "notes": [
+        "Windows 下对应 stricmp；比较命令名时不分大小写常用"
+      ],
+      "tags": ["字符串", "比较"]
+    },
+    {
+      "name": "memmove",
+      "prototype": "void *memmove(void *dest, const void *src, size_t n);",
+      "header": "<string.h>",
+      "category": "内存",
+      "summary": "拷贝 n 字节，正确处理重叠区域",
+      "params": [
+        {"name": "dest", "type": "void *", "note": "目标地址"},
+        {"name": "src", "type": "const void *", "note": "源地址"},
+        {"name": "n", "type": "size_t", "note": "字节数"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "返回 dest"}
+      ],
+      "notes": [
+        "与 memcpy 功能相同，但源目标重叠时结果仍然正确（可能先复制到临时缓冲）",
+        "看到重叠拷贝（如向前挪头部数据）就该用 memmove"
+      ],
+      "tags": ["内存", "拷贝"]
+    },
+    {
+      "name": "memcmp",
+      "prototype": "int memcmp(const void *s1, const void *s2, size_t n);",
+      "header": "<string.h>",
+      "category": "内存",
+      "summary": "按字节比较两块内存的 n 字节",
+      "params": [
+        {"name": "s1", "type": "const void *", "note": "第一块内存"},
+        {"name": "s2", "type": "const void *", "note": "第二块内存"},
+        {"name": "n", "type": "size_t", "note": "比较的字节数"}
+      ],
+      "returns": [
+        {"condition": "n 字节全相同", "value": "返回 0"},
+        {"condition": "s1 较小", "value": "返回 < 0"},
+        {"condition": "s1 较大", "value": "返回 > 0"}
+      ],
+      "notes": [
+        "与 strcmp 不同：遇到 \\0 不会停，固定比较满 n 字节",
+        "比较结构体 / 哈希 / 加密结果常用"
+      ],
+      "tags": ["内存", "比较"]
+    },
+    {
+      "name": "fprintf",
+      "prototype": "int fprintf(FILE *stream, const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "格式化输出到指定流",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流：stdout、stderr 或 fopen 的文件"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串"},
+        {"name": "...", "type": "", "note": "可变参数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "输出字符个数"},
+        {"condition": "失败", "value": "负值"}
+      ],
+      "notes": [
+        "fprintf(stderr, ...) 的输出不走 stdout 缓冲，排错信息立即上屏",
+        "有 FILE* 参数 = 格式化字符串漏洞同样可打（和 printf 一条路）"
+      ],
+      "tags": ["stdio", "format"]
+    },
+    {
+      "name": "sscanf",
+      "prototype": "int sscanf(const char *str, const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "从字符串里按格式解析字段",
+      "params": [
+        {"name": "str", "type": "const char *", "note": "被解析的源字符串"},
+        {"name": "format", "type": "const char *", "note": "格式字符串：%d %s %x %u 等"},
+        {"name": "...", "type": "", "note": "接收变量的地址"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "成功匹配并赋值的字段个数"},
+        {"condition": "第一个字段就失败 / 到末尾", "value": "EOF"}
+      ],
+      "notes": [
+        "解析 \"1 aaa\" 这类一行多字段输入的常客；%n 可拿到已消费的字符数",
+        "%s 无宽度限制同样会溢出"
+      ],
+      "tags": ["stdio", "解析", "输入"]
+    },
+    {
+      "name": "fread",
+      "prototype": "size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "从流读取数据块",
+      "params": [
+        {"name": "ptr", "type": "void *", "note": "接收数据的缓冲区"},
+        {"name": "size", "type": "size_t", "note": "每个元素的字节数"},
+        {"name": "nmemb", "type": "size_t", "note": "期望读取的元素个数"},
+        {"name": "stream", "type": "FILE *", "note": "输入流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际读到的完整元素个数（可能小于 nmemb）"},
+        {"condition": "出错 / EOF", "value": "小于 nmemb，具体用 ferror/feof 区分"}
+      ],
+      "notes": [
+        "读文件题目（读 flag / 配置）常见；返回值乘 size 才是字节数"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "fwrite",
+      "prototype": "size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "向流写入数据块",
+      "params": [
+        {"name": "ptr", "type": "const void *", "note": "要写的数据"},
+        {"name": "size", "type": "size_t", "note": "每个元素的字节数"},
+        {"name": "nmemb", "type": "size_t", "note": "元素个数"},
+        {"name": "stream", "type": "FILE *", "note": "输出流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际写入的元素个数（小于 nmemb 表示出错）"}
+      ],
+      "notes": [
+        "写文件 / 日志题目常见"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "fputs",
+      "prototype": "int fputs(const char *s, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "把字符串写入流（不自动加换行）",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "要写入的字符串"},
+        {"name": "stream", "type": "FILE *", "note": "目标流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "非负值"},
+        {"condition": "失败", "value": "EOF"}
+      ],
+      "notes": [
+        "与 puts 的区别：不补 \\n，且可以写任意流"
+      ],
+      "tags": ["stdio", "输出"]
+    },
+    {
+      "name": "gets",
+      "prototype": "char *gets(char *s);",
+      "header": "<stdio.h>（C11 已删除）",
+      "category": "输入输出",
+      "summary": "读一行到缓冲区（没有任何长度限制，永不安全）",
+      "params": [
+        {"name": "s", "type": "char *", "note": "目标缓冲区——函数完全不知道它有多大"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 s"},
+        {"condition": "出错 / EOF", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "教科书级栈溢出来源：任何长度的输入行都会被全量拷入",
+        "C11 标准已删除；新编译器链接会警告，老二进制里仍能遇到（含 __gets_chk 加固版）"
+      ],
+      "tags": ["stdio", "不安全", "溢出"]
+    },
+    {
+      "name": "getchar",
+      "prototype": "int getchar(void);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "从标准输入读一个字符",
+      "params": [],
+      "returns": [
+        {"condition": "成功", "value": "读到的字符（当作 unsigned char 转 int）"},
+        {"condition": "EOF / 出错", "value": "EOF（-1）"}
+      ],
+      "notes": [
+        "返回 int 而不是 char——为了能装下 -1",
+        "常用于\"按回车继续\"这类暂停点"
+      ],
+      "tags": ["stdio", "输入"]
+    },
+    {
+      "name": "putchar",
+      "prototype": "int putchar(int c);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "向标准输出写一个字符",
+      "params": [
+        {"name": "c", "type": "int", "note": "要输出的字符（只取低 8 位）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回写入的字符"},
+        {"condition": "失败", "value": "EOF"}
+      ],
+      "notes": [
+        "逐字节输出场景常见"
+      ],
+      "tags": ["stdio", "输出"]
+    },
+    {
+      "name": "fflush",
+      "prototype": "int fflush(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "强制刷新流的缓冲区",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "要刷新的输出流；传 NULL 刷新所有输出流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "EOF"}
+      ],
+      "notes": [
+        "fflush(stdout) 让攒在缓冲区的输出立即上屏——EXP 收不到数据时先想它",
+        "对输入流调用 fflush 行为未定义"
+      ],
+      "tags": ["stdio", "缓冲"]
+    },
+    {
+      "name": "fclose",
+      "prototype": "int fclose(FILE *fp);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "关闭文件流（先刷新缓冲）",
+      "params": [
+        {"name": "fp", "type": "FILE *", "note": "要关闭的流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "EOF"}
+      ],
+      "notes": [
+        "fclose 内部会 free 掉 FILE 结构——double fclose 是 FILE 利用面（FSOP）的入口之一"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "perror",
+      "prototype": "void perror(const char *s);",
+      "header": "<stdio.h>",
+      "category": "错误诊断",
+      "summary": "把 errno 对应的错误描述打印到 stderr",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "自定义前缀；输出格式为 \"s: 错误描述\"，传 NULL 只打错误描述"}
+      ],
+      "returns": [],
+      "notes": [
+        "读的是当前 errno——紧跟在失败的系统调用后面调用才有意义"
+      ],
+      "tags": ["errno", "错误"]
+    },
+    {
+      "name": "strerror",
+      "prototype": "char *strerror(int errnum);",
+      "header": "<string.h>",
+      "category": "错误诊断",
+      "summary": "错误码转错误描述字符串",
+      "params": [
+        {"name": "errnum", "type": "int", "note": "错误码（通常是 errno 的值）"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "指向静态字符串的指针（不需要也不应该 free）"}
+      ],
+      "notes": [
+        "打印错误详情常用：printf(\"%s\", strerror(errno))"
+      ],
+      "tags": ["errno", "错误"]
+    },
+    {
+      "name": "popen",
+      "prototype": "FILE *popen(const char *command, const char *type);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "起 shell 执行命令，返回管道流",
+      "params": [
+        {"name": "command", "type": "const char *", "note": "要执行的完整命令行（内部走 /bin/sh -c）"},
+        {"name": "type", "type": "const char *", "note": "\"r\" = 读命令输出；\"w\" = 向命令写输入"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "管道流指针（用 pclose 关闭）"},
+        {"condition": "失败", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "命令字符串拼接了用户输入 = 命令注入，一行拿 shell"
+      ],
+      "tags": ["命令执行", "注入"]
+    },
+    {
+      "name": "system",
+      "prototype": "int system(const char *command);",
+      "header": "<stdlib.h>",
+      "category": "进程执行",
+      "summary": "把命令交给 /bin/sh -c 执行",
+      "params": [
+        {"name": "command", "type": "const char *", "note": "完整命令字符串；传 NULL 只检测 shell 是否可用"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "shell 退出状态（wait 格式的状态码，要用 WEXITSTATUS 解码才是真实返回值）"},
+        {"condition": "fork 失败", "value": "返回 -1"},
+        {"condition": "shell 启动失败", "value": "返回 127"}
+      ],
+      "notes": [
+        "ret2libc 万金油：system(\"/bin/sh\")",
+        "只传一个参数（RDI）就能用，比 execve 少两个要控制的寄存器"
+      ],
+      "tags": ["命令执行", "ret2libc"]
+    },
+    {
+      "name": "execve",
+      "prototype": "int execve(const char *pathname, char *const argv[], char *const envp[]);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "用新程序替换当前进程（成功后不再返回）",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "程序路径，如 /bin/sh"},
+        {"name": "argv", "type": "char *const[]", "note": "参数数组；惯例 argv[0] 是程序名，末尾必须 NULL"},
+        {"name": "envp", "type": "char *const[]", "note": "环境变量数组；末尾 NULL；可为空环境"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "不返回——当前进程映像已被替换"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "ROP / SROP / ORW 链的最终一步：execve(\"/bin/sh\", NULL, NULL)",
+        "需要同时控制 rdi / rsi / rdx 三个寄存器（比 system 要求多）"
+      ],
+      "tags": ["执行", "rop", "orw"]
+    },
+    {
+      "name": "execl",
+      "prototype": "int execl(const char *path, const char *arg0, ..., (char *)NULL);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "execve 的列表参数版本",
+      "params": [
+        {"name": "path", "type": "const char *", "note": "程序路径"},
+        {"name": "arg0, ...", "type": "const char *", "note": "逐个列出参数；最后必须以 (char *)NULL 哨兵结尾"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "不返回"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "结尾的 NULL 不加 (char *) 强转时，可变参数可能退化成 int 0——64 位下指针截断出错的经典坑"
+      ],
+      "tags": ["执行"]
+    },
+    {
+      "name": "execvp",
+      "prototype": "int execvp(const char *file, char *const argv[]);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "按 PATH 搜索命令并执行（数组参数版）",
+      "params": [
+        {"name": "file", "type": "const char *", "note": "命令名；不含 / 时按环境变量 PATH 逐目录搜索"},
+        {"name": "argv", "type": "char *const[]", "note": "参数数组，末尾 NULL"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "不返回"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "p = PATH 搜索，v = argv 数组参数；写 \"sh\" 不用写全路径"
+      ],
+      "tags": ["执行"]
+    },
+    {
+      "name": "fork",
+      "prototype": "pid_t fork(void);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "复制当前进程（调用一次、返回两次）",
+      "params": [],
+      "returns": [
+        {"condition": "子进程里", "value": "返回 0"},
+        {"condition": "父进程里", "value": "返回子进程的 pid（>0）"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "子进程拿到父进程内存的副本（写时复制）——fork 服务的子进程崩了不影响别的连接",
+        "题目是多进程 fork 服务器时，libc/heap 状态每个子进程独立"
+      ],
+      "tags": ["进程"]
+    },
+    {
+      "name": "waitpid",
+      "prototype": "pid_t waitpid(pid_t pid, int *status, int options);",
+      "header": "<sys/wait.h>",
+      "category": "进程执行",
+      "summary": "等待指定子进程结束并回收",
+      "params": [
+        {"name": "pid", "type": "pid_t", "note": ">0 等指定进程；-1 等任意子进程"},
+        {"name": "status", "type": "int *", "note": "传出参数：子进程退出状态，用 WIFEXITED / WEXITSTATUS 宏解析；不关心传 NULL"},
+        {"name": "options", "type": "int", "note": "0 = 阻塞等待；WNOHANG = 没结束立即返回"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "被回收的子进程 pid"},
+        {"condition": "WNOHANG 且还没结束", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "僵尸进程就是没被 wait 的已结束子进程"
+      ],
+      "tags": ["进程"]
+    },
+    {
+      "name": "exit",
+      "prototype": "void exit(int status);",
+      "header": "<stdlib.h>",
+      "category": "进程执行",
+      "summary": "正常终止进程（会清理缓冲）",
+      "params": [
+        {"name": "status", "type": "int", "note": "退出状态码：& 0xff 后成为父进程看到的值"}
+      ],
+      "returns": [],
+      "notes": [
+        "退出前执行 atexit 注册的回调，并 flush 所有 stdio 缓冲",
+        "main 的 return n 等价 exit(n)"
+      ],
+      "tags": ["进程"]
+    },
+    {
+      "name": "_exit",
+      "prototype": "void _exit(int status);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "立即终止进程（不清理缓冲）",
+      "params": [
+        {"name": "status", "type": "int", "note": "退出状态码"}
+      ],
+      "returns": [],
+      "notes": [
+        "直接走 exit_group 系统调用：不跑 atexit、不 flush stdio——缓冲区里的输出会丢",
+        "fork 出来的子进程里常用 _exit 避免 double flush"
+      ],
+      "tags": ["进程"]
+    },
+    {
+      "name": "sleep",
+      "prototype": "unsigned int sleep(unsigned int seconds);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "睡眠指定秒数",
+      "params": [
+        {"name": "seconds", "type": "unsigned int", "note": "要睡的秒数"}
+      ],
+      "returns": [
+        {"condition": "睡满", "value": "返回 0"},
+        {"condition": "被信号打断", "value": "返回剩余的秒数"}
+      ],
+      "notes": [
+        "题目里的 sleep 一般是为了让你能 attach gdb 或限制交互频率"
+      ],
+      "tags": ["进程"]
+    },
+    {
+      "name": "socket",
+      "prototype": "int socket(int domain, int type, int protocol);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "创建套接字，返回 fd",
+      "params": [
+        {"name": "domain", "type": "int", "note": "地址族：AF_INET（IPv4）/ AF_INET6 / AF_UNIX（本机）"},
+        {"name": "type", "type": "int", "note": "SOCK_STREAM（TCP）/ SOCK_DGRAM（UDP）"},
+        {"name": "protocol", "type": "int", "note": "协议；前两个定了之后通常填 0"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "套接字 fd（>= 0）"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "返回的是文件描述符——可以直接 read / write / dup2"
+      ],
+      "tags": ["网络", "fd"]
+    },
+    {
+      "name": "connect",
+      "prototype": "int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "客户端：连接到目标地址",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "socket 返回的 fd"},
+        {"name": "addr", "type": "const struct sockaddr *", "note": "目标地址结构（IP + 端口，端口用 htons 转网络字节序）"},
+        {"name": "addrlen", "type": "socklen_t", "note": "地址结构长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "连上之后 sockfd 就能直接 send / recv"
+      ],
+      "tags": ["网络"]
+    },
+    {
+      "name": "bind",
+      "prototype": "int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "服务器端：把套接字绑定到本地地址和端口",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "socket 返回的 fd"},
+        {"name": "addr", "type": "const struct sockaddr *", "note": "本地地址（IP + 端口）"},
+        {"name": "addrlen", "type": "socklen_t", "note": "地址结构长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "题目进程 bind 了端口 = 网络服务题，EXP 用 remote 连"
+      ],
+      "tags": ["网络"]
+    },
+    {
+      "name": "listen",
+      "prototype": "int listen(int sockfd, int backlog);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "把套接字标记为被动监听",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "已 bind 的套接字"},
+        {"name": "backlog", "type": "int", "note": "等待队列长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "bind -> listen -> accept 三件套的第二步"
+      ],
+      "tags": ["网络"]
+    },
+    {
+      "name": "accept",
+      "prototype": "int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "接受连接，返回这条连接专用的新 fd",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "监听中的套接字"},
+        {"name": "addr", "type": "struct sockaddr *", "note": "传出参数：客户端地址；不关心传 NULL"},
+        {"name": "addrlen", "type": "socklen_t *", "note": "地址长度（传入传出）；addr 为 NULL 时也传 NULL"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "这条连接专用的新 fd（原 sockfd 继续监听）"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "连接 fd 和监听 fd 是两个描述符；每个连接各一个",
+        "常见结构：accept 后 fork 子进程处理该连接"
+      ],
+      "tags": ["网络"]
+    },
+    {
+      "name": "send",
+      "prototype": "ssize_t send(int sockfd, const void *buf, size_t len, int flags);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "通过套接字发送数据",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "已连接的套接字 fd"},
+        {"name": "buf", "type": "const void *", "note": "要发送的数据"},
+        {"name": "len", "type": "size_t", "note": "字节数"},
+        {"name": "flags", "type": "int", "note": "一般 0；MSG_NOSIGNAL = 对端关闭时不触发 SIGPIPE"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际发送的字节数（可能小于 len）"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "对 TCP 来说 send 到内核缓冲就算成功，不代表对端收到"
+      ],
+      "tags": ["网络", "输出"]
+    },
+    {
+      "name": "recv",
+      "prototype": "ssize_t recv(int sockfd, void *buf, size_t len, int flags);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "从套接字接收数据",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "已连接的套接字 fd"},
+        {"name": "buf", "type": "void *", "note": "接收缓冲区"},
+        {"name": "len", "type": "size_t", "note": "缓冲区大小"},
+        {"name": "flags", "type": "int", "note": "一般 0；MSG_WAITALL 尽量收满"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际收到的字节数"},
+        {"condition": "对端正常关闭", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "recv 返回 0 = 对端关闭连接——EXP 循环里要当退出条件",
+        "一次 recv 不保证收完一次发送（TCP 是字节流）"
+      ],
+      "tags": ["网络", "输入"]
+    },
+    {
+      "name": "dup2",
+      "prototype": "int dup2(int oldfd, int newfd);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "让 newfd 指向 oldfd 同一个文件（描述符重定向）",
+      "params": [
+        {"name": "oldfd", "type": "int", "note": "源描述符"},
+        {"name": "newfd", "type": "int", "note": "目标描述符：若已被占用会先被关闭，再指向 oldfd 的文件"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 newfd"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "沙盒/重定向标配：dup2(sockfd, 1) 把标准输出接到 socket，flag 内容直接回传",
+        "ORW 变体：dup2(open(\"/flag\") 的 fd, 1)"
+      ],
+      "tags": ["fd", "重定向", "沙盒"]
+    },
+    {
+      "name": "pipe",
+      "prototype": "int pipe(int pipefd[2]);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "创建单向管道（一对 fd）",
+      "params": [
+        {"name": "pipefd", "type": "int[2]", "note": "传出参数：pipefd[0] = 读端，pipefd[1] = 写端"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "数据写入写端、从读端读出；读端空且写端全关时 read 返回 0",
+        "父子进程通信：fork 前建管道，各留一端"
+      ],
+      "tags": ["fd", "进程"]
+    },
+    {
+      "name": "malloc_usable_size",
+      "prototype": "size_t malloc_usable_size(void *ptr);",
+      "header": "<malloc.h>",
+      "category": "内存",
+      "summary": "返回这块堆内存实际可用字节数",
+      "params": [
+        {"name": "ptr", "type": "void *", "note": "malloc / calloc / realloc 返回的指针；传 NULL 返回 0"}
+      ],
+      "returns": [
+        {"condition": "恒定", "value": "实际可写字节数（>= 请求的 size，等于 chunk 大小减 header 开销）"}
+      ],
+      "notes": [
+        "heap 题利器：请求 0x18 实际可用 0x18？——用它验证真实 chunk 尺寸，判断溢出起点",
+        "向 usable_size 之内写不会破坏下一个 chunk 的 header，正好越界一字节才是 off-by-one"
+      ],
+      "tags": ["heap", "堆"]
+    },
+    {
+      "name": "mmap",
+      "prototype": "void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);",
+      "header": "<sys/mman.h>",
+      "category": "内存",
+      "summary": "向内核映射一页或一段内存",
+      "params": [
+        {"name": "addr", "type": "void *", "note": "期望地址；通常传 NULL 由内核选址"},
+        {"name": "length", "type": "size_t", "note": "长度（内核按页 0x1000 向上取整）"},
+        {"name": "prot", "type": "int", "note": "页权限：PROT_READ / PROT_WRITE / PROT_EXEC 按位或"},
+        {"name": "flags", "type": "int", "note": "MAP_PRIVATE | MAP_ANONYMOUS 最常见（匿名私有内存）"},
+        {"name": "fd / offset", "type": "int / off_t", "note": "映射文件时使用；匿名映射填 -1 和 0"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "映射起始地址"},
+        {"condition": "失败", "value": "返回 MAP_FAILED（(void *)-1，不是 NULL！）"}
+      ],
+      "notes": [
+        "超过 mmap_threshold（默认 128KB）的大 malloc 直接走 mmap——不占 bin",
+        "libc / 栈之外的第三块映射，ROP 准备 shellcode 页时常见"
+      ],
+      "tags": ["内存", "页", "shellcode"]
+    },
+    {
+      "name": "mprotect",
+      "prototype": "int mprotect(void *addr, size_t len, int prot);",
+      "header": "<sys/mman.h>",
+      "category": "内存",
+      "summary": "修改一段内存页的权限",
+      "params": [
+        {"name": "addr", "type": "void *", "note": "起始地址——必须页对齐（0x1000 对齐），否则直接 EINVAL"},
+        {"name": "len", "type": "size_t", "note": "长度（内核按页向上取整）"},
+        {"name": "prot", "type": "int", "note": "新权限：PROT_READ / PROT_WRITE / PROT_EXEC 按位或"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1 并设置 errno"}
+      ],
+      "notes": [
+        "经典链：ROP 调 mprotect 把 bss/heap 一段改成 RWX，再跳进去执行 shellcode",
+        "地址没页对齐是最常见的失败原因——先 addr & ~0xfff"
+      ],
+      "tags": ["内存", "页", "shellcode", "rop"]
+    },
+    {
+      "name": "munmap",
+      "prototype": "int munmap(void *addr, size_t length);",
+      "header": "<sys/mman.h>",
+      "category": "内存",
+      "summary": "解除内存映射",
+      "params": [
+        {"name": "addr", "type": "void *", "note": "映射起始地址（页对齐）"},
+        {"name": "length", "type": "size_t", "note": "要解除的长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "返回 0"},
+        {"condition": "失败", "value": "返回 -1"}
+      ],
+      "notes": [
+        "解除后再访问该地址 = SIGSEGV"
+      ],
+      "tags": ["内存", "页"]
+    },
+    {
+      "name": "strtoull",
+      "prototype": "unsigned long long strtoull(const char *nptr, char **endptr, int base);",
+      "header": "<stdlib.h>",
+      "category": "数值转换",
+      "summary": "字符串转 unsigned long long（64 位）",
+      "params": [
+        {"name": "nptr", "type": "const char *", "note": "待转换字符串"},
+        {"name": "endptr", "type": "char **", "note": "转换结束位置；传 NULL 不接收"},
+        {"name": "base", "type": "int", "note": "进制 2~36；0 自动识别"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "unsigned long long 数值"},
+        {"condition": "超出范围", "value": "返回 ULLONG_MAX 并设置 errno = ERANGE"},
+        {"condition": "开头无合法数字", "value": "返回 0"}
+      ],
+      "notes": [
+        "32 位程序里也能用它转换 64 位地址（unsigned long 只有 32 位装不下）"
+      ],
+      "tags": ["转换", "进制"]
+    },
+    {
+      "name": "time",
+      "prototype": "time_t time(time_t *t);",
+      "header": "<time.h>",
+      "category": "系统环境",
+      "summary": "返回当前时间戳（秒）",
+      "params": [
+        {"name": "t", "type": "time_t *", "note": "非 NULL 时结果同时写入该地址；一般传 NULL 只用返回值"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "自 1970-01-00:00:00 UTC 起的秒数"}
+      ],
+      "notes": [
+        "srand(time(NULL)) 的种子可预测——按秒级时间窗口爆破即可复现随机序列"
+      ],
+      "tags": ["时间", "随机数"]
+    },
+    {
+      "name": "getenv",
+      "prototype": "char *getenv(const char *name);",
+      "header": "<stdlib.h>",
+      "category": "系统环境",
+      "summary": "读取环境变量的值",
+      "params": [
+        {"name": "name", "type": "const char *", "note": "环境变量名"}
+      ],
+      "returns": [
+        {"condition": "存在", "value": "指向变量值字符串的指针（指向 environ 数据块内部，不要 free）"},
+        {"condition": "不存在", "value": "返回 NULL"}
+      ],
+      "notes": [
+        "environ 存在栈上——泄露 environ 指针即可推算栈地址（libc 的 environ 符号）"
+      ],
+      "tags": ["环境", "leak"]
+    },
+    {
+      "name": "signal",
+      "prototype": "void (*signal(int signum, void (*handler)(int)))(int);",
+      "header": "<signal.h>",
+      "category": "信号处理",
+      "summary": "为信号注册处理函数",
+      "params": [
+        {"name": "signum", "type": "int", "note": "信号编号：2=SIGINT（Ctrl+C）、11=SIGSEGV、8=SIGFPE"},
+        {"name": "handler", "type": "void (*)(int)", "note": "处理函数指针；SIG_DFL 恢复默认、SIG_IGN 忽略"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "上一次的 handler（出错返回 SIG_ERR）"}
+      ],
+      "notes": [
+        "signal 内部走 rt_sigaction；信号触发时内核在栈上保存 sigcontext——SROP 伪造的就是这份帧",
+        "题目自定义 SIGSEGV/SIGFPE handler 时，异常路径也能被劫持"
+      ],
+      "tags": ["信号", "srop"]
+    }
+  ],
+  "operators": [
+    {"symbol": "&", "name": "按位与", "kind": "位运算", "short_circuit": false, "description": "二进制每一位做与运算", "example": "3 & 5"},
+    {"symbol": "&&", "name": "逻辑与", "kind": "逻辑运算", "short_circuit": true, "description": "并且（两边都真才真）", "example": "a>0 && b>0"},
+    {"symbol": "|", "name": "按位或", "kind": "位运算", "short_circuit": false, "description": "二进制每一位做或运算", "example": "3 | 5"},
+    {"symbol": "||", "name": "逻辑或", "kind": "逻辑运算", "short_circuit": true, "description": "或者（一边真就真）", "example": "a>0 || b>0"},
+    {"symbol": "^", "name": "按位异或", "kind": "位运算", "short_circuit": false, "description": "相同为 0，不同为 1", "example": "3 ^ 5"},
+    {"symbol": "~", "name": "按位取反", "kind": "位运算", "short_circuit": false, "description": "每一位取反（一元运算符）", "example": "~0"},
+    {"symbol": "<<", "name": "左移", "kind": "位运算", "short_circuit": false, "description": "低位左移、低位补 0，每移一位 ×2", "example": "1 << 3"},
+    {"symbol": ">>", "name": "右移", "kind": "位运算", "short_circuit": false, "description": "高位补符号位（算术右移）或补 0（逻辑右移），每移一位 ÷2", "example": "-8 >> 1"}
+  ]
+}

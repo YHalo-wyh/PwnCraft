@@ -1,0 +1,24 @@
+help pwn
+quit
+~/.gdbinit: Skipped loading Pwndbg from `source path/gdbinit.py` - already loaded.
+pwndbg: loaded 199 pwndbg commands. Type pwndbg [filter] for a list.
+pwndbg: created 12 GDB functions (can be used with print/break). Type help function to see them.
+Reading symbols from /mnt/c/users/wyh/desktop/pwn宝/pwn宝_v0.5.0//artifacts/runtime_probe_v011/frame_pointer...
+/definitely/missing/pwnbao.py: No such file or directory.
+------- tip of the day (disable with set show-tips off) -------
+Use the vmmap command for a better & colored memory maps display (than the GDB's info proc mappings)
+[?2004hpwndbg>help pwn
+[?2004lPrints out a list of all Pwndbg commands.
+
+usage: pwndbg [-h] [-c CATEGORY_ | --list-categories] [filter_pattern]
+
+positional arguments:
+  filter_pattern        Filter to apply to commands names/docs
+
+options:
+  -h, --help            show this help message and exit
+  -c, --category CATEGORY_
+                        Filter commands by category
+  --list-categories     List command categories
+[?2004hpwndbg>quit
+[?2004l

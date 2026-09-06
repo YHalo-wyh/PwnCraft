@@ -1,0 +1,297 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-2015-9447ctf-search-engine-3a28f615",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine",
+    "ctf": null,
+    "year": 2015,
+    "year_provenance": "parsed_from_challenge_dirname_prefix",
+    "challenge_name": "2015_9447ctf_search-engine",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "3a28f615dcc61b81d7477f6dbc41ef36748b17e1b0d609a79e53760b69a5e04b",
+    "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.23",
+    "confidence": "HIGH",
+    "evidence": [
+      "banner string parsed from shipped pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/libc.so.6 (GNU C Library, Ubuntu GLIBC 2.23-0ubuntu10)"
+    ]
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/search",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "main_arena_offset = 0x3c4b20",
+              "def offset_bin_main_arena(idx):"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [
+      "unsorted_bin_leak"
+    ],
+    "technique_provenance": {
+      "unsorted_bin_leak": {
+        "file": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/exp.py",
+        "line": 61,
+        "sample": "unsortedbin_addr = leak_libc()"
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "original/challenge/libc.so.6",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/libc.so.6",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/libc.so.6",
+      "sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
+      "size": 1868984
+    },
+    {
+      "path": "original/challenge/search",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/search",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/search",
+      "sha256": "3a28f615dcc61b81d7477f6dbc41ef36748b17e1b0d609a79e53760b69a5e04b",
+      "size": 10472
+    },
+    {
+      "path": "original/challenge/search.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/search.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/search.i64",
+      "sha256": "0697f76a4c92637bbfb0b9aa264edc54bb2aa8d174f5db1c01eee3e7ca5ee103",
+      "size": 173633
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/exp.py",
+      "sha256": "901693e6666afb161023349a281aa5211bd1f091c9854ac0f6febce3d3683f45",
+      "size": 3035
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/exp.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "offset_bin_main_arena",
+        "source_line": 15,
+        "end_line": 23,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [],
+        "io_call_examples": [],
+        "menu_strings": [],
+        "operation": "unknown",
+        "confidence": "LOW"
+      },
+      {
+        "function": "index_sentence",
+        "source_line": 29,
+        "end_line": 34,
+        "parameter_names": [
+          "s"
+        ],
+        "calls": [
+          "len",
+          "recvuntil",
+          "send",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil(\"3: Quit\\n\")",
+          "p.sendline('2')",
+          "p.recvuntil(\"Enter the sentence size:\\n\")",
+          "p.sendline(str(len(s)))",
+          "p.send(s)"
+        ],
+        "menu_strings": [
+          "3: Quit\n",
+          "2",
+          "Enter the sentence size:\n"
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      },
+      {
+        "function": "search_word",
+        "source_line": 37,
+        "end_line": 42,
+        "parameter_names": [
+          "word"
+        ],
+        "calls": [
+          "len",
+          "recvuntil",
+          "send",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "p.recvuntil(\"3: Quit\\n\")",
+          "p.sendline('1')",
+          "p.recvuntil(\"Enter the word size:\\n\")",
+          "p.sendline(str(len(word)))",
+          "p.send(word)"
+        ],
+        "menu_strings": [
+          "3: Quit\n",
+          "1",
+          "Enter the word size:\n"
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      },
+      {
+        "function": "leak_libc",
+        "source_line": 45,
+        "end_line": 56,
+        "parameter_names": [],
+        "calls": [
+          "index_sentence",
+          "len",
+          "recv",
+          "recvuntil",
+          "search_word",
+          "sendline",
+          "str",
+          "u64"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Delete this sentence (y/n)?\\n')",
+          "p.sendline('y')",
+          "p.recvuntil('Found ' + str(len(smallbin_sentence)) + ': ')",
+          "p.recvuntil('Delete this sentence (y/n)?\\n')",
+          "p.sendline('n')",
+          "p.recv(8)"
+        ],
+        "menu_strings": [
+          " m ",
+          "m",
+          "Delete this sentence (y/n)?\n",
+          "y",
+          "\u0000",
+          "Delete this sentence (y/n)?\n",
+          "n",
+          "s"
+        ],
+        "operation": "show",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "exp",
+        "source_line": 59,
+        "end_line": 105,
+        "parameter_names": [],
+        "calls": [
+          "attach",
+          "hex",
+          "index_sentence",
+          "interactive",
+          "leak_libc",
+          "ljust",
+          "p64",
+          "recvuntil",
+          "search_word",
+          "sendline",
+          "success"
+        ],
+        "io_call_examples": [
+          "p.recvuntil('Delete this sentence (y/n)?\\n')",
+          "p.sendline('y')",
+          "p.recvuntil('Delete this sentence (y/n)?\\n')",
+          "p.sendline('y')",
+          "p.recvuntil('Delete this sentence (y/n)?\\n')",
+          "p.sendline('y')"
+        ],
+        "menu_strings": [
+          "d",
+          "Delete this sentence (y/n)?\n",
+          "y",
+          "Delete this sentence (y/n)?\n",
+          "y",
+          "Delete this sentence (y/n)?\n",
+          "y",
+          "\u0000"
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      }
+    ],
+    "candidate_operations": [
+      {
+        "operation": "show",
+        "helper": "leak_libc",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:45 def leak_libc()",
+          "io: p.recvuntil('Delete this sentence (y/n)?\\n')",
+          "io: p.sendline('y')"
+        ]
+      }
+    ],
+    "aliases": [],
+    "wrappers": [
+      {
+        "function": "exp",
+        "wraps": [
+          "leak_libc"
+        ],
+        "source_line": 59
+      }
+    ],
+    "call_examples": [
+      {
+        "helper": "leak_libc",
+        "source_line": 61,
+        "call": "leak_libc()"
+      }
+    ],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "exp_correctness_unverified"
+    ]
+  }
+}

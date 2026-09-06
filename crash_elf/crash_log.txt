@@ -1,0 +1,7 @@
+window up
+drop on main window
+drop on import page
+drop on exp surface
+drop on monaco view
+survived 45s
+done

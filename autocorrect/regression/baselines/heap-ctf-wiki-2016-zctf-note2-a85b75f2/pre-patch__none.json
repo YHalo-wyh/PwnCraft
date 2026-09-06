@@ -1,0 +1,26 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "label": "pre-patch",
+  "patch_id": "none",
+  "digest": "b74a9c3d2aa2de9d",
+  "fingerprint": {
+    "recognizer_revision": null,
+    "n_ops": 0,
+    "helper_contracts": [],
+    "op_sequence": [],
+    "replay_steps": [
+      [
+        0,
+        0,
+        false,
+        [],
+        [],
+        [],
+        []
+      ]
+    ],
+    "replay_n_steps": 1
+  },
+  "note": "py2 dialect: ast.parse fails on print statements; zero recognition",
+  "intentional_delta": []
+}

@@ -1,0 +1,19 @@
+{
+  "counts": {
+    "golden_ir_review_required": 1,
+    "static_runtime_assertion": 1
+  },
+  "examples": {
+    "static_runtime_assertion": [
+      "local.ruanan.traditional-Traditional.83065a44"
+    ],
+    "golden_ir_review_required": [
+      "local.ruanan.traditional-Traditional.83065a44"
+    ]
+  },
+  "promotion_policy": {
+    "minimum_independent_cases": 2,
+    "requires_zero_rejected_cases": true,
+    "requires_holdout": true
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "run_id": "run_b48b43a5508c406da79cde3bb5d9fdc8",
+  "case_id": "how2heap.223.unsorted-bin-attack",
+  "source_hash": "5fb302ee1c7b24e91f59e61becc915bc61b725c9ab4447eae106e727779fc876",
+  "model": "static-only",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\static_baseline\\sources\\5fb302ee1c7b24e91f59e61becc915bc61b725c9ab4447eae106e727779fc876.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "elapsed_s": 0.672
+}

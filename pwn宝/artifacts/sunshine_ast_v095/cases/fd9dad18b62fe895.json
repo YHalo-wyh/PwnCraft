@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "path": "比赛/SekaiCTF2026/pwn_ppp(堆)/exp_ppp_remote_v3.py",
+  "source_hash": "fd9dad18b62fe8953d5bb5f9b60e4ee626e8fd823ffac2f420655d7f4d9ee9c4",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "needs_challenge_behavior_profile",
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {},
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "note",
+      "chunk": "",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "dynamic for: iterable is unknown",
+      "meta": {
+        "analysis_status": "unresolved",
+        "source_line": "229",
+        "source_end_line": "243",
+        "source_id": "source_80a55806707bbf0a",
+        "ast_fingerprint": "e81dfb551efed717"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `main`。",
+      "start": 8346,
+      "end": 8352,
+      "line": 249,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `args.system is not None` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 7262,
+      "end": 7527,
+      "line": 222,
+      "suggestion": ""
+    },
+    {
+      "severity": "warning",
+      "code": "dynamic_iterable",
+      "message": "for iterable 无法静态确定，未展开循环。",
+      "start": 7533,
+      "end": 8195,
+      "line": 229,
+      "suggestion": "改用静态 range/list，或在时间线中人工绑定。"
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 1,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

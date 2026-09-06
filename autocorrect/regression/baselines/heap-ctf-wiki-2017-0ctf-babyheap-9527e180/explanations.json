@@ -1,0 +1,12 @@
+[
+  {
+    "from_version_file": "pre-patch__none.json",
+    "patch_id": "cycle-1",
+    "dimensions": [
+      "recognizer_revision",
+      "helper_contracts",
+      "op_sequence"
+    ],
+    "note": "generalization witness: free show->delete, dump fabricated evidence removed"
+  }
+]

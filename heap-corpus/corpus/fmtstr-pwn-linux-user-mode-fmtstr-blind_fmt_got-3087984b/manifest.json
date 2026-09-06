@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_got-3087984b",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/fmtstr/blind_fmt_got",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "blind_fmt_got",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "3087984b18576ad88f96f665a3aedf5195dc2be6b2523ac89bbc953b4cd97360",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "fmtstr",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/fmtstr/blind_fmt_got/exp.py",
+      "role": "python",
+      "size": 2228
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": []
+  }
+}

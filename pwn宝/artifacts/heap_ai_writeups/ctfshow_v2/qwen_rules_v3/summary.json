@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.ctfshow.pwn144",
+      "status": "completed",
+      "artifact": "artifacts\\heap_ai_writeups\\ctfshow_v2\\qwen_rules_v3\\local.ctfshow.pwn144.json"
+    }
+  ],
+  "completed": 1,
+  "failed": 0,
+  "gap_report": "artifacts\\heap_ai_writeups\\ctfshow_v2\\qwen_rules_v3\\gap_report.json"
+}

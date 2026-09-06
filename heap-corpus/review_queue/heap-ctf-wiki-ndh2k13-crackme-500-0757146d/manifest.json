@@ -1,0 +1,117 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-ndh2k13-crackme-500-0757146d",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "reverse/instrument/NDH2k13-crackme-500",
+    "ctf": null,
+    "year": null,
+    "year_provenance": null,
+    "challenge_name": "NDH2k13-crackme-500",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "0757146d05bd2626cfe93acf0c02f457f22aedee8a460c458fc11358e268dc35",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "heap": {
+    "confidence": "MEDIUM",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "reverse/instrument/NDH2k13-crackme-500/crackme",
+          "allocator_dynsym_imports": [],
+          "heap_string_hits": [
+            "fastbin",
+            "smallbin",
+            "main_arena"
+          ],
+          "dynamic_glibc_ref": false
+        }
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/crackme",
+      "role": "challenge",
+      "repo_relative_path": "reverse/instrument/NDH2k13-crackme-500/crackme",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/reverse/instrument/NDH2k13-crackme-500/crackme",
+      "sha256": "0757146d05bd2626cfe93acf0c02f457f22aedee8a460c458fc11358e268dc35",
+      "size": 774456
+    },
+    {
+      "path": "original/challenge/guessLen.py",
+      "role": "challenge",
+      "repo_relative_path": "reverse/instrument/NDH2k13-crackme-500/guessLen.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/reverse/instrument/NDH2k13-crackme-500/guessLen.py",
+      "sha256": "fa34c58d3f37f1fa0fffb917ba986248e9417292793baaee368c0c7e70986575",
+      "size": 683
+    },
+    {
+      "path": "original/challenge/guessPWD.py",
+      "role": "challenge",
+      "repo_relative_path": "reverse/instrument/NDH2k13-crackme-500/guessPWD.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/reverse/instrument/NDH2k13-crackme-500/guessPWD.py",
+      "sha256": "5f5db75b316f2ed6c6c7a943a54b196c6641018e5f2b54cb8f6ad25130e68021",
+      "size": 1159
+    },
+    {
+      "path": "original/challenge/inscount0.so",
+      "role": "challenge",
+      "repo_relative_path": "reverse/instrument/NDH2k13-crackme-500/inscount0.so",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/reverse/instrument/NDH2k13-crackme-500/inscount0.so",
+      "sha256": "c0f0f78bdac200b2779c4ad72cccb047c1ed60e709d0e6a6d92ac596c4f3c4aa",
+      "size": 2436552
+    },
+    {
+      "path": "original/challenge/myInscount0.so",
+      "role": "challenge",
+      "repo_relative_path": "reverse/instrument/NDH2k13-crackme-500/myInscount0.so",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/reverse/instrument/NDH2k13-crackme-500/myInscount0.so",
+      "sha256": "b13a54723bcfd31a3a91cf32010bf77f0cf037777e5969630dce100239b200c0",
+      "size": 2431912
+    },
+    {
+      "path": "original/challenge/myInscount1.so",
+      "role": "challenge",
+      "repo_relative_path": "reverse/instrument/NDH2k13-crackme-500/myInscount1.so",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/reverse/instrument/NDH2k13-crackme-500/myInscount1.so",
+      "sha256": "aa61e0a2d0cad8e25f7025f16fdb3c15bfea86b8ea79661b175d48bdf91c039a",
+      "size": 2431912
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": null,
+    "parse_ok": null,
+    "imports_pwntools": null,
+    "helpers": [],
+    "candidate_operations": [],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "REVIEW",
+    "issues": [
+      "heap evidence MEDIUM: awaiting second review",
+      "exp_correctness_unverified"
+    ]
+  }
+}

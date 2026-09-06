@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_stack-07c30b49",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/fmtstr/blind_fmt_stack",
+    "ctf": null,
+    "year": null,
+    "challenge_name": "blind_fmt_stack",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "07c30b497370ae2800d81e1d220bea0c343a0905ea48ed935ecca8e9587b098f",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "technique": "fmtstr",
+  "heap": {
+    "confidence": "LOW",
+    "evidence": [],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "pwn/linux/user-mode/fmtstr/blind_fmt_stack/exp.py",
+      "role": "python",
+      "size": 342
+    },
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "缺 libc (SILVER)"
+    ]
+  }
+}

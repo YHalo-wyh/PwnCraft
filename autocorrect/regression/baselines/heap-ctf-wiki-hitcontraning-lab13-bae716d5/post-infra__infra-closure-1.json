@@ -1,0 +1,332 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "label": "post-infra",
+  "patch_id": "infra-closure-1",
+  "digest": "f6622dfb3a121d7e",
+  "fingerprint": {
+    "recognizer_revision": "recognizer-2026.09-r4",
+    "n_ops": 12,
+    "helper_contracts": [
+      {
+        "function": "create",
+        "operation": "alloc",
+        "candidate_operation": "unknown",
+        "confidence": "structural",
+        "evidence_sources": [
+          "STRUCTURAL_BODY"
+        ],
+        "roles": [
+          "data",
+          "size"
+        ],
+        "role_params": [
+          [
+            "content",
+            "data"
+          ],
+          [
+            "size",
+            "size"
+          ]
+        ]
+      },
+      {
+        "function": "delete",
+        "operation": "delete",
+        "candidate_operation": "unknown",
+        "confidence": "structural",
+        "evidence_sources": [
+          "STRUCTURAL_BODY"
+        ],
+        "roles": [
+          "index"
+        ],
+        "role_params": [
+          [
+            "idx",
+            "index"
+          ]
+        ]
+      },
+      {
+        "function": "edit",
+        "operation": "edit",
+        "candidate_operation": "unknown",
+        "confidence": "structural",
+        "evidence_sources": [
+          "STRUCTURAL_BODY"
+        ],
+        "roles": [
+          "data",
+          "index",
+          "length",
+          "offset"
+        ],
+        "role_params": [
+          [
+            "",
+            "length"
+          ],
+          [
+            "",
+            "offset"
+          ],
+          [
+            "content",
+            "data"
+          ],
+          [
+            "idx",
+            "index"
+          ]
+        ]
+      },
+      {
+        "function": "show",
+        "operation": "unknown",
+        "candidate_operation": "show",
+        "confidence": "candidate",
+        "evidence_sources": [
+          "NAME_CANDIDATE"
+        ],
+        "roles": [],
+        "role_params": []
+      }
+    ],
+    "op_sequence": [
+      [
+        44,
+        "alloc",
+        "?handle not bound",
+        "?allocator request unproven"
+      ],
+      [
+        45,
+        "alloc",
+        "?handle not bound",
+        "?allocator request unproven"
+      ],
+      [
+        47,
+        "edit",
+        0,
+        "?allocator request unproven"
+      ],
+      [
+        50,
+        "delete",
+        1,
+        "?allocator request unproven"
+      ],
+      [
+        55,
+        "alloc",
+        "?handle not bound",
+        "?allocator request unproven"
+      ],
+      [
+        57,
+        "show",
+        1,
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        59,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        61,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        62,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        64,
+        "value",
+        "$",
+        "?menu request is not proof of allocator r"
+      ],
+      [
+        67,
+        "edit",
+        1,
+        "?allocator request unproven"
+      ],
+      [
+        69,
+        "delete",
+        0,
+        "?allocator request unproven"
+      ]
+    ],
+    "replay_steps": [
+      [
+        0,
+        0,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        1,
+        1,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x18"
+          ]
+        ]
+      ],
+      [
+        2,
+        2,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x10"
+          ]
+        ]
+      ],
+      [
+        3,
+        2,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        4,
+        2,
+        false,
+        [
+          [
+            "0x40",
+            [
+              "B"
+            ]
+          ]
+        ],
+        [],
+        [],
+        [
+          [
+            "free",
+            "fastbin[0x40]"
+          ]
+        ]
+      ],
+      [
+        5,
+        3,
+        false,
+        [],
+        [],
+        [],
+        [
+          [
+            "alloc",
+            "0x30"
+          ]
+        ]
+      ],
+      [
+        6,
+        3,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        7,
+        3,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        8,
+        3,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        9,
+        3,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        10,
+        3,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        11,
+        3,
+        false,
+        [],
+        [],
+        [],
+        []
+      ],
+      [
+        12,
+        3,
+        false,
+        [
+          [
+            "0x20",
+            [
+              "A"
+            ]
+          ]
+        ],
+        [],
+        [],
+        [
+          [
+            "free",
+            "fastbin[0x20]"
+          ]
+        ]
+      ]
+    ],
+    "replay_n_steps": 13
+  },
+  "note": "INFRA-CLOSURE-1: single-run adapter/op_id/canvas truth; recognizer untouched (r4)",
+  "intentional_delta": []
+}

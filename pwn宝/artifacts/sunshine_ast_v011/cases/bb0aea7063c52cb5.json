@@ -1,0 +1,134 @@
+{
+  "schema_version": 2,
+  "path": "比赛/R3CTF2026/polys(堆)/solve_final_bruteforce.py",
+  "source_hash": "bb0aea7063c52cb5ff8a54e0f57d4e52302ee96f949fe152bdf3371e2b98c265",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "PARSE_ONLY",
+  "analysis_variant": "default",
+  "failure_reasons": [
+    "external semantic truth oracle not provided"
+  ],
+  "semantic_verified": false,
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {},
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "derive_value",
+      "chunk": "err",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "io.p.stderr.read(500)",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: err=io.p.stderr.read(500) [attempt=0]",
+      "meta": {
+        "result_var": "err",
+        "expression": "io.p.stderr.read(500)",
+        "dependencies": "",
+        "source_kind": "recv",
+        "source": "err=io.p.stderr.read(500)",
+        "provenance": "inferred",
+        "source_line": "70",
+        "source_end_line": "70",
+        "source_id": "source_c7a786278e6bd4f2",
+        "ast_fingerprint": "5acbc2c16dca8132"
+      }
+    },
+    {
+      "op_id": "op_002",
+      "kind": "derive_value",
+      "chunk": "m",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "re.search(rb'(r3ctf\\{[^}]+\\}|flag\\{[^}]+\\})', out+err)",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "from EXP: m=re.search(rb'(r3ctf\\{[^}]+\\}|flag\\{[^}]+\\})', out+err) [attempt=0]",
+      "meta": {
+        "result_var": "m",
+        "expression": "re.search(rb'(r3ctf\\{[^}]+\\}|flag\\{[^}]+\\})', out+err)",
+        "dependencies": "err",
+        "source_kind": "derived",
+        "source": "m=re.search(rb'(r3ctf\\{[^}]+\\}|flag\\{[^}]+\\})', out+err)",
+        "provenance": "derived",
+        "source_line": "74",
+        "source_end_line": "74",
+        "source_id": "source_168c7cb7ed55bec3",
+        "ast_fingerprint": "4b3b6fde027ab614"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `main`。",
+      "start": 3128,
+      "end": 3134,
+      "line": 84,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `len(sys.argv) >= 4` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 1891,
+      "end": 1969,
+      "line": 52,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "try_path",
+      "message": "静态时间线采用 try 主路径；异常分支保留为诊断。",
+      "start": 2007,
+      "end": 3102,
+      "line": 55,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "try_path",
+      "message": "静态时间线采用 try 主路径；异常分支保留为诊断。",
+      "start": 2609,
+      "end": 2664,
+      "line": 70,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `m` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 2856,
+      "end": 2955,
+      "line": 76,
+      "suggestion": ""
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 2,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

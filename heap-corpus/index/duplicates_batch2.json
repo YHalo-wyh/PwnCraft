@@ -1,0 +1,20 @@
+{
+  "note": "10cks/CTF-pwn-challenges 与 ctf-wiki/ctf-challenges 重叠判定 (binary sha 相同)",
+  "canonical_source": "ctf-wiki (batch-1)",
+  "duplicate_units_in_10cks": [
+    "heap/chunk-extend-shrink/2015_hacklu_bookstore",
+    "heap/chunk-extend-shrink/hitcontraning_lab13",
+    "heap/fastbin-attack/2014_hack.lu_oreo",
+    "heap/fastbin-attack/2015_9447ctf_search-engine",
+    "heap/fastbin-attack/2017_0ctf_babyheap",
+    "heap/house-of-einherjar/2016_seccon_tinypad",
+    "heap/house-of-force/2016_bctf_bcloud",
+    "heap/unsorted_bin_attack/zerostorage"
+  ],
+  "enriched_from_10cks": [
+    "heap-ctf-wiki-hitcontraning-lab11-6f1c67fb",
+    "heap-ctf-wiki-asis-2016-b00ks-2db4fc27",
+    "heap-ctf-wiki-hitcontraining-lab14-0fd2b3ed"
+  ],
+  "net_new_binaries": 1
+}

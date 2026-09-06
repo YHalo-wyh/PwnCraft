@@ -1,0 +1,205 @@
+{
+  "benchmark": "correction",
+  "total": 28,
+  "passed": 28,
+  "failed": 0,
+  "pass_rate": 1.0,
+  "cases": [
+    {
+      "case_id": "memory_patch_0",
+      "category": "memory patch",
+      "expected": "b'A'",
+      "actual": "b'A'",
+      "passed": true
+    },
+    {
+      "case_id": "memory_patch_1",
+      "category": "memory patch",
+      "expected": "b'B'",
+      "actual": "b'B'",
+      "passed": true
+    },
+    {
+      "case_id": "memory_patch_2",
+      "category": "memory patch",
+      "expected": "b'C'",
+      "actual": "b'C'",
+      "passed": true
+    },
+    {
+      "case_id": "memory_patch_3",
+      "category": "memory patch",
+      "expected": "b'D'",
+      "actual": "b'D'",
+      "passed": true
+    },
+    {
+      "case_id": "memory_patch_4",
+      "category": "memory patch",
+      "expected": "b'E'",
+      "actual": "b'E'",
+      "passed": true
+    },
+    {
+      "case_id": "memory_patch_5",
+      "category": "memory patch",
+      "expected": "b'F'",
+      "actual": "b'F'",
+      "passed": true
+    },
+    {
+      "case_id": "memory_patch_6",
+      "category": "memory patch",
+      "expected": "b'G'",
+      "actual": "b'G'",
+      "passed": true
+    },
+    {
+      "case_id": "memory_patch_7",
+      "category": "memory patch",
+      "expected": "b'H'",
+      "actual": "b'H'",
+      "passed": true
+    },
+    {
+      "case_id": "invalid_size_0",
+      "category": "validation",
+      "expected": "invalid",
+      "actual": "invalid",
+      "passed": true
+    },
+    {
+      "case_id": "invalid_size_1",
+      "category": "validation",
+      "expected": "invalid",
+      "actual": "invalid",
+      "passed": true
+    },
+    {
+      "case_id": "invalid_size_2",
+      "category": "validation",
+      "expected": "invalid",
+      "actual": "invalid",
+      "passed": true
+    },
+    {
+      "case_id": "invalid_size_3",
+      "category": "validation",
+      "expected": "invalid",
+      "actual": "invalid",
+      "passed": true
+    },
+    {
+      "case_id": "corrupt_next_0",
+      "category": "validation",
+      "expected": "representable_corruption",
+      "actual": "representable_corruption",
+      "passed": true
+    },
+    {
+      "case_id": "corrupt_next_1",
+      "category": "validation",
+      "expected": "representable_corruption",
+      "actual": "representable_corruption",
+      "passed": true
+    },
+    {
+      "case_id": "corrupt_next_2",
+      "category": "validation",
+      "expected": "representable_corruption",
+      "actual": "representable_corruption",
+      "passed": true
+    },
+    {
+      "case_id": "corrupt_next_3",
+      "category": "validation",
+      "expected": "representable_corruption",
+      "actual": "representable_corruption",
+      "passed": true
+    },
+    {
+      "case_id": "undo_redo_0",
+      "category": "undo",
+      "expected": "b'A' -> b'Z'",
+      "actual": "b'A' -> b'Z'",
+      "passed": true
+    },
+    {
+      "case_id": "undo_redo_1",
+      "category": "undo",
+      "expected": "b'A' -> b'Z'",
+      "actual": "b'A' -> b'Z'",
+      "passed": true
+    },
+    {
+      "case_id": "undo_redo_2",
+      "category": "undo",
+      "expected": "b'A' -> b'Z'",
+      "actual": "b'A' -> b'Z'",
+      "passed": true
+    },
+    {
+      "case_id": "undo_redo_3",
+      "category": "undo",
+      "expected": "b'A' -> b'Z'",
+      "actual": "b'A' -> b'Z'",
+      "passed": true
+    },
+    {
+      "case_id": "valid_size_0",
+      "category": "validation",
+      "expected": "valid",
+      "actual": "valid",
+      "passed": true
+    },
+    {
+      "case_id": "valid_size_1",
+      "category": "validation",
+      "expected": "valid",
+      "actual": "valid",
+      "passed": true
+    },
+    {
+      "case_id": "valid_size_2",
+      "category": "validation",
+      "expected": "valid",
+      "actual": "valid",
+      "passed": true
+    },
+    {
+      "case_id": "valid_size_3",
+      "category": "validation",
+      "expected": "valid",
+      "actual": "valid",
+      "passed": true
+    },
+    {
+      "case_id": "contract_correction_0",
+      "category": "contract correction",
+      "expected": "affected_calls=2",
+      "actual": "affected_calls=2",
+      "passed": true
+    },
+    {
+      "case_id": "contract_correction_1",
+      "category": "contract correction",
+      "expected": "affected_calls=2",
+      "actual": "affected_calls=2",
+      "passed": true
+    },
+    {
+      "case_id": "rebase_0",
+      "category": "rebase",
+      "expected": "matched",
+      "actual": "matched",
+      "passed": true
+    },
+    {
+      "case_id": "rebase_1",
+      "category": "rebase",
+      "expected": "stale",
+      "actual": "stale",
+      "passed": true
+    }
+  ]
+}

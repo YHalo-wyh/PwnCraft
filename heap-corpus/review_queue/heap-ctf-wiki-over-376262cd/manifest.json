@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-over-376262cd",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/stackoverflow/fake_frame/over",
+    "ctf": null,
+    "year": null,
+    "year_provenance": null,
+    "challenge_name": "over",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "376262cd75220c9a8fa50ca72d4eb0ba44527a3bc04bb86a64b623a7d65aafc0",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "heap": {
+    "confidence": "MEDIUM",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/stackoverflow/fake_frame/over/core",
+          "allocator_dynsym_imports": [],
+          "heap_string_hits": [
+            "tcache_struct",
+            "fastbin",
+            "smallbin",
+            "main_arena"
+          ],
+          "dynamic_glibc_ref": true
+        }
+      }
+    ],
+    "techniques": [],
+    "technique_provenance": {}
+  },
+  "files": [
+    {
+      "path": "original/challenge/core",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/stackoverflow/fake_frame/over/core",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/stackoverflow/fake_frame/over/core",
+      "sha256": "376262cd75220c9a8fa50ca72d4eb0ba44527a3bc04bb86a64b623a7d65aafc0",
+      "size": 4489216
+    },
+    {
+      "path": "original/challenge/over.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/stackoverflow/fake_frame/over/over.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/stackoverflow/fake_frame/over/over.i64",
+      "sha256": "fb99bb427e8855349871518f53291d93468d760fae0390c99083e63b8ce6bded",
+      "size": 140322
+    },
+    {
+      "path": "original/challenge/over.over",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/stackoverflow/fake_frame/over/over.over",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/stackoverflow/fake_frame/over/over.over",
+      "sha256": "b4b383903cc1346bac8648f6882c043f5a7a331002eb5d6815a360376df553af",
+      "size": 6336
+    },
+    {
+      "path": "original/challenge/solve.py",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/stackoverflow/fake_frame/over/solve.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/stackoverflow/fake_frame/over/solve.py",
+      "sha256": "56ed447f079ff62c5c82497ce05dcbee77528dd549365c1d83e97cb2720c7ccf",
+      "size": 1292
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/stackoverflow/fake_frame/over/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/stackoverflow/fake_frame/over/exp.py",
+      "sha256": "88fe98bc8834c10a225c14e41aa36e76172a4928a0812c64997aaf01d8cf63bb",
+      "size": 1036
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/stackoverflow/fake_frame/over/exp.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "DEBUG",
+        "source_line": 4,
+        "end_line": 6,
+        "parameter_names": [
+          "cmd"
+        ],
+        "calls": [
+          "attach",
+          "raw_input"
+        ],
+        "io_call_examples": [],
+        "menu_strings": [
+          "DEBUG: "
+        ],
+        "operation": "unknown",
+        "confidence": "LOW"
+      }
+    ],
+    "candidate_operations": [],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "REVIEW",
+    "issues": [
+      "heap evidence MEDIUM: awaiting second review",
+      "exp_correctness_unverified"
+    ]
+  }
+}

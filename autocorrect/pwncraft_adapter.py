@@ -1,0 +1,461 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Authoritative single-run adapter (INFRA-CLOSURE-1 P0-2).
+
+ONE case → ONE HeapSession.load → every artifact derived from that single
+run (session.analysis / state / snapshots). Each artifact carries the same
+run_id; run_manifest.json pins identity (exp/binary/libc sha, recognizer
+revision, allocator profile id+revision, memory revision, snapshot id).
+The comparator refuses artifacts whose run_ids do not match.
+
+Static only: analyze + simulate; challenge binaries are never executed.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import sys
+import uuid
+from pathlib import Path
+
+_OUTER = Path(__file__).resolve().parents[1]
+_PROJECT_ROOT = _OUTER / "pwn宝"
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
+
+def _enum(v):
+    return getattr(v, "value", v)
+
+
+def sha256_file(path):
+    h = hashlib.sha256()
+    with open(str(path), "rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+# ---------------------------------------------------------------- views
+
+def _abstract_value(v) -> dict:
+    name = type(v).__name__
+    for attr, kind in (("value", "concrete"), ("expression", "symbolic")):
+        if hasattr(v, attr):
+            try:
+                val = getattr(v, attr)
+                json.dumps(val)
+                return {"kind": kind, name: val, "source": str(getattr(v, "source", ""))}
+            except (TypeError, ValueError):
+                pass
+    reason = getattr(v, "reason", None)
+    if reason:
+        return {"kind": "unknown", "reason": reason, "source": str(getattr(v, "source", ""))}
+    return {"kind": "opaque", "repr": str(v)}
+
+
+def _contract_view(c) -> dict:
+    roles = {}
+    for role, b in (c.roles or {}).items():
+        roles[role] = {
+            "role": b.role, "parameter": b.parameter, "position": b.position,
+            "expression": getattr(b, "expression", "") or "",
+        }
+    evidence = [{
+        "source": getattr(e.source, "name", str(e.source)),
+        "detail": str(getattr(e, "detail", "") or "")[:200],
+        "line": getattr(e, "line", None),
+        "score": getattr(e, "score", None),
+    } for e in (c.evidence or ())]
+    cand = getattr(c, "candidate_operation", None)
+    return {
+        "function": c.function,
+        "operation": _enum(c.operation),
+        "candidate_operation": _enum(cand) if cand is not None else None,
+        "confidence": _enum(c.confidence),
+        "evidence_sources": sorted({e["source"] for e in evidence}),
+        "evidence": evidence,
+        "roles": roles,
+    }
+
+
+def _canonical_view(op, step_hint=None) -> dict:
+    sb = getattr(op, "source_binding", None)
+    return {
+        # stable identity — NEVER positional
+        "op_id": getattr(op, "operation_id", None),
+        "kind": _enum(op.kind),
+        "handle": _abstract_value(op.handle),
+        "menu_request": _abstract_value(op.menu_request),
+        "allocator_request": _abstract_value(op.allocator_request),
+        "length": _abstract_value(op.length),
+        "payload": _abstract_value(op.payload),
+        "source_line": getattr(sb, "line", 0) if sb else 0,
+        "source_call": (getattr(sb, "source_text", "") or "") if sb else "",
+        "confidence": _enum(op.confidence),
+        "contract_id": getattr(op, "contract_id", "") or "",
+    }
+
+
+def _target_actions_view(canonical_ops) -> dict:
+    """TargetBehavior artifact — what the CURRENT pipeline actually derives.
+
+    This is the identity mapping the engine replays today: alloc → one
+    malloc(request); delete → one free; edit/show/copy → no allocator action.
+    Binary-internal multiplicities (e.g. heapcreator's create =
+    malloc(struct)+malloc(content)) are NOT modeled and are recorded as
+    explicit unknowns — no inference is invented here (INFRA round freezes
+    recognizer semantics)."""
+    per_op = []
+    for op in canonical_ops:
+        kind = _enum(op.kind)
+        entry = {"op_id": getattr(op, "operation_id", None), "kind": kind,
+                 "source_line": getattr(getattr(op, "source_binding", None), "line", 0) or 0,
+                 "actions": [], "internals_not_modeled": True}
+        if kind in ("alloc", "allocate"):
+            entry["actions"] = [{"action": "malloc",
+                                 "request": _abstract_value(op.allocator_request)}]
+        elif kind in ("free", "delete"):
+            entry["actions"] = [{"action": "free",
+                                 "target": _abstract_value(op.handle)}]
+        else:
+            entry["actions"] = []
+        per_op.append(entry)
+    return {
+        "derivation": "current-pipeline identity mapping (engine replay dispatch); "
+                      "binary-internal 1:N actions are explicit unknowns",
+        "per_op": per_op,
+    }
+
+
+def _physical_view(step: dict, raw_snapshot, memory_revision: str = "") -> dict:
+    """PhysicalMemory artifact: physical objects + paint/coverage inputs,
+    with stale logical/typed views kept SEPARATE from physical objects."""
+    physical_objects = []
+    for pc in step.get("physical_chunks") or []:
+        physical_objects.append({
+            "physical_id": pc.get("physical_id"),
+            "chunk_id": pc.get("chunk_id"),
+            "address": pc.get("address"),
+            "heap_offset": pc.get("heap_offset"),
+            "physical_range": [pc.get("address"), None] if pc.get("address") else None,
+            "user_address": pc.get("user_address"),
+            "physical_extent_size": pc.get("physical_extent_size"),
+            "decoded_chunksize": pc.get("decoded_chunksize"),
+            "header_raw_size": pc.get("header_raw_size"),
+            "lifecycle": pc.get("lifecycle"),
+            "bin_location": pc.get("bin_location"),
+            "provenance": pc.get("provenance"),
+            "regions": pc.get("regions"),
+            "evidence_level": pc.get("evidence_level"),
+            "role": pc.get("role"),
+        })
+    memory = getattr(raw_snapshot, "memory", None)
+    spans = []
+    overlaps = []
+    provenance_samples = []
+    if memory is not None:
+        try:
+            spans = [{"start": getattr(s, "start", None), "end": getattr(s, "end", None)}
+                     for s in (getattr(memory, "spans", ()) or ())]
+        except Exception:
+            spans = []
+        try:
+            overlaps = [str(o)[:120] for o in (getattr(memory, "overlaps", ()) or ())]
+        except Exception:
+            overlaps = []
+    return {
+        "step": step.get("step"),
+        "op_id": step.get("op_id"),
+        "memory_revision": memory_revision,
+        "physical_objects": physical_objects,
+        "stale_separated_views": {
+            "note": "typed/logical views are NOT physical objects; listed separately",
+            "typed_views": list(step.get("typed_views") or []),
+            "logical_chunks": list(step.get("chunks") or []),
+        },
+        "paint_spans": list(step.get("paint_spans") or []),
+        "overwrite_edges": list(step.get("overwrite_edges") or []),
+        "memory_regions": {"spans": spans, "overlaps": overlaps,
+                           "provenance": provenance_samples},
+        "top": step.get("top"),
+    }
+
+
+def _snapshot_view(step: dict) -> dict:
+    """Full serialized snapshot view (honest content for snapshots.json)."""
+    keep = ("step", "op_id", "title", "aborted", "allocator_abort", "warnings",
+            "explanation", "chunks", "physical_chunks", "typed_views",
+            "handles", "bins", "bin_rows", "bin_transitions", "groups",
+            "relations", "paint_spans", "overwrite_edges", "top", "heap_base",
+            "alloc_events", "free_events", "intents", "observations",
+            "model_divergences")
+    return {k: step.get(k) for k in keep if k in step}
+
+
+def _replay_view(steps) -> dict:
+    out_steps = []
+    for s in steps:
+        if not isinstance(s, dict):
+            continue
+        chunks = s.get("chunks") or []
+        bins = s.get("bins") or {}
+
+        def _ev(ev, kind):
+            if not isinstance(ev, dict):
+                return {"kind": kind, "repr": str(ev)[:80]}
+            o = {"kind": kind, "chunk": ev.get("chunk")}
+            if kind == "alloc":
+                o.update({"request_size": ev.get("request_size"),
+                          "chunk_size": ev.get("chunk_size"),
+                          "source": ev.get("allocation_source") or ev.get("source")})
+            else:
+                o.update({"destination_bin": ev.get("destination_bin")})
+            return o
+
+        out_steps.append({
+            "step": s.get("step"),
+            "op_id": s.get("op_id") or s.get("operation_id"),
+            "n_chunks": len(chunks),
+            "chunks": {str(c.get("chunk_id")): {
+                "size": c.get("chunk_size"), "request_size": c.get("request_size"),
+                "lifecycle": c.get("lifecycle"), "bin": c.get("bin_location") or "",
+                "physical_id": c.get("physical_id"),
+            } for c in chunks if isinstance(c, dict)},
+            "handles": [(h.get("index"), h.get("chunk_id"), h.get("status"))
+                        for h in (s.get("handles") or []) if isinstance(h, dict)],
+            "tcache": bins.get("tcache"), "fastbins": bins.get("fastbins"),
+            "smallbins": bins.get("smallbins"), "largebins": bins.get("largebins"),
+            "unsorted": bins.get("unsorted"),
+            "alloc_events": [_ev(e, "alloc") for e in (s.get("alloc_events") or [])],
+            "free_events": [_ev(e, "free") for e in (s.get("free_events") or [])],
+            "aborted": s.get("aborted"), "allocator_abort": s.get("allocator_abort"),
+            "warnings": [str(w)[:120] for w in (s.get("warnings") or [])][:5],
+        })
+    return {"n_steps": len(out_steps), "steps": out_steps}
+
+
+def _bin_summary(v):
+    if v is None:
+        return None
+    if isinstance(v, dict):
+        return {str(k): [str(x)[:40] for x in lst] if isinstance(lst, (list, tuple))
+                else str(lst)[:120] for k, lst in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [str(x)[:40] for x in v]
+    return str(v)[:160]
+
+
+# ---------------------------------------------------------------- authoritative run
+
+def run_analyzer(exp_source: str) -> dict:
+    """Analysis-only view (no session/replay). Used by tests and probes that
+    need the recognizer's contracts/ops without a full authoritative run."""
+    from pwnbao.features.heapviz import analyze_heap_source
+
+    result = analyze_heap_source(exp_source)
+    contracts = [_contract_view(c) for c in (result.helper_contracts or ())]
+    ops = [_canonical_view(op) for op in (result.canonical_operations or ())]
+    rec = result.recognition_report if isinstance(result.recognition_report, dict) else {}
+    return {
+        "valid": result.valid,
+        "recognizer_revision": rec.get("recognizer_revision"),
+        "recognition": {k: rec.get(k) for k in
+                        ("candidate_calls", "recognized", "ambiguous", "unknown",
+                         "ignored", "truncated")},
+        "helper_contracts": contracts,
+        "canonical_ops": ops,
+        "diagnostics": [str(d) for d in (result.diagnostics or [])][:40],
+    }
+
+
+def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
+    from pwnbao.features.heapviz.bridge_session import HeapSession
+    from pwnbao.features.heapviz.canvas_model import (
+        build_canvas_semantic_model, check_canvas_invariants,
+    )
+
+    case_dir = Path(case_dir)
+    manifest = json.loads((case_dir / "manifest.json").read_text(encoding="utf-8"))
+    exp_rel = manifest["exp_analysis"]["entry_file"]
+    exp_path = case_dir / "original" / "solution" / Path(exp_rel).name
+    if not exp_path.exists():
+        cands = list((case_dir / "original" / "solution").glob("*.py"))
+        if not cands:
+            raise FileNotFoundError(f"no EXP under {case_dir}/original/solution")
+        exp_path = cands[0]
+    exp_source = exp_path.read_text(encoding="utf-8")
+    glibc = manifest.get("glibc", {}).get("version")
+
+    # ---- ONE authoritative run
+    session = HeapSession()
+    allocator = {"version": glibc} if glibc else None
+    state = session.load(source=exp_source, allocator=allocator)
+    analysis = session.analysis                     # authoritative analysis object
+    allocator_info = state.get("allocator") or {}
+    recognition = (state.get("analysis") or {}).get("recognition") or {}
+
+    run_manifest = {
+        "run_id": None,  # filled below
+        "case_id": manifest["case_id"],
+        "case_dir": str(case_dir),
+        "exp_file": str(exp_path),
+        "exp_sha256": sha256_text(exp_source),
+        "binary_sha256": (manifest.get("target") or {}).get("binary_sha256"),
+        "libc_sha256": (manifest.get("target") or {}).get("libc_sha256"),
+        "glibc_version_claimed": glibc,
+        "recognizer_revision": recognition.get("recognizer_revision"),
+        "allocator_profile_id": allocator_info.get("profile_id"),
+        "allocator_profile_revision": allocator_info.get("profile_revision"),
+        "allocator_requested_version": allocator_info.get("requested_version"),
+        "allocator_mechanisms": allocator_info.get("mechanisms"),
+        "memory_revision": state.get("memory_revision"),
+        "snapshot_id": state.get("snapshot_id"),
+        "analysis_valid": (state.get("analysis") or {}).get("valid"),
+    }
+    seed = "|".join(str(run_manifest[k]) for k in
+                    ("case_id", "exp_sha256", "recognizer_revision",
+                     "allocator_profile_id", "allocator_profile_revision",
+                     "memory_revision", "snapshot_id"))
+    run_manifest["run_id"] = "run-" + hashlib.sha256(seed.encode()).hexdigest()[:16]
+
+    # ---- artifacts derived from the single run
+    contracts = [_contract_view(c) for c in (analysis.helper_contracts or ())]
+    canonical_ops = [_canonical_view(op) for op in (analysis.canonical_operations or ())]
+    steps = [s for s in (state.get("steps") or []) if isinstance(s, dict)]
+
+    analyzer_view = {
+        "run_id": run_manifest["run_id"],
+        "valid": run_manifest["analysis_valid"],
+        "recognizer_revision": run_manifest["recognizer_revision"],
+        "recognition": {k: recognition.get(k) for k in
+                        ("candidate_calls", "recognized", "ambiguous", "unknown",
+                         "ignored", "truncated")},
+        "diagnostics": [str(d) for d in ((state.get("analysis") or {}).get("diagnostics") or [])][:40],
+        "helper_contracts": contracts,
+        "canonical_ops": canonical_ops,
+    }
+    target_behavior = dict(_target_actions_view(analysis.canonical_operations or ()))
+    target_behavior["run_id"] = run_manifest["run_id"]
+    replay_view = _replay_view(steps)
+    replay_view["run_id"] = run_manifest["run_id"]
+    # FULL bridge steps: exactly what commitSnapshot feeds the JS renderer
+    # (physical_chunks / paint_spans / bins / top / typed_views ...) — the
+    # input for headless exportRendererPlan (P0-5).
+    bridge_steps = {"run_id": run_manifest["run_id"],
+                    "snapshot_id": run_manifest["snapshot_id"],
+                    "memory_revision": run_manifest["memory_revision"],
+                    "steps": steps}
+
+    physical = []
+    canvas_steps = []
+    canvas_invariants = []
+    for st, raw in zip(steps, session.snapshots or []):
+        pv = _physical_view(st, raw, memory_revision=state.get("memory_revision") or "")
+        pv["run_id"] = run_manifest["run_id"]
+        physical.append(pv)
+        cm = build_canvas_semantic_model(st)
+        cm["run_id"] = run_manifest["run_id"]
+        canvas_steps.append(cm)
+        canvas_invariants.append({"step": cm["step"], "op_id": cm["snapshot_id"],
+                                  "violations": check_canvas_invariants(cm, st)})
+
+    out = {
+        "run_id": run_manifest["run_id"],
+        "case_id": manifest["case_id"],
+        "run_manifest": run_manifest,
+        "analyzer": analyzer_view,
+        "target_behavior": target_behavior,
+        "replay": replay_view,
+        "physical_memory": {"run_id": run_manifest["run_id"], "steps": physical},
+        "bridge_steps": bridge_steps,
+        "canvas_truth_model": {
+            "definition": "CanvasTruthModel: what the backend truth says SHOULD be "
+                          "presented. NOT a claim about the actual JS renderer plan "
+                          "(INFRA-CLOSURE-1 P0-5).",
+            "run_id": run_manifest["run_id"],
+            "n_steps": len(canvas_steps),
+            "steps": canvas_steps,
+        },
+        "canvas_invariants": canvas_invariants,
+    }
+    if out_path:
+        _write_artifacts(out, Path(out_path))
+    return out
+
+
+# ---------------------------------------------------------------- atomic artifact write (P1-4)
+
+def _write_artifacts(out: dict, out_path: Path):
+    from pwnbao.features.heapviz.canvas_model import build_canvas_semantic_model  # noqa: F401
+
+    out_path = Path(out_path)
+    final_dir = out_path.parent                      # generated/<label>/
+    # promote guard: artifacts may ONLY ever replace a label directory under
+    # a "generated" parent. Anything else (e.g. a case root holding locked
+    # truths) is refused — the INFRA incident where cmd_baseline pointed at
+    # the case root wiped truth files; this guard makes that class impossible.
+    if final_dir.name == "generated" or final_dir.parent.name != "generated":
+        raise SystemExit(f"[!!] refused artifact promote into {final_dir}: "
+                         "must be generated/<label>/ (P1-4 guard)")
+    tmp_dir = final_dir.parent / (".tmp-" + final_dir.name + "-" + uuid.uuid4().hex[:8])
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    rm = out["run_manifest"]
+    a = out["analyzer"]
+
+    def w(name, obj):
+        (tmp_dir / name).write_text(
+            json.dumps(obj, ensure_ascii=False, indent=2, default=str),
+            encoding="utf-8")
+
+    w("run_manifest.json", rm)
+    w("recognition.json", {"run_id": rm["run_id"], **a["recognition"]})
+    w("helper_contracts.json", {"run_id": rm["run_id"], "contracts": a["helper_contracts"]})
+    w("canonical_ir.json", {"run_id": rm["run_id"], "ops": a["canonical_ops"]})
+    w("target_behavior.json", out["target_behavior"])
+    w("allocator_events.json", {
+        "run_id": rm["run_id"],
+        "per_step": [{"step": s["step"], "op_id": s["op_id"],
+                      "alloc_events": s["alloc_events"], "free_events": s["free_events"]}
+                     for s in out["replay"]["steps"]]})
+    w("physical_memory.json", out["physical_memory"])
+    w("snapshots.json", {"run_id": rm["run_id"],
+                         "snapshot_id": rm["snapshot_id"],
+                         "memory_revision": rm["memory_revision"],
+                         "steps": [_snapshot_view_from_replay(s) for s in out["replay"]["steps"]]})
+    w("canvas_truth_model.json", out["canvas_truth_model"])
+    w("canvas_invariants.json", {"run_id": rm["run_id"],
+                                 "reports": out["canvas_invariants"]})
+    w("bridge_steps.json", out["bridge_steps"])
+    w("pwncraft_output.json", out)
+
+    # validation before promote: every sidecar must carry the same run_id
+    for f in tmp_dir.glob("*.json"):
+        data = json.loads(f.read_text(encoding="utf-8"))
+        rid = data.get("run_id") if isinstance(data, dict) else None
+        if rid != rm["run_id"]:
+            raise SystemExit(f"[!!] run_id validation failed for {f.name}: {rid}")
+    # atomic promote (no residue reuse)
+    if final_dir.exists():
+        stale = final_dir.parent / (".stale-" + final_dir.name + "-" + uuid.uuid4().hex[:8])
+        os.replace(final_dir, stale)
+        import shutil
+        shutil.rmtree(stale, ignore_errors=True)
+    os.replace(tmp_dir, final_dir)
+
+
+def _snapshot_view_from_replay(s: dict) -> dict:
+    """Honest snapshot sidecar: the replay-view step (op_id-aligned) plus a
+    pointer that FULL raw snapshots live in pwncraft_output.json steps fields."""
+    return {"step": s["step"], "op_id": s["op_id"], "n_chunks": s["n_chunks"],
+            "chunks": s["chunks"], "handles": s["handles"],
+            "bins": {"tcache": s["tcache"], "fastbins": s["fastbins"],
+                     "smallbins": s["smallbins"], "largebins": s["largebins"],
+                     "unsorted": s["unsorted"]},
+            "top_in_state": True,  # top lives in physical_memory.json per step
+            "aborted": s["aborted"], "warnings": s["warnings"]}

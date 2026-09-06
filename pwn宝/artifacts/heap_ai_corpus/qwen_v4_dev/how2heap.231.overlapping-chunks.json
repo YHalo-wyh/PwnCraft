@@ -1,0 +1,44 @@
+{
+  "run_id": "run_e47f34bbbd754a519275f73ef5a06dcf",
+  "case_id": "how2heap.231.overlapping-chunks",
+  "source_hash": "a2cbd49aba8cdcb1727da111a47814ee7ab5135ccadd3bd09dfd970f3074ccff",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\qwen_v4_dev\\sources\\a2cbd49aba8cdcb1727da111a47814ee7ab5135ccadd3bd09dfd970f3074ccff.c",
+  "purpose": "intent_only",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.016
+}

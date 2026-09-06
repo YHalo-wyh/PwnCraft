@@ -1,0 +1,14 @@
+[
+  {
+    "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+    "verdict": "DIVERGED",
+    "layer": "HELPER_CONTRACT",
+    "run_id": "run-6c4845ff0ed57c8e"
+  },
+  {
+    "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+    "verdict": "DIVERGED",
+    "layer": "HELPER_CONTRACT",
+    "run_id": "run-719e888dc9187aa9"
+  }
+]

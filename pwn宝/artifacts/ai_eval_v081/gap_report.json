@@ -1,0 +1,22 @@
+{
+  "counts": {
+    "golden_ir_review_required": 1,
+    "static_runtime_assertion": 1
+  },
+  "examples": {
+    "static_runtime_assertion": [
+      "local.traditional.solve"
+    ],
+    "golden_ir_review_required": [
+      "local.traditional.solve"
+    ]
+  },
+  "promotion_policy": {
+    "mode": "strict",
+    "minimum_positive_cases": 2,
+    "require_holdout": true,
+    "confidence_threshold": 0.9,
+    "maximum_rejected_cases": 0,
+    "rule_source": "qwen-strict-auto"
+  }
+}

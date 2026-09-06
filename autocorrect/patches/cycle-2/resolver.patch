@@ -1,0 +1,35 @@
+--- patches/cycle-2/resolver.py.pre	2026-09-05 16:22:49.150738000 +0800
++++ ../pwn宝/pwnbao/features/heapviz/contracts/resolver.py	2026-09-05 16:24:56.192955400 +0800
+@@ -7,6 +7,7 @@
+ from typing import Iterable, Mapping
+ 
+ from pwnbao.features.heapviz.contracts.aliases import assignment_aliases, name_candidate, partial_aliases
++from pwnbao.features.heapviz.source_compat import parse_module_source
+ from pwnbao.features.heapviz.contracts.model import (
+     ArgumentBinding,
+     CanonicalEffect,
+@@ -78,9 +79,9 @@
+         self.max_wrapper_depth = max(1, int(max_wrapper_depth))
+ 
+     def resolve(self, source: str) -> ContractResolution:
+-        try:
+-            tree = ast.parse(source or "")
+-        except SyntaxError as error:
++        tree, parse_error = parse_module_source(source or "")
++        if tree is None:
++            error = parse_error
+             return ContractResolution((), (f"syntax_error:{error.lineno}:{error.msg}",))
+         lines = (source or "").splitlines()
+         definitions: dict[str, tuple[str, ast.FunctionDef | ast.AsyncFunctionDef]] = {}
+@@ -180,9 +181,8 @@
+ 
+ def lower_source_calls(source: str, resolution: ContractResolution | None = None) -> tuple[CanonicalHeapOperation, ...]:
+     resolution = resolution or HelperContractResolver().resolve(source)
+-    try:
+-        tree = ast.parse(source or "")
+-    except SyntaxError:
++    tree, _parse_error = parse_module_source(source or "")
++    if tree is None:
+         return ()
+     try:
+         from pwnbao.features.heapviz.payload import collect_payload_assignments

@@ -1,0 +1,819 @@
+{
+  "run_id": "run-4390bf37e9b452a2",
+  "snapshot_id": "9f394ae3f249",
+  "memory_revision": "14:0:0:0:13",
+  "steps": [
+    {
+      "step": 0,
+      "op_id": "initial",
+      "n_chunks": 0,
+      "chunks": {},
+      "handles": [],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 1,
+      "op_id": "op_001",
+      "n_chunks": 1,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 2,
+      "op_id": "op_002",
+      "n_chunks": 2,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 3,
+      "op_id": "op_003",
+      "n_chunks": 3,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x90",
+          "request_size": "0x80",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0003"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "active"
+        ],
+        [
+          "2",
+          "C",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 4,
+      "op_id": "op_004",
+      "n_chunks": 3,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "freed",
+          "bin": "fastbin[0x20]",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x90",
+          "request_size": "0x80",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0003"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "dangling"
+        ],
+        [
+          "2",
+          "C",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {
+          "0x20": [
+            "B"
+          ]
+        },
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 5,
+      "op_id": "op_005",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x90",
+          "request_size": "0x80",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "active"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 6,
+      "op_id": "op_006",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 7,
+      "op_id": "op_007",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": [
+        "{'severity': 'WARNING', 'code': 'payload_unknown', 'title': '写入 payload 长度无法证明', 'message': '保留表达式，但不会猜测物理覆盖范围。', 'opera"
+      ]
+    },
+    {
+      "step": 8,
+      "op_id": "op_008",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 9,
+      "op_id": "op_009",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 10,
+      "op_id": "op_010",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 11,
+      "op_id": "op_011",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 12,
+      "op_id": "op_012",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": []
+    },
+    {
+      "step": 13,
+      "op_id": "op_013",
+      "n_chunks": 4,
+      "chunks": {
+        "A": {
+          "size": "0x90",
+          "request_size": "128",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0001"
+        },
+        "B": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "stale",
+          "bin": "reused by D",
+          "physical_id": "phys_0002"
+        },
+        "C": {
+          "size": "0x20cc0",
+          "request_size": "0x80",
+          "lifecycle": "freed",
+          "bin": "top",
+          "physical_id": "phys_0003"
+        },
+        "D": {
+          "size": "0x20",
+          "request_size": "0",
+          "lifecycle": "allocated",
+          "bin": "",
+          "physical_id": "phys_0002"
+        }
+      },
+      "handles": [
+        [
+          "0",
+          "A",
+          "active"
+        ],
+        [
+          "1",
+          "B",
+          "alias"
+        ],
+        [
+          "2",
+          "C",
+          "dangling"
+        ],
+        [
+          "3",
+          "D",
+          "active"
+        ]
+      ],
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "top_in_state": true,
+      "aborted": false,
+      "warnings": [
+        "{'severity': 'WARNING', 'code': 'payload_unknown', 'title': '写入 payload 长度无法证明', 'message': '保留表达式，但不会猜测物理覆盖范围。', 'opera"
+      ]
+    }
+  ]
+}

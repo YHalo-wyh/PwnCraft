@@ -1,0 +1,109 @@
+[
+  {
+    "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+    "status": "STABLE",
+    "versions": [
+      {
+        "label": "pre-patch",
+        "patch_id": "none",
+        "digest": "b74a9c3d2aa2de9d",
+        "status": "EXPLAINED_DELTA",
+        "drift": [
+          "recognizer_revision",
+          "helper_contracts",
+          "op_sequence",
+          "replay_steps"
+        ],
+        "unexplained_drift": []
+      },
+      {
+        "label": "post-patch",
+        "patch_id": "cycle-2",
+        "digest": "d4c156645c4c3091",
+        "status": "MATCH",
+        "drift": [],
+        "unexplained_drift": []
+      },
+      {
+        "label": "post-infra",
+        "patch_id": "infra-closure-1",
+        "digest": "d4c156645c4c3091",
+        "status": "MATCH",
+        "drift": [],
+        "unexplained_drift": []
+      }
+    ]
+  },
+  {
+    "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+    "status": "STABLE",
+    "versions": [
+      {
+        "label": "pre-patch",
+        "patch_id": "none",
+        "digest": "afa9a97df34d83cf",
+        "status": "EXPLAINED_DELTA",
+        "drift": [
+          "recognizer_revision",
+          "helper_contracts",
+          "op_sequence"
+        ],
+        "unexplained_drift": []
+      },
+      {
+        "label": "post-patch",
+        "patch_id": "cycle-1",
+        "digest": "7e1b426074fd9f0a",
+        "status": "EXPLAINED_DELTA",
+        "drift": [
+          "recognizer_revision"
+        ],
+        "unexplained_drift": []
+      },
+      {
+        "label": "post-infra",
+        "patch_id": "infra-closure-1",
+        "digest": "7ba36d06037cf574",
+        "status": "MATCH",
+        "drift": [],
+        "unexplained_drift": []
+      }
+    ]
+  },
+  {
+    "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+    "status": "STABLE",
+    "versions": [
+      {
+        "label": "pre-patch",
+        "patch_id": "none",
+        "digest": "3f71135f8fae078a",
+        "status": "EXPLAINED_DELTA",
+        "drift": [
+          "recognizer_revision",
+          "helper_contracts",
+          "op_sequence"
+        ],
+        "unexplained_drift": []
+      },
+      {
+        "label": "post-patch",
+        "patch_id": "cycle-1",
+        "digest": "0d110c139424ee46",
+        "status": "EXPLAINED_DELTA",
+        "drift": [
+          "recognizer_revision"
+        ],
+        "unexplained_drift": []
+      },
+      {
+        "label": "post-infra",
+        "patch_id": "infra-closure-1",
+        "digest": "f6622dfb3a121d7e",
+        "status": "MATCH",
+        "drift": [],
+        "unexplained_drift": []
+      }
+    ]
+  }
+]

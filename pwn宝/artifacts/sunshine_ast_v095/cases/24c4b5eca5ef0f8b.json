@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "path": "比赛/polarisctf招新赛/pwn-throne-hazard(堆)/solve.py",
+  "source_hash": "24c4b5eca5ef0f8b5246dd1e2db58fd88bd0bd25bd32eb7edcdb8ae33d2f9221",
+  "syntax_valid": true,
+  "syntax_error": "",
+  "model_status": "needs_challenge_behavior_profile",
+  "allocator": {
+    "arch": "amd64",
+    "libc": "glibc 2.35",
+    "mode": "strict"
+  },
+  "api_profile": {},
+  "operations": [
+    {
+      "op_id": "op_001",
+      "kind": "note",
+      "chunk": "",
+      "index": "",
+      "request_size": "",
+      "data": "",
+      "field": "",
+      "value": "",
+      "target": "",
+      "fd_storage": "",
+      "count": 1,
+      "note": "dynamic for: iterable is unknown",
+      "meta": {
+        "analysis_status": "unresolved",
+        "source_line": "167",
+        "source_end_line": "178",
+        "source_id": "source_dfa05867c23740d4",
+        "ast_fingerprint": "d6f7d6841a929707"
+      }
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "info",
+      "code": "inlined_entrypoint",
+      "message": "已静态内联入口函数 `main`。",
+      "start": 5372,
+      "end": 5378,
+      "line": 184,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `not path.endswith(b'\\x00')` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 4691,
+      "end": 4745,
+      "line": 159,
+      "suggestion": ""
+    },
+    {
+      "severity": "info",
+      "code": "heap_neutral_branch",
+      "message": "条件 `len(path) > 0x20` 只影响调试/辅助流程，已继续解析共同后缀。",
+      "start": 4751,
+      "end": 4818,
+      "line": 162,
+      "suggestion": ""
+    },
+    {
+      "severity": "warning",
+      "code": "dynamic_iterable",
+      "message": "for iterable 无法静态确定，未展开循环。",
+      "start": 4866,
+      "end": 5301,
+      "line": 167,
+      "suggestion": "改用静态 range/list，或在时间线中人工绑定。"
+    }
+  ],
+  "branch_groups": [],
+  "final_snapshot": {
+    "step": 1,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  }
+}

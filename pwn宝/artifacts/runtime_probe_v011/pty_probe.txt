@@ -1,0 +1,3 @@
+INITIAL True True 24 80
+RESIZED True True 41 132
+quit

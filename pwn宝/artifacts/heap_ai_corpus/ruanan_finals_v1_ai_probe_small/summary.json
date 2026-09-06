@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "cases": [
+    {
+      "case_id": "local.ruanan.poc-pwn_student_fsop_refactor.36d8197b",
+      "status": "over_budget",
+      "artifact": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_ai_probe_small\\local.ruanan.poc-pwn_student_fsop_refactor.36d8197b.json"
+    }
+  ],
+  "completed": 0,
+  "failed": 1,
+  "gap_report": "artifacts\\heap_ai_corpus\\ruanan_finals_v1_ai_probe_small\\gap_report.json"
+}

@@ -1,0 +1,28 @@
+[
+  {
+    "file": "pre-patch__none.json",
+    "label": "pre-patch",
+    "patch_id": "none",
+    "digest": "b74a9c3d2aa2de9d",
+    "note": "py2 dialect: ast.parse fails on print statements; zero recognition",
+    "intentional_delta": []
+  },
+  {
+    "file": "post-patch__cycle-2.json",
+    "label": "post-patch",
+    "patch_id": "cycle-2",
+    "digest": "d4c156645c4c3091",
+    "note": "py2 print tolerance (r4); EXP_PARSE divergence fixed",
+    "intentional_delta": [
+      "recognizer_revision"
+    ]
+  },
+  {
+    "file": "post-infra__infra-closure-1.json",
+    "label": "post-infra",
+    "patch_id": "infra-closure-1",
+    "digest": "d4c156645c4c3091",
+    "note": "INFRA-CLOSURE-1: single-run adapter/op_id/canvas truth; recognizer untouched (r4)",
+    "intentional_delta": []
+  }
+]

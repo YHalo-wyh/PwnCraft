@@ -1,0 +1,266 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "truth_layers": {
+    "EXP_WRAPPER_TRUTH": "以下 helpers/expected_operations 全部为 EXP wrapper 层事实 (参数与交互数据流), 不含 binary 内部行为推断",
+    "TARGET_BEHAVIOR_TRUTH": "本 bundle 无 source; binary 内部 malloc/free 结构以 UNKNOWN 记录, 仅列 EXP 注释可支撑的保守事实",
+    "ALLOCATOR_TRUTH": "glibc 2.19 (manifest: libc banner, HIGH)。无 tcache。bin 级断言仅记录 unlink 叙事 (EXP 注释证据, 中低置信), 不设 machine_checks",
+    "PHYSICAL_TRUTH": "unlink 对全局指针数组的作用 (EXP 注释), 与画布呈现分离"
+  },
+  "analyzer": {
+    "model": "GLM-5.3-Flash (ZCode, clean-room Analyst)",
+    "date": "2026-09-05",
+    "inputs_consulted": [
+      "original/solution/exp.py 全文 (唯一深度输入)",
+      "manifest.json: glibc 2.19 banner (HIGH), binary/libc SHA256"
+    ],
+    "isolation": "落盘前未运行 PwnCraft, 未读取任何识别输出"
+  },
+  "helpers": [
+    {
+      "function": "newnote",
+      "semantic": "alloc",
+      "evidence_tier": "interaction_dataflow",
+      "roles": {
+        "arg0": "size",
+        "arg1": "data"
+      },
+      "confidence": 0.95,
+      "evidence": [
+        "exp.py:11-12 recvuntil('option--->>') 后 sendline('1') — 菜单选择",
+        "exp.py:13-14 recvuntil('(less than 128)') 后 sendline(str(length)) — arg0 应答长度提示 (prompt→参数数据流)",
+        "exp.py:15-16 recvuntil('content:') 后 sendline(content) — arg1 为写入内容"
+      ]
+    },
+    {
+      "function": "shownote",
+      "semantic": "show",
+      "evidence_tier": "interaction_dataflow",
+      "roles": {
+        "arg0": "index"
+      },
+      "confidence": 0.9,
+      "evidence": [
+        "exp.py:20-21 菜单 '2'",
+        "exp.py:22-23 recvuntil('note:') 后 sendline(str(id)) — index 绑定",
+        "helper 体内仅 PROMPT_SYNC; OUTPUT_DATA_FLOW 在调用点 L76-77 (recvuntil('is ')/recvuntil 消费后 u64 进入 atoi_addr→libcbase 计算)",
+        "exp.py:74 shownote(0) 后 L76-84 泄露链成立"
+      ]
+    },
+    {
+      "function": "editnote",
+      "semantic": "edit",
+      "evidence_tier": "interaction_dataflow",
+      "roles": {
+        "arg0": "index",
+        "arg1": "unknown_choice_submenu",
+        "arg2": "data"
+      },
+      "confidence": 0.85,
+      "evidence": [
+        "exp.py:27-28 菜单 '3'",
+        "exp.py:29-30 recvuntil('note:') 后 sendline(str(id)) — arg0=index",
+        "exp.py:31-32 recvuntil('2.append]') 后 sendline(str(choice)) — arg1 是子菜单选择 (1=overwrite/2=append 类), 角色非 size/data, 标记 unknown_choice_submenu",
+        "exp.py:33 sendline(s) 紧随 choice 之后, 其间无提示词 — arg2=data 的绑定证据仅为顺序性 (弱于 prompt 证据, 已降置信)"
+      ]
+    },
+    {
+      "function": "deletenote",
+      "semantic": "free",
+      "evidence_tier": "interaction_dataflow",
+      "roles": {
+        "arg0": "index"
+      },
+      "confidence": 0.9,
+      "evidence": [
+        "exp.py:37-38 菜单 '4'",
+        "exp.py:39-40 recvuntil('note:') 后 sendline(str(id)) — index 绑定",
+        "调用点 L61 deletenote(1)/L67 deletenote(2) 与注释 '# delete note 2 to trigger the unlink' 一致"
+      ]
+    }
+  ],
+  "expected_operations": [
+    {
+      "source_line": 54,
+      "source_call": "newnote(128, content)",
+      "kind": "alloc",
+      "arguments": {
+        "arg0": "128",
+        "arg1": "content(fake chunk 0x60)"
+      },
+      "allocator_request": "128",
+      "confidence": 0.7,
+      "evidence": [
+        "prompt 数据流 (L13-14); binary 无 source, malloc(length) 为惯例假设, 见 uncertainties"
+      ]
+    },
+    {
+      "source_line": 56,
+      "source_call": "newnote(0, 'a'*8)",
+      "kind": "alloc",
+      "arguments": {
+        "arg0": "0",
+        "arg1": "'a'*8"
+      },
+      "allocator_request": "0",
+      "confidence": 0.7,
+      "evidence": [
+        "size=0 边界: malloc(0) 仍产生最小 chunk; 注释 'a zero size chunk produce overwrite'"
+      ]
+    },
+    {
+      "source_line": 58,
+      "source_call": "newnote(0x80, 'b'*16)",
+      "kind": "alloc",
+      "arguments": {
+        "arg0": "0x80",
+        "arg1": "'b'*16"
+      },
+      "allocator_request": "0x80",
+      "confidence": 0.7,
+      "evidence": [
+        "注释 'chunk2: a chunk to be overwrited and freed'"
+      ]
+    },
+    {
+      "source_line": 61,
+      "source_call": "deletenote(1)",
+      "kind": "free",
+      "arguments": {
+        "arg0": "1"
+      },
+      "allocator_request": null,
+      "confidence": 0.9,
+      "evidence": [
+        "注释 'edit the chunk1 to overwrite the chunk2' 前置释放"
+      ]
+    },
+    {
+      "source_line": 63,
+      "source_call": "newnote(0, content)",
+      "kind": "alloc",
+      "arguments": {
+        "arg0": "0",
+        "arg1": "content(0xa0/0x90 headers)"
+      },
+      "allocator_request": "0",
+      "confidence": 0.7,
+      "evidence": [
+        "复用被释放槽位的分配"
+      ]
+    },
+    {
+      "source_line": 67,
+      "source_call": "deletenote(2)",
+      "kind": "free",
+      "arguments": {
+        "arg0": "2"
+      },
+      "allocator_request": null,
+      "confidence": 0.9,
+      "evidence": [
+        "注释 'delete note 2 to trigger the unlink'"
+      ]
+    },
+    {
+      "source_line": 72,
+      "source_call": "editnote(0, 1, content)",
+      "kind": "edit",
+      "arguments": {
+        "arg0": "0",
+        "arg1": "1",
+        "arg2": "content(atoi_got)"
+      },
+      "allocator_request": null,
+      "confidence": 0.85,
+      "evidence": [
+        "注释 'overwrite the chunk0(which is ptr[0]) with got atoi'"
+      ]
+    },
+    {
+      "source_line": 74,
+      "source_call": "shownote(0)",
+      "kind": "show",
+      "arguments": {
+        "arg0": "0"
+      },
+      "allocator_request": null,
+      "confidence": 0.9,
+      "evidence": [
+        "L76-79 输出被消费, u64→atoi_addr→libcbase"
+      ]
+    },
+    {
+      "source_line": 92,
+      "source_call": "editnote(0, 1, content)",
+      "kind": "edit",
+      "arguments": {
+        "arg0": "0",
+        "arg1": "1",
+        "arg2": "content(system_addr)"
+      },
+      "allocator_request": null,
+      "confidence": 0.85,
+      "evidence": [
+        "注释 'overwrite the atoi got with systemaddr'"
+      ]
+    }
+  ],
+  "target_behavior": {
+    "note": "无 source; 仅记录 EXP 注释可支撑的保守事实, 其余 UNKNOWN",
+    "storage_model": {
+      "fact": "note 指针存放于全局指针数组, EXP 以 ptr=0x602120 为数组基址构造 unlink fd/bk (ptr[0] 语义)",
+      "confidence": 0.7,
+      "evidence": [
+        "exp.py:49-51 ptr=0x602120, fakefd=ptr-0x18, fakebk=ptr-0x10",
+        "exp.py:66 注释 'after unlink, ptr[0] = ptr - 0x18'"
+      ]
+    },
+    "newnote": {
+      "internal_actions": "UNKNOWN (无 source; 假设 malloc(length)+指针表存储, 未证明 1:1 或 1:N)",
+      "evidence": [
+        "exp.py 注释 chunk0/1/2 编号连续性"
+      ]
+    },
+    "editnote": {
+      "internal_actions": "UNKNOWN (choice 子菜单的 overwrite/append 分支行为未证明)"
+    },
+    "deletenote": {
+      "internal_actions": "UNKNOWN (free 次数未证明)"
+    }
+  },
+  "allocator_events": {
+    "per_call": [],
+    "note": "无 source 无法证明 1:N/1:1 事件数 — 本轮不设 allocator event 断言 (binary truth 优先, 禁止猜测)"
+  },
+  "physical_truth": [
+    {
+      "fact": "unlink 触发后 ptr[0] = &ptr[0]-0x18 (全局指针数组被改写, 非堆 bin 状态)",
+      "confidence": 0.7,
+      "evidence": [
+        "exp.py:65-66 注释",
+        "exp.py:52 伪造 chunk fd=ptr-0x18/bk=ptr-0x10"
+      ]
+    }
+  ],
+  "machine_checks": [],
+  "uncertainties": [
+    "EXP 为 Python 2 方言 (L78/80/88 print 语句) — py3 ast.parse 预期失败; 本轮 cycle 的预期第一偏差即 EXP 解析层",
+    "全部堆操作调用位于模块顶层 (无 exp()/main 入口函数) — 识别器对 module-level entry 的处理未知",
+    "allocator_request 数值仅由 prompt 数据流+惯例支撑 (无 binary source), 置信 0.7; 若识别器输出不同值, 仲裁时不得单方面判其错",
+    "editnote arg2(data) 绑定证据为顺序性 (choice 与 content 间无提示词), 弱于 prompt 证据",
+    "editnote arg1(choice) 的角色: 子菜单选择, 现有角色词表 (index/size/data/offset/src/dst) 无对应; 记 unknown_choice_submenu"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-2055bd70cb4363d3",
+    "content_sha256": "2055bd70cb4363d34ce401ca4cd776648d78053a1ab18d614e5686d31e60d90f",
+    "schema_version": "1.2-layered",
+    "locked_at": "2026-09-05T17:08:22",
+    "analyst_input_hashes": {
+      "binary_sha256": "a85b75f2836cef1917f3b3eb670011301a79bd8a8b2bf9441ebe8642bd20764a",
+      "libc_sha256": "10fae27ac560283a0a85a2d0a3a3cfb7d02c2635e27953f5b51735386a03c198",
+      "exp_sha256": "faf04aef5c65138d36766699c5ccdc581609fcd146cba55a08df29966a617e30"
+    },
+    "truth_revision": 1,
+    "superseded_by": null
+  }
+}

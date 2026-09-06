@@ -1,0 +1,111 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def show()",
+    "expected": {
+      "semantic": "show",
+      "roles": {
+        "arg0": "index"
+      },
+      "helper_evidence": [
+        "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+        "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+        "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+      ]
+    },
+    "actual": {
+      "operation": "unknown",
+      "confidence": "candidate",
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 29,
+          "score": 0.35
+        }
+      ]
+    },
+    "status_detail": {
+      "helper": "show",
+      "expected_semantic": "show",
+      "actual_operation": "unknown",
+      "actual_candidate_operation": "show",
+      "actual_confidence": "candidate",
+      "semantic": "SEMANTIC_DIVERGED",
+      "divergence_field": "semantic"
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "create",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "actual_candidate_operation": "unknown",
+      "actual_confidence": "structural",
+      "semantic": "MATCH"
+    },
+    {
+      "helper": "edit",
+      "expected_semantic": "edit",
+      "actual_operation": "edit",
+      "actual_candidate_operation": "unknown",
+      "actual_confidence": "structural",
+      "semantic": "MATCH"
+    },
+    {
+      "helper": "show",
+      "expected_semantic": "show",
+      "actual_operation": "unknown",
+      "actual_candidate_operation": "show",
+      "actual_confidence": "candidate",
+      "semantic": "SEMANTIC_DIVERGED",
+      "divergence_field": "semantic"
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [
+    "CHUNK_MAPPING",
+    "PHYSICAL_MEMORY",
+    "SNAPSHOT",
+    "CANVAS"
+  ],
+  "root_cause": {
+    "component": "contracts/resolver.py::_candidate_contract (name-candidate fallback) — cycle-2 目标",
+    "reason": "cycle-1 目标偏差 (show 的 EVIDENCE_DIVERGED) 已修复: show 契约不再持有 STRUCTURAL_BODY 伪证据 (现 unknown/NAME_CANDIDATE, candidate_operation=show)。当前偏差为 show 语义 unknown: 其 OUTPUT_DATA_FLOW 证据位于调用点级 (exp.py:58-61 show(1) 后 recvuntil('Content : ') 返回值被消费进入 u64→libc_base), helper 体内不可见, 属 owner 修正案 3 预留给 cycle-2 的调用点级 OUTPUT_DATA_FLOW 分析。"
+  },
+  "evidence": [
+    "exp.py:33 sendline(str(idx)) 应答 Index 提示 (中等)",
+    "exp.py:58-61 调用点数据流: show(1) 后 recvuntil('Content : ')+recvuntil('Done !') 返回值进入 u64→libc_base (OUTPUT_DATA_FLOW, 强)",
+    "heapcreator.c:92 printf 输出 heaparray[idx] 的 size/content (强)"
+  ],
+  "suggested_fix": {
+    "scope": "generic",
+    "description": null,
+    "note": "cycle-2: 调用点级 OUTPUT_DATA_FLOW (recv 返回值被消费 ⇒ SHOW 强证据), 禁止将 candidate_operation 直接提升为 operation (owner 修正案 3)"
+  },
+  "confidence": 0.95,
+  "reviewer_reason_hint": "show 语义判定 unknown, 证据支持 show",
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\cycle-1-after\\pwncraft_output.json",
+    "comparator": "v3"
+  },
+  "downstream_effects": [
+    "delete 契约: show/STRUCTURAL_BODY -> delete/STRUCTURAL_BODY (预存 'single index outbound body; delete verb disambiguates' 分支在 prompt-sync 不再充当 recv 证据后恢复可达; 该分支为既有代码, 本 patch 未新增 DELETE 证据路径)",
+    "IR L50/L69 (delete 调用点): show -> delete",
+    "replay/snapshot 逐步不变 (13 steps, n_chunks 与 fastbins 剖面逐位相同) — 引擎重放由 legacy op 层驱动, 该层行为未受影响",
+    "babyheap (泛化): free 契约 show->delete, free() 调用点 L68/69/83/97 IR show->delete, dump 契约伪 STRUCTURAL 证据同样被摘除 (show->unknown/NAME_CANDIDATE), IR L85 仍为 show (legacy 层)"
+  ],
+  "reviewer": {
+    "model": "GLM-5.3-Flash (ZCode reviewer role)",
+    "date": "2026-09-03",
+    "protocol_version": "v1.2",
+    "acceptance_note": "接受条件②解读: 新偏差 (show SEMANTIC_DIVERGED) 位于同一 helper 的更早比较字段 (semantic 先于 evidence_type)。判定为 owner 修正案 3 规划的中间态而非回归: 修复伪证据必然使'碰巧正确'的语义回到诚实 unknown (UNKNOWN 保持 UNKNOWN); 该语义的恢复被显式规划给 cycle-2 的调用点级分析。若 owner 不认可此解读, revert 路径完整保留 (patches/cycle-1/resolver.py.pre)。"
+  }
+}

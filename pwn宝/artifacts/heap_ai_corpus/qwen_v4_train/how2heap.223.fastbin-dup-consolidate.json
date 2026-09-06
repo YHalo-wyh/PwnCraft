@@ -1,0 +1,44 @@
+{
+  "run_id": "run_15b700ed59794af682a8baee5fa8f5fc",
+  "case_id": "how2heap.223.fastbin-dup-consolidate",
+  "source_hash": "67c988d86bfa8234809a51a228e789cd0d973b54d79e2c0460b44bb347939097",
+  "model": "qwen3-coder-30b-a3b-instruct",
+  "prompt_version": "",
+  "status": "completed",
+  "source_path": "artifacts\\heap_ai_corpus\\qwen_v4_train\\sources\\67c988d86bfa8234809a51a228e789cd0d973b54d79e2c0460b44bb347939097.c",
+  "purpose": "allocator_truth",
+  "static": {
+    "valid": true,
+    "operations": [],
+    "bindings": [],
+    "branches": [],
+    "diagnostics": [],
+    "symbols": {}
+  },
+  "snapshot": {
+    "step": 0,
+    "aborted": false,
+    "chunks": {},
+    "bins": {
+      "tcache": {},
+      "fastbins": {},
+      "smallbins": {},
+      "largebins": {},
+      "unsorted": []
+    },
+    "warnings": []
+  },
+  "assertions": [],
+  "metrics": {
+    "operation_count": 0,
+    "expected_operation_count": 0,
+    "semantic_exact": 0,
+    "semantic_total": 0,
+    "assertions_passed": 0,
+    "assertions_total": 0,
+    "static_valid": true
+  },
+  "ai": {},
+  "strict_previews": [],
+  "elapsed_s": 0.015
+}

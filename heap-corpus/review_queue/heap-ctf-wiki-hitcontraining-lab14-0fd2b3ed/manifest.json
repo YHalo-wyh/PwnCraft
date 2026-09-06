@@ -1,0 +1,301 @@
+{
+  "schema_version": "1.0",
+  "case_id": "heap-ctf-wiki-hitcontraining-lab14-0fd2b3ed",
+  "source": {
+    "repository_url": "https://github.com/ctf-wiki/ctf-challenges",
+    "commit_sha": "18d67d158d0729fca20597723c763f475f7968cd",
+    "challenge_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14",
+    "ctf": null,
+    "year": null,
+    "year_provenance": null,
+    "challenge_name": "hitcontraining_lab14",
+    "license": null,
+    "source_class": "curator_archive"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": "0fd2b3ed8d4672c76e663206e4eb361ee6dd61ec491baa28b299264b74a4e892",
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": null,
+    "confidence": "LOW",
+    "evidence": []
+  },
+  "heap": {
+    "confidence": "HIGH",
+    "evidence": [
+      {
+        "class": "source_binary",
+        "kind": "allocator_api_in_source",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap.c",
+            "allocator_api_calls": 2
+          }
+        ]
+      },
+      {
+        "class": "source_binary",
+        "kind": "binary_heap_semantics",
+        "detail": {
+          "binary": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap",
+          "allocator_dynsym_imports": [
+            "free",
+            "malloc"
+          ],
+          "heap_string_hits": [],
+          "dynamic_glibc_ref": true
+        }
+      },
+      {
+        "class": "exp",
+        "kind": "exp_script_heap_semantics",
+        "detail": [
+          {
+            "file": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/exp.py",
+            "heap_relevant": true,
+            "reason": "heap_keywords",
+            "heap_kw_hits": [
+              "# in order not to merge into top chunk",
+              "create_heap(0x80, \"dada\")  #trigger unsorted bin attack"
+            ],
+            "io_calls": true
+          }
+        ]
+      }
+    ],
+    "techniques": [
+      "unsorted_bin_attack"
+    ],
+    "technique_provenance": {
+      "unsorted_bin_attack": {
+        "file": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/exp.py",
+        "line": 47,
+        "sample": "create_heap(0x80, \"dada\")  #trigger unsorted bin attack"
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "original/challenge/flag",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/flag",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/flag",
+      "sha256": "d5e2c53705b8204f3e4c437c4abf1b1831f2f2eb6da870bb461abe5e71c4dcfd",
+      "size": 27
+    },
+    {
+      "path": "original/challenge/magicheap",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap",
+      "sha256": "0fd2b3ed8d4672c76e663206e4eb361ee6dd61ec491baa28b299264b74a4e892",
+      "size": 13552
+    },
+    {
+      "path": "original/challenge/magicheap.c",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap.c",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap.c",
+      "sha256": "bfedd39562519fc5b0e19888a0c64e9acc686e325f89ba2a8b41fe4028720090",
+      "size": 2563
+    },
+    {
+      "path": "original/challenge/magicheap.i64",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap.i64",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/magicheap.i64",
+      "sha256": "5bbd8ac80083bcbe3912c211ef16636e243406d8cf00c0dac57a8806689381ac",
+      "size": 148823
+    },
+    {
+      "path": "original/challenge/Makefile",
+      "role": "challenge",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/Makefile",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/Makefile",
+      "sha256": "498177181f2f1687994d487b43067080bad13a7d274eb719f34d50eaa14bde8c",
+      "size": 54
+    },
+    {
+      "path": "original/solution/exp.py",
+      "role": "solution",
+      "repo_relative_path": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/exp.py",
+      "source_url": "https://github.com/ctf-wiki/ctf-challenges/blob/18d67d158d0729fca20597723c763f475f7968cd/pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/exp.py",
+      "sha256": "e0afb20fe1082d0e0b084df9ccfea44842b87d24a044c080bcd1b093cc72dee5",
+      "size": 1011
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/exp.py",
+    "parse_ok": true,
+    "imports_pwntools": true,
+    "helpers": [
+      {
+        "function": "create_heap",
+        "source_line": 8,
+        "end_line": 14,
+        "parameter_names": [
+          "size",
+          "content"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "r.recvuntil(\":\")",
+          "r.sendline(\"1\")",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(size))",
+          "r.recvuntil(\":\")",
+          "r.sendline(content)"
+        ],
+        "menu_strings": [
+          ":",
+          "1",
+          ":",
+          ":"
+        ],
+        "operation": "alloc",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "edit_heap",
+        "source_line": 17,
+        "end_line": 25,
+        "parameter_names": [
+          "idx",
+          "size",
+          "content"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "r.recvuntil(\":\")",
+          "r.sendline(\"2\")",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(idx))",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(size))"
+        ],
+        "menu_strings": [
+          ":",
+          "2",
+          ":",
+          ":",
+          ":"
+        ],
+        "operation": "edit",
+        "confidence": "HIGH"
+      },
+      {
+        "function": "del_heap",
+        "source_line": 28,
+        "end_line": 32,
+        "parameter_names": [
+          "idx"
+        ],
+        "calls": [
+          "recvuntil",
+          "sendline",
+          "str"
+        ],
+        "io_call_examples": [
+          "r.recvuntil(\":\")",
+          "r.sendline(\"3\")",
+          "r.recvuntil(\":\")",
+          "r.sendline(str(idx))"
+        ],
+        "menu_strings": [
+          ":",
+          "3",
+          ":"
+        ],
+        "operation": "free",
+        "confidence": "HIGH"
+      }
+    ],
+    "candidate_operations": [
+      {
+        "operation": "alloc",
+        "helper": "create_heap",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:8 def create_heap(size, content)",
+          "io: r.recvuntil(\":\")",
+          "io: r.sendline(\"1\")"
+        ]
+      },
+      {
+        "operation": "edit",
+        "helper": "edit_heap",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:17 def edit_heap(idx, size, content)",
+          "io: r.recvuntil(\":\")",
+          "io: r.sendline(\"2\")"
+        ]
+      },
+      {
+        "operation": "free",
+        "helper": "del_heap",
+        "confidence": "HIGH",
+        "evidence": [
+          "exp.py:28 def del_heap(idx)",
+          "io: r.recvuntil(\":\")",
+          "io: r.sendline(\"3\")"
+        ]
+      }
+    ],
+    "aliases": [],
+    "wrappers": [],
+    "call_examples": [
+      {
+        "helper": "create_heap",
+        "source_line": 35,
+        "call": "create_heap(0x20, \"dada\")"
+      },
+      {
+        "helper": "create_heap",
+        "source_line": 36,
+        "call": "create_heap(0x80, \"dada\")"
+      },
+      {
+        "helper": "create_heap",
+        "source_line": 38,
+        "call": "create_heap(0x20, \"dada\")"
+      },
+      {
+        "helper": "del_heap",
+        "source_line": 40,
+        "call": "del_heap(1)"
+      },
+      {
+        "helper": "edit_heap",
+        "source_line": 46,
+        "call": "edit_heap(0, 0x20 + 0x20, \"a\" * 0x20 + p64(0) + p64(0x91) + p64(fd) + p64(bk))"
+      },
+      {
+        "helper": "create_heap",
+        "source_line": 47,
+        "call": "create_heap(0x80, \"dada\")"
+      }
+    ],
+    "loops": [],
+    "correctness": "UNVERIFIED"
+  },
+  "quality": {
+    "tier": "SILVER",
+    "issues": [
+      "environment incomplete (no shipped libc/ld/docker)",
+      "exp_correctness_unverified"
+    ]
+  }
+}

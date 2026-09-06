@@ -1,0 +1,133 @@
+{
+  "run_id": "run-dbb0ff7ec6581f50",
+  "contracts": [
+    {
+      "function": "allocate",
+      "operation": "unknown",
+      "candidate_operation": "alloc",
+      "confidence": "candidate",
+      "evidence_sources": [
+        "NAME_CANDIDATE"
+      ],
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: alloc",
+          "line": 28,
+          "score": 0.35
+        }
+      ],
+      "roles": {}
+    },
+    {
+      "function": "dump",
+      "operation": "unknown",
+      "candidate_operation": "show",
+      "confidence": "candidate",
+      "evidence_sources": [
+        "NAME_CANDIDATE"
+      ],
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 53,
+          "score": 0.35
+        }
+      ],
+      "roles": {}
+    },
+    {
+      "function": "exp",
+      "operation": "unknown",
+      "candidate_operation": "unknown",
+      "confidence": "unknown",
+      "evidence_sources": [],
+      "evidence": [],
+      "roles": {}
+    },
+    {
+      "function": "fill",
+      "operation": "edit",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "index+size+data body; edit verb disambiguates",
+          "line": 35,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "idx",
+          "position": 0,
+          "expression": "idx"
+        },
+        "size": {
+          "role": "size",
+          "parameter": "size",
+          "position": 1,
+          "expression": "size"
+        },
+        "data": {
+          "role": "data",
+          "parameter": "content",
+          "position": 2,
+          "expression": "content"
+        },
+        "offset": {
+          "role": "offset",
+          "parameter": "",
+          "position": -1,
+          "expression": "0"
+        },
+        "length": {
+          "role": "length",
+          "parameter": "",
+          "position": -1,
+          "expression": "len(content)"
+        }
+      }
+    },
+    {
+      "function": "free",
+      "operation": "delete",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "single index outbound body; delete verb disambiguates",
+          "line": 46,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "idx",
+          "position": 0,
+          "expression": "idx"
+        }
+      }
+    },
+    {
+      "function": "offset_bin_main_arena",
+      "operation": "unknown",
+      "candidate_operation": "unknown",
+      "confidence": "unknown",
+      "evidence_sources": [],
+      "evidence": [],
+      "roles": {}
+    }
+  ]
+}
