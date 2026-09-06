@@ -95,6 +95,11 @@ class ExploitIR:
     var_recv_length: dict[str, int] = field(default_factory=dict)
     # var -> recvline/unknown-length marker
     var_recv_unknown: list[str] = field(default_factory=list)
+    # 事件身份记录 (阶段 1 EventRecord): scope+line+action+ordinal 唯一,
+    # 禁止 source_line 单键覆盖 —— 同行多调用/循环迭代各自独立。
+    events: list[dict] = field(default_factory=list)
+    # EXP 中全部字符串字面量 (fmt 语义检查输入, M4)
+    strings: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -105,4 +110,6 @@ class ExploitIR:
             "hardcodes": [asdict(h) for h in self.hardcodes],
             "var_recv_length": dict(self.var_recv_length),
             "var_recv_unknown": list(self.var_recv_unknown),
+            "events": list(self.events),
+            "strings": list(self.strings),
         }

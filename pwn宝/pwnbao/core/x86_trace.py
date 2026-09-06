@@ -143,6 +143,69 @@ def split_operands(operands: str) -> tuple[str, str]:
     return operands.strip(), ""
 
 
+def trace_stack_layouts(objdump_text: str) -> list[dict]:
+    """M3 栈首期: 逐函数栈布局记录 (确定性)。
+
+    slots: rbp 相对写入的槽位 (offset/size/kind), canary 由
+    `mov %fs:0x28,%rax` + 相邻槽位写入识别; frame = sub $N,%rsp。
+    """
+    layouts: list[dict] = []
+    state: _FuncState | None = None
+    func = ""
+    slots: dict[int, dict] = {}
+    frame = 0
+    canary_src = False
+    for raw in objdump_text.splitlines():
+        header = _FUNCS_RE.match(raw.strip())
+        if header:
+            if state is not None and slots:
+                layouts.append({"function": func, "frame_size": frame,
+                                "slots": sorted(slots.values(),
+                                                key=lambda x: x["offset"])})
+            func = header.group(2)
+            state = _FuncState(func)
+            slots, frame, canary_src = {}, 0, False
+            continue
+        line = _LINE_RE.match(raw.rstrip())
+        if not line or state is None:
+            continue
+        addr, mnem, operands = line.groups()
+        if mnem == "sub":
+            parts = operands.split(",", 1)
+            if len(parts) == 2 and parts[1].strip().lstrip("%") in ("rsp", "esp"):
+                try:
+                    frame = int(parts[0].strip().lstrip("$"), 16)
+                except ValueError:
+                    frame = 0
+            continue
+        if mnem.startswith("mov"):
+            parts = operands.split(",", 1)
+            if len(parts) != 2:
+                continue
+            src_s, dst_s = parts[0].strip(), parts[1].strip()
+            if "fs:" in src_s:
+                canary_src = True
+                continue
+            if dst_s.startswith("-") or ("(%rbp)" in dst_s and dst_s.startswith("-")):
+                m = re.match(r"^(-?0x[0-9a-f]+)?\(%(\w+)\)$", dst_s)
+                if m and m.group(2) in ("rbp", "ebp"):
+                    off = int(m.group(1), 16) if m.group(1) else 0
+                    size = {"movq": 8, "movl": 4, "movb": 1}.get(mnem, 8)
+                    kind = "canary" if canary_src else ("data" if size == 8 else "data")
+                    prev = slots.get(off)
+                    if prev and prev["kind"] == "canary":
+                        kind = "canary"
+                    slots[off] = {"offset": off, "size": size, "kind": kind}
+                canary_src = False
+            continue
+        if mnem in ("leave", "ret"):
+            continue
+    if slots:
+        layouts.append({"function": func, "frame_size": frame,
+                        "slots": sorted(slots.values(), key=lambda x: x["offset"])})
+    return layouts
+
+
 def trace_callsites(objdump_text: str) -> list[CallSiteIR]:
     """Extract per-callsite argument ValueIRs from AT&T objdump text."""
     sites: list[CallSiteIR] = []

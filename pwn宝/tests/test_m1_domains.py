@@ -141,7 +141,8 @@ def test_f1_fmt_adapter_smoke_ok() -> None:
     assert report["verdict"] == "MATCH"
     statuses = {r["layer"]: r["status"] for r in report["layer_results"]}
     assert statuses["EXP_PARSE"] == "MATCH"
-    assert statuses["FMT_SEMANTIC_CHECKS"] == "SKIPPED"  # 显式: 语义规则后续 milestone
+    # M4 fmt 深化: 语义检查层已实现 (无 %n 的干净 EXP → MATCH 含 facts)
+    assert statuses["FMT_SEMANTIC_CHECKS"] == "MATCH"
 
 
 def test_f2_fmt_adapter_syntax_error_diverged() -> None:

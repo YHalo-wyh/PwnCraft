@@ -65,6 +65,9 @@ class _Extractor(ast.NodeVisitor):
     # Helper definition bodies are intentionally NOT walked here — they are
     # recorded through inlined expansion at their call sites.
     def visit_Module(self, node: ast.Module) -> None:  # noqa: N802
+        for node_any in ast.walk(node):
+            if isinstance(node_any, ast.Constant) and                     isinstance(node_any.value, str):
+                self.ir.strings.append(node_any.value)
         for statement in node.body:
             if isinstance(statement, ast.FunctionDef):
                 if statement.name in self.ENTRY_NAMES and \
@@ -207,7 +210,9 @@ class _Extractor(ast.NodeVisitor):
         def substitute(text: str) -> str:
             result = text or ""
             for param, value in bindings.items():
-                result = re.sub(rf"\b{re.escape(param)}\b", value, result)
+                # repl 用 lambda: 值里的 \x00 等序列不会被当作模板转义
+                result = re.sub(rf"\b{re.escape(param)}\b",
+                                lambda _m: value, result)
             return result
 
         if verb in _RECV_WAIT:
@@ -254,4 +259,29 @@ def extract_exploit_ir(source: str, *, known_helpers=None) -> tuple[ExploitIR, a
     extractor = _Extractor(helpers, ir)
     extractor.known_external = set(known_helpers or ())
     extractor.visit(tree)
+    # 事件身份 (阶段 1 EventRecord): 同一 (scope, line, action) 组合分配
+    # 迭代序号 —— 循环/重复调用各自独立, 禁止 source_line 单键覆盖。
+    seen: dict[tuple, int] = {}
+    events: list[dict] = []
+    for i in ir.interactions:
+        key = (i.scope, i.line, i.action)
+        seen[key] = seen.get(key, 0) + 1
+        ordinal = seen[key]
+        events.append({
+            "event_id": f"{i.scope}:L{i.line}:{i.action}#{ordinal}",
+            "scope": i.scope, "line": i.line, "action": i.action,
+            "ordinal": ordinal, "callee": "",
+            "args": [x for x in (i.value, i.wait_for) if x],
+        })
+    for c in ir.helper_calls:
+        key = (c.scope, c.line, f"HELPER:{c.function}")
+        seen[key] = seen.get(key, 0) + 1
+        ordinal = seen[key]
+        events.append({
+            "event_id": f"{c.scope}:L{c.line}:HELPER:{c.function}#{ordinal}",
+            "scope": c.scope, "line": c.line,
+            "action": f"HELPER:{c.function}", "ordinal": ordinal,
+            "callee": c.function, "args": list(c.args),
+        })
+    ir.events = events
     return ir, None

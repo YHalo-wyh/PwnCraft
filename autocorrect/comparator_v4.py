@@ -176,6 +176,15 @@ def target_behavior_evidence_requirements() -> dict:
             "forbidden": []}
 
 
+def _multimap(items: list, key: str) -> dict:
+    """key -> [items] (保序): 同 key 多条目各自保留 —— 禁止
+    source_line 单键覆盖 (阶段 1 事件身份)。"""
+    out: dict = {}
+    for item in items:
+        out.setdefault(item.get(key), []).append(item)
+    return out
+
+
 def _normalize_truth(t: dict) -> dict:
     if not any(k in t for k in ("exp_wrapper_truth", "target_behavior_truth",
                                 "allocator_truth", "physical_truth")):
@@ -231,6 +240,7 @@ def _prepare_ctx(expected_truth_raw: dict, actual: dict, exp_source: str,
         "canon_all": canon_all,
         "canon_ops": canon_ops,
         "ops_by_line": {o.get("source_line"): o for o in canon_ops},
+        "ops_at_line": _multimap(canon_ops, "source_line"),
         "steps": steps,
         "steps_by_op": {s.get("op_id"): s for s in steps if s.get("op_id")},
         "phys_steps": (actual.get("physical_memory") or {}).get("steps") or [],
@@ -516,38 +526,45 @@ def _l_target_behavior(ctx, report):
     reqs = target_behavior_evidence_requirements()
     for spec in (ctx["truth"].get("allocator_events") or {}).get("per_call") or []:
         line = spec.get("source_line")
-        o = ctx["ops_by_line"].get(line)
-        if not o:
+        # 聚合该行全部 canonical ops 的动作 (1:N 展开后同线多 op)
+        line_ops = ctx["ops_at_line"].get(line) or []
+        if not line_ops:
             continue
-        entry = ctx["tb_actual"].get(o.get("op_id"))
-        act_actions = (entry or {}).get("actions") or []
+        act_actions = []
+        not_modeled_any = False
+        for o in line_ops:
+            entry = ctx["tb_actual"].get(o.get("op_id")) or {}
+            act_actions.extend(entry.get("actions") or [])
+            if entry.get("internals_not_modeled"):
+                not_modeled_any = True
         exp_counts, act_counts = {}, {}
         for ev in spec.get("events") or []:
             exp_counts[ev.get("kind")] = exp_counts.get(ev.get("kind"), 0) + 1
         for ev in act_actions:
             act_counts[ev.get("action")] = act_counts.get(ev.get("action"), 0) + 1
         if exp_counts != act_counts:
-            not_modeled = bool((entry or {}).get("internals_not_modeled"))
             return (_rec(
                 L, "DIVERGED",
                 semantic=("DIVERGED (target internals not modeled)"
-                          if not_modeled else "DIVERGED"),
+                          if not_modeled_any else "DIVERGED"),
                 evidence="REQUIRED_MISSING",
-                missing_required=list(reqs["required_any"]) if not_modeled else [],
+                missing_required=list(reqs["required_any"]) if not_modeled_any else [],
                 optional_missing=[],
                 detail=f"L{line} {spec.get('call')}: 期望 {exp_counts}, 管线推导 {act_counts}"),
-                _div(L, line, spec.get("call"),
-                     {"actions": exp_counts,
-                      "note": "expected target-behavior actions (binary/source truth)"},
-                     {"actions": act_counts,
-                      "internals_not_modeled": not_modeled,
-                      "derivation": (entry or {}).get("derivation")},
-                     "TargetBehavior stage",
-                     [ev for e in spec.get("events") or [] for ev in e.get("evidence", [])],
-                     f"L{line} {spec.get('call')}: 期望 {exp_counts}, 当前管线推导 "
-                     f"{act_counts}" + (" (内部动作未建模, SOURCE/BINARY "
-                                        "internal-action flow 证据缺席)"
-                                        if not_modeled else "")))
+                _div(
+                L, line, spec.get("call"),
+                {"actions": exp_counts,
+                 "note": "expected target-behavior actions (binary/source truth)"},
+                {"actions": act_counts,
+                 "internals_not_modeled": not_modeled_any,
+                 "derivation": (ctx["tb_actual"].get(
+                     line_ops[0].get("op_id")) or {}).get("derivation") if line_ops else ""},
+                "TargetBehavior stage",
+                [ev for e in spec.get("events") or [] for ev in e.get("evidence", [])],
+                f"L{line} {spec.get('call')}: 期望 {exp_counts}, 当前管线推导 "
+                f"{act_counts}" + (" (内部动作未建模, SOURCE/BINARY "
+                                   "internal-action flow 证据缺席)"
+                                   if not_modeled_any else "")))
     return _rec(L, "MATCH"), None
 
 

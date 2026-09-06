@@ -53,8 +53,8 @@ def run_stack(case_material, exp_source: str, *,
 
 
 def run_fmt(case_material, exp_source: str) -> dict:
-    """fmt 领域 v1 smoke: 解析层 + 交互提取层。格式化字符串语义检查
-    (参数消费/输出计数) 属后续 milestone, 本层显式 NOT_APPLICABLE。"""
+    """fmt 领域: 解析层 + 交互层 + 语义检查层 (M4 fmt 深化, 确定性 facts)。"""
+    from pwnbao.core.fmt_semantics import fmt_facts_from_strings
     from pwnbao.features.audit.extract import extract_exploit_ir
     ir, syntax_error = extract_exploit_ir(exp_source)
     results = []
@@ -69,14 +69,17 @@ def run_fmt(case_material, exp_source: str) -> dict:
     results.append(_result("EXP_PARSE", "MATCH"))
     results.append(_result("FMT_INTERACTION", "MATCH",
                            detail=f"interactions={len(ir.interactions)}"))
-    results.append(_result("FMT_SEMANTIC_CHECKS", "SKIPPED",
-                           detail="格式化字符串语义规则属后续 milestone"))
+    facts = fmt_facts_from_strings(getattr(ir, "strings", []))
+    results.append(_result(
+        "FMT_SEMANTIC_CHECKS", "MATCH",
+        detail=f"facts={[(f['kind'], f['subject'][:30]) for f in facts]}"))
     return {"case_id": case_material.case_id, "domain": "fmt",
             "verdict": "MATCH",
-            "layers_compared": ["EXP_PARSE", "FMT_INTERACTION"],
-            "layers_not_compared": ["FMT_SEMANTIC_CHECKS"],
+            "layers_compared": ["EXP_PARSE", "FMT_INTERACTION",
+                                "FMT_SEMANTIC_CHECKS"],
             "layer_results": results,
-            "assertion_counts": {"planned": 2, "executed": 2, "matched": 2}}
+            "fmt_facts": facts,
+            "assertion_counts": {"planned": 3, "executed": 3, "matched": 3}}
 
 
 def run_domain(domain: str, case_material, exp_source: str, **kwargs) -> dict:

@@ -112,7 +112,9 @@ def test_r1_owner_defect_now_gated() -> None:
     assert report["assertion_counts"]["planned"] == 0
 
 
-def test_r2_registry_roundtrip(tmp_path: Path) -> None:
+def test_r2_registry_roundtrip(tmp_path: Path | None = None) -> None:
+    import tempfile
+    tmp_path = tmp_path or Path(tempfile.mkdtemp())
     registry_path = tmp_path / "accepted_cases.json"
     registry_path.write_text('["case-a"]', encoding="utf-8")  # 旧格式
     loaded = __import__("json").loads(registry_path.read_text(encoding="utf-8"))
