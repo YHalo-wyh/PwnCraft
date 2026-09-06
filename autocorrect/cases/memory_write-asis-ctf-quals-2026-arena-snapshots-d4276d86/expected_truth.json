@@ -1,0 +1,84 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "memory_write-asis-ctf-quals-2026-arena-snapshots-d4276d86",
+  "domain": "memory_write",
+  "subdomains": [
+    "object_lifecycle",
+    "protocol_io",
+    "control_flow"
+  ],
+  "source_repository": "https://github.com/hax1ng/ASIS-CTF-Quals-2026",
+  "source_commit": "6fbef758995349449251592772d5605ed40b7da5",
+  "source_challenge_path": "pwn/arena-snapshots",
+  "source_class": "community_archive",
+  "event": {
+    "name": "ASIS CTF Quals 2026",
+    "ctftime_window": "2026-08-29/2026-08-30"
+  },
+  "truth_layers": {
+    "PROTOCOL_IO_SOURCE": {
+      "status": "PROVEN_SOURCE",
+      "facts": [
+        {
+          "kind": "socket_send_wrapper",
+          "wrapper": "Conn.send_cmd",
+          "primitive": "socket.sendall",
+          "payload_relation": "command + newline -> encode -> sendall",
+          "provenance": "EXP_SOURCE"
+        },
+        {
+          "kind": "socket_recv_wrapper",
+          "wrapper": "Conn.recv_line",
+          "primitive": "socket.recv",
+          "request_size": 4096,
+          "provenance": "EXP_SOURCE"
+        }
+      ],
+      "expected_exploit_ir": {
+        "sendall_action": "SEND",
+        "recv_action": "RECV",
+        "class_wrapper_inlining": true
+      }
+    },
+    "ROLLBACK_OBJECT_STATE": {
+      "status": "WRITEUP_SUPPORTED",
+      "facts": [
+        {
+          "kind": "snapshot_payload_divergence",
+          "summary": "rollback restores slot metadata while payload bytes remain from the post-snapshot state",
+          "provenance": "ARCHIVE_WRITEUP"
+        },
+        {
+          "kind": "type_confusion_sequence",
+          "summary": "slot is retyped through DROP/BUF or DROP/JOB around SNAP/ROLLBACK, allowing bytes written while treated as a buffer to be consumed later as a job",
+          "provenance": "ARCHIVE_WRITEUP_AND_EXP"
+        }
+      ],
+      "limitations": [
+        "本轮没有把社区 writeup 的对象状态说明升级为 PwnCraft runtime observation",
+        "本轮只使用该题驱动通用 Python/socket ExploitIR 覆盖，不声称已经完整建模 SNAP/ROLLBACK 状态机"
+      ]
+    }
+  },
+  "first_divergence": {
+    "kind": "EXP_IO_WRAPPER_GAP",
+    "old_behavior": "ExploitIR 主要识别 pwntools Tube 风格方法；stdlib socket.sendall 与 class wrapper 链不能可靠形成 SEND/RECV 交互事实",
+    "required_behavior": "对唯一可解析的 class method wrapper，保守内联 self/cls 参数，并把 sendall 归一为 SEND；冲突方法名保持 unknown"
+  },
+  "unknown": [
+    "arena-snapshots 二进制行为未在本轮 CI 中运行观测",
+    "社区归档是否与赛事最终部署字节级完全一致",
+    "SNAP/ROLLBACK 的全部状态转移尚未接入 PwnWorkspace object-lifecycle engine"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-asis2026-arena-socket-wrapper-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "exploit_git_blob_sha1": "d4276d8601f15f0f34b05ab42d9832c0a722e886",
+      "binary_git_blob_sha1": "4d747b87de6077284073617d172e3ea20d6c7b35"
+    },
+    "truth_revision": 1,
+    "superseded_by": null
+  }
+}
