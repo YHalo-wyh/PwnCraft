@@ -37,6 +37,10 @@
       "cluster": "https://github.com/project-sekai-ctf/sekaictf-2026|pwn/echo-chamber|official-source-solution"
     },
     {
+      "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
+      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/slang|official-exp-writeup"
+    },
+    {
       "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
       "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/brop"
     },
