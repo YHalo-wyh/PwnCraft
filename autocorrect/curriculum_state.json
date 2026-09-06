@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06 (post cycle-5)",
+  "updated": "2026-09-06 (post cycle-6)",
   "completed_cases": [
     {
       "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
@@ -15,7 +15,8 @@
       "cycles": [
         "cycle-1 ACCEPTED",
         "cycle-4 regression MATCH",
-        "cycle-5 TARGET_BEHAVIOR 1:N MATCH"
+        "cycle-5 TARGET_BEHAVIOR 1:N MATCH",
+        "cycle-6 ALLOCATOR reviewed 1:N replay MATCH"
       ]
     },
     {
@@ -24,7 +25,8 @@
       "cycles": [
         "cycle-2 ACCEPTED",
         "cycle-4 regression MATCH",
-        "cycle-5 regression MATCH"
+        "cycle-5 regression MATCH",
+        "cycle-6 1:1 replay regression MATCH"
       ]
     }
   ],
@@ -66,6 +68,17 @@
       "synthetic_tests": "autocorrect/tests/test_target_behavior_v2.py (5)",
       "generalization": "lab13 create(size,content) → malloc(0x10)+malloc(size)；delete(idx) → free(content)+free(struct)，two free calls 非 double_free；edit/show 同 binding 保留 write/print target action。",
       "acceptance_gate": "GitHub branch head: project 471 passed, 1 skipped, 6 subtests passed; autocorrect 13 passed; accepted truth regression lab13 MATCH with TARGET_BEHAVIOR required + note2 MATCH"
+    },
+    {
+      "rule_id": "R-ALLOCATOR-REVIEWED-1N-GROUPED-REPLAY",
+      "cycle": "cycle-6",
+      "patch_id": "cycle-6",
+      "target_behavior_revision": "target-behavior-2026.09-r2",
+      "allocator_replay_revision": "allocator-replay-2026.09-r1",
+      "statement": "当且仅当 reviewed TargetBehavior 对一个 canonical parent 含多个 malloc/free action 时，将其按 reviewed 顺序降低为内部 allocator child ops；GlibcHeapEngine 回放后再聚合回 parent snapshot，使一个 canonical step 可携带 N 个 allocator events。内部对象身份由 effect role + 显式 bind_handle 建立；逻辑 slot 分配只能来自 reviewed handle_policy，无法解析必须阻断。reviewed 1:1 保留原 identity replay。",
+      "synthetic_tests": "autocorrect/tests/test_allocator_replay_v2.py (4) + test_target_behavior_v2.py handle-policy coverage",
+      "generalization": "lab13 create/delete 的 2 malloc / 2 free 已进入真实 allocator replay；note2 的 reviewed 1:1 allocator 行为保持原路径并继续 MATCH，修正首版对所有 reviewed binding 过度展开的问题。",
+      "acceptance_gate": "GitHub Actions run #50: project 471 passed, 1 skipped, 6 subtests passed; autocorrect 18 passed; lab13 MATCH with ALLOCATOR required; note2 MATCH; failed=False"
     }
   ],
   "coverage": {
@@ -111,18 +124,26 @@
       "callsite_leak_calc": "lab13(L58-61)/babyheap(L87)/note2 shownote 已有调用点级 promotion"
     },
     "target_behavior": {
-      "one_to_one": "无 reviewed binding 的 canonical allocator op 保留 identity fallback，并标明 internals_not_modeled",
-      "one_to_N": "lab13 create/delete 已在正式 truth gate 通过 reviewed 1:N lowering",
+      "one_to_one": "reviewed 1:1 与无 1:N allocator expansion 的 case 保持 identity replay；无 binding 时仍显式 internals_not_modeled",
+      "one_to_N": "lab13 create/delete 已通过 reviewed 1:N lowering + allocator grouped replay",
       "object_multi_alloc": "lab13 create = management_struct malloc(0x10) + content malloc(size)",
       "delete_multi_free": "lab13 delete = free(content) + free(management_struct), two free calls 非 double_free",
-      "revision": "target-behavior-2026.09-r1"
+      "handle_policy": "lab13 create: reviewed lowest_free_index(limit=10)",
+      "revision": "target-behavior-2026.09-r2"
+    },
+    "allocator_replay": {
+      "revision": "allocator-replay-2026.09-r1",
+      "grouped_parent": "一个 canonical parent 可对应 N 个 internal allocator child ops；最终 collapse 为一个 parent snapshot",
+      "event_multiplicity": "lab13 create=2 alloc events; delete=2 free events（ALLOCATOR required MATCH）",
+      "object_identity": "internal chunk identity = parent op + reviewed role；menu handle 仅绑定 bind_handle=true 的内部 allocation",
+      "one_to_one_compatibility": "note2 preserved identity replay and accepted-truth MATCH"
     },
     "allocator_context": {
       "normal": "lab13/babyheap",
       "fastbin": "lab13/babyheap",
       "tcache": null,
       "unsorted": null,
-      "overlap": null,
+      "overlap": "lab13 allocator replay 已产生 struct/content 真实顺序；物理 overlap 断言尚未作为 required layer 验收",
       "corruption": "lab13(size 伪造)/babyheap(fd 改写)"
     },
     "exp_dialect": {
@@ -131,7 +152,8 @@
     }
   },
   "capability_queue": [
-    "ALLOCATOR 消费 TargetBehavior 1:N action stream (lab13): struct/content 两次 malloc + content/struct 两次 free，并保持 request/对象身份",
+    "PHYSICAL_MEMORY truth closure (lab13): internal struct/content 物理身份、连续布局、相邻关系、overlap 与 stale/alias view 分离",
+    "BINS truth closure (lab13): expanded delete/create 后 fastbin[0x20]/[0x40] 的 head/消费顺序与 machine checks",
     "wheelofrobots 引擎 MemoryError (2.23 profile, _changed_byte_mask 巨长写) — allocator 层健壮性",
     "wrapper-of-wrapper / helper alias 泛化",
     "loop expansion",
