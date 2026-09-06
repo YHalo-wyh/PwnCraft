@@ -57,6 +57,7 @@ ACTUAL_SOURCE_TIER = {
     "NAME_CANDIDATE": "name", "SAFE_ALIAS": "alias", "WRAPPER": "alias",
     "STRUCTURAL_BODY": "interaction", "INLINE_ANNOTATION": "interaction",
     "IMPORTED_PROFILE": "interaction", "USER_CONFIRMED": "dataflow_strong",
+    "CALLSITE_OUTPUT_FLOW": "interaction",
 }
 # EXP-side kinds satisfying HELPER_CONTRACT required_any:
 #   interaction -> EXP_PROMPT_SEND_FLOW / EXP_CALLSITE_DATAFLOW

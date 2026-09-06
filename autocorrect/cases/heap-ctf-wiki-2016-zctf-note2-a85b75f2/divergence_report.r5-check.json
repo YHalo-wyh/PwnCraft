@@ -1,0 +1,104 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "HELPER_CONTRACT",
+    "step": null,
+    "source_line": null,
+    "source_call": "def editnote()",
+    "expected": {
+      "semantic": "edit",
+      "roles": {
+        "arg0": "index",
+        "arg1": "unknown_choice_submenu",
+        "arg2": "data"
+      },
+      "helper_evidence": [
+        "exp.py:27-28 菜单 '3'",
+        "exp.py:29-30 recvuntil('note:') 后 sendline(str(id)) — arg0=index",
+        "exp.py:31-32 recvuntil('2.append]') 后 sendline(str(choice)) — arg1 是子菜单选择 (1=overwrite/2=append 类), 角色非 size/data, 标记 unknown_choice_submenu",
+        "exp.py:33 sendline(s) 紧随 choice 之后, 其间无提示词 — arg2=data 的绑定证据仅为顺序性 (弱于 prompt 证据, 已降置信)"
+      ]
+    },
+    "actual": {
+      "operation": "unknown",
+      "confidence": "candidate",
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: edit",
+          "line": 26,
+          "score": 0.35
+        }
+      ]
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "newnote",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "shownote",
+      "expected_semantic": "show",
+      "actual_operation": "show",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [],
+      "actual_evidence_sources": [
+        "CALLSITE_OUTPUT_FLOW",
+        "NAME_CANDIDATE"
+      ]
+    },
+    {
+      "helper": "editnote",
+      "expected_semantic": "edit",
+      "semantic": "SEMANTIC_DIVERGED",
+      "actual_operation": "unknown",
+      "divergence_field": "semantic"
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT"
+  ],
+  "layers_not_compared": [],
+  "layer_results": [
+    {
+      "layer": "HELPER_CONTRACT",
+      "status": "DIVERGED",
+      "semantic_status": "SEMANTIC_DIVERGED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "editnote: unknown ≠ edit"
+    }
+  ],
+  "root_cause": {
+    "component": "HelperContractResolver",
+    "reason": null
+  },
+  "evidence": [
+    "exp.py:27-28 菜单 '3'",
+    "exp.py:29-30 recvuntil('note:') 后 sendline(str(id)) — arg0=index",
+    "exp.py:31-32 recvuntil('2.append]') 后 sendline(str(choice)) — arg1 是子菜单选择 (1=overwrite/2=append 类), 角色非 size/data, 标记 unknown_choice_submenu",
+    "exp.py:33 sendline(s) 紧随 choice 之后, 其间无提示词 — arg2=data 的绑定证据仅为顺序性 (弱于 prompt 证据, 已降置信)"
+  ],
+  "reviewer_reason_hint": "editnote 语义判定 unknown, 证据支持 edit",
+  "confidence": null,
+  "_expected_op_count": 9,
+  "_machine_check_count": 0,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\generated\\r5-check\\pwncraft_output.json",
+    "renderer_plan": null,
+    "run_id": "run-80e5ca5827db8643",
+    "comparator": "v4"
+  }
+}

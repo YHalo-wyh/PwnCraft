@@ -1,0 +1,135 @@
+{
+  "derivation": "current-pipeline identity mapping (engine replay dispatch); binary-internal 1:N actions are explicit unknowns",
+  "per_op": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "source_line": 44,
+      "actions": [
+        {
+          "action": "malloc",
+          "request": {
+            "kind": "unknown",
+            "reason": "allocator request unproven",
+            "source": ""
+          }
+        }
+      ],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "source_line": 45,
+      "actions": [
+        {
+          "action": "malloc",
+          "request": {
+            "kind": "unknown",
+            "reason": "allocator request unproven",
+            "source": ""
+          }
+        }
+      ],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_003",
+      "kind": "edit",
+      "source_line": 47,
+      "actions": [],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_004",
+      "kind": "delete",
+      "source_line": 50,
+      "actions": [
+        {
+          "action": "free",
+          "target": {
+            "kind": "concrete",
+            "ConcreteInt": 1,
+            "source": "1"
+          }
+        }
+      ],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_005",
+      "kind": "alloc",
+      "source_line": 55,
+      "actions": [
+        {
+          "action": "malloc",
+          "request": {
+            "kind": "unknown",
+            "reason": "allocator request unproven",
+            "source": ""
+          }
+        }
+      ],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_006",
+      "kind": "show",
+      "source_line": 57,
+      "actions": [],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_007",
+      "kind": "value",
+      "source_line": 59,
+      "actions": [],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_008",
+      "kind": "value",
+      "source_line": 61,
+      "actions": [],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_009",
+      "kind": "value",
+      "source_line": 62,
+      "actions": [],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_010",
+      "kind": "value",
+      "source_line": 64,
+      "actions": [],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_011",
+      "kind": "edit",
+      "source_line": 67,
+      "actions": [],
+      "internals_not_modeled": true
+    },
+    {
+      "op_id": "op_012",
+      "kind": "delete",
+      "source_line": 69,
+      "actions": [
+        {
+          "action": "free",
+          "target": {
+            "kind": "concrete",
+            "ConcreteInt": 0,
+            "source": "0"
+          }
+        }
+      ],
+      "internals_not_modeled": true
+    }
+  ],
+  "run_id": "run-1d058890c9ca9833"
+}

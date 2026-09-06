@@ -65,6 +65,19 @@ class ContractResolution:
         return tuple(item for item in self.contracts if item.proven)
 
 
+def _arg_text(node) -> str:
+    try:
+        return ast.unparse(node).strip()
+    except Exception:
+        return ""
+
+
+_RECV_VERBS = {"recv", "recvn", "recvline", "recvall", "recvuntil",
+               "recvuntilrepeat", "recvrepeat"}
+_SEND_VERBS = {"send", "sendline", "sendafter", "sendlineafter",
+               "sendthen", "sendlinethen"}
+
+
 class HelperContractResolver:
     """AST-only resolver. Names recall candidates; only evidence proves semantics."""
 
@@ -148,8 +161,174 @@ class HelperContractResolver:
 
         for component in _wrapper_cycles(definitions):
             diagnostics.append("wrapper_cycle:" + "->".join(component))
+
+        self._callsite_output_flow_promotion(tree, contracts, diagnostics)
+
         ordered = tuple(sorted(contracts.values(), key=lambda item: (item.receiver, item.function)))
         return ContractResolution(ordered, tuple(dict.fromkeys(diagnostics)))
+
+    # ------------------------------------------------------------------
+    # VNext.2 M2: 调用点级 OUTPUT_DATA_FLOW 促销 (确定性, 纯 AST)。
+    #
+    # 规则: 入口函数 (main/exp/pwn/solve/attack) 体内, 若一个「unknown 语义
+    # 且仅绑定 index 角色」的 helper 调用之后、下一个 helper/send 之前, 出现
+    # 被消费的 recv 族调用 (赋值给变量且该变量随后被读取, 或作为表达式子项),
+    # 则该 helper 的语义为 SHOW —— 证据 CALLSITE_OUTPUT_FLOW (structural 级:
+    # 来自 EXP 自身的 AST 结构, 非 prompt-sync 猜测)。
+    #
+    # 只促销 SHOW 候选; DELETE 候选需动词证据 (precision-first)。
+    # ------------------------------------------------------------------
+    def _callsite_output_flow_promotion(self, tree, contracts, diagnostics):
+        entry_names = {"main", "exp", "pwn", "solve", "attack"}
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) and node.name in entry_names:
+                self._promote_in_body(node, contracts, diagnostics)
+        # 模块级脚本型 EXP (无入口函数): 顶层语句流本身即调用序列。
+        # helper 定义体不参与 (其调用经 helper 调用点的内联展开处理)。
+        if not any(isinstance(n, ast.FunctionDef) and n.name in entry_names
+                   for n in tree.body):
+            module_stmts = [st for st in tree.body
+                            if not isinstance(st, ast.FunctionDef)]
+            self._promote_in_body(module_stmts, contracts, diagnostics,
+                                  scope="module")
+
+    def _promote_in_body(self, entry_node, contracts, diagnostics, scope="main"):
+        """两遍确定性扫描:
+        A. 收集入口体内 recv 结果赋值 (var -> line) 与每个 var 的全部 load 行;
+        B. 按行回放事件流 —— pending helper 调用之后若发生 recv 变量的
+           消费 load, 促销该 helper 为 SHOW (证据 CALLSITE_OUTPUT_FLOW)。
+        DELETE 候选不走此路径 (precision-first); 不足即 UNKNOWN。"""
+        recv_assign: dict[str, int] = {}
+        var_loads: dict[str, set[int]] = {}
+        events: list[tuple[int, int, str, str]] = []
+
+        if isinstance(entry_node, ast.FunctionDef):
+            stmts = sorted((st for st in ast.walk(entry_node)
+                            if isinstance(st, (ast.Assign, ast.Expr,
+                                               ast.Return))),
+                           key=lambda st: getattr(st, "lineno", 0))
+        else:
+            stmts = entry_node
+
+        def classify_call(call):
+            return _qualified_name(call.func).rsplit(".", 1)[-1].lower()
+
+        for st in stmts:
+            line = getattr(st, "lineno", 0)
+            for n in ast.walk(st):
+                if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Load):
+                    var_loads.setdefault(n.id, set()).add(line)
+            if isinstance(st, ast.Assign) and isinstance(st.value, ast.Call):
+                verb = _qualified_name(st.value.func).rsplit(".", 1)[-1].lower()
+                if verb in _RECV_VERBS and st.targets and isinstance(st.targets[0], ast.Name):
+                    recv_assign[st.targets[0].id] = line
+            for call in [c for c in ast.walk(st) if isinstance(c, ast.Call)]:
+                verb = classify_call(call)
+                if verb in _RECV_VERBS:
+                    events.append((line, 1, "recv", ""))
+                elif verb in _SEND_VERBS:
+                    events.append((line, 1, "send", ""))
+
+        for name, contract in contracts.items():
+            if (contract.operation is CanonicalOperationKind.UNKNOWN
+                    and set(contract.roles) <= {"index"}
+                    and contract.candidate_operation
+                    in (CanonicalOperationKind.SHOW,
+                        CanonicalOperationKind.UNKNOWN)):
+                # unknown 语义 + 仅 index 角色 (owner 批准规则);
+                # 调用点后消费 recv 才促销 —— DELETE 候选需动词证据
+                call_lines = []
+                for st in (entry_node if isinstance(entry_node, list)
+                           else [entry_node]):
+                    for c in ast.walk(st):
+                        if isinstance(c, ast.Call) and                                 _qualified_name(c.func).rsplit(".", 1)[-1] == name:
+                            call_lines.append(getattr(c, "lineno", 0))
+                for cl in call_lines:
+                    events.append((cl, 2, "helper_pending", name))
+
+        # consume 事件: recv 变量在其赋值行之后被 load
+        consume_events = []
+        for var, assign_line in recv_assign.items():
+            for load_line in sorted(var_loads.get(var, ())):
+                if load_line > assign_line:
+                    consume_events.append((load_line, 1, "consume", var))
+                    break
+        events.extend(consume_events)
+
+        events.sort(key=lambda e: (e[0], 0 if e[2] == "helper_pending" else 1))
+        pending: tuple[str, int] | None = None
+        promoted: set[str] = set()
+        for line, _order, kind, arg in events:
+            if kind == "helper_pending":
+                pending = (arg, line)
+            elif kind == "send":
+                pending = None
+            elif kind == "consume":
+                if pending is None:
+                    continue
+                name, call_line = pending
+                var = arg
+                if var in promoted or name in promoted:
+                    continue
+                contract = contracts.get(name)
+                if contract is None:
+                    continue
+                promoted.add(name)
+                # 从调用点实参构造 index 角色绑定 (首个实参 = 槽位选择)
+                parameters = contract.signature.parameters
+                param0 = parameters[0] if parameters else ""
+                call_args_text = []
+                for st in (entry_node if isinstance(entry_node, list)
+                           else [entry_node]):
+                    for c in ast.walk(st):
+                        if isinstance(c, ast.Call) \
+                                and _qualified_name(c.func).rsplit(".", 1)[-1] == name \
+                                and getattr(c, "lineno", 0) == line:
+                            call_args_text.append(_arg_text(c))
+                index_binding = ArgumentBinding(
+                    role="index", parameter=param0,
+                    expression=call_args_text[0] if call_args_text else "",
+                    position=0)
+                contracts[name] = replace(
+                    contract,
+                    operation=CanonicalOperationKind.SHOW,
+                    confidence=ContractConfidence.STRUCTURAL,
+                    roles={"index": index_binding},
+                    evidence=(*contract.evidence, ContractEvidence(
+                        ContractEvidenceSource.CALLSITE_OUTPUT_FLOW,
+                        f"callsite output dataflow: recv result of "
+                        f"{name}(...) consumed at line {line}",
+                        line, 0.9)),
+                )
+                diagnostics.append(f"callsite_output_flow:{name}:{line}")
+        events.sort(key=lambda e: (e[0], 0 if e[2] != "send" else 1))
+        pending = None
+        promoted = set()
+        for line, _order, kind, arg in events:
+            if kind == "helper_pending":
+                pending = (arg, line)
+            elif kind == "send":
+                pending = None
+            elif kind == "consume":
+                if pending is None or arg in promoted:
+                    continue
+                name, _call_line = pending
+                contract = contracts.get(name)
+                if contract is None or name in promoted:
+                    continue
+                promoted.add(name)
+                contracts[name] = replace(
+                    contract,
+                    operation=CanonicalOperationKind.SHOW,
+                    confidence=ContractConfidence.STRUCTURAL,
+                    evidence=(*contract.evidence, ContractEvidence(
+                        ContractEvidenceSource.CALLSITE_OUTPUT_FLOW,
+                        f"callsite output dataflow: recv result of "
+                        f"{name}(...) consumed at line {line}",
+                        line, 0.9)),
+                )
+                diagnostics.append(f"callsite_output_flow:{name}:{line}")
+
 
     def _stored_contract(
         self,

@@ -16,7 +16,7 @@ from pwnbao.features.heapviz.source_compat import parse_module_source
 # 识别器行为修订号：进入训练样本 engine.recognizer_revision。任何影响
 # 识别结果的改动（语义表/规则消费/报告结构）都必须递增 —— 三个月后旧
 # 样本是哪个识别器生成的，靠它回答。
-RECOGNIZER_REVISION = "recognizer-2026.09-r4"  # r4: cycle-2 py2 print-statement tolerance in EXP parsing
+RECOGNIZER_REVISION = "recognizer-2026.09-r5"  # r5: cycle-3 callsite-level OUTPUT_DATA_FLOW promotion (show/shownote)
 from pwnbao.features.heapviz.semantics import (
     BehaviorEffectExpander,
     CallTarget,

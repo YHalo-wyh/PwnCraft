@@ -12,6 +12,7 @@ class ContractEvidenceSource(IntEnum):
     SAFE_ALIAS = 20
     WRAPPER = 30
     STRUCTURAL_BODY = 40
+    CALLSITE_OUTPUT_FLOW = 45   # VNext.2 M2: 调用点级输出数据流 (EXP-side structural)
     INLINE_ANNOTATION = 50
     IMPORTED_PROFILE = 60
     USER_CONFIRMED = 70

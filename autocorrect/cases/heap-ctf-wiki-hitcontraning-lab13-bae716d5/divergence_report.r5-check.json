@@ -1,0 +1,157 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "TARGET_BEHAVIOR",
+    "step": null,
+    "source_line": 44,
+    "source_call": "create(0x18, 'dada')",
+    "expected": {
+      "actions": {
+        "malloc": 2
+      },
+      "note": "expected target-behavior actions (binary/source truth)"
+    },
+    "actual": {
+      "actions": {
+        "malloc": 1
+      },
+      "internals_not_modeled": true,
+      "derivation": null
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "create",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "edit",
+      "expected_semantic": "edit",
+      "actual_operation": "edit",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "show",
+      "expected_semantic": "show",
+      "actual_operation": "show",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "CALLSITE_OUTPUT_FLOW",
+        "NAME_CANDIDATE"
+      ]
+    },
+    {
+      "helper": "delete",
+      "expected_semantic": "free",
+      "actual_operation": "delete",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT",
+    "STATIC_RECOGNITION",
+    "CANONICAL_IR",
+    "ARGUMENT_BINDING",
+    "TARGET_BEHAVIOR"
+  ],
+  "layers_not_compared": [],
+  "layer_results": [
+    {
+      "layer": "HELPER_CONTRACT",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "MATCH",
+      "missing_required": [],
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "detail": "4 helpers"
+    },
+    {
+      "layer": "STATIC_RECOGNITION",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "CANONICAL_IR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "ARGUMENT_BINDING",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "TARGET_BEHAVIOR",
+      "status": "DIVERGED",
+      "semantic_status": "DIVERGED (target internals not modeled)",
+      "evidence_status": "REQUIRED_MISSING",
+      "missing_required": [
+        "SOURCE_INTERNAL_ACTION_FLOW",
+        "BINARY_INTERNAL_ACTION_FLOW"
+      ],
+      "optional_missing": [],
+      "detail": "L44 create(0x18, 'dada'): 期望 {'malloc': 2}, 管线推导 {'malloc': 1}"
+    }
+  ],
+  "root_cause": {
+    "component": "TargetBehavior stage",
+    "reason": null
+  },
+  "evidence": [
+    "heapcreator.c:40 malloc(sizeof(struct heap))",
+    "heapcreator.c:48 malloc(size)"
+  ],
+  "reviewer_reason_hint": "L44 create(0x18, 'dada'): 期望 {'malloc': 2}, 当前管线推导 {'malloc': 1} (内部动作未建模, SOURCE/BINARY internal-action flow 证据缺席)",
+  "confidence": null,
+  "_expected_op_count": 8,
+  "_machine_check_count": 3,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\r5-check\\pwncraft_output.json",
+    "renderer_plan": null,
+    "run_id": "run-1d058890c9ca9833",
+    "comparator": "v4"
+  }
+}
