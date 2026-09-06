@@ -3,8 +3,9 @@
 The rule under test is deliberately narrower than "one argument + alloc-like
 name": the sole parameter must be proven to flow to an outbound send/write as a
 SIZE value.  A size prompt may establish the role even when the parameter name
-is arbitrary; promptless wrappers may use conventional size parameter names.
-Helper names only disambiguate an already-proven structural shape.
+is arbitrary; promptless wrappers additionally require a preceding constant
+menu/control send.  Helper names only disambiguate an already-proven structural
+shape.
 """
 from __future__ import annotations
 
@@ -23,9 +24,16 @@ allocate(0x80)
 
 PROMPTLESS_CONVENTIONAL_SIZE = r'''
 def alloc(n):
+    io.sendline(b"1")
     io.sendline(str(n))
+    io.recvuntil(b"OK\n")
 
 alloc(0x90)
+'''
+
+BARE_PROMPTLESS_SIZE_SENDER = r'''
+def allocate(size):
+    io.sendline(str(size))
 '''
 
 ALLOC_NAME_WITHOUT_SIZE_EVIDENCE = r'''
@@ -59,13 +67,24 @@ def test_prompt_binds_arbitrary_parameter_to_size_only_alloc() -> None:
     assert contract.operation.value == "alloc"
     assert contract.roles["size"].parameter == "amount"
     assert any(item.source.name == "STRUCTURAL_BODY" for item in contract.evidence)
+    assert any("prompt-bound" in item.detail for item in contract.evidence)
     assert any(item.startswith("size_only_alloc:allocate:") for item in resolution.diagnostics)
 
 
-def test_promptless_conventional_size_name_is_supported() -> None:
+def test_promptless_menu_control_then_size_is_supported() -> None:
+    # Mirrors the stkof interaction shape: menu choice first, size second.
     contract, _ = _contract(PROMPTLESS_CONVENTIONAL_SIZE, "alloc")
     assert contract.operation.value == "alloc"
     assert contract.roles["size"].parameter == "n"
+    assert any("control-send + parameter-bound" in item.detail for item in contract.evidence)
+
+
+def test_bare_promptless_size_sender_stays_unknown() -> None:
+    # Parameter spelling + alloc-like helper name must not bootstrap their own
+    # structural proof.  Promptless promotion needs independent control-send
+    # context, as in menu-driven wrappers such as stkof.
+    contract, _ = _contract(BARE_PROMPTLESS_SIZE_SENDER, "allocate")
+    assert contract.operation.value == "unknown"
 
 
 def test_alloc_like_name_alone_does_not_prove_size_role() -> None:
