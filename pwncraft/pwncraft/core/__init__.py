@@ -17,6 +17,14 @@ from .workbench import (
 from .rop import AlignmentResult, ROPChain, ROPEntry, RegisterState, StackState
 from .syscalls import SyscallSpec, lookup_syscall, normalize_architecture, parse_seccomp_policy, syscall_table
 from .truth import TruthEngine, TruthEvidence
+from .pwn_surface import (
+    DOMAIN_CATALOG,
+    DomainAssessment,
+    PwnDomain,
+    active_domains,
+    analyze_pwn_surface,
+    surface_summary,
+)
 
 __all__ = [
     "ActionType",
@@ -49,4 +57,10 @@ __all__ = [
     "syscall_table",
     "TruthEngine",
     "TruthEvidence",
+    "DOMAIN_CATALOG",
+    "DomainAssessment",
+    "PwnDomain",
+    "active_domains",
+    "analyze_pwn_surface",
+    "surface_summary",
 ]
