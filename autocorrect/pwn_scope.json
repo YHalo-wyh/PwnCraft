@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "scope": "general_pwn_workbench",
+  "statement": "PwnCraft 面向通用 CTF/Pwn 分析与训练；HeapViz/allocator 只是一个专门域，不能代表整个项目能力。",
+  "hard_rules": [
+    "任何训练/审计 cycle 必须声明所属 domain；不得把 heap lane 的 MATCH 外推为整个 PwnCraft 已闭环。",
+    "跨域共享事实进入 PwnWorkspace；域内真值仍由各自 engine/provider 持有，避免为了统一而降低精度。",
+    "没有证据时保持 unknown；不得因为 GOT/PLT、函数名或页面存在就推断某类漏洞存在。",
+    "项目级 capability/readiness 必须至少区分 stack、heap、format_string、control_flow、leak、syscall_sandbox；其他域按证据增量接入。",
+    "后续 curriculum 采用多 lane 交错推进；heap 可以继续做深，但不能长期垄断全部训练 cycle。"
+  ],
+  "domains": {
+    "stack": {
+      "examples": ["stack overflow", "canary", "stack pivot", "saved RIP control"],
+      "existing_components": ["Workspace.stack", "cyclic", "Stack page", "pwndbg/debug runtime"],
+      "truth_goal": "输入长度/偏移 -> 栈帧/保存寄存器影响 -> 控制流能力，区分静态推导与运行时观测"
+    },
+    "heap": {
+      "examples": ["UAF", "double free", "off-by-one", "tcache/fastbin/bin transitions", "overlap"],
+      "existing_components": ["HeapViz", "GlibcHeapEngine", "PhysicalMemory", "allocator profiles"],
+      "truth_goal": "allocator/physical-memory/bin/canvas 多层真值闭环"
+    },
+    "format_string": {
+      "examples": ["argument offset", "arbitrary read", "format write"],
+      "existing_components": ["FormatLabPage", "fmt planning", "Workspace.exploit.primitives"],
+      "truth_goal": "偏移证据、读写 primitive 与目标地址/写值规划分离"
+    },
+    "control_flow": {
+      "examples": ["ret2win", "ret2libc", "ROP", "SROP", "ORW", "stack pivot"],
+      "existing_components": ["GadgetExplorer", "ROPChain", "Capability Analyzer", "syscall planner"],
+      "truth_goal": "控制原语 + gadget/符号/库/约束 -> 可验证 exploit path，不编造地址"
+    },
+    "leak": {
+      "examples": ["libc leak", "PIE leak", "stack leak", "heap leak"],
+      "existing_components": ["Workspace.leaks", "Workspace variables", "library base derivation"],
+      "truth_goal": "原始泄露、解析值、基址公式与来源/provenance 可追溯"
+    },
+    "syscall_sandbox": {
+      "examples": ["seccomp", "syscall availability", "ORW constraints"],
+      "existing_components": ["syscall table", "seccomp parser", "ORW capability"],
+      "truth_goal": "策略观测 -> 允许/阻断 syscall -> exploit path 约束"
+    },
+    "memory_write": {
+      "examples": ["arbitrary write", "write-what-where", "OOB write"],
+      "existing_components": ["Workspace.exploit.primitives", "runtime/write evidence"],
+      "truth_goal": "写入地址、宽度、来源、可重复性和约束作为一等事实"
+    },
+    "integer": {
+      "examples": ["integer overflow", "signedness", "truncation", "OOB"],
+      "existing_components": ["Binary/source IR", "Workspace.exploit.primitives"],
+      "truth_goal": "值域/边界条件 -> 内存或控制影响，禁止仅凭危险函数名判定"
+    },
+    "io_file": {
+      "examples": ["FILE corruption", "FSOP", "stdio state"],
+      "existing_components": ["libc/runtime facts", "Workspace.exploit.primitives"],
+      "truth_goal": "FILE/stdio 对象状态与 libc 版本约束单独建模，不混进通用 heap chunk"
+    }
+  },
+  "scheduler": {
+    "policy": "cross_domain_interleave",
+    "active_lanes": [
+      "heap_physical_memory_truth",
+      "stack_control_truth_foundation"
+    ],
+    "next_lanes": [
+      "stack: cyclic/observed crash -> saved RIP offset truth -> control-flow capability",
+      "heap: PHYSICAL_MEMORY -> BINS continuation for accepted lab13",
+      "format_string: explicit offset/read/write evidence lane",
+      "control_flow: gadget-role + chain validation lane",
+      "leak: provenance-preserving base derivation lane"
+    ]
+  }
+}
