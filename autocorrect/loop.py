@@ -25,6 +25,8 @@ import pwncraft_adapter  # noqa: E402
 import comparator  # noqa: E402
 import comparator_v3  # noqa: E402  (kept for audit trail)
 import evaluation_contract  # noqa: E402
+import case_manifest  # noqa: E402
+import domain_adapters  # noqa: E402
 import comparator_v4  # noqa: E402
 import regression  # noqa: E402
 
@@ -425,6 +427,17 @@ def cmd_accept(args):
     print(f"[truthregress] {len(results)} cases -> regression/truth_regression.json")
 
 
+def cmd_inventory(args):
+    """阶段 1 M1: 全案例清点 — 领域/入口状态/材料就绪。"""
+    inv = case_manifest.inventory(CORPUS, HERE.parent / "heap-corpus" / "review_queue")
+    out = HERE / "inventory.json"
+    out.write_text(json.dumps(inv, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[inventory] total={inv['total']} ready={inv['ready']}")
+    print(f"  by_domain: {json.dumps(inv['by_domain'])}")
+    print(f"  by_entry_status: {json.dumps(inv['by_entry_status'])}")
+    print(f"  -> {out}")
+
+
 def main():
     ap = argparse.ArgumentParser(prog="autocorrect")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -445,6 +458,7 @@ def main():
     st.add_argument("--new", required=True, help="path to UNLOCKED revised truth json")
     st.add_argument("--reason", required=True, help="revision_reason")
     tr = sub.add_parser("truthregress")
+    inv = sub.add_parser("inventory")
     ac = sub.add_parser("accept")
     ac.add_argument("case")
     ac.add_argument("--kind", choices=["case", "assertion", "rule"], default="case")
@@ -471,7 +485,7 @@ def main():
      "explain": cmd_explain, "lock-truth": cmd_lock_truth,
      "truthregress": cmd_truthregress,
      "supersede-truth": cmd_supersede_truth,
-     "accept": cmd_accept}[args.cmd](args)
+     "accept": cmd_accept, "inventory": cmd_inventory}[args.cmd](args)
 
 
 if __name__ == "__main__":

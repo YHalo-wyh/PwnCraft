@@ -1,0 +1,882 @@
+{
+  "total": 44,
+  "by_domain": {
+    "fmt": 8,
+    "heap": 12,
+    "stack": 24
+  },
+  "by_entry_status": {
+    "ok": 44
+  },
+  "ready": 44,
+  "cases": [
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2015-CSAW-contacts-96707ed2",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "GOLD",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/2015-CSAW-contacts/exp.py",
+          "size": 2097
+        }
+      ],
+      "binary_sha256": "96707ed2a9e4e47b48efeedd6c5398f47e326be0c8ee4499596ed8b380ebc606",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\fmtstr-pwn-linux-user-mode-fmtstr-2015-CSAW-contacts-96707ed2"
+    },
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "GOLD",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/2016-CCTF-pwn3/exp.py",
+          "size": 1562
+        }
+      ],
+      "binary_sha256": "4fddf60b4838794808fe865579aa6416f53ba40c030dde3854ee63957930bfa5",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b"
+    },
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_got-3087984b",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/blind_fmt_got/exp.py",
+          "size": 2228
+        }
+      ],
+      "binary_sha256": "3087984b18576ad88f96f665a3aedf5195dc2be6b2523ac89bbc953b4cd97360",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_got-3087984b"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2014-hitcon-stkof-13e0c84f",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof/exp.py"
+        }
+      ],
+      "binary_sha256": "13e0c84f8d548f9269bff7a0568dd19ffedf40a245bf52459a3a87e680c49b0d",
+      "libc_present": true,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2014-hitcon-stkof-13e0c84f"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2015-9447ctf-search-engine-3a28f615",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine/exp.py"
+        }
+      ],
+      "binary_sha256": "3a28f615dcc61b81d7477f6dbc41ef36748b17e1b0d609a79e53760b69a5e04b",
+      "libc_present": true,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2015-9447ctf-search-engine-3a28f615"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore/exp.py"
+        }
+      ],
+      "binary_sha256": "8bd55c59f21a73c06ae50ac064ff24bf63e8cb01a05f33a97f7b7c0d8efa917b",
+      "libc_present": true,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/unlink/2016_zctf_note2/exp.py"
+        }
+      ],
+      "binary_sha256": "a85b75f2836cef1917f3b3eb670011301a79bd8a8b2bf9441ebe8642bd20764a",
+      "libc_present": true,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2016-zctf-note2-a85b75f2"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap/exp.py"
+        }
+      ],
+      "binary_sha256": "9527e180a38782c25fa909c5ca6000a29647cc320bbc230df9d2aaa350aaa121",
+      "libc_present": true,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2017-0ctf-babyheap-9527e180"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots/exp.py"
+        }
+      ],
+      "binary_sha256": "ebbbaf52b32d2c047c140448945bd0e51986bc629d04bbe078c350a41a5a5244",
+      "libc_present": true,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52"
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13/exp.py"
+        }
+      ],
+      "binary_sha256": "bae716d582d0070fdf1121b55871ab07c37f135a48ce68b5830e013fd3d59398",
+      "libc_present": true,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5"
+    },
+    {
+      "case_id": "heap-ctf-wiki-zerostorage-c06ff06c",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage/exp.py"
+        }
+      ],
+      "binary_sha256": "c06ff06c13c6cc690ef0ddf47dc961ee80dbf3dcaa72e7327b3deb0f018ba850",
+      "libc_present": true,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-zerostorage-c06ff06c"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/brop/hctf2016-brop/exploit.py",
+          "size": 5476
+        }
+      ],
+      "binary_sha256": "c35034690e562a086462dadaf8d70bbb574102854572db5d8ccdf75af666f524",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-StarCTF2018-not-97cad9a0",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/fake_frame/StarCTF2018-note/exp.py",
+          "size": 1856
+        }
+      ],
+      "binary_sha256": "97cad9a0cdc971be9ce7a6854c3cb13d0bc5f0b3cc679e05bed11b156ce8333d",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-StarCTF2018-not-97cad9a0"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--1f442466",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-readable/exp_modify_dynamic.py",
+          "size": 2051
+        }
+      ],
+      "binary_sha256": "1f4424665d57cab72099c7e160704b06992aebdb5a857df802e907332e08ffb1",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--1f442466"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--20d0b2ae",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-blinkroot/exp-l_addr-addr.py",
+          "size": 3076
+        }
+      ],
+      "binary_sha256": "20d0b2ae2748f20034b50baf5188f8fa9a598565bba769f39540a6bcd56ecf37",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--20d0b2ae"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-39d477bf",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/partial-relro/exp-fake-linkmap.py",
+          "size": 4341
+        }
+      ],
+      "binary_sha256": "39d477bff8ffc9a043fddb90ab256a209c9e2e5bdd5e5b8d542982cebb3df7a0",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-39d477bf"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc3-f3683777",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc3/exploit.py",
+          "size": 941
+        }
+      ],
+      "binary_sha256": "f3683777aae2eb2851f94abd00ebfb9def8eadaeac93fbafb06cbeb274003814",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc3-f3683777"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-train.cs.nctu.edu-96d465d5",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2libc/train.cs.nctu.edu.tw/ret2libc/exp.py",
+          "size": 700
+        }
+      ],
+      "binary_sha256": "96d465d56d1916ba607798afc81e29d91ae481b515fb855802bef82efa9103c1",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-train.cs.nctu.edu-96d465d5"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2013-PlaidCTF-ropasaur-fec23fd9",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/rop/2013-PlaidCTF-ropasaurusrex/exp.py",
+          "size": 886
+        }
+      ],
+      "binary_sha256": "fec23fd924223002540ad849164a9fa3cb97613b289b93b017147c8bc43b7ce6",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-rop-2013-PlaidCTF-ropasaur-fec23fd9"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-guess-ec95cf56",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "GOLD",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/stacksmashes/guess/solve.py",
+          "size": 816
+        }
+      ],
+      "binary_sha256": "ec95cf560902eaab637a8395f2143eba0f98cbcf3cd0e7253a559a5b955732e2",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-guess-ec95cf56"
+    },
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2017-UIUCTF-pwn200-GoodLuck-66daf236",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/2017-UIUCTF-pwn200-GoodLuck/exp.py",
+          "size": 315
+        }
+      ],
+      "binary_sha256": "66daf236ffea0308652cb08ae3c59ca52f2c55bb775c0200e1d8614992ad4e26",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\fmtstr-pwn-linux-user-mode-fmtstr-2017-UIUCTF-pwn200-GoodLuck-66daf236"
+    },
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_stack-07c30b49",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/blind_fmt_stack/exp.py",
+          "size": 342
+        }
+      ],
+      "binary_sha256": "07c30b497370ae2800d81e1d220bea0c343a0905ea48ed935ecca8e9587b098f",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_stack-07c30b49"
+    },
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-leakmemory-5418ca21",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/leakmemory/exploit.py",
+          "size": 340
+        }
+      ],
+      "binary_sha256": "5418ca215d7ddb7282e5fd0ab3fbc896b36b556213a76d1ec5ac5b1fd1507485",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\fmtstr-pwn-linux-user-mode-fmtstr-leakmemory-5418ca21"
+    },
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-overwrite-8e4893a8",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/overwrite/exploit.py",
+          "size": 1404
+        }
+      ],
+      "binary_sha256": "8e4893a8d267efe6149d748a5a42f78db0a7372218918719af621f8ca1a14f22",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\fmtstr-pwn-linux-user-mode-fmtstr-overwrite-8e4893a8"
+    },
+    {
+      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-三个白帽-pwnme_k0-56276f9d",
+      "technique": "fmtstr",
+      "domain": "fmt",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/fmtstr/三个白帽-pwnme_k0/exp.py",
+          "size": 567
+        }
+      ],
+      "binary_sha256": "56276f9d14610a5e621ecb678129077a070a19715bc62a36d02694e70dad52f9",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\fmtstr-pwn-linux-user-mode-fmtstr-三个白帽-pwnme_k0-56276f9d"
+    },
+    {
+      "case_id": "heap-ctf-wiki-asis-2016-b00ks-2db4fc27",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/off_by_one/Asis_2016_b00ks/exp_books.py"
+        }
+      ],
+      "binary_sha256": "2db4fc27fd99e0ee9a9fc0735da8fc007720091d51eeaf9c42b68e8e0df1a1c2",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-asis-2016-b00ks-2db4fc27"
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraining-lab14-0fd2b3ed",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/unsorted_bin_attack/hitcontraining_lab14/exp.py"
+        }
+      ],
+      "binary_sha256": "0fd2b3ed8d4672c76e663206e4eb361ee6dd61ec491baa28b299264b74a4e892",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-hitcontraining-lab14-0fd2b3ed"
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab11-6f1c67fb",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/heap/house-of-force/hitcontraning_lab11/exp.py"
+        }
+      ],
+      "binary_sha256": "6f1c67fb3f210b773d9578caa167b72591bdac44a49423043c17090d151ee7f3",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-ctf-wiki-hitcontraning-lab11-6f1c67fb"
+    },
+    {
+      "case_id": "heap-hpt-baby-talk-73968df0",
+      "technique": "heap",
+      "domain": "heap",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "solve.py"
+        }
+      ],
+      "binary_sha256": "73968df044529ab3b458f105ff07004c2b8c35f10936889236785410ccfafe18",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\heap-hpt-baby-talk-73968df0"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-over-376262cd",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/fake_frame/over/exp.py",
+          "size": 1036
+        }
+      ],
+      "binary_sha256": "376262cd75220c9a8fa50ca72d4eb0ba44527a3bc04bb86a64b623a7d65aafc0",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-over-376262cd"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-partial_overwrite-2018-xnu-1531c6e9",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/partial_overwrite/2018-xnuca-gets/exp.py",
+          "size": 964
+        }
+      ],
+      "binary_sha256": "1531c6e906f559b349a64d4c00acb0880acd1e2dde429ac08bdc44b5fc8603bb",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-partial_overwrite-2018-xnu-1531c6e9"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-5efaa745",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/partial-relro/exp-pwntools.py",
+          "size": 570
+        }
+      ],
+      "binary_sha256": "5efaa745b404ea1c5ba5b487e51c3fd18c52b38f72329efb065f7257b0cb4fb2",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-5efaa745"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-90e17e42",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/no-relro/exp-no-relro-stack-pivot.py",
+          "size": 2338
+        }
+      ],
+      "binary_sha256": "90e17e426f8fc21c943fc10201832965758e2da36cd80c21947c5c4a80dc018c",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-90e17e42"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-fc0bbe4c",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/32/no-relro/exp-no-relro.py",
+          "size": 919
+        }
+      ],
+      "binary_sha256": "fc0bbe4cc9d6dfc111fede00d78285680dc50f21c3b34fdbc2a5869aa8126f79",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-fc0bbe4c"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1/exploit.py",
+          "size": 228
+        }
+      ],
+      "binary_sha256": "c5603c89e49279a685d515b16721a7a219e8c4b99884aa6ae1a7899619389344",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc2-dbad0d86",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc2/exploit.py",
+          "size": 317
+        }
+      ],
+      "binary_sha256": "dbad0d8698945060f287b6ffc685c6bb9802a6da04064e22af94771fad08b238",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc2-dbad0d86"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-ret2shellcod-ef0b9645",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2shellcode/ret2shellcode-example/exploit.py",
+          "size": 211
+        }
+      ],
+      "binary_sha256": "ef0b9645c0c5609d88865f831bf2deeb3ab96348ef48fe369f14c8725b17152d",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-ret2shellcod-ef0b9645"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-sniperoj-pwn-22817a72",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2shellcode/sniperoj-pwn100-shellcode-x86-64/exp.py",
+          "size": 551
+        }
+      ],
+      "binary_sha256": "22817a720735a2ce5dc82c9f358a93f88e3504d2b65480c8b8ace5f33e0c75ce",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-sniperoj-pwn-22817a72"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2syscall-d0886c21",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2syscall/bamboofox-ret2syscall/exploit.py",
+          "size": 308
+        }
+      ],
+      "binary_sha256": "d0886c2165237b999c74266dae44eeb1e206c7f4deeb25687b20e95b830d86fe",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2syscall-d0886c21"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2text-edf54bc1",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/ret2text/bamboofox-ret2text/exploit.py",
+          "size": 155
+        }
+      ],
+      "binary_sha256": "edf54bc12bb24c98527541034f447569b432e49433f386ec066b9c8b9435e2c5",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-ret2text-edf54bc1"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2015-Defcon Qualifier -b23aea39",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/rop/2015-Defcon Qualifier R0pbaby/exp.py",
+          "size": 1063
+        }
+      ],
+      "binary_sha256": "b23aea39a1b7165b25953b77a99eeb8ab6ebc6fd950eacd81a299da3ba0c6cdb",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-rop-2015-Defcon Qualifier -b23aea39"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackoverflow-intro-3c514d6e",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/stackoverflow-intro/stack-example/exp.py",
+          "size": 345
+        }
+      ],
+      "binary_sha256": "3c514d6ef8178be5497c9f85bd5f83ff077498a746e927061560978884ecca85",
+      "libc_present": false,
+      "source_present": true,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-stackoverflow-intro-3c514d6e"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackprivot-X-CTF Quals 20-1e7d1285",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "x86",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/stackprivot/X-CTF Quals 2016 - b0verfl0w/exploit.py",
+          "size": 409
+        }
+      ],
+      "binary_sha256": "1e7d1285f5c7376dc9f0598f08613d86b989eb80f41255ff0cb85802a90b81da",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-stackprivot-X-CTF Quals 20-1e7d1285"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-smashes-8f220a72",
+      "technique": "stack_rop",
+      "domain": "stack",
+      "tier": "SILVER",
+      "arch": "amd64",
+      "entry_status": "ok",
+      "entry_candidates": [
+        {
+          "rel": "pwn/linux/user-mode/stackoverflow/stacksmashes/smashes/exp.py",
+          "size": 478
+        }
+      ],
+      "binary_sha256": "8f220a72f345bb7f53753581952e2f33fc3c481b7b6c22d37b56a75594241959",
+      "libc_present": false,
+      "source_present": false,
+      "material_readiness": true,
+      "gaps": [],
+      "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\review_queue\\stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-smashes-8f220a72"
+    }
+  ]
+}
