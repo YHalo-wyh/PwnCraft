@@ -1,28 +1,31 @@
 {
   "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
   "schema_version": "1.0",
-  "oracle_scope": "解析 + 值流 + 对象同一性 + 已审查目标内部动作",
+  "oracle_scope": "解析 + 值流 + 对象同一性 + 已审查目标内部动作 + allocator 1:N 回放",
   "required_layers": [
     "HELPER_CONTRACT",
     "STATIC_RECOGNITION",
     "CANONICAL_IR",
     "ARGUMENT_BINDING",
-    "TARGET_BEHAVIOR"
+    "TARGET_BEHAVIOR",
+    "ALLOCATOR"
   ],
   "not_applicable_layers": [
-    "ALLOCATOR",
     "BINS",
     "PHYSICAL_MEMORY",
     "SNAPSHOT",
     "CANVAS_TRUTH",
     "RENDERER_PLAN"
   ],
-  "not_applicable_reason": "Cycle-5 仅验收 CanonicalIR→TargetBehavior 的 1:N 动作展开；allocator replay 尚未消费 target action stream，request/物理布局/bin 层继续 defer 至后续 cycle。",
+  "not_applicable_reason": "Cycle-6 验收 reviewed TargetBehavior 1:N 动作进入真实 allocator replay，并按 canonical parent op 聚合 allocator events；bin/物理内存/快照/画布仍留给后续 first-divergence cycle 单独验收。",
   "min_assertions": 8,
   "required_artifacts": [
     "recognition.json",
     "helper_contracts.json",
-    "canonical_ir.json"
+    "canonical_ir.json",
+    "target_behavior.json",
+    "allocator_events.json",
+    "allocator_replay_plan.json"
   ],
   "env": {
     "arch": "amd64"
