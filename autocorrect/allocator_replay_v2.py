@@ -11,7 +11,9 @@ identity while one replay step can truthfully contain N allocator events.
 
 No EXP code is executed and no source is reparsed here.  Handle allocation is
 performed only when a reviewed ``handle_policy`` is present; missing identity
-facts block the reviewed expansion instead of being guessed.
+facts block the reviewed expansion instead of being guessed.  Reviewed 1:1
+bindings deliberately stay on the existing identity replay path: Cycle-6 is a
+1:N closure, not a rewrite of already-accepted one-action behavior.
 """
 from __future__ import annotations
 
@@ -62,6 +64,27 @@ class AllocatorReplayPlan:
                 for group in self.groups
             ],
         }
+
+
+def _allocator_actions(entry: Mapping[str, Any] | None, action: str) -> list[dict[str, Any]]:
+    if not isinstance(entry, Mapping):
+        return []
+    return [
+        dict(item) for item in (entry.get("actions") or [])
+        if isinstance(item, Mapping) and str(item.get("action") or "") == action
+    ]
+
+
+def requires_grouped_replay(target_behavior: Mapping[str, Any]) -> bool:
+    """True only when reviewed truth actually contains allocator 1:N."""
+    for entry in target_behavior.get("per_op") or []:
+        if not isinstance(entry, Mapping) or entry.get("internals_not_modeled", True):
+            continue
+        if len(_allocator_actions(entry, "malloc")) > 1:
+            return True
+        if len(_allocator_actions(entry, "free")) > 1:
+            return True
+    return False
 
 
 def _abstract_text(value: object) -> str:
@@ -129,11 +152,8 @@ def _alloc_children(
     entry: Mapping[str, Any],
     active: dict[str, dict[str, str]],
 ) -> tuple[list[HeapOperation], str]:
-    actions = [
-        dict(action) for action in (entry.get("actions") or [])
-        if isinstance(action, Mapping) and str(action.get("action") or "") == "malloc"
-    ]
-    if not actions:
+    actions = _allocator_actions(entry, "malloc")
+    if len(actions) <= 1:
         return [parent], ""
 
     handle = _parent_handle(parent, entry, active)
@@ -182,15 +202,20 @@ def _free_children(
     entry: Mapping[str, Any],
     active: dict[str, dict[str, str]],
 ) -> tuple[list[HeapOperation], str]:
-    actions = [
-        dict(action) for action in (entry.get("actions") or [])
-        if isinstance(action, Mapping) and str(action.get("action") or "") == "free"
-    ]
-    if not actions:
-        return [parent], ""
+    actions = _allocator_actions(entry, "free")
+    if len(actions) <= 1:
+        # A one-action free is already correctly represented by the parent
+        # operation.  If a prior multi-alloc used the same logical handle,
+        # retire its planner identity so a reviewed slot policy may reuse it.
+        handle = str(parent.index or "").strip()
+        if not handle and actions:
+            handle = _abstract_text(actions[0].get("target"))
+        if handle:
+            active.pop(handle, None)
+        return [parent], handle
 
     handle = str(parent.index or "").strip()
-    if not handle and actions:
+    if not handle:
         handle = _abstract_text(actions[0].get("target"))
     if not handle:
         raise ValueError(f"{parent.op_id}: reviewed free expansion has no proven handle")
