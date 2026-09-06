@@ -20,7 +20,10 @@ from pwncraft.features.audit.model import (
 _RECV_WAIT = {"recvuntil", "recvuntilrepeat", "recvuntil_then", "recvuntil_regex"}
 _RECV_PLAIN = {"recv", "recvn", "recvline", "recvall", "recvrepeat"}
 _SEND_WAIT = {"sendafter", "sendlineafter", "sendthen", "sendlinethen"}
-_SEND_PLAIN = {"send", "sendline", "sendlinethen"}
+# sendall is the stdlib socket exact-send primitive.  Treat it as SEND at the
+# interaction layer; whether the peer accepts/acts on the bytes is still runtime
+# truth and is never inferred here.
+_SEND_PLAIN = {"send", "sendall", "sendline", "sendlinethen"}
 _PACK = {"p64", "p32", "u64", "u32"}
 _ADDR_NAME_HINTS = ("addr", "address", "gadget", "ptr", "pointer", "leak",
                     "system", "hook", "rdi", "rsi", "rdx", "ret", "win",
@@ -145,6 +148,37 @@ def _symbol_reference(node: ast.AST, *, scope: str) -> SymbolRef | None:
                 scope=scope,
             )
     return None
+
+
+def _helper_definitions(tree: ast.Module) -> dict[str, ast.FunctionDef]:
+    """Collect top-level helpers plus unambiguous class methods.
+
+    Recent exploit scripts increasingly wrap sockets in small connection
+    classes instead of using pwntools Tube directly.  Method names are admitted
+    only when unique across the module; collisions stay unknown rather than
+    binding to an arbitrary class implementation.
+    """
+    helpers: dict[str, ast.FunctionDef] = {}
+    ambiguous: set[str] = set()
+    for node in tree.body:
+        if isinstance(node, ast.FunctionDef):
+            if node.name in helpers:
+                ambiguous.add(node.name)
+            else:
+                helpers[node.name] = node
+            continue
+        if not isinstance(node, ast.ClassDef):
+            continue
+        for child in node.body:
+            if not isinstance(child, ast.FunctionDef):
+                continue
+            if child.name in helpers:
+                ambiguous.add(child.name)
+            else:
+                helpers[child.name] = child
+    for name in ambiguous:
+        helpers.pop(name, None)
+    return helpers
 
 
 class _Extractor(ast.NodeVisitor):
@@ -272,6 +306,11 @@ class _Extractor(ast.NodeVisitor):
                 self._link_leak(op)
             else:
                 self.ir.packs.append(op)
+        else:
+            # Attribute calls may be user-defined connection wrappers, e.g.
+            # c.send_cmd(...).  Inline only when the method name resolves to one
+            # unambiguous class method in this module.
+            self._maybe_helper(node, verb, method_call=True)
 
     def _attach_inline_unpack_width(self, op: PackOp, arg_node: ast.AST) -> None:
         width, evidence = _exact_unpack_input_width(arg_node)
@@ -302,11 +341,15 @@ class _Extractor(ast.NodeVisitor):
 
     def _maybe_helper(self, node: ast.Call, name: str, depth: int = 0,
                       bindings: dict[str, str] | None = None,
-                      scope: str = "main") -> None:
-        """Inline-expand user helper calls so menu semantics are visible.
-        Externally-known helpers (defined in the BehaviorProfile, possibly
-        imported by the EXP) are recorded without a body to walk."""
-        if depth > 2:
+                      scope: str = "main", *, method_call: bool = False) -> None:
+        """Inline-expand user helper calls so menu/socket semantics are visible.
+
+        ``method_call`` is conservative support for small wrapper classes: only
+        a uniquely named method collected from this source is eligible, and a
+        conventional leading ``self``/``cls`` parameter is excluded from the
+        positional call-site binding.  Ambiguous method names remain UNKNOWN.
+        """
+        if depth > 3:
             return
         if name not in self.helpers and name in self.known_external:
             self.ir.helper_calls.append(HelperCall(
@@ -321,20 +364,27 @@ class _Extractor(ast.NodeVisitor):
             function=name, args=args, line=node.lineno, scope=scope))
         definition = self.helpers[name]
         params = [p.arg for p in definition.args.args]
+        if method_call and params and params[0] in ("self", "cls"):
+            params = params[1:]
         local = dict(zip(params, args))
         if bindings:  # resolve nested helper args through outer bindings
             local = {k: bindings.get(v, v) for k, v in local.items()}
         for child in ast.walk(definition):
-            if isinstance(child, ast.Call):
-                func = child.func
-                if isinstance(func, ast.Attribute):
-                    self._record_inlined(child, scope=name, bindings=local)
-                elif isinstance(func, ast.Name):
-                    self._maybe_helper(child, func.id, depth=depth + 1,
-                                       bindings=local, scope=name)
+            if not isinstance(child, ast.Call):
+                continue
+            func = child.func
+            if isinstance(func, ast.Attribute):
+                handled = self._record_inlined(child, scope=name, bindings=local)
+                if not handled:
+                    self._maybe_helper(child, func.attr, depth=depth + 1,
+                                       bindings=local, scope=name,
+                                       method_call=True)
+            elif isinstance(func, ast.Name):
+                self._maybe_helper(child, func.id, depth=depth + 1,
+                                   bindings=local, scope=name)
 
     def _record_inlined(self, node: ast.Call, scope: str,
-                        bindings: dict[str, str]) -> None:
+                        bindings: dict[str, str]) -> bool:
         verb = node.func.attr  # type: ignore[attr-defined]
 
         def substitute(text: str) -> str:
@@ -349,23 +399,28 @@ class _Extractor(ast.NodeVisitor):
             self.ir.interactions.append(Interaction(
                 action="RECVUNTIL", wait_for=substitute(_arg_text(node.args[0])),
                 line=node.lineno, scope=scope))
-        elif verb in _RECV_PLAIN:
+            return True
+        if verb in _RECV_PLAIN:
             length = _literal_int(node.args[0]) if node.args and \
                 verb in ("recv", "recvn") else None
             self.ir.interactions.append(Interaction(
                 action="RECVLINE" if verb == "recvline" else "RECVN" if verb == "recvn"
                 else "RECV", length=length, line=node.lineno, scope=scope))
-        elif verb in _SEND_WAIT:
+            return True
+        if verb in _SEND_WAIT:
             self.ir.interactions.append(Interaction(
                 action="SENDLINE" if "line" in verb else "SEND",
                 wait_for=substitute(_arg_text(node.args[0]) if node.args else ""),
                 value=substitute(_arg_text(node.args[1]) if len(node.args) > 1 else ""),
                 line=node.lineno, scope=scope))
-        elif verb in _SEND_PLAIN:
+            return True
+        if verb in _SEND_PLAIN:
             self.ir.interactions.append(Interaction(
                 action="SENDLINE" if verb == "sendline" else "SEND",
                 value=substitute(_arg_text(node.args[0]) if node.args else ""),
                 line=node.lineno, scope=scope))
+            return True
+        return False
 
 
 import re  # noqa: E402  (word-boundary binding substitution above)
@@ -384,8 +439,7 @@ def extract_exploit_ir(source: str, *, known_helpers=None) -> tuple[ExploitIR, a
         tree = ast.parse(source or "")
     except SyntaxError as error:
         return ir, error
-    helpers = {node.name: node for node in tree.body
-               if isinstance(node, ast.FunctionDef)}
+    helpers = _helper_definitions(tree)
     extractor = _Extractor(helpers, ir)
     extractor.known_external = set(known_helpers or ())
     extractor.visit(tree)
