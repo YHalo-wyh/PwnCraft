@@ -20,7 +20,10 @@ def test_scope_is_general_pwn_not_heap_only() -> None:
 
 def test_scheduler_interleaves_heap_and_non_heap_lanes() -> None:
     scheduler = _scope()["scheduler"]
-    assert scheduler["policy"] == "cross_domain_interleave"
+    policy = scheduler["policy"]
+    assert policy.endswith("cross_domain_interleave")
+    assert "latest_first" in policy
+    assert "evidence_gated" in policy
     active = scheduler["active_lanes"]
     assert any(item.startswith("heap_") for item in active)
     assert any(not item.startswith("heap_") for item in active)
@@ -30,3 +33,4 @@ def test_hard_rules_forbid_global_claims_from_one_domain() -> None:
     rules = "\n".join(_scope()["hard_rules"])
     assert "不得把 heap lane 的 MATCH 外推为整个 PwnCraft 已闭环" in rules
     assert "没有证据时保持 unknown" in rules
+    assert "latest-first + evidence-gated" in rules
