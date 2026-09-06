@@ -1,0 +1,145 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
+  "domain": "memory_write",
+  "subdomains": [
+    "control_flow",
+    "type_confusion",
+    "compiler"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/slang",
+  "source_class": "official_challenge_archive",
+  "event": {
+    "name": "SCTF 2026",
+    "challenge": "slang",
+    "region": "China",
+    "difficulty": "advanced"
+  },
+  "materials": {
+    "readme_git_blob_sha1": "c0beaa304f355c6424c13793428b9cf2144889ca",
+    "exp_wrapper_git_blob_sha1": "a31e8aa066aab023f58750923652f3f40fbbb874",
+    "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+    "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+  },
+  "truth_layers": {
+    "OUTBOUND_SOURCE_TRANSPORT": {
+      "status": "PROVEN_EXP",
+      "facts": [
+        {
+          "kind": "embedded_program_literal",
+          "language": "slang",
+          "carrier": "Python multiline string PAYLOAD",
+          "provenance": "OFFICIAL_EXP"
+        },
+        {
+          "kind": "outbound_send",
+          "expression": "sock.sendall(source.encode())",
+          "provenance": "OFFICIAL_EXP"
+        }
+      ]
+    },
+    "EMBEDDED_PROGRAM_STRUCTURE": {
+      "status": "PROVEN_EXP",
+      "facts": [
+        {
+          "kind": "typed_function_signature",
+          "function": "pwn",
+          "parameters": [
+            ["int", "round"],
+            ["vec", "forged_vec"]
+          ],
+          "return_type": "void",
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        },
+        {
+          "kind": "typed_locals",
+          "function": "main",
+          "locals": [
+            ["int", "round"],
+            ["int", "keep_marker"],
+            ["vec", "vec_slot"],
+            ["str", "forged_header"]
+          ],
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        },
+        {
+          "kind": "loop_order",
+          "function": "main",
+          "relation": "pwn(round, vec_slot) occurs before forged_header := forge() in the same do/while body",
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        },
+        {
+          "kind": "write_like_call_shape",
+          "function": "pwn",
+          "callee": "scribble",
+          "arguments": ["forged_vec", "526339", "-205200"],
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        }
+      ],
+      "meaning": "The transmitted second-language program has a deterministic typed call/data structure that can be recovered without executing it."
+    },
+    "TYPE_CONFUSION_AND_WRITE_CHAIN": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_NOT_YET_AUTOMATIC",
+      "facts": [
+        {
+          "kind": "liveness_analysis_omission",
+          "relation": "void function arguments inside do/while are skipped by allocation liveness scan",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "slot_reuse_type_confusion",
+          "relation": "forged_header reuses vec_slot storage and is later consumed as vec",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "derived_additive_write",
+          "relation": "forged vec data=0 and huge size makes scribble equivalent to *(int64_t *)(idx*8) += delta",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ],
+      "limitations": [
+        "Cycle-15 does not infer compiler liveness/slot allocation semantics from the compiler implementation",
+        "the name scribble alone is not treated as proof of arbitrary write",
+        "runtime slot reuse is not observed in this cycle"
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "EXP_OUTBOUND_LITERAL_PAYLOAD",
+      "EMBEDDED_TYPED_FUNCTION_STRUCTURE",
+      "EMBEDDED_LOOP_ORDER"
+    ],
+    "required_relations": [
+      "outbound literal -> embedded typed program structure",
+      "pwn(round, vec_slot) -> before -> forged_header := forge() inside do/while"
+    ],
+    "forbidden_shortcuts": [
+      "do not infer type confusion from differing source types alone",
+      "do not infer arbitrary write from the function name scribble alone",
+      "do not infer GOT hijack merely because /bin/sh or puts appears in the payload",
+      "do not execute the Python exploit or embedded program"
+    ]
+  },
+  "unknown": [
+    "automatic compiler liveness bug recognition is not implemented in this cycle",
+    "automatic compiler slot-reuse reconstruction is not implemented in this cycle",
+    "runtime slot reuse is not observed by GDB/pwndbg in this cycle",
+    "the additive write and GOT-control path remain target/compiler semantic work for a later cycle"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-slang-embedded-structure-v2",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "exp_wrapper_git_blob_sha1": "a31e8aa066aab023f58750923652f3f40fbbb874",
+      "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+      "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+    },
+    "truth_revision": 2,
+    "supersedes": "truth-sctf2026-slang-outbound-payload-v1",
+    "superseded_by": null
+  }
+}
