@@ -26,9 +26,11 @@ from .pwn_surface import (
     surface_summary,
 )
 from .stack_truth import (
+    RuntimeRegisterObservation,
     StackOverflowEvidence,
     confirm_saved_ip_control,
     derive_cyclic_overflow,
+    derive_saved_ip_control_from_observation,
     publish_stack_evidence,
     stack_control_state,
 )
@@ -70,9 +72,11 @@ __all__ = [
     "active_domains",
     "analyze_pwn_surface",
     "surface_summary",
+    "RuntimeRegisterObservation",
     "StackOverflowEvidence",
     "confirm_saved_ip_control",
     "derive_cyclic_overflow",
+    "derive_saved_ip_control_from_observation",
     "publish_stack_evidence",
     "stack_control_state",
 ]
