@@ -9,7 +9,8 @@
     "项目级 capability/readiness 必须至少区分 stack、heap、format_string、control_flow、leak、syscall_sandbox；其他域按证据增量接入。",
     "后续 curriculum 采用多 lane 交错推进；heap 可以继续做深，但不能长期垄断全部训练 cycle。",
     "真实题目在任何 PwnCraft 输出产生之前必须先注册唯一 split；train 可驱动 patch，validation 只评估，frozen_test 禁止参与规则选择。",
-    "真实题目选择采用 latest-first + evidence-gated：优先最新 CTFtime 高质量赛事，但材料不完整或来源可信度不足时宁可 BLOCKED/validation-first，也不得为追新降低真值标准。",
+    "真实题目选择采用 latest-first + evidence-gated：优先最新高质量赛事，但材料不完整或来源可信度不足时宁可 BLOCKED/validation-first，也不得为追新降低真值标准。",
+    "2026 国内官方公开题库优先于同等材料质量的海外旧题；SCTF/R3CTF/强网杯/国赛等官方归档优先，BUUCTF/CTF-Wiki 等公开目录用于补齐覆盖面和 validation，但来源分级仍必须显式。",
     "heap/allocator 事实必须携带 allocator family；未知 allocator 不得自动套用 glibc chunk/bin 语义。"
   ],
   "challenge_intake": {
@@ -72,23 +73,31 @@
     }
   },
   "scheduler": {
-    "policy": "latest_first_evidence_gated_cross_domain_interleave",
+    "policy": "domestic_2026_first_latest_evidence_gated_cross_domain_interleave",
+    "source_priority": [
+      "2026 中国国内比赛官方公开仓库（完整 source/binary/EXP/writeup 优先）",
+      "2026 海内外官方公开仓库",
+      "BUUCTF/CTF-Wiki 等长期公开题目目录用于覆盖面、validation 与 frozen evaluation",
+      "社区 writeup/archive 仅在来源不足时进入 validation-first"
+    ],
     "active_lanes": [
-      "io_file_exp_intent_truth",
+      "memory_write: embedded outbound payload -> custom-language semantic truth",
       "stack_runtime_control_truth",
       "heap_physical_memory_truth"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "SCTF 2026 / slang: Python wrapper -> embedded Slang program -> exact outbound payload",
+      "SekaiCTF 2026 / echo-chamber: source+EXP modular integer composition",
       "Cyber Apocalypse 2026 / The Emptiness Machine: EXP-only FSOP intent truth"
     ],
     "next_lanes": [
-      "ASIS CTF Quals 2026: freshest candidate; participant materials enter validation-first until provenance/material trust is sufficient",
-      "SekaiCTF 2026 echo-chamber: official source-rich integer + memory_write + heap candidate",
-      "heap: PHYSICAL_MEMORY -> BINS continuation for accepted lab13",
-      "format_string: explicit offset/read/write evidence lane",
-      "control_flow: gadget-role + chain validation lane",
-      "leak: provenance-preserving base derivation lane"
+      "SCTF 2026 / slang: embedded language type-confusion -> additive arbitrary-write semantics",
+      "SCTF 2026 / CHAOS;HEAD: object lifetime/UAF -> leak -> adjacent object function-pointer overwrite",
+      "SCTF 2026 / UBW or heapMage: modern glibc heap lane with allocator/version evidence",
+      "2026 国内官方 Stack/Format String/Control Flow 新题优先插队",
+      "BUUCTF/CTF-Wiki: supplement missing classic patterns and validation clusters",
+      "heap: PHYSICAL_MEMORY -> BINS continuation for accepted lab13"
     ]
   }
 }
