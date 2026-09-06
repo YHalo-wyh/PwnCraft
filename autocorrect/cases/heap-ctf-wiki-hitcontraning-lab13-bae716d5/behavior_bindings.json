@@ -1,0 +1,78 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "bindings": [
+    {
+      "helper": "create",
+      "binary_handler": "create_heap",
+      "menu": "1",
+      "parameters": [
+        "size",
+        "content"
+      ],
+      "effects": [
+        {
+          "kind": "alloc",
+          "chunk": "S",
+          "request_size": "0x10",
+          "bind_handle": false,
+          "note": "management struct (malloc #1)"
+        },
+        {
+          "kind": "alloc",
+          "chunk": "C",
+          "request_size": "size",
+          "note": "content (malloc #2)"
+        }
+      ],
+      "bindings_provenance": "analyst-truth (heapcreator.c L40+L48)"
+    },
+    {
+      "helper": "edit",
+      "binary_handler": "edit_heap",
+      "menu": "2",
+      "parameters": [
+        "idx",
+        "size",
+        "content"
+      ],
+      "effects": [
+        {
+          "kind": "edit",
+          "index": "idx",
+          "data": "content"
+        }
+      ],
+      "bindings_provenance": "analyst-truth"
+    },
+    {
+      "helper": "free",
+      "binary_handler": "delete_heap",
+      "menu": "4",
+      "parameters": [
+        "idx"
+      ],
+      "effects": [
+        {
+          "kind": "free",
+          "index": "idx"
+        }
+      ],
+      "bindings_provenance": "analyst-truth"
+    },
+    {
+      "helper": "dump",
+      "binary_handler": "show_heap",
+      "menu": "3",
+      "parameters": [
+        "idx"
+      ],
+      "effects": [
+        {
+          "kind": "show",
+          "index": "idx"
+        }
+      ],
+      "bindings_provenance": "analyst-truth"
+    }
+  ]
+}

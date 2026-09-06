@@ -1,0 +1,158 @@
+{
+  "run_id": "run-046548d2aa6a50ad",
+  "reports": [
+    {
+      "step": 0,
+      "op_id": "initial",
+      "violations": []
+    },
+    {
+      "step": 1,
+      "op_id": "op_001",
+      "violations": []
+    },
+    {
+      "step": 2,
+      "op_id": "op_002",
+      "violations": []
+    },
+    {
+      "step": 3,
+      "op_id": "op_003",
+      "violations": []
+    },
+    {
+      "step": 4,
+      "op_id": "op_004",
+      "violations": []
+    },
+    {
+      "step": 5,
+      "op_id": "op_005",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    },
+    {
+      "step": 6,
+      "op_id": "op_006",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    },
+    {
+      "step": 7,
+      "op_id": "op_007",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    },
+    {
+      "step": 8,
+      "op_id": "op_008",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    },
+    {
+      "step": 9,
+      "op_id": "op_009",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    },
+    {
+      "step": 10,
+      "op_id": "op_010",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    },
+    {
+      "step": 11,
+      "op_id": "op_011",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    },
+    {
+      "step": 12,
+      "op_id": "op_012",
+      "violations": [
+        {
+          "invariant": 7,
+          "what": "top chunk address covered by a chunk card without resize evidence",
+          "detail": {
+            "physical_id": "phys_0002",
+            "top": 720,
+            "extent": 64,
+            "original": 64
+          }
+        }
+      ]
+    }
+  ]
+}

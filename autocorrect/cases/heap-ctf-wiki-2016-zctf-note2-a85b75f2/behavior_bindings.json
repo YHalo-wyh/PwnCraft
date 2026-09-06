@@ -1,0 +1,70 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "bindings": [
+    {
+      "helper": "newnote",
+      "binary_handler": "newnote",
+      "menu": "1",
+      "parameters": [
+        "length",
+        "content"
+      ],
+      "effects": [
+        {
+          "kind": "alloc",
+          "chunk": "C",
+          "request_size": "length"
+        }
+      ],
+      "bindings_provenance": "analyst-truth"
+    },
+    {
+      "helper": "shownote",
+      "binary_handler": "shownote",
+      "menu": "2",
+      "parameters": [
+        "id"
+      ],
+      "effects": [
+        {
+          "kind": "show",
+          "index": "id"
+        }
+      ],
+      "bindings_provenance": "analyst-truth"
+    },
+    {
+      "helper": "editnote",
+      "binary_handler": "editnote",
+      "menu": "3",
+      "parameters": [
+        "id",
+        "choice",
+        "content"
+      ],
+      "effects": [
+        {
+          "kind": "edit",
+          "index": "id",
+          "data": "content"
+        }
+      ],
+      "bindings_provenance": "analyst-truth"
+    },
+    {
+      "helper": "deletenote",
+      "binary_handler": "deletenote",
+      "menu": "4",
+      "parameters": [
+        "id"
+      ],
+      "effects": [
+        {
+          "kind": "free",
+          "index": "id"
+        }
+      ],
+      "bindings_provenance": "analyst-truth"
+    }
+  ]
+}

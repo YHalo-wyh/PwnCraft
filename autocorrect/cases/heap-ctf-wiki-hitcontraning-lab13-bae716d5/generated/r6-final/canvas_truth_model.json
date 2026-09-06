@@ -1,0 +1,2323 @@
+{
+  "definition": "CanvasTruthModel: what the backend truth says SHOULD be presented. NOT a claim about the actual JS renderer plan (INFRA-CLOSURE-1 P0-5).",
+  "run_id": "run-046548d2aa6a50ad",
+  "n_steps": 13,
+  "steps": [
+    {
+      "step": 0,
+      "snapshot_id": "initial",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [],
+      "rows": [],
+      "paint_spans": {
+        "cross_write": [],
+        "physical_overlap": [],
+        "raw_count": 0
+      },
+      "top_chunk": {
+        "offset": 656,
+        "size": 134512
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 1,
+      "snapshot_id": "op_001",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [],
+        "physical_overlap": [],
+        "raw_count": 1
+      },
+      "top_chunk": {
+        "offset": 688,
+        "size": 134480
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 2,
+      "snapshot_id": "op_002",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "B",
+          "heap_offset": 688,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [],
+        "physical_overlap": [],
+        "raw_count": 2
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 134448
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 720,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 3,
+      "snapshot_id": "op_003",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "B",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "B",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "B",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 4
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 134448
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 4,
+      "snapshot_id": "op_004",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "B",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 32,
+          "lifecycle": "freed",
+          "bin_location": "fastbin[0x40]",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "B",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "B",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "B",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 4
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 134448
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {
+          "0x40": [
+            "B"
+          ]
+        },
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [
+        {
+          "title": "fastbins",
+          "size": "0x40",
+          "chain": [
+            "B"
+          ],
+          "doubly": false
+        }
+      ],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 5,
+      "snapshot_id": "op_005",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 6,
+      "snapshot_id": "op_006",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 7,
+      "snapshot_id": "op_007",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 8,
+      "snapshot_id": "op_008",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 9,
+      "snapshot_id": "op_009",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 10,
+      "snapshot_id": "op_010",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 11,
+      "snapshot_id": "op_011",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {},
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    },
+    {
+      "step": 12,
+      "snapshot_id": "op_012",
+      "word_size": 8,
+      "scene_layout": {
+        "heap_x": 24.0,
+        "heap_y": 64.0,
+        "heap_width": 680.0,
+        "bin_x": 740.0,
+        "units": "x/width=bytes from heap origin; y/height=rows"
+      },
+      "chunks": [
+        {
+          "physical_id": "phys_0001",
+          "chunk_id": "A",
+          "heap_offset": 656,
+          "physical_extent_size": 32,
+          "original_extent_size": 32,
+          "lifecycle": "freed",
+          "bin_location": "fastbin[0x20]",
+          "group_id": "group_0001",
+          "logical_chunk_ids": [
+            "A"
+          ],
+          "external": false,
+          "layout": {
+            "x": 656,
+            "y": 0,
+            "width": 32,
+            "height": 3,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        },
+        {
+          "physical_id": "phys_0002",
+          "chunk_id": "C",
+          "heap_offset": 688,
+          "physical_extent_size": 64,
+          "original_extent_size": 64,
+          "lifecycle": "allocated",
+          "bin_location": "",
+          "group_id": "group_0002",
+          "logical_chunk_ids": [
+            "B",
+            "C"
+          ],
+          "external": false,
+          "layout": {
+            "x": 688,
+            "y": 3,
+            "width": 64,
+            "height": 5,
+            "column": "heap",
+            "collapsed_bytes": 0
+          }
+        }
+      ],
+      "rows": [
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "prev_size",
+          "physical_start": 656,
+          "physical_end": 664,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "size",
+          "physical_start": 664,
+          "physical_end": 672,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "A",
+          "physical_id": "phys_0001",
+          "kind": "user",
+          "physical_start": 672,
+          "physical_end": 688,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "prev_size",
+          "physical_start": 688,
+          "physical_end": 696,
+          "partial": false,
+          "covered_start": 688,
+          "covered_end": 696
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "size",
+          "physical_start": 696,
+          "physical_end": 704,
+          "partial": true,
+          "covered_start": 696,
+          "covered_end": 697
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 704,
+          "physical_end": 720,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 720,
+          "physical_end": 736,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        },
+        {
+          "chunk_id": "C",
+          "physical_id": "phys_0002",
+          "kind": "user",
+          "physical_start": 736,
+          "physical_end": 752,
+          "partial": false,
+          "covered_start": null,
+          "covered_end": null
+        }
+      ],
+      "paint_spans": {
+        "cross_write": [
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 688,
+            "end": 696,
+            "byte_start": 0,
+            "byte_end": 8
+          },
+          {
+            "owner": "C",
+            "writer": "phys_0001",
+            "start": 696,
+            "end": 697,
+            "byte_start": 0,
+            "byte_end": 1
+          }
+        ],
+        "physical_overlap": [],
+        "raw_count": 5
+      },
+      "top_chunk": {
+        "offset": 720,
+        "size": 0
+      },
+      "bins": {
+        "tcache": {},
+        "fastbins": {
+          "0x20": [
+            "A"
+          ]
+        },
+        "smallbins": {},
+        "largebins": {},
+        "unsorted": []
+      },
+      "bin_rows": [
+        {
+          "title": "fastbins",
+          "size": "0x20",
+          "chain": [
+            "A"
+          ],
+          "doubly": false
+        }
+      ],
+      "selected_physical_id": null,
+      "groups": [
+        {
+          "group_id": "group_0001",
+          "start": 656,
+          "end": 688,
+          "overlap": false,
+          "shared_memory": false,
+          "physical_ids": [
+            "phys_0001"
+          ]
+        },
+        {
+          "group_id": "group_0002",
+          "start": 688,
+          "end": 752,
+          "overlap": true,
+          "shared_memory": true,
+          "physical_ids": [
+            "phys_0002",
+            "phys_0002"
+          ]
+        }
+      ],
+      "run_id": "run-046548d2aa6a50ad"
+    }
+  ]
+}
