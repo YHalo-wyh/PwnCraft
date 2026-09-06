@@ -13,6 +13,7 @@ from pwncraft.features.audit.embedded_compiler import (
     EmbeddedCompilerPolicy,
     analyze_embedded_compiler_semantics,
 )
+from pwncraft.features.audit.embedded_execution import analyze_embedded_execution_semantics
 from pwncraft.features.audit.embedded_program import extract_embedded_function_program
 from pwncraft.features.audit.extract import extract_exploit_ir
 from pwncraft.features.audit.model import ExploitIR, SymbolRef
@@ -93,24 +94,35 @@ def _embedded_program_facts(payloads: list) -> list[dict]:
     return result
 
 
-def _embedded_compiler_facts(
+def _embedded_semantic_facts(
     payloads: list,
     policy: EmbeddedCompilerPolicy | None,
-) -> list[dict]:
-    """Apply compiler semantics only when an explicit reviewed policy exists."""
+) -> tuple[list[dict], list[dict]]:
+    """Apply reviewed compiler semantics and the deterministic execution layer."""
     if policy is None:
-        return []
-    result: list[dict] = []
+        return [], []
+    compiler_result: list[dict] = []
+    execution_result: list[dict] = []
     for payload in payloads:
         program = extract_embedded_function_program(payload.content)
         if program is None:
             continue
-        fact = analyze_embedded_compiler_semantics(program, policy)
-        fact["source_payload_sha256"] = payload.sha256
-        fact["source_payload_line"] = payload.line
-        fact["source_payload_scope"] = payload.scope
-        result.append(fact)
-    return result
+        compiler = analyze_embedded_compiler_semantics(program, policy)
+        compiler["source_payload_sha256"] = payload.sha256
+        compiler["source_payload_line"] = payload.line
+        compiler["source_payload_scope"] = payload.scope
+        compiler_result.append(compiler)
+
+        execution = analyze_embedded_execution_semantics(
+            program,
+            compiler,
+            payload.content,
+        )
+        execution["source_payload_sha256"] = payload.sha256
+        execution["source_payload_line"] = payload.line
+        execution["source_payload_scope"] = payload.scope
+        execution_result.append(execution)
+    return compiler_result, execution_result
 
 
 def analyze_exp_semantics(
@@ -121,8 +133,8 @@ def analyze_exp_semantics(
     """Return source-derived semantic facts without mutating a workspace.
 
     Compiler-specific facts are opt-in and require a reviewed policy.  The
-    default path therefore preserves Cycle-15 behavior and cannot infer slot
-    allocation from source shape alone.
+    cross-iteration execution layer is downstream of those reviewed facts and
+    never runs when no policy is supplied.
     """
     ir, syntax_error = extract_exploit_ir(source)
     if syntax_error is not None:
@@ -135,6 +147,7 @@ def analyze_exp_semantics(
             "outbound_literal_payloads": [],
             "embedded_programs": [],
             "embedded_compiler_semantics": [],
+            "embedded_execution_semantics": [],
             "primitives": [],
         }
     payloads, payload_error = extract_outbound_literal_payloads(source)
@@ -143,6 +156,9 @@ def analyze_exp_semantics(
     # diverge in supported syntax.
     if payload_error is not None:
         payloads = []
+    compiler_facts, execution_facts = _embedded_semantic_facts(
+        payloads, embedded_compiler_policy
+    )
     return {
         "status": "ok",
         "reason": "",
@@ -158,9 +174,8 @@ def analyze_exp_semantics(
         ],
         "outbound_literal_payloads": [payload.to_dict() for payload in payloads],
         "embedded_programs": _embedded_program_facts(payloads),
-        "embedded_compiler_semantics": _embedded_compiler_facts(
-            payloads, embedded_compiler_policy
-        ),
+        "embedded_compiler_semantics": compiler_facts,
+        "embedded_execution_semantics": execution_facts,
         "primitives": infer_exp_primitives(ir),
     }
 
