@@ -1,0 +1,36 @@
+{
+  "records": [
+    {
+      "record_type": "M3_real_failure",
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "exp_source": "heapcreator EXP (real, edit-after-delete UAF pattern)",
+      "diagnostic": {
+        "code": "EXP_HEAP_014",
+        "severity": "error",
+        "confidence": 0.9,
+        "message": "你正在 show 已释放的 chunk[1]，但目标程序在 free 后会清空对应指针 —— UAF 假设不成立。",
+        "line": 57,
+        "evidence": [
+          {
+            "kind": "FREE",
+            "detail": "delete 释放 chunks[1]"
+          },
+          {
+            "kind": "POST_FREE_NULL_STORE",
+            "detail": "heaparray[idx]=NULL"
+          }
+        ],
+        "suggested_fix": "检查是否存在其他悬空引用 / index alias，或改用不被清空的对象。",
+        "impact": "edit/show 作用在空指针上，无法构成 UAF。",
+        "scope": "main",
+        "span": {},
+        "provenance": "DERIVED",
+        "fix_target": "",
+        "fix_appliable": false
+      },
+      "assertion": "EXP_HEAP_014 must fire when target has CLEAR_POINTER and EXP has edit-after-delete",
+      "provenance": "OBSERVED (audit_exp on real EXP + real behavior profile)",
+      "significance": "Auditor 检测到真实 EXP 中与目标行为冲突的利用假设——非平凡通过"
+    }
+  ]
+}
