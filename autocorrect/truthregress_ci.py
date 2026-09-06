@@ -5,10 +5,10 @@
 This is the CI-safe closure for the accepted-case gate:
 - deduplicate accepted case ids;
 - require a valid locked truth;
-- perform one fresh authoritative run per case;
+- perform one fresh authoritative source analysis per case;
+- lower reviewed TargetBehavior and replay its allocator 1:N actions when
+  available;
 - write sidecars into generated/truthregress/;
-- lower reviewed behavior bindings into the TargetBehavior stage without a
-  second source analysis;
 - compare with the case evaluation contract so deferred layers stay deferred;
 - apply the real contract gate only after the fresh artifact directory exists.
 
@@ -37,8 +37,7 @@ if str(HERE) not in sys.path:
 
 import comparator_v4  # noqa: E402
 import evaluation_contract  # noqa: E402
-import pwncraft_adapter  # noqa: E402
-import target_behavior_v2  # noqa: E402
+import pwncraft_adapter_v2 as pwncraft_adapter  # noqa: E402
 import loop as loop_cli  # noqa: E402
 
 
@@ -114,12 +113,6 @@ def run_gate() -> int:
                 out_path=gen_dir / "pwncraft_output.json",
             )
 
-            # Cycle-5 TargetBehavior stage.  This consumes only canonical_ops
-            # from the fresh authoritative result and a reviewed binding file;
-            # it does not rerun the source analyzer and does not alter replay.
-            if target_behavior_v2.apply_case_bindings(actual, cdir):
-                target_behavior_v2.persist_target_behavior(actual, gen_dir)
-
             contract = evaluation_contract.load_contract(cdir)
             report = _compare_after_fresh_artifacts(
                 expected,
@@ -139,6 +132,9 @@ def run_gate() -> int:
                 "artifact_dir": str(gen_dir),
                 "target_behavior_revision": (
                     (actual.get("target_behavior") or {}).get("revision") or ""
+                ),
+                "allocator_replay_revision": (
+                    (actual.get("allocator_replay_plan") or {}).get("revision") or ""
                 ),
             }
             results.append(row)
