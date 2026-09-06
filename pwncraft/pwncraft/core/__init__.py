@@ -25,6 +25,13 @@ from .pwn_surface import (
     analyze_pwn_surface,
     surface_summary,
 )
+from .stack_truth import (
+    StackOverflowEvidence,
+    confirm_saved_ip_control,
+    derive_cyclic_overflow,
+    publish_stack_evidence,
+    stack_control_state,
+)
 
 __all__ = [
     "ActionType",
@@ -63,4 +70,9 @@ __all__ = [
     "active_domains",
     "analyze_pwn_surface",
     "surface_summary",
+    "StackOverflowEvidence",
+    "confirm_saved_ip_control",
+    "derive_cyclic_overflow",
+    "publish_stack_evidence",
+    "stack_control_state",
 ]
