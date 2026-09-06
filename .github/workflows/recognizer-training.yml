@@ -14,7 +14,7 @@ on:
       - ".github/workflows/recognizer-training.yml"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   pytest:
@@ -25,42 +25,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'push' && github.ref_name || github.event.pull_request.head.ref }}
-
-      - name: Apply one-time Cycle-4 metadata fixes
-        if: github.event_name == 'push' && contains(github.event.head_commit.message, '[cycle4-finalize]')
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          analyzer = Path('pwncraft/pwncraft/features/heapviz/analyzer.py')
-          text = analyzer.read_text(encoding='utf-8')
-          old = 'RECOGNIZER_REVISION = "recognizer-2026.09-r5"  # r5: cycle-3 callsite-level OUTPUT_DATA_FLOW promotion (show/shownote)'
-          new = 'RECOGNIZER_REVISION = "recognizer-2026.09-r6"  # r6: cycle-4 generic size-only alloc promotion'
-          if old not in text and new not in text:
-              raise SystemExit('unexpected analyzer revision line')
-          analyzer.write_text(text.replace(old, new), encoding='utf-8')
-
-          adapter = Path('autocorrect/pwncraft_adapter.py')
-          text = adapter.read_text(encoding='utf-8')
-          old = 'ac_case = ROOT / "autocorrect" / "cases" / manifest.get("case_id", "")'
-          new = 'ac_case = _OUTER / "autocorrect" / "cases" / manifest.get("case_id", "")'
-          if old not in text and new not in text:
-              raise SystemExit('unexpected adapter root expression')
-          adapter.write_text(text.replace(old, new), encoding='utf-8')
-
-          marker = Path('autocorrect/patches/cycle-4/.finalize')
-          if marker.exists():
-              marker.unlink()
-          PY
-          git config user.name github-actions[bot]
-          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          if ! git diff --quiet; then
-            git add pwncraft/pwncraft/features/heapviz/analyzer.py autocorrect/pwncraft_adapter.py autocorrect/patches/cycle-4/.finalize
-            git commit -m "cycle-4: bump recognizer r6 and repair truthregress root"
-            git push origin HEAD:${GITHUB_REF_NAME}
-          fi
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
