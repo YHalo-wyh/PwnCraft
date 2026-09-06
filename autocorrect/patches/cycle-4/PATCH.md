@@ -1,12 +1,14 @@
 # cycle-4 — size-only alloc contract
 
-状态：IN_PROGRESS（已重基于 2026-09-06 当前 `main` 的 `pwncraft/` 命名结构；尚未登记 ACCEPTED）
+状态：ACCEPTED（2026-09-06；current-head GitHub gate + accepted truth regression 均通过）
 
 分支：`training/gpt-cycle-4-size-only-alloc-v2`
 
+识别器：`recognizer-2026.09-r6`
+
 ## First divergence
 
-当前能力队列中最早的未闭合项之一是经典单参数分配 helper：
+本轮处理的是经典单参数分配 helper：
 
 - babyheap：`allocate(size)`，`Size:` prompt 后 `sendline(str(size))`
 - stkof：`alloc(size)`，无 `Size:` prompt，但先发送菜单选择 `1`，再 `sendline(str(size))`
@@ -37,10 +39,11 @@
   - 显式 analyst/profile/user truth 继续优先；
   - lowering 默认使用促销后的 resolution。
 - `pwncraft/pwncraft/features/heapviz/contracts/__init__.py` 的公共入口切到 promotions 层；现有包级调用者无需改 API。
+- `RECOGNIZER_REVISION` 在正式接收本行为变化时由 r5 提升到 r6。
 
 ## 回归设计
 
-`pwncraft/tests/test_contract_size_only_alloc.py` 当前 7 项：
+`pwncraft/tests/test_contract_size_only_alloc.py` 共 7 项。
 
 正例：
 
@@ -55,26 +58,32 @@
 - `allocate(size)` 但 outbound 是固定字符串：无 parameter flow，不得提升；
 - `resize(size)`：size shape 存在但不是 ALLOC 候选，不得提升。
 
-## 已执行的定向验证
+## 验收结果
 
-在当前会话的隔离 harness 中，使用 2026-09-05 review bundle 的 resolver/model/source_compat 基线，并叠加本轮 promotion：
+最终验收在 PR merge ref 上执行，而不是依赖旧的本地 harness：
 
-- cycle-4 size-only 回归：7 项通过；
-- cycle-1 `PROMPT_SYNC != OUTPUT_DATA_FLOW` 既有回归：7 项通过；
-- 合计：`14 passed`；
-- babyheap 真实 helper 形状：`allocate -> alloc`, role=`size`, evidence=`prompt-bound`；
-- stkof 真实 helper 形状：`alloc -> alloc`, role=`size`, evidence=`control-send + parameter-bound`。
+- PwnCraft project regression：`471 passed, 1 skipped, 6 subtests passed`；
+- autocorrect infrastructure regression：`8 passed`；
+- artifact-aware accepted truth regression：
+  - `heap-ctf-wiki-hitcontraning-lab13-bae716d5: MATCH`
+  - `heap-ctf-wiki-2016-zctf-note2-a85b75f2: MATCH`
+- gate 总结：`failed=False -> exit 0`。
 
-注意：上述 14 项是定向兼容验证，不等价于当前 GitHub HEAD 的全量 pytest/truthregress。旧 PR 分支因项目目录/包名从 `pwn宝/pwnbao` 统一重命名为 `pwncraft/pwncraft` 已废弃，本分支从最新 main 重新落盘，不把重命名差异混入训练补丁。
+为关闭旧 truthregress 的 sidecar 完整性盲点，本轮额外增加 `autocorrect/truthregress_ci.py`：每个 accepted case 都进行 fresh authoritative run，把 sidecars 写入 `generated/truthregress/`，在保持 evaluation contract 的 layer applicability 前提下，再对真实 artifact 目录执行完整性门禁。这个修复只修验收路径，不改变识别器语义。
 
-## 验收纪律
+此前一次 CI 暴露并修复了 `pwncraft_adapter.py` 中未定义 `ROOT` 导致正式 run/truthregress 崩溃的问题；当前已使用 `_OUTER / "autocorrect" / "cases"` 解析 behavior bindings。
 
-在以下条件全部满足前，不写入 `accepted_rules`：
+## 接收结论
 
-- cycle-4 新增回归全部通过；
+满足本轮全部接收条件：
+
+- cycle-4 新增回归通过；
 - 当前仓库全量 pytest 无退化；
 - babyheap helper 从 UNKNOWN → ALLOC(size)；
 - stkof helper 同规则自动生效；
-- lab13/note2 已接受断言保持通过；
-- 识别器 revision 在正式接收本行为变化时递增；
-- 若新的 first divergence 推进到 FREE/DELETE、TARGET_BEHAVIOR 或 allocator 层，只记录为下一轮，不在本轮顺手修。
+- bare/name-only/token/resize 近似反例保持不提升；
+- lab13/note2 已接受真值均保持 MATCH；
+- recognizer revision 已递增至 r6；
+- 规则已登记为 `R-SIZE-ONLY-ALLOC-STRUCTURAL-PROMOTION`。
+
+下一 first-divergence 不在本轮顺手修。能力队列推进到 `TARGET_BEHAVIOR 1:N`（lab13 create/delete 的目标内部多 malloc/free 行为）。
