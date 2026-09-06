@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-09-06",
+  "policy": "latest-first + evidence-gated; freshness never overrides material/provenance quality",
+  "candidates": [
+    {
+      "event": "ASIS CTF Quals 2026",
+      "event_window_utc": "2026-08-29T14:00:00Z/2026-08-30T14:00:00Z",
+      "ctftime_weight_observed": "90.53*",
+      "challenge": "arena-snapshots",
+      "repository": "https://github.com/hax1ng/ASIS-CTF-Quals-2026",
+      "source_class": "participant_writeup",
+      "materials_observed": [
+        "binary",
+        "exploit.py",
+        "participant README/analysis"
+      ],
+      "status": "VALIDATION_FIRST",
+      "reason": "very fresh and material-rich, but the repository is participant-maintained rather than an official challenge-source release; do not let it drive a patch until binary/EXP truth is independently established"
+    },
+    {
+      "event": "COMPFEST CTF 2026",
+      "event_window_utc": "2026-08-29T00:00:00Z/2026-08-30T00:00:00Z",
+      "ctftime_weight_observed": "96.00*",
+      "challenge": null,
+      "repository": null,
+      "source_class": "unresolved",
+      "materials_observed": [],
+      "status": "MATERIAL_DISCOVERY_BLOCKED",
+      "reason": "no suitable public source-rich Pwn challenge repository was resolved in this cycle"
+    },
+    {
+      "event": "Cyber Apocalypse CTF 2026: The Salt Crown",
+      "event_window_utc": "2026-07-24/2026-07-29",
+      "challenge": "The Emptiness Machine",
+      "repository": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026",
+      "source_class": "official_writeup",
+      "materials_observed": [
+        "official writeup",
+        "official solver.py"
+      ],
+      "status": "TRAINED_EXP_SEMANTICS_ONLY",
+      "reason": "official material was sufficient for locked EXP-level FSOP intent truth, but not for full target/runtime truth"
+    },
+    {
+      "event": "SekaiCTF 2026",
+      "event_window_utc": "2026-06-27/2026-06-29",
+      "challenge": "echo-chamber",
+      "repository": "https://github.com/project-sekai-ctf/sekaictf-2026",
+      "source_class": "official_challenge_release",
+      "materials_observed": [
+        "chal.c",
+        "binary",
+        "libc",
+        "ld",
+        "official solve.py"
+      ],
+      "status": "NEXT_SOURCE_RICH_TRAIN_CANDIDATE",
+      "reason": "older than August candidates but substantially stronger clean-room material for integer/signedness + memory-write + heap truth"
+    }
+  ]
+}
