@@ -1,0 +1,116 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89",
+  "domain": "stack",
+  "subdomains": [
+    "control_flow"
+  ],
+  "source_repository": "https://github.com/ctf-wiki/ctf-challenges",
+  "source_commit": "18d67d158d0729fca20597723c763f475f7968cd",
+  "source_challenge_path": "pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1",
+  "arch": {
+    "value": "x86",
+    "bits": 32,
+    "provenance": "MANIFEST"
+  },
+  "truth_layers": {
+    "INPUT_EXP_EVIDENCE": {
+      "status": "PROVEN",
+      "facts": [
+        {
+          "kind": "payload_prefix_bytes",
+          "value": 112,
+          "expression": "'a' * 112",
+          "provenance": "SOLUTION_EXP",
+          "note": "证明 EXP 在第一个控制流 word 前放置 112 字节前缀；不单独等价于运行时 EIP 已观测可控"
+        },
+        {
+          "kind": "post_prefix_word",
+          "expression": "system_plt",
+          "source_value": "0x08048460",
+          "provenance": "SOLUTION_EXP"
+        },
+        {
+          "kind": "following_padding_bytes",
+          "value": 4,
+          "expression": "'b' * 4",
+          "provenance": "SOLUTION_EXP"
+        },
+        {
+          "kind": "following_word",
+          "expression": "binsh_addr",
+          "source_value": "0x08048720",
+          "provenance": "SOLUTION_EXP"
+        }
+      ]
+    },
+    "STACK_SOURCE_RELATION": {
+      "status": "PROVEN",
+      "facts": [
+        {
+          "kind": "local_buffer",
+          "function": "main",
+          "name": "buf1",
+          "size": 100,
+          "provenance": "SOURCE"
+        },
+        {
+          "kind": "unbounded_input",
+          "function": "main",
+          "call": "gets(buf1)",
+          "target": "buf1",
+          "provenance": "SOURCE"
+        },
+        {
+          "kind": "stack_overflow_condition",
+          "function": "main",
+          "state": "PROVEN_SOURCE",
+          "reason": "gets 对 100-byte local buffer 无长度限制",
+          "provenance": "SOURCE"
+        }
+      ]
+    },
+    "SAVED_IP_RELATION": {
+      "status": "EXP_SUPPORTED",
+      "offset": 112,
+      "control_register": "EIP",
+      "provenance": "SOLUTION_EXP_LAYOUT",
+      "limitations": [
+        "本轮 clean-room 未执行 binary；112 由可信解题 EXP 的 payload 布局提供",
+        "未提供真实 GDB/pwndbg EIP 覆盖观测，因此不得标成 OBSERVED_RUNTIME"
+      ]
+    },
+    "CONTROL_FLOW": {
+      "status": "EXP_INTENT",
+      "technique": "ret2plt_system",
+      "target_expression": "system_plt",
+      "argument_expression": "binsh_addr",
+      "source_support": [
+        "源码存在全局字符串 /bin/sh",
+        "源码引用 system，因此目标二进制预期具有 system 解析入口"
+      ],
+      "limitations": [
+        "0x08048460 与 0x08048720 的精确二进制语义本轮只由 EXP 命名/常量提供，未独立反汇编验证"
+      ]
+    }
+  },
+  "unknown": [
+    "PIE/NX/Canary/RELRO 的独立 binary 验证",
+    "真实运行时 EIP 覆盖值",
+    "glibc 版本与 libc base",
+    "system@plt 与 /bin/sh 地址的独立反汇编/符号表确认"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-d0c63d89c15d998d",
+    "content_sha256": "d0c63d89c15d998df46190327e9dce26b00d49228770d5cdb1dec1262c7c1484",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "binary_sha256": "c5603c89e49279a685d515b16721a7a219e8c4b99884aa6ae1a7899619389344",
+      "exp_sha256": "75e243ad5759c8e6f1e4f040e1f8c5a1317e12c460e3c78fd164fad44cc70923",
+      "source_sha256": "3fc502d5a318e10d757caf077b979cbff14cead930922796b044134593528d60"
+    },
+    "truth_revision": 1,
+    "superseded_by": null
+  }
+}
