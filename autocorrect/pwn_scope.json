@@ -73,7 +73,7 @@
     }
   },
   "scheduler": {
-    "policy": "domestic_2026_first_latest_evidence_gated_cross_domain_interleave",
+    "policy": "domestic_2026_first_latest_first_evidence_gated_cross_domain_interleave",
     "source_priority": [
       "2026 中国国内比赛官方公开仓库（完整 source/binary/EXP/writeup 优先）",
       "2026 海内外官方公开仓库",
