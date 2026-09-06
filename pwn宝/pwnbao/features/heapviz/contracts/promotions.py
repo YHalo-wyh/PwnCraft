@@ -57,6 +57,17 @@ def _literal_text(call: ast.Call) -> str:
     return " ".join(values)
 
 
+def _has_constant_payload(call: ast.Call) -> bool:
+    for argument in [*call.args, *(kw.value for kw in call.keywords)]:
+        if any(
+            isinstance(node, ast.Constant)
+            and isinstance(node.value, (str, bytes, int))
+            for node in ast.walk(argument)
+        ):
+            return True
+    return False
+
+
 def _prompt_role(text: str) -> str:
     normalized = re.sub(r"[^a-z0-9_]+", " ", (text or "").lower())
     for role, words in _PROMPT_ROLES.items():
@@ -75,10 +86,16 @@ def _argument_uses_parameter(call: ast.Call, parameter: str) -> bool:
 def _size_outbound_flow(node: ast.FunctionDef | ast.AsyncFunctionDef, parameter: str) -> tuple[int, str] | None:
     """Prove that a single helper parameter is the outbound SIZE value.
 
-    Prompt evidence wins over parameter spelling.  A promptless helper may use
-    a conventional size parameter name, but merely having an alloc-like helper
-    name is never enough: the parameter must actually flow into an outbound
-    send/write call.
+    Two evidence paths are accepted:
+
+    * a SIZE-labelled prompt is immediately paired with the outbound parameter;
+    * for promptless menu wrappers, a conventional size parameter follows an
+      earlier constant/control send (the common ``sendline('1'); sendline(size)``
+      shape).
+
+    A bare ``allocate(size): sendline(size)`` is intentionally insufficient.
+    That keeps an alloc-like helper name and a parameter spelling from becoming
+    self-fulfilling evidence.
     """
 
     calls = sorted(
@@ -87,12 +104,12 @@ def _size_outbound_flow(node: ast.FunctionDef | ast.AsyncFunctionDef, parameter:
     )
     parameter_role = "size" if parameter.lower() in _SIZE_NAMES else ""
     pending_prompt_role = ""
+    saw_constant_control_send = False
 
     for call in calls:
         verb = _call_name(call)
         if verb in _PROMPT_RECV_VERBS:
-            role = _prompt_role(_literal_text(call))
-            pending_prompt_role = role or ""
+            pending_prompt_role = _prompt_role(_literal_text(call))
             continue
 
         is_send = verb in _SEND_VERBS or "send" in verb
@@ -100,18 +117,27 @@ def _size_outbound_flow(node: ast.FunctionDef | ast.AsyncFunctionDef, parameter:
             continue
 
         uses_parameter = _argument_uses_parameter(call, parameter)
-        inline_prompt_role = _prompt_role(_literal_text(call)) if verb in {"sendafter", "sendlineafter", "sa", "sla"} else ""
-        observed_role = inline_prompt_role or pending_prompt_role or parameter_role
+        inline_prompt_role = (
+            _prompt_role(_literal_text(call))
+            if verb in {"sendafter", "sendlineafter", "sa", "sla"}
+            else ""
+        )
+        prompt_role = inline_prompt_role or pending_prompt_role
         line = int(getattr(call, "lineno", 0))
 
-        # A send consumes the immediately preceding prompt context.  This
-        # prevents a stale "Size:" recv from accidentally labelling a later
-        # unrelated outbound value.
+        # Any outbound send consumes the immediately preceding recvuntil role;
+        # otherwise a stale "Size:" prompt could label a later unrelated send.
         pending_prompt_role = ""
 
-        if uses_parameter and observed_role == "size":
-            source = "prompt-bound" if (inline_prompt_role or observed_role != parameter_role) else "parameter-bound"
-            return line, f"single outbound parameter is SIZE ({source})"
+        if uses_parameter:
+            if prompt_role == "size":
+                return line, "single outbound parameter is SIZE (prompt-bound)"
+            if parameter_role == "size" and saw_constant_control_send:
+                return line, "single outbound parameter is SIZE (control-send + parameter-bound)"
+            continue
+
+        if _has_constant_payload(call):
+            saw_constant_control_send = True
 
     return None
 
