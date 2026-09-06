@@ -24,6 +24,7 @@ sys.path.insert(0, str(HERE))
 import pwncraft_adapter  # noqa: E402
 import comparator  # noqa: E402
 import comparator_v3  # noqa: E402  (kept for audit trail)
+import evaluation_contract  # noqa: E402
 import comparator_v4  # noqa: E402
 import regression  # noqa: E402
 
@@ -303,6 +304,95 @@ def cmd_supersede_truth(args):
 
 
 def cmd_truthregress(args):
+    """阶段 0.2: 真值回归 = 注册案例的严格验收。缺锁/缺件 → BLOCKED;
+    任一注册案例 verdict != MATCH → 进程退出码非零 (正式门禁)。
+    探索运行请用 diverge (不产生门禁结果)。"""
+    import hashlib
+    registry_path = HERE / "accepted_cases.json"
+    registry = {"rule_acceptances": [], "assertion_acceptances": [],
+                "case_acceptances": []}
+    if registry_path.exists():
+        loaded = json.loads(registry_path.read_text(encoding="utf-8"))
+        if isinstance(loaded, list):  # 旧格式: 视为 case_acceptances
+            registry["case_acceptances"] = [
+                {"case_id": x} if isinstance(x, str) else dict(x) for x in loaded]
+        else:
+            registry.update(loaded)
+    registered = [c["case_id"] if isinstance(c, dict) else c
+                  for c in registry["case_acceptances"]]
+    if not registered:
+        print("[truthregress] 注册表为空: 无已接受案例可回归 (退出 0)")
+        (HERE / "regression" / "truth_regression.json").write_text(
+            json.dumps({"registry": registry, "results": [],
+                        "note": "empty registry"}, ensure_ascii=False, indent=2),
+            encoding="utf-8")
+        return
+    results, failed = [], False
+    for case_id in registered:
+        cdir = HERE / "cases" / case_id
+        truth_path = _truth_path(cdir)
+        if not truth_path.exists():
+            results.append({"case_id": case_id, "verdict": "BLOCKED",
+                            "reason": "expected_truth missing"})
+            failed = True
+            print(f"[truthregress] {case_id}: BLOCKED (truth missing)")
+            continue
+        try:
+            _check_truth_lock(cdir, strict=True)
+        except SystemExit as error:
+            results.append({"case_id": case_id, "verdict": "BLOCKED",
+                            "reason": str(error)})
+            failed = True
+            print(f"[truthregress] {case_id}: BLOCKED (lock: {str(error)[:80]})")
+            continue
+        expected = json.loads(truth_path.read_text(encoding="utf-8"))
+        exp_path = next((resolve_case(case_id) / "original" / "solution").glob("*.py"))
+        result = pwncraft_adapter.run_case(resolve_case(case_id))
+        report = comparator_v4.compare(expected, result,
+                                       exp_source=exp_path.read_text(encoding="utf-8"))
+        contract = evaluation_contract.load_contract(cdir)
+        report = evaluation_contract.enforce(report, contract)
+        fd = report.get("first_divergence") or {}
+        verdict = report["verdict"]
+        results.append({"case_id": case_id, "verdict": verdict,
+                        "layer": fd.get("layer"),
+                        "assertions": report.get("assertion_counts"),
+                        "run_id": (result.get("run_manifest") or {}).get("run_id")})
+        print(f"[truthregress] {case_id}: {verdict}"
+              + (f" @ {fd.get('layer')}" if fd.get("layer") else ""))
+        if verdict != "MATCH":
+            failed = True
+    (HERE / "regression" / "truth_regression.json").write_text(
+        json.dumps({"registry": registry, "results": results},
+                   ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[truthregress] failed={failed} -> exit {'1' if failed else '0'}")
+    if failed:
+        sys.exit(1)
+
+
+def cmd_accept(args):
+    """阶段 0.2: 注册验收对象。kind ∈ case|assertion|rule。"""
+    registry_path = HERE / "accepted_cases.json"
+    registry = {"rule_acceptances": [], "assertion_acceptances": [],
+                "case_acceptances": []}
+    if registry_path.exists():
+        loaded = json.loads(registry_path.read_text(encoding="utf-8"))
+        if isinstance(loaded, list):
+            registry["case_acceptances"] = [
+                {"case_id": x} if isinstance(x, str) else dict(x) for x in loaded]
+        else:
+            registry.update(loaded)
+    entry = {"case_id": args.case, "kind": args.kind,
+             "layer": args.layer or "", "note": args.note or "",
+             "date": __import__("datetime").datetime.now().isoformat(timespec="seconds")}
+    registry.setdefault(f"{args.kind}_acceptances", []).append(entry)
+    registry_path.write_text(json.dumps(registry, ensure_ascii=False, indent=2),
+                             encoding="utf-8")
+    print(f"[accept] {args.kind}: {args.case}"
+          + (f" @ {args.layer}" if args.layer else ""))
+
+
+
     """P1-1 Truth Regression: fresh authoritative run + strict comparator for
     every ACCEPTED case (registry). ACCEPTED case turning DIVERGED = reject."""
     registry = HERE / "accepted_cases.json"
@@ -355,6 +445,11 @@ def main():
     st.add_argument("--new", required=True, help="path to UNLOCKED revised truth json")
     st.add_argument("--reason", required=True, help="revision_reason")
     tr = sub.add_parser("truthregress")
+    ac = sub.add_parser("accept")
+    ac.add_argument("case")
+    ac.add_argument("--kind", choices=["case", "assertion", "rule"], default="case")
+    ac.add_argument("--layer", default="")
+    ac.add_argument("--note", default="")
     e = sub.add_parser("explain")
     e.add_argument("case", help="case_id")
     e.add_argument("--from-version", required=True, help="baseline version file (e.g. pre-patch__none.json)")
@@ -375,7 +470,8 @@ def main():
      "diverge": cmd_diverge, "baseline": cmd_baseline, "regress": cmd_regress,
      "explain": cmd_explain, "lock-truth": cmd_lock_truth,
      "truthregress": cmd_truthregress,
-     "supersede-truth": cmd_supersede_truth}[args.cmd](args)
+     "supersede-truth": cmd_supersede_truth,
+     "accept": cmd_accept}[args.cmd](args)
 
 
 if __name__ == "__main__":

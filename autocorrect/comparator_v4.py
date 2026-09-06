@@ -264,6 +264,9 @@ def compare(expected_truth_raw: dict, actual: dict, exp_source: str = "",
         report["reviewer_reason_hint"] = "artifact 混合了不同 run_id, 拒绝比较 (P0-2)"
         return report
 
+    report["_expected_op_count"] = len(ctx["truth"].get("expected_operations", []))
+    report["_machine_check_count"] = len(ctx["truth"].get("machine_checks", []))
+
     divergence = None
     for layer in LAYER_ORDER:
         fn = _LAYERS.get(layer)
