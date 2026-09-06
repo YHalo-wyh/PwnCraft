@@ -10,6 +10,10 @@
 Deterministic-First: 无推断; 证据不足 → UNKNOWN/SKIPPED。尤其是 Stack：
 SIGSEGV 本身不是 Control RIP 证据；只有实际 RIP/EIP/PC 观测值能被 cyclic
 确定性反解时，STACK_RUNTIME_TRUTH 才 MATCH 为 confirmed_control。
+
+Cycle-9 起 BINARY_FACTS 也遵守同一原则：未知保护状态不能被 Python 的 bool
+转换静默压成 False。`pie=None` 明确表示 UNKNOWN；只有调用者提供了独立事实时
+才允许写出 True/False。
 """
 from __future__ import annotations
 
@@ -65,19 +69,54 @@ def _stack_runtime_result(runtime_observation: Mapping[str, object] | None,
     ), payload
 
 
+def _stack_binary_facts(bits: int, pie: bool | None) -> dict[str, object]:
+    """Build a JSON-safe tri-state projection of Stack binary facts.
+
+    ``None`` is deliberately preserved: absence of PIE evidence is not proof
+    that PIE is disabled.  This helper is intentionally generic and contains
+    no challenge names, hashes or address special-cases.
+    """
+    unknown_fields: list[str] = []
+    if pie is None:
+        unknown_fields.append("pie")
+    return {
+        "bits": int(bits),
+        "pie": pie,
+        "unknown_fields": unknown_fields,
+        "provenance": {
+            "bits": "CASE_MANIFEST_OR_CALLER",
+            "pie": "UNKNOWN" if pie is None else "CALLER_FACT",
+        },
+    }
+
+
 def run_stack(case_material, exp_source: str, *,
-              bits: int = 64, pie: bool = False,
+              bits: int = 64, pie: bool | None = None,
               runtime_observation: Mapping[str, object] | None = None,
               pattern_n: int | None = None) -> dict:
-    """Stack 领域：静态 EXP/Binary rules + 可选 debugger-observed truth。"""
-    diagnostics = audit_exp(exp_source, bits=bits, pie=pie)
+    """Stack 领域：静态 EXP/Binary rules + 可选 debugger-observed truth。
+
+    ``pie`` 是三态：True / False / None(UNKNOWN)。Auditor 的既有规则只在
+    PIE 被明确证明为 True 时启用硬编码地址诊断；UNKNOWN 不会被当成 False
+    发布为二进制事实。
+    """
+    binary_facts = _stack_binary_facts(bits, pie)
+    # audit_exp 当前接受 bool；仅在明确 True 时开启 PIE 专属规则。这里的 False
+    # 只用于规则开关，绝不写回 BINARY_FACTS，因此 UNKNOWN 不会被伪造成 PIE=OFF。
+    diagnostics = audit_exp(exp_source, bits=bits, pie=(pie is True))
     errors = [d for d in diagnostics if d["severity"] == "error"]
     warnings = [d for d in diagnostics if d["severity"] == "warning"]
     results = [_result("EXP_SEMANTIC_RULES",
                        "DIVERGED" if errors else "MATCH",
                        diagnostics=diagnostics)]
-    results.append(_result("BINARY_FACTS", "MATCH",
-                           detail=f"bits={bits}, pie={pie}"))
+    pie_detail = "UNKNOWN" if pie is None else str(bool(pie))
+    results.append(_result(
+        "BINARY_FACTS",
+        "MATCH",
+        detail=f"bits={bits}, pie={pie_detail}",
+        evidence=binary_facts,
+        unknown_fields=list(binary_facts["unknown_fields"]),
+    ))
     runtime_result, runtime_truth = _stack_runtime_result(runtime_observation, pattern_n)
     results.append(runtime_result)
     verdict = "DIVERGED" if errors else "MATCH"
@@ -87,6 +126,7 @@ def run_stack(case_material, exp_source: str, *,
         "verdict": verdict,
         "layers_compared": ["EXP_SEMANTIC_RULES", "BINARY_FACTS", "STACK_RUNTIME_TRUTH"],
         "layer_results": results,
+        "binary_facts": binary_facts,
         "diagnostics": diagnostics,
         "stack_runtime_truth": runtime_truth,
         "assertion_counts": {"planned": 2 + len(warnings),
@@ -127,11 +167,13 @@ def run_fmt(case_material, exp_source: str) -> dict:
 
 def run_domain(domain: str, case_material, exp_source: str, **kwargs) -> dict:
     if domain == "stack":
+        raw_pie = kwargs["pie"] if "pie" in kwargs else None
+        pie = None if raw_pie is None else bool(raw_pie)
         return run_stack(
             case_material,
             exp_source,
             bits=int(kwargs.get("bits") or 64),
-            pie=bool(kwargs.get("pie")),
+            pie=pie,
             runtime_observation=kwargs.get("runtime_observation"),
             pattern_n=(int(kwargs["pattern_n"]) if kwargs.get("pattern_n") is not None else None),
         )
