@@ -9,6 +9,11 @@
         "size",
         "content"
       ],
+      "handle_policy": {
+        "kind": "lowest_free_index",
+        "limit": 10,
+        "evidence": "heapcreator.c create_heap: for(i=0;i<10;i++) if(!heaparray[i]) ... break"
+      },
       "effects": [
         {
           "kind": "alloc",
@@ -22,6 +27,7 @@
           "kind": "alloc",
           "chunk": "C",
           "request_size": "size",
+          "bind_handle": true,
           "role": "content",
           "note": "content (malloc #2)"
         }
