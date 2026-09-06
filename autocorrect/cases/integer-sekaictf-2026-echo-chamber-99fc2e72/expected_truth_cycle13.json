@@ -1,0 +1,124 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "integer-sekaictf-2026-echo-chamber-99fc2e72",
+  "domain": "integer",
+  "subdomains": [
+    "memory_write",
+    "heap"
+  ],
+  "source_repository": "https://github.com/project-sekai-ctf/sekaictf-2026",
+  "source_commit": "e35651f972e1c4f355c18427b3063a9ac98fb2cd",
+  "source_challenge_path": "pwn/echo-chamber",
+  "source_class": "official_challenge_archive",
+  "event": {
+    "name": "SekaiCTF 2026",
+    "challenge": "echo-chamber",
+    "difficulty": "Hard",
+    "solves": 6
+  },
+  "materials": {
+    "source_git_blob_sha1": "99fc2e7230831ec5970b0a8540936bbac7a7c23c",
+    "binary_git_blob_sha1": "ac12ce674f9f3b1a9b5c4ba8cf772f02d7cd1544",
+    "official_solution_git_blob_sha1": "ce9aeef6fdf962468adb624202ff45fd621ec367"
+  },
+  "truth_layers": {
+    "SOURCE_SCOPE_PROVENANCE": {
+      "status": "PROVEN_SOURCE",
+      "facts": [
+        {
+          "kind": "function_scope",
+          "function": "handle_connection",
+          "signature_shape": "pointer-return function",
+          "provenance": "OFFICIAL_SOURCE"
+        },
+        {
+          "kind": "header_binding",
+          "function": "handle_connection",
+          "variable": "content_length",
+          "field": "Content-Length",
+          "expression": "find_header(headers, \"Content-Length\")",
+          "provenance": "OFFICIAL_SOURCE"
+        }
+      ]
+    },
+    "SOURCE_EXP_INPUT_COMPOSITION": {
+      "status": "EXP_SUPPORTED",
+      "facts": [
+        {
+          "kind": "EXP_INPUT_REACHES_SIGNED_PARSER",
+          "function": "handle_connection",
+          "field": "Content-Length",
+          "value": -1,
+          "parser": "strtoll",
+          "destination": "size_t body_len",
+          "provenance": "OFFICIAL_SOURCE + OFFICIAL_SOLUTION_LITERAL"
+        },
+        {
+          "kind": "UNSIGNED_CONVERSION_EXACT_MAX",
+          "variable": "body_len",
+          "relation": "(-1) mod 2^N = 2^N - 1",
+          "provenance": "C_INTEGER_SEMANTICS + OFFICIAL_SOURCE + OFFICIAL_SOLUTION_LITERAL"
+        }
+      ],
+      "limitations": [
+        "source plus EXP literals are not a runtime observation",
+        "the destination bit width N is supplied by target ABI/type facts when required"
+      ]
+    },
+    "MODULAR_ALLOCATION_COPY_RELATION": {
+      "status": "DERIVED_EXACT",
+      "facts": [
+        {
+          "kind": "ALLOCATION_ARGUMENT_WRAP_TO_ZERO",
+          "expression": "malloc(body_len + 1)",
+          "relation": "(2^N - 1 + 1) mod 2^N = 0",
+          "result": 0,
+          "provenance": "OFFICIAL_SOURCE + EXACT_MODULAR_ARITHMETIC"
+        },
+        {
+          "kind": "COPY_BOUND_REMAINS_UNSIGNED_MAX",
+          "expression": "readn(self->fd, body, body_len)",
+          "relation": "copy bound = 2^N - 1",
+          "result": "UNSIGNED_MAX(N)",
+          "provenance": "OFFICIAL_SOURCE + EXACT_MODULAR_ARITHMETIC"
+        }
+      ],
+      "meaning": "For the official solution's literal -1 input, source-level unsigned arithmetic proves a zero allocation argument and an unsigned-maximum read bound. This is an argument/value mismatch fact, not a claim about malloc(0) implementation behavior or completed runtime overwrite extent."
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_composed_fact_kinds": [
+      "EXP_INPUT_REACHES_SIGNED_PARSER",
+      "UNSIGNED_CONVERSION_EXACT_MAX",
+      "ALLOCATION_ARGUMENT_WRAP_TO_ZERO",
+      "COPY_BOUND_REMAINS_UNSIGNED_MAX"
+    ],
+    "required_function_scope": "handle_connection",
+    "forbidden_shortcuts": [
+      "do not compose a negative value from an unrelated protocol field",
+      "do not infer an input channel when find_header/source linkage is absent",
+      "do not treat arbitrary negative values as exact unsigned maximum",
+      "do not claim malloc(0) behavior or overwrite extent without runtime evidence",
+      "do not infer allocator-bin transitions from the modular size relation"
+    ]
+  },
+  "unknown": [
+    "malloc(0) runtime return behavior is not promoted by this truth layer",
+    "the number of bytes actually read at runtime is not observed in this cycle",
+    "the later multi-arena allocator exploitation path is not modeled here",
+    "no GDB/pwndbg runtime observation is promoted by this truth file"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sekaictf2026-echo-chamber-integer-v2",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "source_git_blob_sha1": "99fc2e7230831ec5970b0a8540936bbac7a7c23c",
+      "binary_git_blob_sha1": "ac12ce674f9f3b1a9b5c4ba8cf772f02d7cd1544",
+      "official_solution_git_blob_sha1": "ce9aeef6fdf962468adb624202ff45fd621ec367"
+    },
+    "truth_revision": 2,
+    "supersedes": "truth-sekaictf2026-echo-chamber-integer-v1",
+    "superseded_by": null
+  }
+}
