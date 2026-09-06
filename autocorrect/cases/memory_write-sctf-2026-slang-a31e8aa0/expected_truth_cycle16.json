@@ -1,0 +1,140 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
+  "domain": "memory_write",
+  "subdomains": [
+    "control_flow",
+    "type_confusion",
+    "compiler"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/slang",
+  "source_class": "official_challenge_archive",
+  "event": {
+    "name": "SCTF 2026",
+    "challenge": "slang",
+    "region": "China",
+    "difficulty": "advanced"
+  },
+  "materials": {
+    "exp_wrapper_git_blob_sha1": "a31e8aa066aab023f58750923652f3f40fbbb874",
+    "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+    "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+  },
+  "reviewed_compiler_policy": {
+    "name": "sctf-slang-loop-void-arg-scan-omission",
+    "skip_loop_void_call_arguments_in_liveness": true,
+    "codegen_preserves_call_arguments": true,
+    "slot_allocator": "first_fit_nonoverlap",
+    "provenance": "OFFICIAL_WRITEUP_REVIEWED_POLICY"
+  },
+  "truth_layers": {
+    "EMBEDDED_PROGRAM_STRUCTURE": {
+      "status": "PROVEN_EXP",
+      "facts": [
+        {
+          "kind": "loop_call_before_reassignment",
+          "function": "main",
+          "relation": "pwn(round, vec_slot) occurs before forged_header := forge() in the same do/while body",
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        },
+        {
+          "kind": "callee_return_type",
+          "callee": "pwn",
+          "return_type": "void",
+          "provenance": "OFFICIAL_EMBEDDED_SLANG"
+        }
+      ]
+    },
+    "COMPILER_LIVENESS": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {
+          "kind": "loop_void_call_argument_liveness_omission",
+          "relation": "alloc_scan_stmt skips call arguments when in_loop and callee return type is void",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "codegen_scan_mismatch",
+          "relation": "code generation still emits pwn(round, vec_slot) arguments even though allocation liveness skipped them",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ],
+      "meaning": "The reviewed compiler policy can be applied to the already-proven embedded call structure without guessing compiler behavior from the source program alone."
+    },
+    "SLOT_REUSE": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_AND_DERIVABLE_FROM_REVIEWED_POLICY",
+      "facts": [
+        {
+          "kind": "slot_reuse",
+          "from_variable": "vec_slot",
+          "from_type": "vec",
+          "to_variable": "forged_header",
+          "to_type": "str",
+          "slot": 0,
+          "provenance": "OFFICIAL_WRITEUP_PLUS_REVIEWED_POLICY"
+        }
+      ],
+      "limitations": [
+        "slot reuse is compiler-policy derived and official-writeup corroborated, not runtime-observed by PwnCraft",
+        "Cycle-16 does not yet prove that a later execution consumes the overwritten slot under the old vec type"
+      ]
+    },
+    "TYPE_CONFUSION_AND_WRITE_CHAIN": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_NOT_YET_AUTOMATIC",
+      "facts": [
+        {
+          "kind": "runtime_type_confusion",
+          "relation": "second loop iteration consumes forged_header storage through the vec_slot argument",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "derived_additive_write",
+          "relation": "forged vec data=0 and size=INT64_MAX makes scribble equivalent to *(int64_t *)(idx*8) += delta",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ],
+      "limitations": [
+        "Cycle-16 stops at liveness and slot reuse; loop-iteration value flow remains the next first divergence",
+        "scribble name alone is not treated as a memory-write primitive"
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "EMBEDDED_COMPILER_POLICY",
+      "LOOP_VOID_CALL_ARGUMENT_LIVENESS_OMISSION",
+      "EMBEDDED_LOCAL_LIFETIME",
+      "EMBEDDED_SLOT_REUSE"
+    ],
+    "required_relations": [
+      "reviewed compiler policy + embedded loop call -> omitted vec_slot liveness use",
+      "buggy lifetime intervals + first-fit nonoverlap -> vec_slot/forged_header slot reuse"
+    ],
+    "forbidden_shortcuts": [
+      "do not apply compiler semantics without an explicit reviewed compiler policy",
+      "do not infer type confusion merely because vec_slot and forged_header share a slot",
+      "do not infer arbitrary write from the function name scribble",
+      "do not claim runtime observation from official writeup evidence"
+    ]
+  },
+  "unknown": [
+    "automatic loop-iteration value-flow proof is not implemented in this cycle",
+    "automatic forged vec field interpretation is not implemented in this cycle",
+    "the additive-write primitive and GOT-control plan remain for later cycles",
+    "runtime slot reuse is not observed by GDB/pwndbg in this cycle"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-slang-compiler-liveness-slot-reuse-v3",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+      "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+    },
+    "truth_revision": 3,
+    "supersedes": "truth-sctf2026-slang-embedded-structure-v2",
+    "superseded_by": null
+  }
+}
