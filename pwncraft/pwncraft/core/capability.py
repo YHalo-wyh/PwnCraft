@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from .stack_truth import stack_control_state
+
 if TYPE_CHECKING:
     from .workspace import PwnWorkspace
 
@@ -64,17 +66,46 @@ def analyze_capabilities(workspace: "PwnWorkspace") -> tuple[Capability, ...]:
     overflow = stack.get("overflow_offset")
     syscalls = workspace.syscalls if isinstance(workspace.syscalls, dict) else {}
     policy = syscalls.get("seccomp_policy") if isinstance(syscalls.get("seccomp_policy"), dict) else {}
-    primitives = {str(item.get("name", "")) for item in workspace.exploit.get("primitives", []) if isinstance(item, dict)}
+    exploit = workspace.exploit if isinstance(workspace.exploit, dict) else {}
+    primitives = {str(item.get("name", "")) for item in exploit.get("primitives", []) if isinstance(item, dict)}
     controls, has_syscall, has_ret = _gadget_facts(workspace)
 
     capabilities: list[Capability] = []
 
     # --- Control RIP (§三十三) ---
-    if overflow is not None or "Control RIP" in primitives:
-        evidence = f"overflow_offset={overflow}" if overflow is not None else "primitive: Control RIP"
-        capabilities.append(Capability("Control RIP", "available", (evidence,)))
+    # Cycle-7 separates "cyclic offset found" from "saved IP control proven".
+    # Older projects had no provenance fields and historically treated a saved
+    # overflow_offset as confirmed; keep that compatibility path explicitly.
+    control_state = stack_control_state(workspace)
+    if "Control RIP" in primitives:
+        capabilities.append(Capability("Control RIP", "available", ("primitive: Control RIP",)))
+    elif control_state == "confirmed_control":
+        register = str(stack.get("control_register") or "rip").upper()
+        capabilities.append(Capability(
+            "Control RIP",
+            "available",
+            (f"overflow_offset={overflow}", f"{register} overwrite observed"),
+        ))
+    elif control_state == "legacy_offset":
+        capabilities.append(Capability(
+            "Control RIP",
+            "available",
+            (f"overflow_offset={overflow}", "legacy workspace fact (pre-cycle-7 provenance)"),
+        ))
+    elif control_state == "offset_only":
+        capabilities.append(Capability(
+            "Control RIP",
+            "unknown",
+            (f"overflow_offset={overflow}",),
+            ("已定位 cyclic 偏移；还需确认保存的 RIP/EIP/PC 确实被该输入覆盖",),
+        ))
     else:
-        capabilities.append(Capability("Control RIP", "unknown", (), ("先用 Stack → Offset Finder 证明溢出偏移",)))
+        capabilities.append(Capability(
+            "Control RIP",
+            "unknown",
+            (),
+            ("先用 Stack → Offset Finder 定位偏移，并用调试器确认保存的 RIP/EIP/PC 覆盖",),
+        ))
 
     # --- ret2libc (§二十三) ---
     leak_symbol = next((name for name in ("puts", "printf", "write", "read") if name in got and name in plt), "")
@@ -129,10 +160,25 @@ def analyze_capabilities(workspace: "PwnWorkspace") -> tuple[Capability, ...]:
     elif "main" in functions:
         capabilities.append(Capability("Return-to-main", "unknown", (), ("缺少 ret Gadget 证据",)))
 
-    # --- Format String write (§二十七) ---
-    fmt_writable = any(name in primitives for name in ("Format String Write",)) or bool(plt)
-    if fmt_writable:
-        capabilities.append(Capability("Format String", "unknown", (), ("在 Format 页用探针确定偏移后可规划任意写",)))
+    # --- Format String (§二十七) ---
+    # A non-empty PLT is normal ELF metadata, not format-string evidence.
+    # Only an explicit primitive or a recorded probe offset activates this lane.
+    fmt_primitives = tuple(name for name in primitives if "format string" in name.lower() or "fmtstr" in name.lower())
+    fmt_offset = exploit.get("format_offset")
+    if fmt_primitives:
+        capabilities.append(Capability(
+            "Format String",
+            "unknown",
+            tuple(f"primitive:{name}" for name in fmt_primitives),
+            ("确认读/写能力与目标约束后再升级利用路径",),
+        ))
+    elif fmt_offset is not None:
+        capabilities.append(Capability(
+            "Format String",
+            "unknown",
+            (f"format_offset={fmt_offset}",),
+            ("已定位参数偏移，但尚未证明可读/可写 primitive",),
+        ))
 
     return tuple(capabilities)
 
