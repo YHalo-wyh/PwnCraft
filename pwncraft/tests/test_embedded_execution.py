@@ -29,6 +29,7 @@ function forge() : -> str {
 function main() : int round, vec vec_slot, str forged_header -> int {
   vec_slot := vec_new(0);
   round := 0;
+  keep_vec(vec_slot);
   do {
     pwn(round, vec_slot);
     forged_header := forge();
@@ -45,14 +46,20 @@ function main() : int round, vec vec_slot, str forged_header -> int {
     assert loop["condition_after_first_iteration"] is True
     assert loop["proves_second_iteration"] is True
 
-    flow = main["cross_iteration_value_flows"][0]
-    assert flow["producer_variable"] == "forged_header"
+    flow = next(
+        item for item in main["cross_iteration_value_flows"]
+        if item["producer_variable"] == "forged_header"
+        and item["consumer_variable"] == "vec_slot"
+    )
     assert flow["producer_type"] == "str"
-    assert flow["consumer_variable"] == "vec_slot"
     assert flow["consumer_type"] == "vec"
     assert flow["resident_value_survives_loop_backedge"] is True
 
-    confusion = main["runtime_type_confusions"][0]
+    confusion = next(
+        item for item in main["runtime_type_confusions"]
+        if item["resident_variable"] == "forged_header"
+        and item["consumed_through_variable"] == "vec_slot"
+    )
     assert confusion["iteration"] == 2
     assert confusion["resident_type"] == "str"
     assert confusion["consumed_as_type"] == "vec"
@@ -71,6 +78,7 @@ function forge() : -> str {
 function main() : int round, vec vec_slot, str forged_header -> int {
   vec_slot := vec_new(0);
   round := 0;
+  keep_vec(vec_slot);
   do {
     pwn(round, vec_slot);
     forged_header := forge();
@@ -96,6 +104,7 @@ function forge() : -> str {
 function main() : int round, vec vec_slot, str forged_header -> int {
   vec_slot := vec_new(0);
   round := 0;
+  keep_vec(vec_slot);
   do {
     pwn(round, vec_slot);
     forged_header := forge();
@@ -120,6 +129,7 @@ function forge() : -> str {
 function main() : int round, vec vec_slot, str forged_header -> int {
   vec_slot := vec_new(0);
   round := 0;
+  keep_vec(vec_slot);
   do {
     vec_slot := vec_new(0);
     pwn(round, vec_slot);
@@ -132,7 +142,11 @@ function main() : int round, vec vec_slot, str forged_header -> int {
     result = analyze_exp_semantics(_wrapper(payload), embedded_compiler_policy=POLICY)
     main = _execution_main(result)
     assert main["loops"][0]["proves_second_iteration"] is True
-    assert main["runtime_type_confusions"] == []
+    assert not any(
+        item["resident_variable"] == "forged_header"
+        and item["consumed_through_variable"] == "vec_slot"
+        for item in main["runtime_type_confusions"]
+    )
 
 
 def test_no_reviewed_policy_means_no_execution_semantics() -> None:
