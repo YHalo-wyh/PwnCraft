@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "scope": "general_pwn_workbench",
   "statement": "PwnCraft 面向通用 CTF/Pwn 分析与训练；HeapViz/allocator 只是一个专门域，不能代表整个项目能力。",
   "hard_rules": [
@@ -7,8 +7,21 @@
     "跨域共享事实进入 PwnWorkspace；域内真值仍由各自 engine/provider 持有，避免为了统一而降低精度。",
     "没有证据时保持 unknown；不得因为 GOT/PLT、函数名或页面存在就推断某类漏洞存在。",
     "项目级 capability/readiness 必须至少区分 stack、heap、format_string、control_flow、leak、syscall_sandbox；其他域按证据增量接入。",
-    "后续 curriculum 采用多 lane 交错推进；heap 可以继续做深，但不能长期垄断全部训练 cycle。"
+    "后续 curriculum 采用多 lane 交错推进；heap 可以继续做深，但不能长期垄断全部训练 cycle。",
+    "真实题目在任何 PwnCraft 输出产生之前必须先注册唯一 split；train 可驱动 patch，validation 只评估，frozen_test 禁止参与规则选择。"
   ],
+  "challenge_intake": {
+    "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
+    "gate": "challenge_intake.py",
+    "policy": "split_before_observe",
+    "splits": {
+      "train": "允许 clean-room truth 后产生 first divergence，并驱动通用 patch",
+      "validation": "只验证泛化，不允许据此修改规则",
+      "frozen_test": "训练和 validation 完成后最终评估；禁止作为 patch feedback",
+      "unsplit": "BLOCKED"
+    },
+    "fresh_user_case": "先建立 manifest 并登记 train/validation/frozen_test，再运行 PwnCraft；默认训练请求登记为 train"
+  },
   "domains": {
     "stack": {
       "examples": ["stack overflow", "canary", "stack pivot", "saved RIP control"],
@@ -59,11 +72,12 @@
   "scheduler": {
     "policy": "cross_domain_interleave",
     "active_lanes": [
-      "heap_physical_memory_truth",
-      "stack_control_truth_foundation"
+      "stack_runtime_control_truth",
+      "heap_physical_memory_truth"
     ],
+    "real_challenge_training": "READY",
     "next_lanes": [
-      "stack: cyclic/observed crash -> saved RIP offset truth -> control-flow capability",
+      "train stack case: clean-room truth -> stack/control-flow first divergence",
       "heap: PHYSICAL_MEMORY -> BINS continuation for accepted lab13",
       "format_string: explicit offset/read/write evidence lane",
       "control_flow: gadget-role + chain validation lane",
