@@ -11,7 +11,8 @@ from .model import (
     FunctionSignature,
     HelperContract,
 )
-from .resolver import ContractResolution, HelperContractResolver, lower_source_calls
+from .resolver import ContractResolution
+from .promotions import HelperContractResolver, lower_source_calls
 
 __all__ = [
     "ArgumentBinding",
