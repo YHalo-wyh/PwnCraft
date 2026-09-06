@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "case_id": "io_file-htb-cyber-apocalypse-2026-the-emptiness-machine-exp-32b6c777",
+  "source": {
+    "repository_url": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026",
+    "commit_sha": "9f0a3510866870cff3447ad1a21645c1c911d753",
+    "challenge_path": "pwn/The Emptiness Machine",
+    "ctf": "Cyber Apocalypse 2026",
+    "year": 2026,
+    "challenge_name": "The Emptiness Machine",
+    "license": null,
+    "source_class": "official_writeup"
+  },
+  "target": {
+    "arch": "amd64",
+    "os": "linux",
+    "binary_sha256": null,
+    "libc_sha256": null,
+    "ld_sha256": null
+  },
+  "glibc": {
+    "version": "2.39",
+    "confidence": "WRITEUP_ASSERTED",
+    "evidence": [
+      "official challenge writeup documents _IO_FILE layout as glibc 2.39"
+    ]
+  },
+  "technique": "fsop",
+  "files": [
+    {
+      "rel": "original/solution/solver_subcase.py",
+      "role": "source-derived-official-solver-subcase",
+      "size": 453,
+      "sha256": "fbead8a4791153c67951c105cba1e7125ec4d1f19ac70bca865e7cc1d0e99658"
+    }
+  ],
+  "exp_analysis": {
+    "entry_file": {
+      "rel": "original/solution/solver_subcase.py",
+      "role": "python",
+      "size": 453
+    },
+    "correctness": "OFFICIAL_SOLVER_SEMANTIC_SUBCASE"
+  },
+  "evaluation_contract": {
+    "scope": "exp_semantics_only",
+    "required_materials": [
+      "exp"
+    ],
+    "claims_allowed": [
+      "EXP symbol references",
+      "FSOP/FILE exploitation intent",
+      "EXP leak parser diagnostics"
+    ],
+    "claims_forbidden": [
+      "target binary vulnerability proven",
+      "runtime FSOP success",
+      "libc base observed",
+      "target reachability proven"
+    ]
+  },
+  "quality": {
+    "tier": "GOLD",
+    "issues": [
+      "official public repository exposes writeup/solver but not the target binary in this path; evaluation is intentionally EXP-semantics-only"
+    ]
+  }
+}
