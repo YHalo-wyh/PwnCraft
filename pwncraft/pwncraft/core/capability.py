@@ -52,6 +52,26 @@ def _gadget_facts(workspace: "PwnWorkspace") -> tuple[set[str], bool, bool]:
     return controls, has_syscall, has_ret
 
 
+def _workspace_int_variable(workspace: "PwnWorkspace", name: str) -> int | None:
+    """Read a scalar/TypedAddress WorkspaceVariable without inventing a cast."""
+    variable = workspace.get_variable(name)
+    if variable is None:
+        return None
+    value = variable.value
+    if hasattr(value, "value"):
+        value = getattr(value, "value")
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value, 0)
+        except ValueError:
+            return None
+    return None
+
+
 def analyze_capabilities(workspace: "PwnWorkspace") -> tuple[Capability, ...]:
     """Derive rule-based capabilities from the shared workspace facts."""
     binary = workspace.binary if isinstance(workspace.binary, dict) else {}
@@ -62,6 +82,12 @@ def analyze_capabilities(workspace: "PwnWorkspace") -> tuple[Capability, ...]:
     functions = symbols.get("functions") or {}
     libraries = workspace.libraries if isinstance(workspace.libraries, dict) else {}
     libc_base = libraries.get("libc_base")
+    if libc_base is None:
+        # The Stack/Leak page historically published its derivation through a
+        # typed WorkspaceVariable while the library loader publishes the same
+        # fact in ``libraries``.  Both are evidence-bearing shared Workspace
+        # facts, so capability analysis accepts either representation.
+        libc_base = _workspace_int_variable(workspace, "libc_base")
     stack = workspace.stack if isinstance(workspace.stack, dict) else {}
     overflow = stack.get("overflow_offset")
     syscalls = workspace.syscalls if isinstance(workspace.syscalls, dict) else {}
