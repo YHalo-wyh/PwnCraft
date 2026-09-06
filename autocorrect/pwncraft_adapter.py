@@ -299,7 +299,7 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
     # VNext.2 M2: 注入 behavior profile (从 case_dir/behavior_bindings.json 读绑定)
     behavior_profile = None
     # F04: behavior_bindings 在 autocorrect/cases/<case_id>/ 下 (非 corpus case_dir)
-    ac_case = ROOT / "autocorrect" / "cases" / manifest.get("case_id", "")
+    ac_case = _OUTER / "autocorrect" / "cases" / manifest.get("case_id", "")
     bindings_path = ac_case / "behavior_bindings.json"
     if bindings_path.exists():
         try:
