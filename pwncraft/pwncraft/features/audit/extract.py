@@ -57,7 +57,7 @@ def _literal_byte_width(node: ast.AST) -> int | None:
     """Return an exact byte width only when a literal is byte-countable.
 
     Python2-era pwntools exploits often use ``'\\0\\0'`` rather than a bytes
-    literal.  Counting latin-1-range str literals keeps those historical EXPs
+    literal. Counting latin-1-range str literals keeps those historical EXPs
     analyzable without pretending arbitrary Unicode text has a byte width.
     """
     if not isinstance(node, ast.Constant):
@@ -79,7 +79,7 @@ def _exact_unpack_input_width(node: ast.AST) -> tuple[int | None, list[dict]]:
       * concatenation where both sides are independently exact.
 
     ``recv(N)`` is deliberately NOT treated as exact here because pwntools may
-    return fewer than N bytes.  Unknown subexpressions keep the whole result
+    return fewer than N bytes. Unknown subexpressions keep the whole result
     UNKNOWN instead of guessing.
     """
     literal = _literal_byte_width(node)
@@ -223,6 +223,9 @@ class _Extractor(ast.NodeVisitor):
         # now, avoiding a schema/baseline churn while the evaluator consumes it.
         op.meta_input_width = width  # type: ignore[attr-defined]
         op.meta_input_width_evidence = evidence  # type: ignore[attr-defined]
+        # Compatibility bridge for the existing leak rule.  The value is the
+        # exact total input-expression width, not merely the raw recv count.
+        op.meta_recv_length = width  # type: ignore[attr-defined]
 
     def _link_leak(self, op: PackOp) -> None:
         """Attach the feeding recv length to an unpack when the argument is a
