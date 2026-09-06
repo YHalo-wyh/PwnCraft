@@ -9,6 +9,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pwncraft.features.audit.embedded_compiler import (
+    EmbeddedCompilerPolicy,
+    analyze_embedded_compiler_semantics,
+)
 from pwncraft.features.audit.embedded_program import extract_embedded_function_program
 from pwncraft.features.audit.extract import extract_exploit_ir
 from pwncraft.features.audit.model import ExploitIR, SymbolRef
@@ -89,8 +93,37 @@ def _embedded_program_facts(payloads: list) -> list[dict]:
     return result
 
 
-def analyze_exp_semantics(source: str) -> dict:
-    """Return source-derived semantic facts without mutating a workspace."""
+def _embedded_compiler_facts(
+    payloads: list,
+    policy: EmbeddedCompilerPolicy | None,
+) -> list[dict]:
+    """Apply compiler semantics only when an explicit reviewed policy exists."""
+    if policy is None:
+        return []
+    result: list[dict] = []
+    for payload in payloads:
+        program = extract_embedded_function_program(payload.content)
+        if program is None:
+            continue
+        fact = analyze_embedded_compiler_semantics(program, policy)
+        fact["source_payload_sha256"] = payload.sha256
+        fact["source_payload_line"] = payload.line
+        fact["source_payload_scope"] = payload.scope
+        result.append(fact)
+    return result
+
+
+def analyze_exp_semantics(
+    source: str,
+    *,
+    embedded_compiler_policy: EmbeddedCompilerPolicy | None = None,
+) -> dict:
+    """Return source-derived semantic facts without mutating a workspace.
+
+    Compiler-specific facts are opt-in and require a reviewed policy.  The
+    default path therefore preserves Cycle-15 behavior and cannot infer slot
+    allocation from source shape alone.
+    """
     ir, syntax_error = extract_exploit_ir(source)
     if syntax_error is not None:
         return {
@@ -101,6 +134,7 @@ def analyze_exp_semantics(source: str) -> dict:
             "symbol_refs": [],
             "outbound_literal_payloads": [],
             "embedded_programs": [],
+            "embedded_compiler_semantics": [],
             "primitives": [],
         }
     payloads, payload_error = extract_outbound_literal_payloads(source)
@@ -124,15 +158,23 @@ def analyze_exp_semantics(source: str) -> dict:
         ],
         "outbound_literal_payloads": [payload.to_dict() for payload in payloads],
         "embedded_programs": _embedded_program_facts(payloads),
+        "embedded_compiler_semantics": _embedded_compiler_facts(
+            payloads, embedded_compiler_policy
+        ),
         "primitives": infer_exp_primitives(ir),
     }
 
 
 def apply_exp_semantics_to_workspace(
-    workspace: "PwnWorkspace", source: str
+    workspace: "PwnWorkspace",
+    source: str,
+    *,
+    embedded_compiler_policy: EmbeddedCompilerPolicy | None = None,
 ) -> dict:
     """Publish EXP-derived primitives with their non-observed state intact."""
-    result = analyze_exp_semantics(source)
+    result = analyze_exp_semantics(
+        source, embedded_compiler_policy=embedded_compiler_policy
+    )
     if result["status"] != "ok":
         return result
     for primitive in result["primitives"]:
