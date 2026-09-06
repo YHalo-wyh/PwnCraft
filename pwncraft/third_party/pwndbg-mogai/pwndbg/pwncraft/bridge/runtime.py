@@ -62,6 +62,7 @@ class RuntimeBridge:
         "memcpy",
         "memmove",
     )
+    _CONTROL_REGISTERS = ("rip", "eip", "pc")
 
     def __init__(self) -> None:
         self._pending_allocator = False
@@ -115,10 +116,10 @@ class RuntimeBridge:
             "extension_hello",
             {
                 "extension": "pwndbg-mogai-bridge",
-                "extension_version": "0.13.0",
+                "extension_version": "0.14.0",
                 "pwndbg_actual": "2026.07.29-pwndbg-mogai.16",
                 "compatible": True,
-                "bridge_scope": ["heap", "file", "dirty", "selection"],
+                "bridge_scope": ["heap", "stack", "file", "dirty", "selection"],
                 "command_catalog": command_catalog,
             },
         )
@@ -132,6 +133,32 @@ class RuntimeBridge:
         except Exception:
             return False
         return "call" in instruction and any(name in instruction for name in self._HEAP_CALLS)
+
+    def _control_register_observation(self) -> dict[str, Any] | None:
+        """Read a real saved-IP register without inferring an architecture.
+
+        GDB names the instruction pointer differently across targets.  We only
+        publish a value when one of the canonical control registers can be
+        evaluated.  No disassembly text scraping and no fallback to unrelated
+        registers is allowed.
+        """
+        import gdb
+
+        if not _alive():
+            return None
+        for register in self._CONTROL_REGISTERS:
+            try:
+                value = int(gdb.parse_and_eval(f"${register}"))
+            except Exception:
+                continue
+            return {
+                "register": register,
+                "value": value,
+                "value_hex": hex(value),
+                "source": "PWNDBG_GDB_REGISTER",
+                "provenance": "OBSERVED_RUNTIME",
+            }
+        return None
 
     def _on_continue(self, _event) -> None:
         # Lightweight classification only.  No bins/heap traversal happens in
@@ -151,10 +178,15 @@ class RuntimeBridge:
             reason = "signal:" + signal
         elif self._pending_allocator:
             reason = "allocator-call-returned"
+        stop_reason = event.__class__.__name__
         emit(
             "stop_state",
-            {"reason": event.__class__.__name__, "signal": signal, "heap_dirty": bool(reason)},
+            {"reason": stop_reason, "signal": signal, "heap_dirty": bool(reason)},
         )
+        observation = self._control_register_observation()
+        if observation is not None:
+            observation.update({"signal": signal, "stop_reason": stop_reason})
+            emit("stack_register_observation", observation)
         if reason:
             emit("heap_dirty", {"reason": reason})
         self._pending_allocator = False
