@@ -1,0 +1,156 @@
+{
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+  "verdict": "DIVERGED",
+  "first_divergence": {
+    "layer": "PHYSICAL_MEMORY",
+    "step": null,
+    "source_line": null,
+    "source_call": null,
+    "expected": {
+      "physical_objects": 4
+    },
+    "actual": {
+      "objects": 3,
+      "op_id": "op_005"
+    }
+  },
+  "helper_contract_status": [
+    {
+      "helper": "newnote",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "shownote",
+      "expected_semantic": "show",
+      "actual_operation": "show",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [],
+      "actual_evidence_sources": [
+        "CALLSITE_OUTPUT_FLOW",
+        "NAME_CANDIDATE"
+      ]
+    },
+    {
+      "helper": "editnote",
+      "expected_semantic": "edit",
+      "actual_operation": "edit",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [],
+      "actual_evidence_sources": [
+        "CALLSITE_ARGUMENT_BINDING",
+        "NAME_CANDIDATE"
+      ]
+    },
+    {
+      "helper": "deletenote",
+      "expected_semantic": "free",
+      "actual_operation": "delete",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT",
+    "STATIC_RECOGNITION",
+    "CANONICAL_IR",
+    "ARGUMENT_BINDING",
+    "TARGET_BEHAVIOR",
+    "ALLOCATOR",
+    "PHYSICAL_MEMORY"
+  ],
+  "layers_not_compared": [],
+  "layer_results": [
+    {
+      "layer": "HELPER_CONTRACT",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "MATCH",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "4 helpers"
+    },
+    {
+      "layer": "STATIC_RECOGNITION",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "CANONICAL_IR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "ARGUMENT_BINDING",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "TARGET_BEHAVIOR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "ALLOCATOR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "PHYSICAL_MEMORY",
+      "status": "DIVERGED",
+      "semantic_status": "DIVERGED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "op op_005 object count"
+    }
+  ],
+  "root_cause": {
+    "component": "PhysicalMemory objects ↔ chunks",
+    "reason": null
+  },
+  "evidence": [],
+  "reviewer_reason_hint": "op op_005: physical objects != chunks",
+  "confidence": null,
+  "_expected_op_count": 9,
+  "_machine_check_count": 0,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-2016-zctf-note2-a85b75f2\\generated\\r6\\pwncraft_output.json",
+    "renderer_plan": null,
+    "run_id": "run-61e3cac5fefcea6a",
+    "comparator": "v4"
+  }
+}

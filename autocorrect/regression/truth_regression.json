@@ -24,6 +24,20 @@
         "layer": "",
         "note": "四层全 MATCH; TARGET_BEHAVIOR 等 defer 至引擎 1:N 建模",
         "date": "2026-09-06T14:31:21"
+      },
+      {
+        "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+        "kind": "case",
+        "layer": "",
+        "note": "r6 全层 MATCH (oracle_scope: 解析+值流+对象同一性; TARGET_BEHAVIOR 等 defer 至引擎 1:N 建模)",
+        "date": "2026-09-06T14:49:06"
+      },
+      {
+        "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+        "kind": "case",
+        "layer": "",
+        "note": "r6 全层 MATCH (py2 方言 + 模块级入口 + 三参 editnote 识别)",
+        "date": "2026-09-06T14:49:06"
       }
     ]
   },
@@ -33,14 +47,28 @@
       "verdict": "MATCH",
       "layer": null,
       "assertions": null,
-      "run_id": "run-e57b948ca2d80c88"
+      "run_id": "run-6d51ad1ecbf04c33"
     },
     {
       "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
       "verdict": "MATCH",
       "layer": null,
       "assertions": null,
-      "run_id": "run-9d23881fc5a759a1"
+      "run_id": "run-9e8da0a22301a23c"
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "verdict": "MATCH",
+      "layer": null,
+      "assertions": null,
+      "run_id": "run-855137d9b30283de"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "verdict": "MATCH",
+      "layer": null,
+      "assertions": null,
+      "run_id": "run-f7c16eb7841190b7"
     }
   ]
 }

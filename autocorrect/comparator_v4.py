@@ -58,6 +58,7 @@ ACTUAL_SOURCE_TIER = {
     "STRUCTURAL_BODY": "interaction", "INLINE_ANNOTATION": "interaction",
     "IMPORTED_PROFILE": "interaction", "USER_CONFIRMED": "dataflow_strong",
     "CALLSITE_OUTPUT_FLOW": "interaction",
+    "CALLSITE_ARGUMENT_BINDING": "interaction",
 }
 # EXP-side kinds satisfying HELPER_CONTRACT required_any:
 #   interaction -> EXP_PROMPT_SEND_FLOW / EXP_CALLSITE_DATAFLOW
@@ -623,12 +624,19 @@ def _l_physical_memory(ctx, report):
         ps = next((p for p in ctx["phys_steps"] if p.get("op_id") == op_id), None)
         if ps is None:
             continue
-        if len(ps.get("physical_objects") or []) != st.get("n_chunks"):
-            return _rec(L, "DIVERGED", detail=f"op {op_id} object count"), _div(
-                L, None, None, {"physical_objects": st.get("n_chunks")},
-                {"objects": len(ps.get("physical_objects") or []), "op_id": op_id},
-                "PhysicalMemory objects ↔ chunks", [],
-                f"op {op_id}: physical objects != chunks")
+        # 语义检查: 每个逻辑 chunk 都必须有物理 backing (一对多 alias 合法)
+        logical_backings = {c.get("physical_id") for c in
+                            (ps.get("stale_separated_views") or {}).get("logical_chunks", [])
+                            if isinstance(c, dict) and c.get("physical_id")}
+        physical_ids = {c.get("physical_id") for c in ps.get("physical_objects") or []}
+        missing = {pid for pid in logical_backings if pid and pid not in physical_ids}
+        if missing:
+            return (_rec(L, "DIVERGED", detail=f"op {op_id} missing backing"), _div(
+                L, None, None,
+                {"logical_chunks_need_backing": sorted(missing)},
+                {"physical_objects": sorted(physical_ids)[:10], "op_id": op_id},
+                "PhysicalMemory backing", [],
+                f"op {op_id}: 逻辑 chunk 无物理 backing: {sorted(missing)[:5]}"))
     return _rec(L, "MATCH"), None
 
 

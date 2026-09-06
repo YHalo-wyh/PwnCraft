@@ -83,8 +83,10 @@ def cmd_diverge(args):
     exp_source = exp_path.read_text(encoding="utf-8") if exp_path else ""
     plan_path = cdir / "generated" / gen_name / "renderer_plan.json"
     renderer_plan = json.loads(plan_path.read_text(encoding="utf-8")) if plan_path.exists() else None
+    contract = evaluation_contract.load_contract(cdir) if (cdir / 'evaluation_contract.json').exists() else None
     report = comparator_v4.compare(expected, actual, exp_source=exp_source,
-                                   renderer_plan=renderer_plan)
+                                   renderer_plan=renderer_plan,
+                                   contract=contract)
     report["compared_artifacts"] = {
         "expected_truth": str(cdir / "expected_truth.json"),
         "pwncraft_output": str(actual_path),

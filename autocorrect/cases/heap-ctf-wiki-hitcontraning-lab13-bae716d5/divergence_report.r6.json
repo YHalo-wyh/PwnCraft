@@ -1,0 +1,193 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "verdict": "MATCH",
+  "first_divergence": null,
+  "helper_contract_status": [
+    {
+      "helper": "create",
+      "expected_semantic": "alloc",
+      "actual_operation": "alloc",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "edit",
+      "expected_semantic": "edit",
+      "actual_operation": "edit",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    },
+    {
+      "helper": "show",
+      "expected_semantic": "show",
+      "actual_operation": "show",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "CALLSITE_OUTPUT_FLOW",
+        "NAME_CANDIDATE"
+      ]
+    },
+    {
+      "helper": "delete",
+      "expected_semantic": "free",
+      "actual_operation": "delete",
+      "semantic": "MATCH",
+      "evidence": "MATCH",
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "actual_evidence_sources": [
+        "STRUCTURAL_BODY"
+      ]
+    }
+  ],
+  "layers_compared": [
+    "HELPER_CONTRACT",
+    "STATIC_RECOGNITION",
+    "CANONICAL_IR",
+    "ARGUMENT_BINDING",
+    "TARGET_BEHAVIOR",
+    "ALLOCATOR",
+    "PHYSICAL_MEMORY",
+    "BINS",
+    "SNAPSHOT",
+    "CANVAS_TRUTH",
+    "RENDERER_PLAN"
+  ],
+  "layers_not_compared": [],
+  "layer_results": [
+    {
+      "layer": "HELPER_CONTRACT",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "MATCH",
+      "missing_required": [],
+      "optional_missing": [
+        "BINARY/SOURCE corroboration (dataflow_strong)"
+      ],
+      "detail": "4 helpers"
+    },
+    {
+      "layer": "STATIC_RECOGNITION",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "CANONICAL_IR",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "ARGUMENT_BINDING",
+      "status": "MATCH",
+      "semantic_status": "MATCH",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": ""
+    },
+    {
+      "layer": "TARGET_BEHAVIOR",
+      "status": "DEFERRED",
+      "semantic_status": "DEFERRED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"
+    },
+    {
+      "layer": "ALLOCATOR",
+      "status": "DEFERRED",
+      "semantic_status": "DEFERRED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"
+    },
+    {
+      "layer": "PHYSICAL_MEMORY",
+      "status": "DEFERRED",
+      "semantic_status": "DEFERRED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"
+    },
+    {
+      "layer": "BINS",
+      "status": "DEFERRED",
+      "semantic_status": "DEFERRED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"
+    },
+    {
+      "layer": "SNAPSHOT",
+      "status": "DEFERRED",
+      "semantic_status": "DEFERRED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"
+    },
+    {
+      "layer": "CANVAS_TRUTH",
+      "status": "DEFERRED",
+      "semantic_status": "DEFERRED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"
+    },
+    {
+      "layer": "RENDERER_PLAN",
+      "status": "DEFERRED",
+      "semantic_status": "DEFERRED",
+      "evidence_status": "",
+      "missing_required": [],
+      "optional_missing": [],
+      "detail": "评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"
+    }
+  ],
+  "root_cause": {
+    "component": null,
+    "reason": null
+  },
+  "evidence": [],
+  "reviewer_reason_hint": null,
+  "confidence": null,
+  "_expected_op_count": 8,
+  "_machine_check_count": 3,
+  "compared_artifacts": {
+    "expected_truth": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\expected_truth.json",
+    "pwncraft_output": "C:\\Users\\WYH\\Desktop\\pwn宝\\autocorrect\\cases\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\generated\\r6\\pwncraft_output.json",
+    "renderer_plan": null,
+    "run_id": "run-5e088d0c0bf3926a",
+    "comparator": "v4"
+  }
+}

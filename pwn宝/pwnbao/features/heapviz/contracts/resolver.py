@@ -163,6 +163,7 @@ class HelperContractResolver:
             diagnostics.append("wrapper_cycle:" + "->".join(component))
 
         self._callsite_output_flow_promotion(tree, contracts, diagnostics)
+        self._callsite_arg_binding_promotion(tree, contracts, diagnostics)
 
         ordered = tuple(sorted(contracts.values(), key=lambda item: (item.receiver, item.function)))
         return ContractResolution(ordered, tuple(dict.fromkeys(diagnostics)))
@@ -191,6 +192,71 @@ class HelperContractResolver:
                             if not isinstance(st, ast.FunctionDef)]
             self._promote_in_body(module_stmts, contracts, diagnostics,
                                   scope="module")
+
+    def _callsite_arg_binding_promotion(self, tree, contracts, diagnostics):
+        """调用点实参绑定促销 (M2.4 前置, 确定性):
+        unknown 契约的 helper 在入口体/模块级的调用实参数 >= 2 且呈
+        [index/int, ..., data/bytes] 形状时, 绑定角色并提升为 EDIT。
+        证据 CALLSITE_ARGUMENT_BINDING (structural); 不满足保持 UNKNOWN。"""
+        entry_names = {"main", "exp", "pwn", "solve", "attack"}
+        callsites: dict[str, list[list[str]]] = {}
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef) and node.name in entry_names:
+                for call in [c for c in ast.walk(node) if isinstance(c, ast.Call)]:
+                    name = _qualified_name(call.func).rsplit(".", 1)[-1]
+                    contract = contracts.get(name)
+                    if contract is None or contract.operation is not CanonicalOperationKind.UNKNOWN:
+                        continue
+                    callsites.setdefault(name, []).append(
+                        [_arg_text(a) for a in call.args])
+            elif not isinstance(node, ast.FunctionDef):
+                for call in [c for c in ast.walk(node) if isinstance(c, ast.Call)]:
+                    name = _qualified_name(call.func).rsplit(".", 1)[-1]
+                    contract = contracts.get(name)
+                    if contract is None or contract.operation is not CanonicalOperationKind.UNKNOWN:
+                        continue
+                    callsites.setdefault(name, []).append(
+                        [_arg_text(a) for a in call.args])
+        for name, callsite_list in callsites.items():
+            contract = contracts[name]
+            arg_counts = {len(a) for a in callsite_list}
+            if len(arg_counts) != 1:
+                continue
+            arity = arg_counts.pop()
+            if arity < 2:
+                continue
+            sample = callsite_list[0]
+            if not sample:
+                continue
+            roles = {"index": ArgumentBinding(
+                role="index",
+                parameter=self._param(contract, 0),
+                expression=sample[0], position=0)}
+            if arity >= 3:
+                roles["data"] = ArgumentBinding(
+                    role="data", parameter=self._param(contract, arity - 1),
+                    expression=sample[arity - 1], position=arity - 1)
+                for pos in range(1, arity - 1):
+                    roles[f"submenu{pos}"] = ArgumentBinding(
+                        role=f"submenu{pos}",
+                        parameter=self._param(contract, pos),
+                        expression=sample[pos], position=pos)
+            contracts[name] = replace(
+                contract,
+                operation=CanonicalOperationKind.EDIT if arity >= 3 else contract.operation,
+                confidence=ContractConfidence.STRUCTURAL,
+                roles=roles,
+                evidence=(*contract.evidence, ContractEvidence(
+                    ContractEvidenceSource.CALLSITE_ARGUMENT_BINDING,
+                    f"callsite arg shapes {sorted(arg_counts)} across "
+                    f"{len(callsite_list)} callsites", 0, 0.8)),
+            )
+            diagnostics.append(f"callsite_arg_binding:{name}:EDIT")
+
+    @staticmethod
+    def _param(contract, position):
+        params = contract.signature.parameters
+        return params[position] if position < len(params) else f"arg{position}"
 
     def _promote_in_body(self, entry_node, contracts, diagnostics, scope="main"):
         """两遍确定性扫描:

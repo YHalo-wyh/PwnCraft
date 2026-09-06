@@ -1,0 +1,143 @@
+{
+  "run_id": "run-61e3cac5fefcea6a",
+  "contracts": [
+    {
+      "function": "deletenote",
+      "operation": "delete",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "single index outbound body; delete verb disambiguates",
+          "line": 36,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "id",
+          "position": 0,
+          "expression": "id"
+        }
+      }
+    },
+    {
+      "function": "editnote",
+      "operation": "edit",
+      "candidate_operation": "edit",
+      "confidence": "structural",
+      "evidence_sources": [
+        "CALLSITE_ARGUMENT_BINDING",
+        "NAME_CANDIDATE"
+      ],
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: edit",
+          "line": 26,
+          "score": 0.35
+        },
+        {
+          "source": "CALLSITE_ARGUMENT_BINDING",
+          "detail": "callsite arg shapes [] across 2 callsites",
+          "line": 0,
+          "score": 0.8
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "id",
+          "position": 0,
+          "expression": "0"
+        },
+        "data": {
+          "role": "data",
+          "parameter": "s",
+          "position": 2,
+          "expression": "content"
+        },
+        "submenu1": {
+          "role": "submenu1",
+          "parameter": "choice",
+          "position": 1,
+          "expression": "1"
+        }
+      }
+    },
+    {
+      "function": "newnote",
+      "operation": "alloc",
+      "candidate_operation": "unknown",
+      "confidence": "structural",
+      "evidence_sources": [
+        "STRUCTURAL_BODY"
+      ],
+      "evidence": [
+        {
+          "source": "STRUCTURAL_BODY",
+          "detail": "body sends size and data",
+          "line": 10,
+          "score": 0.94
+        }
+      ],
+      "roles": {
+        "size": {
+          "role": "size",
+          "parameter": "length",
+          "position": 0,
+          "expression": "length"
+        },
+        "data": {
+          "role": "data",
+          "parameter": "content",
+          "position": 1,
+          "expression": "content"
+        }
+      }
+    },
+    {
+      "function": "shownote",
+      "operation": "show",
+      "candidate_operation": "show",
+      "confidence": "structural",
+      "evidence_sources": [
+        "CALLSITE_OUTPUT_FLOW",
+        "NAME_CANDIDATE"
+      ],
+      "evidence": [
+        {
+          "source": "NAME_CANDIDATE",
+          "detail": "name candidate: show",
+          "line": 19,
+          "score": 0.35
+        },
+        {
+          "source": "CALLSITE_OUTPUT_FLOW",
+          "detail": "callsite output dataflow: recv result of shownote(...) consumed at line 78",
+          "line": 78,
+          "score": 0.9
+        },
+        {
+          "source": "CALLSITE_OUTPUT_FLOW",
+          "detail": "callsite output dataflow: recv result of shownote(...) consumed at line 78",
+          "line": 78,
+          "score": 0.9
+        }
+      ],
+      "roles": {
+        "index": {
+          "role": "index",
+          "parameter": "id",
+          "position": 0,
+          "expression": ""
+        }
+      }
+    }
+  ]
+}
