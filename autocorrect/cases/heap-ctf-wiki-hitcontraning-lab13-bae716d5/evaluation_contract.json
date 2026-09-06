@@ -1,15 +1,15 @@
 {
   "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
   "schema_version": "1.0",
-  "oracle_scope": "解析 + 值流 + 对象同一性 (heapcreator.c 与 BinaryIR 已证)",
+  "oracle_scope": "解析 + 值流 + 对象同一性 + 已审查目标内部动作",
   "required_layers": [
     "HELPER_CONTRACT",
     "STATIC_RECOGNITION",
     "CANONICAL_IR",
-    "ARGUMENT_BINDING"
+    "ARGUMENT_BINDING",
+    "TARGET_BEHAVIOR"
   ],
   "not_applicable_layers": [
-    "TARGET_BEHAVIOR",
     "ALLOCATOR",
     "BINS",
     "PHYSICAL_MEMORY",
@@ -17,7 +17,7 @@
     "CANVAS_TRUTH",
     "RENDERER_PLAN"
   ],
-  "not_applicable_reason": "delete second-free (struct chunk) 尚未被引擎建模 (已知 1:N 缺口); TARGET_BEHAVIOR/ALLOCATOR/BINS 层在引擎建模完成后转为必需 (阶段 M4/M5)",
+  "not_applicable_reason": "Cycle-5 仅验收 CanonicalIR→TargetBehavior 的 1:N 动作展开；allocator replay 尚未消费 target action stream，request/物理布局/bin 层继续 defer 至后续 cycle。",
   "min_assertions": 8,
   "required_artifacts": [
     "recognition.json",
