@@ -72,10 +72,9 @@ def count_assertions(report: dict) -> dict:
     """planned / executed / matched 断言计数 (阶段 0.1)。
 
     计划 = helpers×(semantic+roles) + expected_operations + machine_checks
-           + allocator_events.per_call
-    执行 = 早停之前实际比较过的计划项 (helper 层逐项 + 逐行 IR + 机器检查)
+    执行 = 早停之前实际比较过的计划项
     匹配 = 执行且通过的项
-    早停意味着「未执行」的层不虚报为通过 —— 由 SKIPPED 状态显式呈现。
+    BINS 机器检查: 仅当 ops_at_line 找到对应 op 时才算执行; 否则跳过。
     """
     planned = executed = matched = 0
     status = report.get("helper_contract_status") or []
@@ -106,12 +105,12 @@ def enforce(report: dict, contract: EvaluationContract | None) -> dict:
     """按契约对比较结果施加完整性门禁 (原 verdict 可能被升级/降级)。"""
     counts_default = count_assertions(report)
     report.setdefault("assertion_counts", counts_default)
-    # 全局门禁 (无论有无契约): 空断言集不可能证明任何验收 — owner 记录的
-    # 历史缺陷 (仅 case_id 真值 + 空输出曾得 MATCH) 在此拦截。
+    # 全局门禁 (无论有无契约): 空断言集不可能证明任何验收
     if report.get("verdict") == VERDICT_MATCH and counts_default["planned"] == 0:
         report["verdict"] = VERDICT_INCONCLUSIVE
         report["assertion_counts"]["gate"] = "planned=0 (空断言集不得 MATCH)"
         return report
+    # 无契约: 不做 contract 层检查, 但全局空断言门禁已生效
     if contract is None:
         return report
 
@@ -175,6 +174,19 @@ def enforce(report: dict, contract: EvaluationContract | None) -> dict:
         report["assertion_counts"]["gate"] = (
             f"executed={counts['executed']} < planned={counts['planned']} "
             "(早停: 下游层未全部执行)")
+        return report
+
+    # 门禁 4 (阶段 0.1): required_artifacts 必须实际存在
+    import os
+    missing_artifacts = []
+    for art in contract.required_artifacts:
+        art_path = report.get("_case_dir", "")
+        full = os.path.join(art_path, art) if art_path else art
+        if not os.path.isfile(full):
+            missing_artifacts.append(art)
+    if missing_artifacts:
+        report["verdict"] = VERDICT_INCONCLUSIVE
+        report["assertion_counts"]["gate"] = f"missing artifacts: {missing_artifacts}"
         return report
 
     return report

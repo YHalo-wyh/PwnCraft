@@ -315,10 +315,9 @@ def compare(expected_truth_raw: dict, actual: dict, exp_source: str = "",
     else:
         report["verdict"] = "MATCH"
 
-    # F01 (P1): 正式入口调用完整性门禁 (阶段 0.1)
-    if contract is not None and not collect_all:
-        from evaluation_contract import enforce as _enforce
-        report = _enforce(report, contract)
+    # F01: 全局门禁 —— 无论有无合同, 空断言/缺层不得 MATCH
+    from evaluation_contract import enforce as _enforce
+    report = _enforce(report, contract)
     return report
 
 

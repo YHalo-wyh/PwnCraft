@@ -228,21 +228,26 @@ class HelperContractResolver:
             sample = callsite_list[0]
             if not sample:
                 continue
-            # F02 (P1): 行为证据门槛 —— helper 体必须包含 send 族调用
-            # (证明 helper 与目标程序有交互), 否则不提升为 EDIT。
-            # 普通 combine(a,b,c) / log(r,g,b) 无 send → 不提升。
-            has_send = False
+            # F02 (P1): 行为证据门槛 —— helper 的参数必须实际出现在
+            # send 族调用的实参中 (证明 helper 发送的是用户控制的数据,
+            # 不是固定消息)。ping(a,b,c) { sendline(b"ping") } 不提升。
+            has_param_in_send = False
+            param_names = set(self._param(contract, p)
+                              for p in range(arity))
             for fn_node in tree.body:
                 if isinstance(fn_node, ast.FunctionDef) and fn_node.name == name:
                     for sub in ast.walk(fn_node):
                         if isinstance(sub, ast.Call):
                             verb = _qualified_name(sub.func).rsplit(".", 1)[-1].lower()
                             if verb in _SEND_VERBS:
-                                has_send = True
-                                break
-                if has_send:
+                                send_args = " ".join(
+                                    _arg_text(a) for a in sub.args)
+                                if any(p in send_args for p in param_names):
+                                    has_param_in_send = True
+                                    break
+                if has_param_in_send:
                     break
-            if not has_send:
+            if not has_param_in_send:
                 continue
             roles = {"index": ArgumentBinding(
                 role="index",
@@ -329,18 +334,22 @@ class HelperContractResolver:
                     events.append((cl, 2, "helper_pending", name))
 
         # consume 事件: recv 变量在其赋值行之后被 load
+        # 附带 assign_line 用于回放时验证时序 (F03)
         consume_events = []
         for var, assign_line in recv_assign.items():
             for load_line in sorted(var_loads.get(var, ())):
                 if load_line > assign_line:
-                    consume_events.append((load_line, 1, "consume", var))
+                    consume_events.append((load_line, 1, "consume", var, assign_line))
                     break
         events.extend(consume_events)
 
         events.sort(key=lambda e: (e[0], 0 if e[2] == "helper_pending" else 1))
         pending: tuple[str, int] | None = None
         promoted: set[str] = set()
-        for line, _order, kind, arg in events:
+        for event in events:
+            line = event[0]
+            kind = event[2]
+            arg = event[3] if len(event) > 3 else ""
             if kind == "helper_pending":
                 pending = (arg, line)
             elif kind == "send":
@@ -349,9 +358,6 @@ class HelperContractResolver:
                 if pending is None:
                     continue
                 name, call_line = pending
-                # F03 (P1): recv 消费行必须 > helper 调用行 (时序约束)
-                if line <= call_line:
-                    continue
                 var = arg
                 if var in promoted or name in promoted:
                     continue
@@ -389,7 +395,10 @@ class HelperContractResolver:
         events.sort(key=lambda e: (e[0], 0 if e[2] != "send" else 1))
         pending = None
         promoted = set()
-        for line, _order, kind, arg in events:
+        for ev in events:
+            line = ev[0]
+            kind = ev[2] if len(ev) > 2 else ""
+            arg = ev[3] if len(ev) > 3 else ""
             if kind == "helper_pending":
                 pending = (arg, line)
             elif kind == "send":
