@@ -81,19 +81,20 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "memory_write/compiler: embedded typed program -> compiler liveness/slot truth",
+      "memory_write/compiler: reviewed liveness/slot reuse -> loop iteration value/type truth",
       "stack_runtime_control_truth",
       "heap_physical_memory_truth"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "SCTF 2026 / slang: reviewed compiler liveness omission -> vec_slot/forged_header first-fit slot reuse",
       "SCTF 2026 / slang: exact outbound payload -> typed embedded functions/calls/loop order",
       "SCTF 2026 / slang: Python wrapper -> embedded Slang program -> exact outbound payload",
       "SekaiCTF 2026 / echo-chamber: source+EXP modular integer composition",
       "Cyber Apocalypse 2026 / The Emptiness Machine: EXP-only FSOP intent truth"
     ],
     "next_lanes": [
-      "SCTF 2026 / slang: compiler liveness omission -> reviewed slot reuse -> type confusion -> constrained additive write",
+      "SCTF 2026 / slang: loop-iteration value flow -> actual str-as-vec type confusion -> forged vec interpretation -> constrained additive write",
       "SCTF 2026 / CHAOS;HEAD: object lifetime/UAF -> leak -> adjacent object function-pointer overwrite",
       "SCTF 2026 / UBW or heapMage: modern glibc heap lane with allocator/version evidence",
       "2026 国内官方 Stack/Format String/Control Flow 新题优先插队",
