@@ -55,6 +55,10 @@
     {
       "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-guess-ec95cf56",
       "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/stacksmashes/guess"
+    },
+    {
+      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89",
+      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1"
     }
   ],
   "validation": [
