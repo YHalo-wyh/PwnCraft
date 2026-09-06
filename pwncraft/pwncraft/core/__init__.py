@@ -34,6 +34,7 @@ from .stack_truth import (
     publish_stack_evidence,
     stack_control_state,
 )
+from .runtime_truth_router import RuntimeTruthResult, apply_machine_message
 
 __all__ = [
     "ActionType",
@@ -79,4 +80,6 @@ __all__ = [
     "derive_saved_ip_control_from_observation",
     "publish_stack_evidence",
     "stack_control_state",
+    "RuntimeTruthResult",
+    "apply_machine_message",
 ]
