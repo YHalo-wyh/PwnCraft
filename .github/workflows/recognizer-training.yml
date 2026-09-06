@@ -21,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      PYTHONPATH: pwncraft
       QT_QPA_PLATFORM: offscreen
     steps:
       - name: Checkout
@@ -41,7 +40,12 @@ jobs:
           python -m pip install pytest
 
       - name: Project regression
-        run: python -m pytest -q pwncraft/tests
+        working-directory: pwncraft
+        env:
+          PYTHONPATH: .
+        run: python -m pytest -q tests
 
       - name: Training infrastructure regression
+        env:
+          PYTHONPATH: pwncraft
         run: python -m pytest -q autocorrect/tests
