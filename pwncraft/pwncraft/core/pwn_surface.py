@@ -101,6 +101,14 @@ DOMAIN_CATALOG: dict[PwnDomain, dict[str, object]] = {
 }
 
 
+def _primitive_records(workspace: "PwnWorkspace") -> tuple[Mapping[str, object], ...]:
+    exploit = workspace.exploit if isinstance(workspace.exploit, dict) else {}
+    raw = exploit.get("primitives", [])
+    if not isinstance(raw, Iterable) or isinstance(raw, (str, bytes, Mapping)):
+        return ()
+    return tuple(item for item in raw if isinstance(item, Mapping))
+
+
 def _primitive_names(workspace: "PwnWorkspace") -> tuple[str, ...]:
     exploit = workspace.exploit if isinstance(workspace.exploit, dict) else {}
     raw = exploit.get("primitives", [])
@@ -251,7 +259,24 @@ def analyze_pwn_surface(workspace: "PwnWorkspace") -> tuple[DomainAssessment, ..
 
     io_hits = _matching(primitives, "fsop", "file corruption", "io file", "_io_")
     if io_hits:
-        results.append(DomainAssessment(PwnDomain.IO_FILE, "evidenced", primitives=io_hits))
+        records = [
+            item for item in _primitive_records(workspace)
+            if str(item.get("name") or "") in io_hits
+        ]
+        strong_states = {"", "confirmed", "observed", "proven", "validated", "available"}
+        states = tuple(str(item.get("state", "confirmed") or "confirmed").lower() for item in records)
+        if not records or any(state in strong_states for state in states):
+            # Historical primitive records may omit state; preserve their
+            # previous confirmed semantics for backwards compatibility.
+            results.append(DomainAssessment(PwnDomain.IO_FILE, "evidenced", primitives=io_hits))
+        else:
+            results.append(DomainAssessment(
+                PwnDomain.IO_FILE,
+                "partial",
+                tuple(f"EXP primitive state={state}" for state in states),
+                ("target/runtime FILE corruption not independently proven",),
+                primitives=io_hits,
+            ))
     else:
         results.append(DomainAssessment(PwnDomain.IO_FILE, "unknown", missing=("no FILE/FSOP evidence",)))
 
