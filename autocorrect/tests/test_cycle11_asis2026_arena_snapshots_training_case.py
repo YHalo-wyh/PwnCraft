@@ -16,9 +16,9 @@ CASE_ID = "memory_write-asis-ctf-quals-2026-arena-snapshots-d4276d86"
 TRUTH = ROOT / "autocorrect" / "cases" / CASE_ID / "expected_truth.json"
 
 
-def test_asis2026_case_is_registered_train_before_feedback() -> None:
+def test_asis2026_community_case_is_validation_only() -> None:
     splits = load_splits()
-    assert split_for_case(CASE_ID, splits) == "train"
+    assert split_for_case(CASE_ID, splits) == "validation"
 
 
 def test_truth_lock_points_to_recent_asis2026_material() -> None:
@@ -30,9 +30,9 @@ def test_truth_lock_points_to_recent_asis2026_material() -> None:
         "d4276d8601f15f0f34b05ab42d9832c0a722e886"
 
 
-def test_source_derived_socket_wrapper_semantics_are_visible() -> None:
-    # Minimal source-derived fixture preserving the real challenge's wrapper
-    # shape without treating the archive writeup as runtime observation.
+def test_source_derived_socket_wrapper_semantics_are_visible_for_validation() -> None:
+    # This is evaluation evidence only: community material may exercise generic
+    # extraction, but it must not be used as patch-selection feedback.
     source = r'''
 class Conn:
     def recv_line(self):
