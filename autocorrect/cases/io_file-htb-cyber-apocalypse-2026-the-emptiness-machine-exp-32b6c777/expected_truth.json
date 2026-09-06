@@ -1,0 +1,98 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "io_file-htb-cyber-apocalypse-2026-the-emptiness-machine-exp-32b6c777",
+  "domain": "io_file",
+  "subdomains": [
+    "leak",
+    "control_flow"
+  ],
+  "source_repository": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026",
+  "source_commit": "9f0a3510866870cff3447ad1a21645c1c911d753",
+  "source_challenge_path": "pwn/The Emptiness Machine",
+  "arch": {
+    "value": "amd64",
+    "bits": 64,
+    "provenance": "OFFICIAL_WRITEUP"
+  },
+  "truth_layers": {
+    "EXP_SYMBOL_REFERENCES": {
+      "status": "PROVEN",
+      "facts": [
+        {
+          "kind": "libc_symbol_ref",
+          "symbol": "_IO_2_1_stdout_",
+          "provenance": "OFFICIAL_SOLVER_SUBCASE"
+        },
+        {
+          "kind": "libc_symbol_ref",
+          "symbol": "_IO_2_1_stderr_",
+          "provenance": "OFFICIAL_SOLVER_SUBCASE"
+        },
+        {
+          "kind": "libc_symbol_ref",
+          "symbol": "_IO_wfile_jumps",
+          "provenance": "OFFICIAL_SOLVER_SUBCASE"
+        },
+        {
+          "kind": "libc_symbol_ref",
+          "symbol": "system",
+          "provenance": "OFFICIAL_SOLVER_SUBCASE"
+        }
+      ]
+    },
+    "FSOP_INTENT": {
+      "status": "EXP_SUPPORTED",
+      "technique": "FSOP / FILE corruption intent",
+      "evidence_rule": "standard libc _IO_2_1_* object reference + _IO_*_jumps vtable reference",
+      "provenance": "EXP_AST",
+      "limitations": [
+        "EXP intent does not independently prove a target-side FILE corruption primitive",
+        "runtime reachability and exploit success were not observed in this training cycle"
+      ]
+    },
+    "LEAK_INPUT": {
+      "status": "PROVEN_SOURCE_SEMANTICS",
+      "expression": "u64(r.recv(8))",
+      "required_width": 8,
+      "receive_semantics": "recv(8) may return fewer than 8 bytes",
+      "expected_auditor_semantics": {
+        "exact_input_width_proven": false,
+        "unknown_length_suggestion": true,
+        "reason": "ordinary recv(N) is not recvn(N); the AST cannot prove an exact 8-byte result"
+      }
+    },
+    "MATERIAL_SCOPE": {
+      "status": "PROVEN",
+      "evaluation_scope": "exp_semantics_only",
+      "required_materials": [
+        "exp"
+      ],
+      "missing_for_full_target_truth": [
+        "binary",
+        "runtime observation"
+      ],
+      "provenance": "MANIFEST_EVALUATION_CONTRACT"
+    }
+  },
+  "unknown": [
+    "target binary checksum in the selected official public writeup path",
+    "runtime _IO_FILE state",
+    "actual libc base for any execution",
+    "target-side reachability of the derived FSOP intent",
+    "exploit success"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-ccbd3b4843d2ab79",
+    "content_sha256": "ccbd3b4843d2ab798bc8d4bdfb5194a33e5c813d01f50811eb54b8e39956db0d",
+    "schema_version": "1.2-layered",
+    "locked_at": "2026-09-06",
+    "analyst_input_hashes": {
+      "binary_sha256": null,
+      "libc_sha256": null,
+      "exp_sha256": "fbead8a4791153c67951c105cba1e7125ec4d1f19ac70bca865e7cc1d0e99658",
+      "official_solver_git_blob_sha1": "32b6c77747ee8bceffc4c6b9bc5300bc07077ddb"
+    },
+    "truth_revision": 1,
+    "superseded_by": null
+  }
+}
