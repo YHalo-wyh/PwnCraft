@@ -206,7 +206,7 @@ def _normalize_truth(t: dict) -> dict:
 # ---------------------------------------------------------------- ctx
 
 def _prepare_ctx(expected_truth_raw: dict, actual: dict, exp_source: str,
-                 renderer_plan):
+                 renderer_plan, contract=None):
     """Shared preparation. Returns (run_identity_failure_or_None, ctx)."""
     run_ids = set()
 
@@ -249,12 +249,14 @@ def _prepare_ctx(expected_truth_raw: dict, actual: dict, exp_source: str,
                       for e in (actual.get("target_behavior") or {}).get("per_op", [])},
         "canvas_invariants": actual.get("canvas_invariants") or [],
         "canvas_truth": actual.get("canvas_truth_model") or {},
+        "deferred_layers": set(contract.not_applicable_layers) if contract else set(),
     }
     return None, ctx
 
 
 def compare(expected_truth_raw: dict, actual: dict, exp_source: str = "",
-            renderer_plan=None, collect_all: bool = False) -> dict:
+            renderer_plan=None, collect_all: bool = False,
+            contract=None) -> dict:
     report = {
         "case_id": expected_truth_raw.get("case_id"),
         "verdict": None,
@@ -268,7 +270,8 @@ def compare(expected_truth_raw: dict, actual: dict, exp_source: str = "",
         "reviewer_reason_hint": None,
         "confidence": None,
     }
-    fail, ctx = _prepare_ctx(expected_truth_raw, actual, exp_source, renderer_plan)
+    fail, ctx = _prepare_ctx(expected_truth_raw, actual, exp_source,
+                             renderer_plan, contract)
     if fail is not None:
         report["verdict"] = "INCONCLUSIVE"
         report["first_divergence"] = fail
@@ -284,6 +287,12 @@ def compare(expected_truth_raw: dict, actual: dict, exp_source: str = "",
         if fn is None:
             report["layers_not_compared"].append(layer)
             report["layer_results"].append(_rec(layer, "SKIPPED"))
+            continue
+        if layer in ctx.get("deferred_layers", set()):
+            report["layers_compared"].append(layer)
+            report["layer_results"].append(_rec(
+                layer, "DEFERRED",
+                detail="评测契约声明本层延迟 (阶段 0.1 NOT_APPLICABLE)"))
             continue
         record, div = fn(ctx, report)
         report["layers_compared"].append(layer)

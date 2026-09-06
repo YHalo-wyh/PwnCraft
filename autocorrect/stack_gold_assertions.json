@@ -1,0 +1,338 @@
+[
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_brop_hctf2016-brop_brop",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-StarCTF2018-not-97cad9a0",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_fake_frame_StarCTF2018-note_note",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      ".text": 8
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--1f442466",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2dlresolve_2015-hitcon-quals-readable_readable",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--20d0b2ae",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2dlresolve_2015-hitcon-quals-blinkroot_blinkroot",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-39d477bf",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2dlresolve_2015-xdctf-pwn200_64_partial-relro_main_partial_relro_64",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "main": 112
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc3-f3683777",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2libc_ret2libc3_ret2libc3",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "secure": 40
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-train.cs.nctu.edu-96d465d5",
+    "status": "SKIPPED",
+    "reason": "no binary"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2013-PlaidCTF-ropasaur-fec23fd9",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_rop_2013-PlaidCTF-ropasaurusrex_ropasaurusrex",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-guess-ec95cf56",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_stacksmashes_guess_GUESS",
+    "functions": 1,
+    "canary_protected_functions": [
+      ".text"
+    ],
+    "frame_sizes": {
+      ".text": 8
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-over-376262cd",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_fake_frame_over_core",
+    "functions": 3,
+    "canary_protected_functions": [
+      "load4",
+      "load9"
+    ],
+    "frame_sizes": {
+      "load1": 8,
+      "load4": 0,
+      "load9": 256
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-partial_overwrite-2018-xnu-1531c6e9",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_partial_overwrite_2018-xnuca-gets_gets",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-5efaa745",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2dlresolve_2015-xdctf-pwn200_32_partial-relro_main_partial_relro_32",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "main": 4
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-90e17e42",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2dlresolve_2015-xdctf-pwn200_64_no-relro_main_no_relro_64",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "main": 112
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-fc0bbe4c",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2dlresolve_2015-xdctf-pwn200_32_no-relro_main_no_relro_32",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "main": 4
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2libc_ret2libc1_ret2libc1",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "secure": 40
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc2-dbad0d86",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2libc_ret2libc2_ret2libc2",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "secure": 40
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-ret2shellcod-ef0b9645",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2shellcode_ret2shellcode-example_ret2shellcode",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2shellcode-sniperoj-pwn-22817a72",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2shellcode_sniperoj-pwn100-shellcode-x86-64_shellcode",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "main": 16
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2syscall-d0886c21",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2syscall_bamboofox-ret2syscall_rop",
+    "functions": 93,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "group_number": 0,
+      "_i18n_number_rewrite": 0,
+      "_nl_find_msg": 4,
+      "__dcigettext": 4,
+      "_nl_find_domain": 0,
+      "_nl_load_domain": 8,
+      "read_alias_file": 0,
+      "qsort_r": 0,
+      "__fxprintf": 0,
+      "__libc_message": 0,
+      "_IO_new_file_fopen": 0,
+      "__wcsmbs_load_conv": 0,
+      "__sysconf_check_spec": 0,
+      "__tdelete": 0,
+      "__get_nprocs": 0,
+      "__backtrace": 60,
+      "__backtrace_symbols_fd": 4,
+      "_dl_non_dynamic_init": 12,
+      "__gconv_open": 48,
+      "find_derivation": 48,
+      "__gconv_find_transform": 12,
+      "add_module": 0,
+      "__gconv_get_path": 32,
+      "__gconv_read_conf": 12,
+      "find_module": 0,
+      "setlocale": 4,
+      "_nl_find_locale": 0,
+      "_nl_load_locale": 0,
+      "_nl_load_locale_from_archive": 0,
+      "__add_to_environ": 0,
+      "_IO_vfprintf": 0,
+      "___printf_fp": 0,
+      "_IO_vfwprintf": 0,
+      "_IO_getline_info": 28,
+      "do_length": 0,
+      "__tzset_parse_tz": 0,
+      "__tzfile_read": 0,
+      "__libc_fork": 32,
+      "is_trusted_path_normalize": 0,
+      "add_name_to_object": 44,
+      "_dl_map_object_from_fd": 0,
+      "open_verify.isra.4": 0,
+      "open_path.isra.5": 0,
+      "fillin_rpath": 60,
+      "cache_rpath.part.6": 44,
+      "_dl_init_paths": 0,
+      "_dl_map_object": 12,
+      "_dl_lookup_symbol_x": 4,
+      "_dl_relocate_object": 32,
+      "_dl_important_hwcaps": 0,
+      "_dl_signal_cerror": 44,
+      "_dl_debug_vdprintf": 32,
+      "add_to_global": 44,
+      "_dl_open": 0,
+      "dl_open_worker": 0,
+      "_dl_close_worker": 4,
+      "dlerror_run": 8,
+      "do_dlsym_private": 20,
+      "_dl_tlsdesc_resolve_rel_fixup": 20,
+      "_dl_tlsdesc_resolve_rela_fixup": 20,
+      "__mpn_mul": 0,
+      "_IO_vfscanf": 272,
+      "openaux": 12,
+      "_dl_map_object_deps": 8,
+      "_dl_fixup": 20,
+      "_dl_profile_fixup": 20,
+      "_dl_sort_fini": 0,
+      "_dl_fini": 0,
+      "match_symbol": 0,
+      "_dl_check_map_versions": 0,
+      "_dl_start_profile": 0,
+      "do_sym": 0,
+      "_dl_vsym": 8,
+      "execute_cfa_program": 60,
+      ".L21": 0,
+      ".L25": 0,
+      ".L29": 0,
+      ".L30": 0,
+      ".L31": 0,
+      ".L36": 0,
+      ".L40": 0,
+      ".L42": 0,
+      ".L44": 0,
+      ".L63": 0,
+      ".L56": 192,
+      "_Unwind_RaiseException": 500,
+      "_Unwind_ForcedUnwind": 276,
+      "_Unwind_Resume": 276,
+      "_Unwind_Resume_or_Rethrow": 276,
+      "_Unwind_Backtrace": 336
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2text-edf54bc1",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_ret2text_bamboofox-ret2text_ret2text",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      "secure": 40
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2015-Defcon Qualifier -b23aea39",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_rop_2015-Defcon Qualifier R0pbaby_r0pbaby",
+    "functions": 1,
+    "canary_protected_functions": [],
+    "frame_sizes": {
+      ".text": 8
+    },
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackoverflow-intro-3c514d6e",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_stackoverflow-intro_stack-example_stack_example",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stackprivot-X-CTF Quals 20-1e7d1285",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_stackprivot_X-CTF Quals 2016 - b0verfl0w_b0verfl0w",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  },
+  {
+    "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-smashes-8f220a72",
+    "status": "OK",
+    "binary": "pwn_linux_user-mode_stackoverflow_stacksmashes_smashes_smashes",
+    "functions": 0,
+    "canary_protected_functions": [],
+    "frame_sizes": {},
+    "provenance": "OBSERVED (objdump)"
+  }
+]

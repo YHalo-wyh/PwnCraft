@@ -1,14 +1,46 @@
-[
-  {
-    "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
-    "verdict": "DIVERGED",
-    "layer": "HELPER_CONTRACT",
-    "run_id": "run-6c4845ff0ed57c8e"
+{
+  "registry": {
+    "rule_acceptances": [],
+    "assertion_acceptances": [
+      {
+        "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+        "kind": "assertion",
+        "layer": "HELPER_CONTRACT",
+        "note": "create/edit/show/delete 语义+角色+证据全部 MATCH (r5)",
+        "date": "2026-09-06T14:33:14"
+      }
+    ],
+    "case_acceptances": [
+      {
+        "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+        "kind": "case",
+        "layer": "",
+        "note": "四层 (解析+值流+对象同一性) 全 MATCH; TARGET_BEHAVIOR 等 defer 至引擎 1:N 建模 (M4/M5)",
+        "date": "2026-09-06T14:30:35"
+      },
+      {
+        "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+        "kind": "case",
+        "layer": "",
+        "note": "四层全 MATCH; TARGET_BEHAVIOR 等 defer 至引擎 1:N 建模",
+        "date": "2026-09-06T14:31:21"
+      }
+    ]
   },
-  {
-    "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
-    "verdict": "DIVERGED",
-    "layer": "HELPER_CONTRACT",
-    "run_id": "run-719e888dc9187aa9"
-  }
-]
+  "results": [
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "verdict": "MATCH",
+      "layer": null,
+      "assertions": null,
+      "run_id": "run-e57b948ca2d80c88"
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "verdict": "MATCH",
+      "layer": null,
+      "assertions": null,
+      "run_id": "run-9d23881fc5a759a1"
+    }
+  ]
+}

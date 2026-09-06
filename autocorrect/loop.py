@@ -350,10 +350,10 @@ def cmd_truthregress(args):
         expected = json.loads(truth_path.read_text(encoding="utf-8"))
         exp_path = next((resolve_case(case_id) / "original" / "solution").glob("*.py"))
         result = pwncraft_adapter.run_case(resolve_case(case_id))
-        report = comparator_v4.compare(expected, result,
-                                       exp_source=exp_path.read_text(encoding="utf-8"))
         contract = evaluation_contract.load_contract(cdir)
-        report = evaluation_contract.enforce(report, contract)
+        report = comparator_v4.compare(expected, result,
+                                       exp_source=exp_path.read_text(encoding="utf-8"),
+                                       contract=contract)
         fd = report.get("first_divergence") or {}
         verdict = report["verdict"]
         results.append({"case_id": case_id, "verdict": verdict,
@@ -393,38 +393,6 @@ def cmd_accept(args):
     print(f"[accept] {args.kind}: {args.case}"
           + (f" @ {args.layer}" if args.layer else ""))
 
-
-
-    """P1-1 Truth Regression: fresh authoritative run + strict comparator for
-    every ACCEPTED case (registry). ACCEPTED case turning DIVERGED = reject."""
-    registry = HERE / "accepted_cases.json"
-    accepted = json.loads(registry.read_text(encoding="utf-8")) if registry.exists() else []
-    if not accepted:
-        accepted = sorted(q.name for q in (HERE / "cases").iterdir()
-                          if (q / "expected_truth.json").exists())
-        print("[truthregress] registry empty -- running over locked-truth cases "
-              "(none ACCEPTED yet; proves executability)")
-    results = []
-    for case_id in accepted:
-        case_dir = resolve_case(case_id)
-        cdir = HERE / "cases" / case_dir.name
-        if not (cdir / "expected_truth.json").exists():
-            continue
-        _check_truth_lock(cdir, strict=False)
-        expected = json.loads((cdir / "expected_truth.json").read_text(encoding="utf-8"))
-        exp_path = next((case_dir / "original" / "solution").glob("*.py"))
-        result = pwncraft_adapter.run_case(case_dir)
-        report = comparator_v4.compare(expected, result,
-                                       exp_source=exp_path.read_text(encoding="utf-8"))
-        fd = report.get("first_divergence") or {}
-        results.append({"case_id": case_id, "verdict": report["verdict"],
-                        "layer": fd.get("layer"),
-                        "run_id": (result.get("run_manifest") or {}).get("run_id")})
-        print(f"[truthregress] {case_id}: {report['verdict']}"
-              + (f" @ {fd.get('layer')}" if fd.get("layer") else ""))
-    (HERE / "regression" / "truth_regression.json").write_text(
-        json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[truthregress] {len(results)} cases -> regression/truth_regression.json")
 
 
 def cmd_inventory(args):

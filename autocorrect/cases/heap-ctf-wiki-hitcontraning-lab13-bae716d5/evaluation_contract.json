@@ -1,0 +1,32 @@
+{
+  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "schema_version": "1.0",
+  "oracle_scope": "解析 + 值流 + 对象同一性 (heapcreator.c 与 BinaryIR 已证)",
+  "required_layers": [
+    "HELPER_CONTRACT",
+    "STATIC_RECOGNITION",
+    "CANONICAL_IR",
+    "ARGUMENT_BINDING"
+  ],
+  "not_applicable_layers": [
+    "TARGET_BEHAVIOR",
+    "ALLOCATOR",
+    "BINS",
+    "PHYSICAL_MEMORY",
+    "SNAPSHOT",
+    "CANVAS_TRUTH",
+    "RENDERER_PLAN"
+  ],
+  "not_applicable_reason": "delete 的 second free (struct chunk) 尚未被引擎建模 (已知 1:N 缺口); TARGET_BEHAVIOR/ALLOCATOR/BINS 层在 引擎建模完成后转为必需 (阶段 M4/M5)",
+  "min_assertions": 8,
+  "required_artifacts": [
+    "recognition.json",
+    "helper_contracts.json",
+    "canonical_ir.json"
+  ],
+  "env": {
+    "arch": "amd64",
+    "glibc": "2.23",
+    "wsl_objdump": true
+  }
+}
