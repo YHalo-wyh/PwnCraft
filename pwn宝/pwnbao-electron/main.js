@@ -490,11 +490,37 @@ async function runSmoke() {
       "    node.dispatchEvent(drop);" +
       "    inserted = editor.getValue() !== before;" +
       "  }" +
-      "  return {present:true, palette: palette, editorReady: !!editor, inserted: inserted};" +
+      "  let editable = null, edited = null;" +
+      "  const chip = document.querySelector('.pwncraft-code-chip');" +
+      "  if (chip && window.PwnExpDnD) {" +
+      "    window.PwnExpDnD.beginInlineEdit(chip);" +
+      "    const box = chip.querySelector('.pwncraft-chip-edit');" +
+      "    editable = !!box;" +
+      "    if (box) { box.value = 'edited_payload_test';" +
+      "      (chip.__pwncraftCommitEdit || (() => {}))();" +
+      "      edited = chip.__pwncraftDnd === 'edited_payload_test'; }" +
+      "  }" +
+      "  let noElfLinkage = null, codeDragFlag = null;" +
+      "  try { const dt = new DataTransfer(); dt.setData('text/pwncraft-code', 'x=1');" +
+      "    const ev = new DragEvent('dragstart', {dataTransfer: dt});" +
+      "    Object.defineProperty(ev, 'target', {value: chip});" +
+      "    chip.dispatchEvent(ev);" +
+      "    codeDragFlag = window.__pwncraftCodeDrag === true;" +
+      "    const end = new DragEvent('dragend', {dataTransfer: dt});" +
+      "    chip.dispatchEvent(end);" +
+      "    noElfLinkage = window.__pwncraftCodeDrag === false;" +
+      "  } catch (e) { noElfLinkage = null; }" +
+      "  return {present:true, palette: palette, editorReady: !!editor, inserted: inserted," +
+      "          editable: editable, edited: edited," +
+      "          noElfLinkage: noElfLinkage, codeDragFlag: codeDragFlag};" +
       "})()", true);
     ok('exp.dnd.present', dnd.present === true);
     ok('exp.dnd.palette', dnd.palette > 0, `${dnd.palette} chips`);
     if (dnd.editorReady) ok('exp.dnd.insert', dnd.inserted === true);
+    ok('exp.dnd.editable', dnd.editable === true,
+       `editable=${dnd.editable} edited=${dnd.edited}`);
+    ok('exp.dnd.no-elf-linkage', dnd.noElfLinkage === true,
+       `codeDragFlag=${dnd.codeDragFlag}`);
   } catch (error) {
     ok('exp.dnd', false, String(error));
   }

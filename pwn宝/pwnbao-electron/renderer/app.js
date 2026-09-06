@@ -246,23 +246,30 @@
       return overlay;
     };
     let dragDepth = 0;
+    // VNext.3.1D: 代码块拖拽进行中, 全局 ELF 导入联动一律让路 ——
+    // 否则拖 Quick Fix 会误弹「松开导入 ELF」覆盖层。
+    const isCodeDrag = () => window.__pwncraftCodeDrag === true;
     document.addEventListener('dragenter', (event) => {
+      if (isCodeDrag()) return;
       event.preventDefault();
       dragDepth += 1;
       ensureOverlay().hidden = false;
     });
     document.addEventListener('dragover', (event) => {
+      if (isCodeDrag()) { event.preventDefault(); return; }
       event.preventDefault();
       const drop = $('#drop-square');
       if (drop) drop.classList.add('dragover');
     });
     document.addEventListener('dragleave', (event) => {
+      if (isCodeDrag()) return;
       dragDepth = Math.max(0, dragDepth - 1);
       const drop = $('#drop-square');
       if (drop) drop.classList.remove('dragover');
       if (!dragDepth && overlay) overlay.hidden = true;
     });
     document.addEventListener('drop', (event) => {
+      if (isCodeDrag()) { event.preventDefault(); return; }  // 代码块落点由编辑器处理
       event.preventDefault();
       dragDepth = 0;
       if (overlay) overlay.hidden = true;

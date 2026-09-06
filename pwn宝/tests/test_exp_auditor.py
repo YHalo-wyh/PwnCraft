@@ -178,6 +178,30 @@ def pwn():
     assert any("24" in i.value for i in inlined)
 
 
+def test_r12_unused_recv_result_is_suggestion() -> None:
+    """M2 公共值流第一切片: 接收结果未被使用 → Suggestion (非 Error)。"""
+    exp = """
+def pwn():
+    leak = io.recv(8)
+    io.sendline(b"done")
+"""
+    diagnostics = audit_exp(exp)
+    hit = [d for d in diagnostics if d["code"] == "EXP_LEAK_004"]
+    assert hit and hit[0]["severity"] == "suggestion"
+    assert hit[0]["evidence"][0]["detail"].endswith("recv(8)")
+
+
+def test_r13_used_recv_result_is_clean() -> None:
+    exp = """
+def pwn():
+    leak = io.recv(8)
+    libc_base = u64(leak) - libc.sym["puts"]
+    io.send(p64(libc_base))
+"""
+    codes = [d["code"] for d in audit_exp(exp)]
+    assert "EXP_LEAK_004" not in codes
+
+
 def test_r11_syntax_error_is_single_parse_diagnostic() -> None:
     diagnostics = audit_exp("payload = flat(\n    0,\n    pop_rdi,\n")
     assert _codes(diagnostics) == ["EXP_PARSE_001"]

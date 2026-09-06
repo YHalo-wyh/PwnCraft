@@ -252,6 +252,26 @@ def run_rules(ir: ExploitIR, *, bits: int = 64, pie: bool = False,
                 suggested_fix=f"{hc.var} = leak - offset  # 由泄露推导",
                 impact="非 PIE 场景下该地址才有效；PIE 下需先泄露基址。"))
 
+    # ---- M2 公共值流: 调用点接收结果的实际使用 (EXP_LEAK_004)
+    for var in ir.var_recv_length:
+        used = any(var in (op.arg or "") for op in ir.unpacks)
+        used = used or any(var in (op.arg or "") for op in ir.packs)
+        used = used or any(
+            var in (i.value or "") or var in (i.wait_for or "")
+            for i in ir.interactions if i.value or i.wait_for)
+        if not used:
+            diagnostics.append(Diagnostic(
+                code="EXP_LEAK_004",
+                severity=SEVERITY_SUGGESTION,
+                confidence=0.5,
+                message=f"recv 结果 {var} 接收后从未被使用 —— 泄露链可能缺失"
+                        "（漏写 u64 解析或后续计算）。",
+                line=0,
+                evidence=[{"kind": "RECV_LENGTH",
+                           "detail": f"{var} <- recv({ir.var_recv_length[var]})"}],
+                suggested_fix=f"# 使用 {var}: {var}.ljust(8, b'\x00') 后 u64 解析",
+                impact="泄露数据被丢弃, 利用链断裂。"))
+
     # ---- heap lifecycle rules (EXP ↔ BehaviorProfile cross validation)
     if profile:
         machine = HeapStateMachine(semantics)

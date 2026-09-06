@@ -18,21 +18,75 @@
   function setEditor(editor) { state.editor = editor; }
 
   // ---------- 拖拽源 ----------
-  function enableDragSource(el, code) {
-    if (!el || el.__pwncraftDnd) return el;
-    const payload = code !== undefined ? String(code)
+  function enableDragSource(el, code, opts) {
+    if (!el) return el;
+    const options = opts || {};
+    if (el.__pwncraftDnd === undefined) {
+      el.addEventListener('dragstart', (event) => {
+        const payload = el.__pwncraftDnd || '';
+        event.dataTransfer.setData(MIME, payload);
+        event.dataTransfer.setData('text/plain', payload);
+        event.dataTransfer.effectAllowed = 'copy';
+        window.__pwncraftCodeDrag = true;   // 让全局 ELF 导入联动让路
+        el.classList.add('pwncraft-dragging');
+      });
+      el.addEventListener('dragend', () => {
+        window.__pwncraftCodeDrag = false;
+        el.classList.remove('pwncraft-dragging');
+      });
+      el.setAttribute('draggable', 'true');
+      el.classList.add('pwncraft-draggable');
+    }
+    el.__pwncraftDnd = code !== undefined ? String(code)
       : el.getAttribute('data-pwncraft-code') || el.textContent || '';
-    el.__pwncraftDnd = payload;
-    el.setAttribute('draggable', 'true');
-    el.classList.add('pwncraft-draggable');
-    el.addEventListener('dragstart', (event) => {
-      event.dataTransfer.setData(MIME, payload);
-      event.dataTransfer.setData('text/plain', payload);
-      event.dataTransfer.effectAllowed = 'copy';
-      el.classList.add('pwncraft-dragging');
-    });
-    el.addEventListener('dragend', () => el.classList.remove('pwncraft-dragging'));
+    // 双击进入就地编辑 (所有代码块通用): 修改同步到拖拽载荷
+    if (options.editable && !el.__pwncraftEditable) {
+      el.__pwncraftEditable = true;
+      el.title = '拖拽插入编辑器 · 双击编辑代码';
+      el.addEventListener('dblclick', () => beginInlineEdit(el));
+    }
     return el;
+  }
+
+  function beginInlineEdit(el) {
+    if (el.querySelector('.pwncraft-chip-edit')) return;
+    const pre = el.querySelector('.pwncraft-chip-code') ||
+                el.querySelector('pre') || el;
+    const original = el.__pwncraftDnd || pre.textContent || '';
+    const editor = document.createElement('textarea');
+    editor.className = 'pwncraft-chip-edit';
+    editor.value = original;
+    editor.rows = Math.min(8, original.split('\n').length + 1);
+    editor.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        editor.blur();
+      } else if (event.key === 'Escape') {
+        editor.value = original;
+        editor.blur();
+      }
+      event.stopPropagation();   // 编辑时不触发编辑器快捷键
+    });
+    const commit = () => {
+      const next = editor.value.trim();
+      if (next && next !== original) updatePayload(el, next);
+      editor.replaceWith(pre);
+      pre.style.display = '';
+    };
+    // 未聚焦窗口 blur 不触发 —— 暴露显式提交 (测试/程序化编辑用)
+    el.__pwncraftCommitEdit = commit;
+    editor.addEventListener('blur', commit);
+    pre.style.display = 'none';
+    pre.parentElement.insertBefore(editor, pre);
+    editor.focus();
+    editor.select();
+  }
+
+  function updatePayload(el, text) {
+    el.__pwncraftDnd = String(text);
+    el.setAttribute('data-pwncraft-code', String(text));
+    const pre = el.querySelector('.pwncraft-chip-code');
+    if (pre) pre.textContent = String(text);
   }
 
   // 面板渲染后扫一遍, 声明式代码块自动可拖
@@ -90,6 +144,7 @@
     node.addEventListener('dragover', (event) => {
       if (!event.dataTransfer.types.includes(MIME)) return; // ELF 等交给全局
       event.preventDefault();
+      event.stopPropagation();               // 不让全局 overlay 闪烁
       event.dataTransfer.dropEffect = 'copy';
       node.classList.add('pwncraft-drop-target');
     });
@@ -122,6 +177,8 @@
   // ---------- 暴露 API ----------
   window.PwnExpDnD = {
     register: enableDragSource,
+    updatePayload,
+    beginInlineEdit,
     scan,
     wireMonaco,
     wireTextarea,
