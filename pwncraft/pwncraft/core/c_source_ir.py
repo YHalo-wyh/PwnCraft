@@ -1,12 +1,17 @@
-"""Source-AST backend (VNext.2 M2 cross-validation): minimal deterministic
-C callsite extraction → the SAME CallSiteIR the binary tracer produces.
+"""Source-level deterministic facts for small CTF challenge programs.
 
-Scope: statement-level patterns needed for menu-style heap challenges
-(calls with expressions, `ptr = malloc(n)`, `table[i] = expr`, `table[i] = NULL`).
-NOT a C parser: unknown constructs → UNKNOWN values. Precision > recall.
+The original VNext.2 backend extracts a conservative subset of C callsites into
+CallSiteIR.  This module deliberately remains *not* a general C parser:
+unsupported constructs stay UNKNOWN rather than being guessed.
+
+Cycle-12 adds a second, orthogonal fact extractor for signed-to-unsigned length
+flows.  It records evidence chains (parser result -> unsigned storage ->
+allocation/copy uses); it does not label a vulnerability merely because a
+function such as strtoll/malloc/read appears in the source.
 """
 from __future__ import annotations
 
+from dataclasses import asdict, dataclass, field
 import re
 from typing import Any
 
@@ -18,6 +23,37 @@ from pwncraft.core.value_ir import (
 _FUNC_RE = re.compile(r"^\s*(?:void|int|size_t|char\s*\*|long)\s+(\w+)\s*\(([^)]*)\)\s*\{")
 _CALL_RE = re.compile(r"(\w+)\s*\(")
 _INDEX_RE = re.compile(r"(\w+)\s*\[\s*([A-Za-z_]\w*)\s*\]")
+
+# Narrow source-fact vocabulary.  The parser family is intentionally limited to
+# functions whose return signedness is well-defined by the C library API.
+_SIGNED_PARSERS = {"strtol": 64, "strtoll": 64}
+_UNSIGNED_TYPE_RE = re.compile(
+    r"\b(size_t|uint(?:8|16|32|64)_t|unsigned(?:\s+(?:char|short|int|long|long\s+long))?)\b"
+)
+_LENGTH_DECL_RE = re.compile(
+    r"\b(?P<type>size_t|uint(?:8|16|32|64)_t|unsigned(?:\s+(?:char|short|int|long|long\s+long))?)"
+    r"\s+(?P<var>[A-Za-z_]\w*)\s*=\s*(?P<parser>strtol|strtoll)\s*\((?P<args>[^;]*)\)\s*;"
+)
+_ALLOC_USE_RE = re.compile(
+    r"\b(?P<callee>malloc|calloc|realloc)\s*\((?P<args>[^;]*)\)\s*;"
+)
+_COPY_CALLEES = {"read", "readn", "recv", "recvfrom", "memcpy", "memmove", "fread"}
+
+
+@dataclass(frozen=True)
+class CIntegerFlowFact:
+    """One source-backed fact in a signedness/length evidence chain."""
+
+    kind: str
+    function: str
+    variable: str
+    expression: str
+    line: int
+    provenance: str = "SOURCE"
+    details: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 def _split_args(text: str) -> list[str]:
@@ -71,6 +107,151 @@ def _value(expr: str, params: list[str], locals_map: dict[str, ValueIR],
                            operands=(_value(left, params, locals_map, table_globals),
                                      _value(right, params, locals_map, table_globals)))
     return ValueIR(kind=K_UNKNOWN, reason=f"unparsed {expr[:40]}")
+
+
+def _function_spans(source: str) -> list[tuple[str, int, int]]:
+    """Return (name, 1-based start line, 1-based end line) for simple functions."""
+    lines = source.splitlines()
+    spans: list[tuple[str, int, int]] = []
+    i = 0
+    while i < len(lines):
+        m = _FUNC_RE.match(lines[i])
+        if not m:
+            i += 1
+            continue
+        depth = 0
+        j = i
+        while j < len(lines):
+            depth += lines[j].count("{") - lines[j].count("}")
+            if depth == 0 and j > i:
+                break
+            j += 1
+        spans.append((m.group(1), i + 1, min(j + 1, len(lines))))
+        i = max(j + 1, i + 1)
+    return spans
+
+
+def _function_for_line(spans: list[tuple[str, int, int]], line: int) -> str:
+    for name, start, end in spans:
+        if start <= line <= end:
+            return name
+    return "<global>"
+
+
+def _identifier_present(expression: str, variable: str) -> bool:
+    return re.search(rf"\b{re.escape(variable)}\b", expression) is not None
+
+
+def extract_c_integer_flows(source: str) -> list[CIntegerFlowFact]:
+    """Extract evidence-backed signedness/length flows from C source.
+
+    Currently proven facts are deliberately narrow:
+      1. signed ``strtol``/``strtoll`` result assigned directly to an unsigned
+         integer type such as ``size_t``;
+      2. that exact variable appearing in malloc/calloc/realloc arguments;
+      3. the same variable used as the length/count argument of a bounded set of
+         byte-moving APIs.
+
+    This function does *not* claim that a negative value is reachable, that an
+    arithmetic wrap occurs at runtime, or that memory corruption succeeds.  A
+    caller may combine these source facts with an EXP input or runtime evidence.
+    """
+    spans = _function_spans(source)
+    lines = source.splitlines()
+    facts: list[CIntegerFlowFact] = []
+    tracked: dict[str, dict[str, Any]] = {}
+
+    for match in _LENGTH_DECL_RE.finditer(source):
+        line = source.count("\n", 0, match.start()) + 1
+        parser = match.group("parser")
+        variable = match.group("var")
+        c_type = " ".join(match.group("type").split())
+        function = _function_for_line(spans, line)
+        expression = match.group(0).strip()
+        tracked[variable] = {
+            "function": function,
+            "line": line,
+            "type": c_type,
+            "parser": parser,
+        }
+        facts.append(CIntegerFlowFact(
+            kind="SIGNED_PARSE_TO_UNSIGNED",
+            function=function,
+            variable=variable,
+            expression=expression,
+            line=line,
+            details={
+                "parser": parser,
+                "parser_result": "signed",
+                "destination_type": c_type,
+                "destination_signedness": "unsigned",
+                "negative_input_mapping": "modulo_destination_width",
+            },
+        ))
+
+    if not tracked:
+        return facts
+
+    # Statement-level call scan, retaining line/function provenance.
+    for line_no, raw in enumerate(lines, start=1):
+        function = _function_for_line(spans, line_no)
+        for cm in _CALL_RE.finditer(raw):
+            callee = cm.group(1)
+            if callee not in _COPY_CALLEES and callee not in {"malloc", "calloc", "realloc"}:
+                continue
+            depth, k = 0, cm.end() - 1
+            start = cm.end()
+            while k < len(raw):
+                if raw[k] == "(":
+                    depth += 1
+                elif raw[k] == ")":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                k += 1
+            if depth != 0:
+                continue
+            args_text = raw[start:k]
+            args = _split_args(args_text)
+            for variable, seed in tracked.items():
+                # Keep flows function-local unless there is explicit future
+                # interprocedural evidence.  This prevents same-name locals from
+                # being conflated across handlers.
+                if seed["function"] != function:
+                    continue
+                uses = [idx for idx, arg in enumerate(args)
+                        if _identifier_present(arg, variable)]
+                if not uses:
+                    continue
+                if callee in {"malloc", "calloc", "realloc"}:
+                    facts.append(CIntegerFlowFact(
+                        kind="UNSIGNED_LENGTH_ALLOCATION_USE",
+                        function=function,
+                        variable=variable,
+                        expression=f"{callee}({args_text})",
+                        line=line_no,
+                        details={"callee": callee, "argument_indexes": uses},
+                    ))
+                    continue
+                # Byte-moving APIs have different length positions.  Only emit a
+                # COPY_BOUND fact when the tracked value is actually in a known
+                # count/length slot; otherwise the call is not evidence.
+                length_positions = {
+                    "read": {2}, "readn": {2}, "recv": {2}, "recvfrom": {2},
+                    "memcpy": {2}, "memmove": {2}, "fread": {1, 2},
+                }.get(callee, set())
+                relevant = sorted(set(uses) & length_positions)
+                if relevant:
+                    facts.append(CIntegerFlowFact(
+                        kind="UNSIGNED_LENGTH_COPY_BOUND_USE",
+                        function=function,
+                        variable=variable,
+                        expression=f"{callee}({args_text})",
+                        line=line_no,
+                        details={"callee": callee,
+                                 "length_argument_indexes": relevant},
+                    ))
+    return facts
 
 
 def extract_c_callsites(source: str, *,
