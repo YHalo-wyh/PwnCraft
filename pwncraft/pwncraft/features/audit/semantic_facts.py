@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from pwncraft.features.audit.embedded_program import extract_embedded_function_program
 from pwncraft.features.audit.extract import extract_exploit_ir
 from pwncraft.features.audit.model import ExploitIR, SymbolRef
 from pwncraft.features.audit.outbound_payload import extract_outbound_literal_payloads
@@ -73,6 +74,21 @@ def infer_exp_primitives(ir: ExploitIR) -> list[dict]:
     return primitives
 
 
+def _embedded_program_facts(payloads: list) -> list[dict]:
+    """Parse second-language structure only from already-proven outbound literals."""
+    result: list[dict] = []
+    for payload in payloads:
+        program = extract_embedded_function_program(payload.content)
+        if program is None:
+            continue
+        fact = program.to_dict()
+        fact["source_payload_sha256"] = payload.sha256
+        fact["source_payload_line"] = payload.line
+        fact["source_payload_scope"] = payload.scope
+        result.append(fact)
+    return result
+
+
 def analyze_exp_semantics(source: str) -> dict:
     """Return source-derived semantic facts without mutating a workspace."""
     ir, syntax_error = extract_exploit_ir(source)
@@ -84,6 +100,7 @@ def analyze_exp_semantics(source: str) -> dict:
             "message": syntax_error.msg,
             "symbol_refs": [],
             "outbound_literal_payloads": [],
+            "embedded_programs": [],
             "primitives": [],
         }
     payloads, payload_error = extract_outbound_literal_payloads(source)
@@ -106,6 +123,7 @@ def analyze_exp_semantics(source: str) -> dict:
             for ref in ir.symbol_refs
         ],
         "outbound_literal_payloads": [payload.to_dict() for payload in payloads],
+        "embedded_programs": _embedded_program_facts(payloads),
         "primitives": infer_exp_primitives(ir),
     }
 
