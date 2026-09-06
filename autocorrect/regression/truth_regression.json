@@ -8,6 +8,13 @@
         "layer": "HELPER_CONTRACT",
         "note": "create/edit/show/delete 语义+角色+证据全部 MATCH (r5)",
         "date": "2026-09-06T14:33:14"
+      },
+      {
+        "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+        "kind": "assertion",
+        "layer": "HELPER_CONTRACT",
+        "note": "newnote/shownote/editnote/deletenote 语义+角色+证据全部 MATCH (r5 CALLSITE_ARGUMENT_BINDING)",
+        "date": "2026-09-06T15:00:12"
       }
     ],
     "case_acceptances": [
@@ -38,6 +45,27 @@
         "layer": "",
         "note": "r6 全层 MATCH (py2 方言 + 模块级入口 + 三参 editnote 识别)",
         "date": "2026-09-06T14:49:06"
+      },
+      {
+        "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+        "kind": "case",
+        "layer": "",
+        "note": "r5 全层 MATCH (py2 方言 + 模块级入口 + CALLSITE_ARGUMENT_BINDING editnote 三参识别); oracle_scope: 解析+值流+对象同一性",
+        "date": "2026-09-06T15:00:11"
+      },
+      {
+        "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+        "kind": "case",
+        "layer": "",
+        "note": "M2 收官: 四必需层 MATCH (解析+值流+对象同一性); TARGET_BEHAVIOR 等 defer",
+        "date": "2026-09-06T15:27:30"
+      },
+      {
+        "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+        "kind": "case",
+        "layer": "",
+        "note": "M2 收官: 四必需层 MATCH (含 editnote 三参识别); TARGET_BEHAVIOR defer",
+        "date": "2026-09-06T15:27:30"
       }
     ]
   },
@@ -47,28 +75,49 @@
       "verdict": "MATCH",
       "layer": null,
       "assertions": null,
-      "run_id": "run-6d51ad1ecbf04c33"
+      "run_id": "run-9b6c0888166233af"
     },
     {
       "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
       "verdict": "MATCH",
       "layer": null,
       "assertions": null,
-      "run_id": "run-9e8da0a22301a23c"
+      "run_id": "run-db2580dd400763c6"
     },
     {
       "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
       "verdict": "MATCH",
       "layer": null,
       "assertions": null,
-      "run_id": "run-855137d9b30283de"
+      "run_id": "run-1ccb08bba6cdf886"
     },
     {
       "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
       "verdict": "MATCH",
       "layer": null,
       "assertions": null,
-      "run_id": "run-f7c16eb7841190b7"
+      "run_id": "run-f96f0d4fdcf12bc3"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "verdict": "MATCH",
+      "layer": null,
+      "assertions": null,
+      "run_id": "run-cc667d619ad2a401"
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "verdict": "MATCH",
+      "layer": null,
+      "assertions": null,
+      "run_id": "run-e02e92dfb728d0fb"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "verdict": "MATCH",
+      "layer": null,
+      "assertions": null,
+      "run_id": "run-6dd5468db41b5d3d"
     }
   ]
 }

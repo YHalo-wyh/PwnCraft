@@ -1,7 +1,7 @@
 {
-  "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+  "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
   "schema_version": "1.0",
-  "oracle_scope": "解析 + 值流 + 对象同一性 (heapcreator.c 与 BinaryIR 已证)",
+  "oracle_scope": "解析 + 值流 + 对象同一性",
   "required_layers": [
     "HELPER_CONTRACT",
     "STATIC_RECOGNITION",
@@ -17,7 +17,7 @@
     "CANVAS_TRUTH",
     "RENDERER_PLAN"
   ],
-  "not_applicable_reason": "delete second-free (struct chunk) 尚未被引擎建模 (已知 1:N 缺口); TARGET_BEHAVIOR/ALLOCATOR/BINS 层在引擎建模完成后转为必需 (阶段 M4/M5)",
+  "not_applicable_reason": "同 lab13; editnote 三参已由 CALLSITE_ARGUMENT_BINDING 促销",
   "min_assertions": 8,
   "required_artifacts": [
     "recognition.json",

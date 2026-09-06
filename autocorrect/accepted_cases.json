@@ -51,6 +51,20 @@
       "layer": "",
       "note": "r5 全层 MATCH (py2 方言 + 模块级入口 + CALLSITE_ARGUMENT_BINDING editnote 三参识别); oracle_scope: 解析+值流+对象同一性",
       "date": "2026-09-06T15:00:11"
+    },
+    {
+      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
+      "kind": "case",
+      "layer": "",
+      "note": "M2 收官: 四必需层 MATCH (解析+值流+对象同一性); TARGET_BEHAVIOR 等 defer",
+      "date": "2026-09-06T15:27:30"
+    },
+    {
+      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
+      "kind": "case",
+      "layer": "",
+      "note": "M2 收官: 四必需层 MATCH (含 editnote 三参识别); TARGET_BEHAVIOR defer",
+      "date": "2026-09-06T15:27:30"
     }
   ]
 }
