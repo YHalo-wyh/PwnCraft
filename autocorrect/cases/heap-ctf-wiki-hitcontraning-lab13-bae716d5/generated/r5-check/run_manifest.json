@@ -1,5 +1,5 @@
 {
-  "run_id": "run-1d058890c9ca9833",
+  "run_id": "run-9879861906a2b26f",
   "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
   "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5",
   "exp_file": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\original\\solution\\exp.py",
@@ -8,6 +8,8 @@
   "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
   "glibc_version_claimed": "2.23",
   "recognizer_revision": "recognizer-2026.09-r5",
+  "truth_id": "",
+  "comparator_version": "4.1",
   "allocator_profile_id": "glibc-2.23-amd64",
   "allocator_profile_revision": "2026.09-r1",
   "allocator_requested_version": "2.23",
@@ -23,6 +25,6 @@
     "max_fast": "0x80"
   },
   "memory_revision": "13:0:0:0:12",
-  "snapshot_id": "8c76361634ef",
+  "snapshot_id": "c26af1e88405",
   "analysis_valid": true
 }

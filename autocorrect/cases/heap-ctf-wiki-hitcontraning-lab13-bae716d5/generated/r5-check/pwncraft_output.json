@@ -1,8 +1,8 @@
 {
-  "run_id": "run-1d058890c9ca9833",
+  "run_id": "run-9879861906a2b26f",
   "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
   "run_manifest": {
-    "run_id": "run-1d058890c9ca9833",
+    "run_id": "run-9879861906a2b26f",
     "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
     "case_dir": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5",
     "exp_file": "C:\\Users\\WYH\\Desktop\\pwn宝\\heap-corpus\\corpus\\heap-ctf-wiki-hitcontraning-lab13-bae716d5\\original\\solution\\exp.py",
@@ -11,6 +11,8 @@
     "libc_sha256": "05b841eae6f475817ebb3b99562cd6535cc61b099350a25019cd5d3b3136881d",
     "glibc_version_claimed": "2.23",
     "recognizer_revision": "recognizer-2026.09-r5",
+    "truth_id": "",
+    "comparator_version": "4.1",
     "allocator_profile_id": "glibc-2.23-amd64",
     "allocator_profile_revision": "2026.09-r1",
     "allocator_requested_version": "2.23",
@@ -26,11 +28,11 @@
       "max_fast": "0x80"
     },
     "memory_revision": "13:0:0:0:12",
-    "snapshot_id": "8c76361634ef",
+    "snapshot_id": "c26af1e88405",
     "analysis_valid": true
   },
   "analyzer": {
-    "run_id": "run-1d058890c9ca9833",
+    "run_id": "run-9879861906a2b26f",
     "valid": true,
     "recognizer_revision": "recognizer-2026.09-r5",
     "recognition": {
@@ -710,7 +712,7 @@
         "internals_not_modeled": true
       }
     ],
-    "run_id": "run-1d058890c9ca9833"
+    "run_id": "run-9879861906a2b26f"
   },
   "replay": {
     "n_steps": 13,
@@ -1377,10 +1379,10 @@
         "warnings": []
       }
     ],
-    "run_id": "run-1d058890c9ca9833"
+    "run_id": "run-9879861906a2b26f"
   },
   "physical_memory": {
-    "run_id": "run-1d058890c9ca9833",
+    "run_id": "run-9879861906a2b26f",
     "steps": [
       {
         "step": 0,
@@ -1409,7 +1411,7 @@
           "size": "0x20d70",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 1,
@@ -1728,7 +1730,7 @@
           "size": "0x20d50",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 2,
@@ -2333,7 +2335,7 @@
           "size": "0x20d30",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 3,
@@ -3101,7 +3103,7 @@
           "size": "0x20d30",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 4,
@@ -3826,7 +3828,7 @@
           "size": "0x20d30",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 5,
@@ -4764,7 +4766,7 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 6,
@@ -5677,7 +5679,7 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 7,
@@ -6590,7 +6592,7 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 8,
@@ -7503,7 +7505,7 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 9,
@@ -8416,7 +8418,7 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 10,
@@ -9329,7 +9331,7 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 11,
@@ -10336,7 +10338,7 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 12,
@@ -11325,13 +11327,13 @@
           "size": "0x0",
           "provenance": "memory"
         },
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       }
     ]
   },
   "bridge_steps": {
-    "run_id": "run-1d058890c9ca9833",
-    "snapshot_id": "8c76361634ef",
+    "run_id": "run-9879861906a2b26f",
+    "snapshot_id": "c26af1e88405",
     "memory_revision": "13:0:0:0:12",
     "steps": [
       {
@@ -23656,7 +23658,7 @@
   },
   "canvas_truth_model": {
     "definition": "CanvasTruthModel: what the backend truth says SHOULD be presented. NOT a claim about the actual JS renderer plan (INFRA-CLOSURE-1 P0-5).",
-    "run_id": "run-1d058890c9ca9833",
+    "run_id": "run-9879861906a2b26f",
     "n_steps": 13,
     "steps": [
       {
@@ -23691,7 +23693,7 @@
         "bin_rows": [],
         "selected_physical_id": null,
         "groups": [],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 1,
@@ -23790,7 +23792,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 2,
@@ -23951,7 +23953,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 3,
@@ -24149,7 +24151,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 4,
@@ -24360,7 +24362,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 5,
@@ -24560,7 +24562,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 6,
@@ -24760,7 +24762,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 7,
@@ -24960,7 +24962,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 8,
@@ -25160,7 +25162,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 9,
@@ -25360,7 +25362,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 10,
@@ -25560,7 +25562,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 11,
@@ -25760,7 +25762,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       },
       {
         "step": 12,
@@ -25973,7 +25975,7 @@
             ]
           }
         ],
-        "run_id": "run-1d058890c9ca9833"
+        "run_id": "run-9879861906a2b26f"
       }
     ]
   },

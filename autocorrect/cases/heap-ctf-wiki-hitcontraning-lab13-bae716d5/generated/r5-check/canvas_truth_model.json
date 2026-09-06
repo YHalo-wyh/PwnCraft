@@ -1,6 +1,6 @@
 {
   "definition": "CanvasTruthModel: what the backend truth says SHOULD be presented. NOT a claim about the actual JS renderer plan (INFRA-CLOSURE-1 P0-5).",
-  "run_id": "run-1d058890c9ca9833",
+  "run_id": "run-9879861906a2b26f",
   "n_steps": 13,
   "steps": [
     {
@@ -35,7 +35,7 @@
       "bin_rows": [],
       "selected_physical_id": null,
       "groups": [],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 1,
@@ -134,7 +134,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 2,
@@ -295,7 +295,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 3,
@@ -493,7 +493,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 4,
@@ -704,7 +704,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 5,
@@ -904,7 +904,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 6,
@@ -1104,7 +1104,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 7,
@@ -1304,7 +1304,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 8,
@@ -1504,7 +1504,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 9,
@@ -1704,7 +1704,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 10,
@@ -1904,7 +1904,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 11,
@@ -2104,7 +2104,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     },
     {
       "step": 12,
@@ -2317,7 +2317,7 @@
           ]
         }
       ],
-      "run_id": "run-1d058890c9ca9833"
+      "run_id": "run-9879861906a2b26f"
     }
   ]
 }

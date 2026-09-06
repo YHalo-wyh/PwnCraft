@@ -301,11 +301,18 @@ def run_case(case_dir: Path, out_path: Path | None = None) -> dict:
     recognition = (state.get("analysis") or {}).get("recognition") or {}
 
     # 阶段 0.3: 真值版本 + 比较器版本
-    truth_lock_path = case_dir / "expected_truth.json"
     truth_id = ""
-    if truth_lock_path.exists():
-        tl = json.loads(truth_lock_path.read_text(encoding="utf-8"))
-        truth_id = (tl.get("truth_lock") or {}).get("truth_id") or ""
+    for tl_name in ("expected_truth.json", "expected_analysis.json"):
+        tl_path = case_dir / tl_name
+        if not tl_path.exists():
+            continue
+        try:
+            tl = json.loads(tl_path.read_text(encoding="utf-8"))
+            truth_id = (tl.get("truth_lock") or {}).get("truth_id") or ""
+            if truth_id:
+                break
+        except Exception:
+            pass
     comparator_version = "4.1"
 
     run_manifest = {
