@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """Deterministic TargetBehavior lowering for the formal training pipeline.
 
-Cycle-5 closes the separation between EXP-level CanonicalIR and target-internal
-1:N actions.  The source recognizer still emits one canonical operation for one
-EXP helper call.  A reviewed ``behavior_bindings.json`` may then lower that one
-call into N target actions (for example create -> malloc(struct)+malloc(content)).
+Cycle-5 closed the separation between EXP-level CanonicalIR and target-internal
+1:N actions.  Cycle-6 keeps that contract and adds only the reviewed identity
+metadata the allocator replay needs: allocation handle policy + per-effect
+``bind_handle``.  None of this is guessed from helper names.
 
 Important boundaries:
 - no challenge/case-name hardcoding;
@@ -24,7 +24,7 @@ import re
 from pathlib import Path
 from typing import Any, Mapping
 
-TARGET_BEHAVIOR_REVISION = "target-behavior-2026.09-r1"
+TARGET_BEHAVIOR_REVISION = "target-behavior-2026.09-r2"
 
 _IDENTIFIER = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _EFFECT_ACTION = {
@@ -36,6 +36,7 @@ _EFFECT_ACTION = {
     "show": "print",
     "copy": "copy",
 }
+_HANDLE_POLICIES = {"lowest_free_index"}
 
 
 def _abstract_expression(text: object) -> dict[str, Any]:
@@ -113,6 +114,33 @@ def _substitute_expression(template: object, values: Mapping[str, str]) -> str:
         return text
 
 
+def _normalize_handle_policy(raw: object, helper: str) -> dict[str, Any]:
+    if raw in (None, "", {}):
+        return {}
+    if isinstance(raw, str):
+        policy = {"kind": raw.strip()}
+    elif isinstance(raw, Mapping):
+        policy = {str(key): value for key, value in raw.items()}
+    else:
+        raise TypeError(f"behavior binding {helper}: handle_policy 必须是 string/object")
+    kind = str(policy.get("kind") or "").strip()
+    if kind not in _HANDLE_POLICIES:
+        raise ValueError(
+            f"behavior binding {helper}: 未知 handle_policy {kind or '<empty>'}"
+        )
+    try:
+        limit = int(policy.get("limit") or 0)
+    except (TypeError, ValueError) as error:
+        raise ValueError(f"behavior binding {helper}: handle_policy.limit 必须是正整数") from error
+    if limit < 1:
+        raise ValueError(f"behavior binding {helper}: handle_policy.limit 必须是正整数")
+    return {
+        "kind": kind,
+        "limit": limit,
+        "evidence": str(policy.get("evidence") or "reviewed target handle policy"),
+    }
+
+
 def _normalize_binding(raw: Mapping[str, object], index: int) -> dict[str, Any]:
     helper = str(raw.get("function") or raw.get("helper") or "").strip()
     if not helper or not _IDENTIFIER.match(helper):
@@ -150,6 +178,10 @@ def _normalize_binding(raw: Mapping[str, object], index: int) -> dict[str, Any]:
                 f"behavior binding {helper}: effects[{effect_index}] 未知 kind "
                 f"{kind or '<empty>'}"
             )
+        if "bind_handle" in effect and not isinstance(effect.get("bind_handle"), bool):
+            raise TypeError(
+                f"behavior binding {helper}: effects[{effect_index}].bind_handle 必须是 boolean"
+            )
         effect["kind"] = kind
         effects.append(effect)
 
@@ -159,6 +191,7 @@ def _normalize_binding(raw: Mapping[str, object], index: int) -> dict[str, Any]:
         "parameters": parameters,
         "defaults": {str(key): str(value) for key, value in defaults_raw.items()},
         "effects": effects,
+        "handle_policy": _normalize_handle_policy(raw.get("handle_policy"), helper),
         "evidence": str(
             raw.get("evidence")
             or raw.get("bindings_provenance")
@@ -252,12 +285,8 @@ def _effect_action(
         "source": "reviewed_behavior_binding",
         "evidence": str(binding.get("evidence") or ""),
     }
-    role = str(
-        effect.get("role")
-        or (effect.get("meta") or {}).get("role") if isinstance(effect.get("meta"), Mapping)
-        else effect.get("role")
-        or ""
-    ).strip()
+    meta = effect.get("meta") if isinstance(effect.get("meta"), Mapping) else {}
+    role = str(effect.get("role") or meta.get("role") or "").strip()
     if role:
         item["role"] = role
     note = str(effect.get("note") or "").strip()
@@ -267,6 +296,10 @@ def _effect_action(
     if action == "malloc":
         request = effect.get("request_size", effect.get("size", ""))
         item["request"] = _abstract_expression(_substitute_expression(request, values))
+        # BehaviorEffect's historical default is True.  Carry it explicitly
+        # now because allocator replay must know which internal allocation is
+        # the user-visible/menu-handle object.
+        item["bind_handle"] = bool(effect.get("bind_handle", True))
     elif action == "free":
         target = effect.get("target") or effect.get("chunk") or effect.get("index") or ""
         item["target"] = _abstract_expression(_substitute_expression(target, values))
@@ -310,6 +343,8 @@ def derive_target_behavior(
                 for index, effect in enumerate(binding["effects"], 1)
             ]
             entry["internals_not_modeled"] = False
+            if binding.get("handle_policy"):
+                entry["handle_policy"] = dict(binding["handle_policy"])
             entry["binding"] = {
                 "function": binding["function"],
                 "binary_handler": binding.get("binary_handler") or "",
@@ -335,6 +370,7 @@ def derive_target_behavior(
         "revision": TARGET_BEHAVIOR_REVISION,
         "derivation": (
             "CanonicalIR helper call -> reviewed behavior binding -> target-internal actions; "
+            "reviewed handle policy/bind_handle retained for allocator lowering; "
             "unbound calls retain explicit identity fallback"
         ),
         "per_op": per_op,
@@ -346,7 +382,7 @@ def apply_case_bindings(actual: dict[str, Any], case_dir: str | Path) -> bool:
 
     Returns True when a reviewed behavior_bindings.json was present.  Analyzer,
     replay, allocator, physical memory and canvas artifacts are intentionally
-    untouched; Cycle-5 validates only the TARGET_BEHAVIOR stage.
+    untouched by this helper; allocator replay is Cycle-6's separate stage.
     """
     cdir = Path(case_dir)
     path = cdir / "behavior_bindings.json"
