@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-06 (post cycle-4)",
+  "updated": "2026-09-06 (post cycle-5)",
   "completed_cases": [
     {
       "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
@@ -11,10 +11,11 @@
     },
     {
       "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
-      "role": "cycle-1 正式训练 + 后续 accepted-truth regression",
+      "role": "cycle-1 正式训练 + accepted-truth progressive layer closure",
       "cycles": [
         "cycle-1 ACCEPTED",
-        "cycle-4 regression MATCH"
+        "cycle-4 regression MATCH",
+        "cycle-5 TARGET_BEHAVIOR 1:N MATCH"
       ]
     },
     {
@@ -22,7 +23,8 @@
       "role": "cycle-2 正式训练 (py2 方言网关维度) + 后续 accepted-truth regression",
       "cycles": [
         "cycle-2 ACCEPTED",
-        "cycle-4 regression MATCH"
+        "cycle-4 regression MATCH",
+        "cycle-5 regression MATCH"
       ]
     }
   ],
@@ -54,6 +56,16 @@
       "synthetic_tests": "pwncraft/tests/test_contract_size_only_alloc.py (7)",
       "generalization": "babyheap allocate(size) 与 stkof alloc(size) 同一规则自动提升为 ALLOC(size)；近似 bare/name-only/token/resize 反例不提升。",
       "acceptance_gate": "GitHub current-head: 471 passed, 1 skipped, 6 subtests passed; autocorrect 8 passed; accepted truth regression lab13 MATCH + note2 MATCH"
+    },
+    {
+      "rule_id": "R-TARGET-BEHAVIOR-REVIEWED-1N-LOWERING",
+      "cycle": "cycle-5",
+      "patch_id": "cycle-5",
+      "target_behavior_revision": "target-behavior-2026.09-r1",
+      "statement": "CanonicalIR 保持一条 EXP helper 调用一个 canonical op；只有 reviewed behavior binding 才允许把该调用确定性降低为 N 个 target-internal actions。legacy helper 字段仅做 schema normalization，malformed binding 必须阻断；无 reviewed binding 时保留 identity fallback 并显式 internals_not_modeled。",
+      "synthetic_tests": "autocorrect/tests/test_target_behavior_v2.py (5)",
+      "generalization": "lab13 create(size,content) → malloc(0x10)+malloc(size)；delete(idx) → free(content)+free(struct)，two free calls 非 double_free；edit/show 同 binding 保留 write/print target action。",
+      "acceptance_gate": "GitHub branch head: project 471 passed, 1 skipped, 6 subtests passed; autocorrect 13 passed; accepted truth regression lab13 MATCH with TARGET_BEHAVIOR required + note2 MATCH"
     }
   ],
   "coverage": {
@@ -68,7 +80,7 @@
       "size": "babyheap allocate(size) + stkof alloc(size) (cycle-4 已证明)",
       "index,size,data": "lab13 fill / babyheap fill",
       "size,data": "lab13 create(size,content)",
-      "index": "lab13 free/dump",
+      "index": "lab13 delete/show + babyheap free/dump",
       "data_only_derived_size": null,
       "index_choice_data": "note2 editnote (已有 CALLSITE_ARGUMENT_BINDING 路径)",
       "src_dst": null,
@@ -99,10 +111,11 @@
       "callsite_leak_calc": "lab13(L58-61)/babyheap(L87)/note2 shownote 已有调用点级 promotion"
     },
     "target_behavior": {
-      "one_to_one": null,
-      "one_to_N": "lab13 (create=malloc(0x10)+malloc(size); 识别器尚未实现—TARGET_BEHAVIOR 层待修)",
-      "object_multi_alloc": "lab13",
-      "delete_multi_free": "lab13"
+      "one_to_one": "无 reviewed binding 的 canonical allocator op 保留 identity fallback，并标明 internals_not_modeled",
+      "one_to_N": "lab13 create/delete 已在正式 truth gate 通过 reviewed 1:N lowering",
+      "object_multi_alloc": "lab13 create = management_struct malloc(0x10) + content malloc(size)",
+      "delete_multi_free": "lab13 delete = free(content) + free(management_struct), two free calls 非 double_free",
+      "revision": "target-behavior-2026.09-r1"
     },
     "allocator_context": {
       "normal": "lab13/babyheap",
@@ -118,7 +131,7 @@
     }
   },
   "capability_queue": [
-    "TARGET_BEHAVIOR 1:N 事件展开 (lab13) — 当前最早的高价值结构缺口",
+    "ALLOCATOR 消费 TargetBehavior 1:N action stream (lab13): struct/content 两次 malloc + content/struct 两次 free，并保持 request/对象身份",
     "wheelofrobots 引擎 MemoryError (2.23 profile, _changed_byte_mask 巨长写) — allocator 层健壮性",
     "wrapper-of-wrapper / helper alias 泛化",
     "loop expansion",

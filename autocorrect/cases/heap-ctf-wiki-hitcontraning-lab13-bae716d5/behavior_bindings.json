@@ -15,16 +15,18 @@
           "chunk": "S",
           "request_size": "0x10",
           "bind_handle": false,
+          "role": "management_struct",
           "note": "management struct (malloc #1)"
         },
         {
           "kind": "alloc",
           "chunk": "C",
           "request_size": "size",
+          "role": "content",
           "note": "content (malloc #2)"
         }
       ],
-      "bindings_provenance": "analyst-truth (heapcreator.c L40+L48)"
+      "bindings_provenance": "analyst-truth (heapcreator.c L40 + L48; exp.py create(size, content))"
     },
     {
       "helper": "edit",
@@ -32,35 +34,20 @@
       "menu": "2",
       "parameters": [
         "idx",
-        "size",
         "content"
       ],
       "effects": [
         {
           "kind": "edit",
           "index": "idx",
-          "data": "content"
+          "data": "content",
+          "role": "content_write"
         }
       ],
-      "bindings_provenance": "analyst-truth"
+      "bindings_provenance": "analyst-truth (heapcreator.c L62-79; exp.py edit(idx, content))"
     },
     {
-      "helper": "free",
-      "binary_handler": "delete_heap",
-      "menu": "4",
-      "parameters": [
-        "idx"
-      ],
-      "effects": [
-        {
-          "kind": "free",
-          "index": "idx"
-        }
-      ],
-      "bindings_provenance": "analyst-truth"
-    },
-    {
-      "helper": "dump",
+      "helper": "show",
       "binary_handler": "show_heap",
       "menu": "3",
       "parameters": [
@@ -69,10 +56,34 @@
       "effects": [
         {
           "kind": "show",
-          "index": "idx"
+          "index": "idx",
+          "role": "content_print"
         }
       ],
-      "bindings_provenance": "analyst-truth"
+      "bindings_provenance": "analyst-truth (heapcreator.c L81-98; exp.py show(idx))"
+    },
+    {
+      "helper": "delete",
+      "binary_handler": "delete_heap",
+      "menu": "4",
+      "parameters": [
+        "idx"
+      ],
+      "effects": [
+        {
+          "kind": "free",
+          "index": "idx",
+          "role": "content",
+          "note": "free(heaparray[idx]->content)"
+        },
+        {
+          "kind": "free",
+          "index": "idx",
+          "role": "management_struct",
+          "note": "free(heaparray[idx])"
+        }
+      ],
+      "bindings_provenance": "analyst-truth (heapcreator.c L111-112; two free calls, not double_free)"
     }
   ]
 }
