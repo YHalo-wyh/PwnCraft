@@ -84,6 +84,21 @@ class HelperCall:
     scope: str = "main"
 
 
+@dataclass(frozen=True)
+class SymbolRef:
+    """A source-located symbolic address/reference used by an EXP.
+
+    Example: ``libc.sym._IO_wfile_jumps`` is represented as namespace=libc,
+    symbol=_IO_wfile_jumps.  This is evidence of EXP intent only; it does not
+    prove that the target exposes or successfully reaches that primitive.
+    """
+    expression: str
+    symbol: str
+    namespace: str = ""
+    line: int = 0
+    scope: str = "main"
+
+
 @dataclass
 class ExploitIR:
     interactions: list[Interaction] = field(default_factory=list)
@@ -91,6 +106,7 @@ class ExploitIR:
     unpacks: list[PackOp] = field(default_factory=list)
     helper_calls: list[HelperCall] = field(default_factory=list)
     hardcodes: list[Hardcode] = field(default_factory=list)
+    symbol_refs: list[SymbolRef] = field(default_factory=list)
     # var -> concrete recv length (leak dataflow seeds)
     var_recv_length: dict[str, int] = field(default_factory=dict)
     # var -> recvline/unknown-length marker
@@ -108,6 +124,7 @@ class ExploitIR:
             "unpacks": [asdict(p) for p in self.unpacks],
             "helper_calls": [asdict(c) for c in self.helper_calls],
             "hardcodes": [asdict(h) for h in self.hardcodes],
+            "symbol_refs": [asdict(r) for r in self.symbol_refs],
             "var_recv_length": dict(self.var_recv_length),
             "var_recv_unknown": list(self.var_recv_unknown),
             "events": list(self.events),
