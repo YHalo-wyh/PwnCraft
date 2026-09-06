@@ -33,6 +33,10 @@
       "cluster": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026|pwn/The Emptiness Machine|exp-semantics"
     },
     {
+      "case_id": "memory_write-asis-ctf-quals-2026-arena-snapshots-d4276d86",
+      "cluster": "https://github.com/hax1ng/ASIS-CTF-Quals-2026|pwn/arena-snapshots|exploit-semantics"
+    },
+    {
       "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
       "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/brop"
     },
