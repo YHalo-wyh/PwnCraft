@@ -1533,6 +1533,3350 @@
         "题目自定义 SIGSEGV/SIGFPE handler 时，异常路径也能被劫持"
       ],
       "tags": ["信号", "srop"]
+    },
+    {
+      "name": "setvbuf",
+      "prototype": "int setvbuf(FILE *stream, char *buf, int mode, size_t size);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "设置 FILE 流的缓冲模式（pwn 模板标配）",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流（stdout / stdin / stderr）"},
+        {"name": "buf", "type": "char *", "note": "缓冲区指针；NULL 表示交给系统分配"},
+        {"name": "mode", "type": "int", "note": "_IOFBF 全缓冲 / _IOLBF 行缓冲 / _IONBF 无缓冲"},
+        {"name": "size", "type": "size_t", "note": "缓冲区大小（字节）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "非 0"}
+      ],
+      "notes": [
+        "pwn 脚本里 setvbuf(stdout, 0, _IONBF, 0) + setvbuf(stdin, 0, _IONBF, 0) + setvbuf(stderr, 0, _IONBF, 0) 是开场三连，关掉缓冲保证交互不被卡住",
+        "开缓冲时 buf 指针会写进 FILE 结构——FSOP 分析时要留意这段堆/栈内存"
+      ],
+      "tags": ["stdio", "缓冲", "交互"]
+    },
+    {
+      "name": "dprintf",
+      "prototype": "int dprintf(int fd, const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "格式化输出直接写到文件描述符（不经过 FILE 流）",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标文件描述符"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串"},
+        {"name": "...", "type": "", "note": "可变参数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "写入的字符个数"},
+        {"condition": "失败", "value": "负值"}
+      ],
+      "notes": [
+        "绕过 stdio 缓冲直接 write(fd)——ORW 场景输出 flag 可以用它一步到位",
+        "fd=1 时等价于往 stdout 打泄露，常和 printf 混用做对比"
+      ],
+      "tags": ["stdio", "format", "fd"]
+    },
+    {
+      "name": "vprintf",
+      "prototype": "int vprintf(const char *format, va_list ap);",
+      "header": "<stdio.h> <stdarg.h>",
+      "category": "输入输出",
+      "summary": "用 va_list 参数包做 printf（包装日志函数的底层件）",
+      "params": [
+        {"name": "format", "type": "const char *", "note": "格式化字符串"},
+        {"name": "ap", "type": "va_list", "note": "已用 va_start 初始化的可变参数包"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "输出的字符个数"},
+        {"condition": "失败", "value": "负值"}
+      ],
+      "notes": [
+        "自封装 my_printf(char *fmt, ...) 转发到 vprintf 是格式化字符串漏洞的高发包装形态"
+      ],
+      "tags": ["stdio", "format", "va_list"]
+    },
+    {
+      "name": "vsprintf",
+      "prototype": "int vsprintf(char *str, const char *format, va_list ap);",
+      "header": "<stdio.h> <stdarg.h>",
+      "category": "输入输出",
+      "summary": "va_list 版 sprintf（无长度限制，不安全）",
+      "params": [
+        {"name": "str", "type": "char *", "note": "目标缓冲区"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串"},
+        {"name": "ap", "type": "va_list", "note": "可变参数包"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "写入的字符个数（不含结尾 \\0）"}
+      ],
+      "notes": [
+        "和 sprintf 一样没有边界——审计看到 log 类函数转发进 vsprintf 就要查上层有没有长度检查"
+      ],
+      "tags": ["stdio", "format", "不安全"]
+    },
+    {
+      "name": "vsnprintf",
+      "prototype": "int vsnprintf(char *str, size_t size, const char *format, va_list ap);",
+      "header": "<stdio.h> <stdarg.h>",
+      "category": "输入输出",
+      "summary": "va_list 版 snprintf（带长度上限）",
+      "params": [
+        {"name": "str", "type": "char *", "note": "目标缓冲区"},
+        {"name": "size", "type": "size_t", "note": "缓冲区总大小，最多写 size-1 个字符 + \\0"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串"},
+        {"name": "ap", "type": "va_list", "note": "可变参数包"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "理想长度（可能 ≥ size-1，用于判断截断）"}
+      ],
+      "notes": [
+        "安全包装日志函数的标准终点；返回值 ≥ size 说明被截断"
+      ],
+      "tags": ["stdio", "format", "安全"]
+    },
+    {
+      "name": "getline",
+      "prototype": "ssize_t getline(char **lineptr, size_t *n, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "读整行（缓冲区自动 realloc 扩容）",
+      "params": [
+        {"name": "lineptr", "type": "char **", "note": "缓冲区指针的地址；*lineptr 为 NULL 时自动 malloc"},
+        {"name": "n", "type": "size_t *", "note": "缓冲区容量（进出参，扩容后回写）"},
+        {"name": "stream", "type": "FILE *", "note": "输入流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "读入的字符数（含结尾换行符 \\n）"},
+        {"condition": "EOF 或错误", "value": "-1"}
+      ],
+      "notes": [
+        "缓冲区由 malloc/realloc 管理——heap 题里用它读输入会直接干预堆布局，控制 chunk 大小",
+        "读到的内容包含 \\n，做长度计算时别忘 +1"
+      ],
+      "tags": ["stdio", "输入", "heap"]
+    },
+    {
+      "name": "getdelim",
+      "prototype": "ssize_t getdelim(char **lineptr, size_t *n, int delim, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "读到指定分隔符为止（getline 的通用版）",
+      "params": [
+        {"name": "lineptr", "type": "char **", "note": "缓冲区指针的地址"},
+        {"name": "n", "type": "size_t *", "note": "缓冲区容量"},
+        {"name": "delim", "type": "int", "note": "分隔符字符（getline 就是 delim='\\n'）"},
+        {"name": "stream", "type": "FILE *", "note": "输入流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "读入字符数（含分隔符）"},
+        {"condition": "EOF 或错误", "value": "-1"}
+      ],
+      "notes": [
+        "换分隔符就能按任意字节切协议包"
+      ],
+      "tags": ["stdio", "输入"]
+    },
+    {
+      "name": "fscanf",
+      "prototype": "int fscanf(FILE *stream, const char *format, ...);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "从流按格式读入（scanf 的流版本）",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "输入流"},
+        {"name": "format", "type": "const char *", "note": "格式化字符串（%d %s %x…）"},
+        {"name": "...", "type": "", "note": "对应接收地址"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "成功匹配并赋值的项数"},
+        {"condition": "输入失败/EOF", "value": "EOF"},
+        {"condition": "首项匹配失败", "value": "0"}
+      ],
+      "notes": [
+        "%s 无宽度限制就是 gets 级别的溢出；%d 写 4 字节、%ld 写 8 字节——漏洞利用时用它做任意长度写"
+      ],
+      "tags": ["stdio", "format", "输入"]
+    },
+    {
+      "name": "fseek",
+      "prototype": "int fseek(FILE *stream, long offset, int whence);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "移动文件流的读写位置",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流"},
+        {"name": "offset", "type": "long", "note": "偏移量（可负）"},
+        {"name": "whence", "type": "int", "note": "SEEK_SET 文件头 / SEEK_CUR 当前 / SEEK_END 文件尾"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "非 0（负值）"}
+      ],
+      "notes": [
+        "配合 ftell 可以先量文件大小再精确读；对内存流（fmemopen）就是移动缓冲区指针"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "ftell",
+      "prototype": "long ftell(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "返回文件流当前读写位置",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "当前位置（相对文件头的字节数）"},
+        {"condition": "失败", "value": "-1L 并置 errno"}
+      ],
+      "notes": [
+        "fseek(f, 0, SEEK_END) + ftell(f) 是量文件长度的经典组合"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "rewind",
+      "prototype": "void rewind(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "把读写位置拨回文件头（fseek(stream, 0, SEEK_SET) + 清错误标志）",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "void"}
+      ],
+      "notes": [
+        "不返回结果——定位失败只能靠后续 IO 察觉"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "feof",
+      "prototype": "int feof(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "测试流是否已读到文件尾",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流"}
+      ],
+      "returns": [
+        {"condition": "已设置 EOF 标志", "value": "非 0"},
+        {"condition": "未到尾部", "value": "0"}
+      ],
+      "notes": [
+        "只在「读过之后越界」才置位，不能用来预判还有没有数据——循环条件用 feof 是经典错误"
+      ],
+      "tags": ["stdio", "状态"]
+    },
+    {
+      "name": "ferror",
+      "prototype": "int ferror(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "测试流的错误标志",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流"}
+      ],
+      "returns": [
+        {"condition": "发生过错误", "value": "非 0"},
+        {"condition": "无错误", "value": "0"}
+      ],
+      "notes": [
+        "read/recv 失败后换 perror 之前可以先看它；标志要用 clearerr 清除"
+      ],
+      "tags": ["stdio", "状态"]
+    },
+    {
+      "name": "clearerr",
+      "prototype": "void clearerr(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "清除流的 EOF 和错误标志",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "目标流"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "void"}
+      ],
+      "notes": [
+        "对 fmemopen 之类内存流 clearerr 后可以继续读"
+      ],
+      "tags": ["stdio", "状态"]
+    },
+    {
+      "name": "ungetc",
+      "prototype": "int ungetc(int c, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "把一个字符退回流中（回退而不写缓冲）",
+      "params": [
+        {"name": "c", "type": "int", "note": "要退回的字符（转换为 unsigned char）"},
+        {"name": "stream", "type": "FILE *", "note": "目标流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "退回的字符 c"},
+        {"condition": "失败", "value": "EOF"}
+      ],
+      "notes": [
+        "只保证回退一个字符且不改变底层文件；EOF 也能 ungetc 用来做「看一眼下一个」"
+      ],
+      "tags": ["stdio", "输入"]
+    },
+    {
+      "name": "fmemopen",
+      "prototype": "FILE *fmemopen(void *buf, size_t size, const char *mode);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "把一段内存包装成 FILE 流",
+      "params": [
+        {"name": "buf", "type": "void *", "note": "内存缓冲区（NULL 时由系统分配 size 字节）"},
+        {"name": "size", "type": "size_t", "note": "缓冲区大小"},
+        {"name": "mode", "type": "const char *", "note": "r / w / a / b 组合；w 会先把缓冲区清 0"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "FILE * 句柄"},
+        {"condition": "失败", "value": "NULL"}
+      ],
+      "notes": [
+        "拿到一个「内容完全受控」的 FILE——FSOP/伪文件练习的标配起点",
+        "读模式时缓冲区自带内容，注意不含自动 \\0 的坑"
+      ],
+      "tags": ["stdio", "FSOP", "内存流"]
+    },
+    {
+      "name": "open_memstream",
+      "prototype": "FILE *open_memstream(char **bufp, size_t *sizep);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "创建一个写入方向自动扩容的内存流",
+      "params": [
+        {"name": "bufp", "type": "char **", "note": "回传 malloc 出来的缓冲区地址"},
+        {"name": "sizep", "type": "size_t *", "note": "回传当前内容长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "FILE * 句柄"},
+        {"condition": "失败", "value": "NULL"}
+      ],
+      "notes": [
+        "缓冲区在 fclose/fflush 时才保证 NUL 终止且 *bufp 有效；内含 malloc/realloc——heap 观测好材料",
+        "FSOP 题常见：往内存流写数据把结构体字段写到受控堆上"
+      ],
+      "tags": ["stdio", "FSOP", "内存流", "heap"]
+    },
+    {
+      "name": "freopen",
+      "prototype": "FILE *freopen(const char *path, const char *mode, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "重定向一个已存在的流到新文件",
+      "params": [
+        {"name": "path", "type": "const char *", "note": "新文件路径"},
+        {"name": "mode", "type": "const char *", "note": "打开模式（r/w/a…）"},
+        {"name": "stream", "type": "FILE *", "note": "要重定向的流（stdout 等）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "stream 本身"},
+        {"condition": "失败", "value": "NULL 并关闭原流"}
+      ],
+      "notes": [
+        "把 stderr 重定向到日志文件常用；CTF 服务端拿它把输出收进文件"
+      ],
+      "tags": ["stdio", "重定向"]
+    },
+    {
+      "name": "tmpfile",
+      "prototype": "FILE *tmpfile(void);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "以 wb+ 模式创建匿名临时文件（关闭即删）",
+      "params": [],
+      "returns": [
+        {"condition": "成功", "value": "FILE * 句柄"},
+        {"condition": "失败", "value": "NULL"}
+      ],
+      "notes": [
+        "对比 tmpnam+open：匿名 + 权限 0600，不给抢注文件名的符号链接攻击留口子"
+      ],
+      "tags": ["stdio", "临时文件"]
+    },
+    {
+      "name": "remove",
+      "prototype": "int remove(const char *pathname);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "删除文件（或空目录）",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "目标路径"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1 并置 errno"}
+      ],
+      "notes": [
+        "底层分别走 unlink / rmdir"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "rename",
+      "prototype": "int rename(const char *oldpath, const char *newpath);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "重命名 / 移动文件",
+      "params": [
+        {"name": "oldpath", "type": "const char *", "note": "原路径"},
+        {"name": "newpath", "type": "const char *", "note": "新路径"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1 并置 errno"}
+      ],
+      "notes": [
+        "逻辑漏洞点：先 rename 备份再写目标的服务，路径校验绕过后可以覆盖任意文件"
+      ],
+      "tags": ["stdio", "文件"]
+    },
+    {
+      "name": "getc",
+      "prototype": "int getc(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "从流读一个字符（宏版 fgetc）",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "输入流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "读到的字符（unsigned char 值）"},
+        {"condition": "EOF 或错误", "value": "EOF（-1）"}
+      ],
+      "notes": [
+        "多数实现是宏，参数 side effect 会被求值多次；stdin 时等价 getchar"
+      ],
+      "tags": ["stdio", "输入"]
+    },
+    {
+      "name": "putc",
+      "prototype": "int putc(int c, FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "向流写一个字符（宏版 fputc）",
+      "params": [
+        {"name": "c", "type": "int", "note": "要写的字符"},
+        {"name": "stream", "type": "FILE *", "note": "输出流"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "写入的字符 c"},
+        {"condition": "失败", "value": "EOF"}
+      ],
+      "notes": [
+        "stdout 时等价 putchar"
+      ],
+      "tags": ["stdio", "输出"]
+    },
+    {
+      "name": "pclose",
+      "prototype": "int pclose(FILE *stream);",
+      "header": "<stdio.h>",
+      "category": "输入输出",
+      "summary": "关闭 popen 打开的管道并等待子进程结束",
+      "params": [
+        {"name": "stream", "type": "FILE *", "note": "popen 返回的句柄"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "子进程退出状态（waitpid 语义）"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "不 pclose 会留僵尸进程；退出状态要用 WEXITSTATUS 解"
+      ],
+      "tags": ["stdio", "进程", "管道"]
+    },
+    {
+      "name": "strncasecmp",
+      "prototype": "int strncasecmp(const char *s1, const char *s2, size_t n);",
+      "header": "<strings.h>",
+      "category": "字符串",
+      "summary": "忽略大小写比较前 n 个字符",
+      "params": [
+        {"name": "s1", "type": "const char *", "note": "字符串 1"},
+        {"name": "s2", "type": "const char *", "note": "字符串 2"},
+        {"name": "n", "type": "size_t", "note": "最多比较的字节数"}
+      ],
+      "returns": [
+        {"condition": "s1<s2", "value": "负值"},
+        {"condition": "相等（前 n 字节）", "value": "0"},
+        {"condition": "s1>s2", "value": "正值"}
+      ],
+      "notes": [
+        "比较到 n 或任一方的 \\0 就停——命令解析里比前缀很方便"
+      ],
+      "tags": ["str", "比较", "忽略大小写"]
+    },
+    {
+      "name": "strcspn",
+      "prototype": "size_t strcspn(const char *s, const char *reject);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "计算 s 开头连续「不含 reject 中任何字符」的长度",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "被扫描字符串"},
+        {"name": "reject", "type": "const char *", "note": "不接受字符集合"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "前缀长度（字节数）"}
+      ],
+      "notes": [
+        "strcspn(token, \" \\t\") 就是下一个分隔符的位置；找 token 边界比手动循环安全"
+      ],
+      "tags": ["str", "扫描"]
+    },
+    {
+      "name": "strspn",
+      "prototype": "size_t strspn(const char *s, const char *accept);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "计算 s 开头连续「只含 accept 中字符」的长度",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "被扫描字符串"},
+        {"name": "accept", "type": "const char *", "note": "接受字符集合"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "前缀长度"}
+      ],
+      "notes": [
+        "跳过空白 strspn(p, \" \\t\\r\\n\") 和 strcspn 配对就是简易 tokenizer"
+      ],
+      "tags": ["str", "扫描"]
+    },
+    {
+      "name": "strpbrk",
+      "prototype": "char *strpbrk(const char *s, const char *accept);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "找 s 中第一个出现在 accept 集合里的字符",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "被扫描字符串"},
+        {"name": "accept", "type": "const char *", "note": "目标字符集合"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "该字符的指针"},
+        {"condition": "没找到", "value": "NULL"}
+      ],
+      "notes": [
+        "找分隔符位置：strpbrk(line, \":=\") 直接定位协议头结束处"
+      ],
+      "tags": ["str", "查找"]
+    },
+    {
+      "name": "strnlen",
+      "prototype": "size_t strnlen(const char *s, size_t maxlen);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "有界 strlen：最多看到 maxlen 字节",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "字符串（不要求 NUL 终止）"},
+        {"name": "maxlen", "type": "size_t", "note": "扫描上限"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "s 的长度（不超过 maxlen）"}
+      ],
+      "notes": [
+        "审计判断「长度有界」的直接证据——memcpy(dst, s, strnlen(s, n)) 是安全写法",
+        "不会越过 maxlen 读，避免 strlen 越界读导致的 SIGSEGV 信息泄露"
+      ],
+      "tags": ["str", "长度", "安全"]
+    },
+    {
+      "name": "memchr",
+      "prototype": "void *memchr(const void *s, int c, size_t n);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "在内存前 n 字节里找字符 c",
+      "params": [
+        {"name": "s", "type": "const void *", "note": "内存块"},
+        {"name": "c", "type": "int", "note": "目标字节值（转换为 unsigned char）"},
+        {"name": "n", "type": "size_t", "note": "扫描长度"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "该字节地址"},
+        {"condition": "没找到", "value": "NULL"}
+      ],
+      "notes": [
+        "二进制安全：不怕 \\0 截断，找 payload 里的分隔字节用它"
+      ],
+      "tags": ["mem", "查找", "二进制安全"]
+    },
+    {
+      "name": "memrchr",
+      "prototype": "void *memrchr(const void *s, int c, size_t n);",
+      "header": "<string.h>（GNU 扩展）",
+      "category": "字符串",
+      "summary": "反向 memchr：从第 n 字节往回找",
+      "params": [
+        {"name": "s", "type": "const void *", "note": "内存块"},
+        {"name": "c", "type": "int", "note": "目标字节值"},
+        {"name": "n", "type": "size_t", "note": "扫描长度"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "该字节地址"},
+        {"condition": "没找到", "value": "NULL"}
+      ],
+      "notes": [
+        "找「最后一个 /」切路径、找最后一个换行——正向扫描要循环、它一步到位"
+      ],
+      "tags": ["mem", "查找", "GNU"]
+    },
+    {
+      "name": "strndup",
+      "prototype": "char *strndup(const char *s, size_t n);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "复制最多 n 字节并 NUL 终止（strdup 有界版）",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "源字符串"},
+        {"name": "n", "type": "size_t", "note": "最多复制的字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新分配缓冲区的指针"},
+        {"condition": "失败", "value": "NULL"}
+      ],
+      "notes": [
+        "对非 NUL 终止的数据先 strndup(buf, n) 转成安全字符串再处理"
+      ],
+      "tags": ["str", "复制", "heap"]
+    },
+    {
+      "name": "strsep",
+      "prototype": "char *strsep(char **stringp, const char *delim);",
+      "header": "<string.h>（BSD）",
+      "category": "字符串",
+      "summary": "可重入的字符串切分（strtok 替代品）",
+      "params": [
+        {"name": "stringp", "type": "char **", "note": "当前位置指针的地址（函数会推进它）"},
+        {"name": "delim", "type": "const char *", "note": "分隔符集合"}
+      ],
+      "returns": [
+        {"condition": "还有 token", "value": "当前 token 的指针"},
+        {"condition": "切完", "value": "NULL"}
+      ],
+      "notes": [
+        "不依赖静态状态、不跳过空 token——连续分隔符场景比 strtok 语义清楚"
+      ],
+      "tags": ["str", "切分"]
+    },
+    {
+      "name": "strtok_r",
+      "prototype": "char *strtok_r(char *str, const char *delim, char **saveptr);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "可重入版 strtok",
+      "params": [
+        {"name": "str", "type": "char *", "note": "第一次传原串，之后传 NULL"},
+        {"name": "delim", "type": "const char *", "note": "分隔符集合"},
+        {"name": "saveptr", "type": "char **", "note": "调用方提供的进度指针"}
+      ],
+      "returns": [
+        {"condition": "找到 token", "value": "token 指针"},
+        {"condition": "没有更多", "value": "NULL"}
+      ],
+      "notes": [
+        "多线程/递归切分必须用它；空 token 会被跳过这点和 strtok 一致"
+      ],
+      "tags": ["str", "切分", "可重入"]
+    },
+    {
+      "name": "stpcpy",
+      "prototype": "char *stpcpy(char *dest, const char *src);",
+      "header": "<string.h>",
+      "category": "字符串",
+      "summary": "strcpy 但返回 dest 中结尾 \\0 的地址",
+      "params": [
+        {"name": "dest", "type": "char *", "note": "目标缓冲区"},
+        {"name": "src", "type": "const char *", "note": "源字符串"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "dest 中写入的 \\0 的地址"}
+      ],
+      "notes": [
+        "链式拼接 stpcpy(stpcpy(dest, a), b) 少一次 strlen；返回值刚好指向最后写的那一字节——精确控制 NUL 写位置的利用原语"
+      ],
+      "tags": ["str", "复制", "链式"]
+    },
+    {
+      "name": "mempcpy",
+      "prototype": "void *mempcpy(void *dest, const void *src, size_t n);",
+      "header": "<string.h>（GNU 扩展）",
+      "category": "字符串",
+      "summary": "memcpy 但返回末尾后一字节",
+      "params": [
+        {"name": "dest", "type": "void *", "note": "目标缓冲区"},
+        {"name": "src", "type": "const void *", "note": "源缓冲区"},
+        {"name": "n", "type": "size_t", "note": "复制字节数"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "dest + n（写入区末尾的后一个地址）"}
+      ],
+      "notes": [
+        "连续打包字段时不用再算 dest+n；gcc -O2 会把小循环优化成它，逆向时常见"
+      ],
+      "tags": ["mem", "复制", "GNU"]
+    },
+    {
+      "name": "bzero",
+      "prototype": "void bzero(void *s, size_t n);",
+      "header": "<strings.h>（已废弃）",
+      "category": "字符串",
+      "summary": "清零内存（memset(s, 0, n) 的老写法）",
+      "params": [
+        {"name": "s", "type": "void *", "note": "目标内存"},
+        {"name": "n", "type": "size_t", "note": "清零字节数"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "void"}
+      ],
+      "notes": [
+        "老二进制里大量出现，逆向后等价 memset(...,0,...)；新代码用 memset"
+      ],
+      "tags": ["mem", "清零", "废弃"]
+    },
+    {
+      "name": "bcopy",
+      "prototype": "void bcopy(const void *src, void *dest, size_t n);",
+      "header": "<strings.h>（已废弃）",
+      "category": "字符串",
+      "summary": "老式拷贝：参数顺序与 memcpy 相反、按重叠安全方式工作",
+      "params": [
+        {"name": "src", "type": "const void *", "note": "源（注意是第一个参数）"},
+        {"name": "dest", "type": "void *", "note": "目标（第二个参数）"},
+        {"name": "n", "type": "size_t", "note": "字节数"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "void"}
+      ],
+      "notes": [
+        "语义接近 memmove 而不是 memcpy——逆向老代码时别把重叠场景当 bug 报"
+      ],
+      "tags": ["mem", "复制", "废弃"]
+    },
+    {
+      "name": "bcmp",
+      "prototype": "int bcmp(const void *s1, const void *s2, size_t n);",
+      "header": "<strings.h>（已废弃）",
+      "category": "字符串",
+      "summary": "老式内存比较：只区分相等/不等",
+      "params": [
+        {"name": "s1", "type": "const void *", "note": "内存块 1"},
+        {"name": "s2", "type": "const void *", "note": "内存块 2"},
+        {"name": "n", "type": "size_t", "note": "比较字节数"}
+      ],
+      "returns": [
+        {"condition": "相等", "value": "0"},
+        {"condition": "不等", "value": "非 0（不保证大小关系）"}
+      ],
+      "notes": [
+        "memcmp 的返回值只用来判等更稳；老代码常见"
+      ],
+      "tags": ["mem", "比较", "废弃"]
+    },
+    {
+      "name": "strcasestr",
+      "prototype": "char *strcasestr(const char *haystack, const char *needle);",
+      "header": "<string.h>（GNU 扩展）",
+      "category": "字符串",
+      "summary": "忽略大小写的子串查找",
+      "params": [
+        {"name": "haystack", "type": "const char *", "note": "被搜索串"},
+        {"name": "needle", "type": "const char *", "note": "目标子串"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "子串起始地址"},
+        {"condition": "没找到", "value": "NULL"}
+      ],
+      "notes": [
+        "在输出里找 \"flag{\" 这类不区分大小写前缀时省事"
+      ],
+      "tags": ["str", "查找", "GNU"]
+    },
+    {
+      "name": "index",
+      "prototype": "char *index(const char *s, int c);",
+      "header": "<strings.h>（已废弃）",
+      "category": "字符串",
+      "summary": "strchr 的老名字：找第一个 c",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "被扫描字符串"},
+        {"name": "c", "type": "int", "note": "目标字符"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "该字符地址"},
+        {"condition": "没找到", "value": "NULL"}
+      ],
+      "notes": [
+        "老 libc 符号表常见；c=0 时返回指向结尾 \\0 的指针"
+      ],
+      "tags": ["str", "查找", "废弃"]
+    },
+    {
+      "name": "rindex",
+      "prototype": "char *rindex(const char *s, int c);",
+      "header": "<strings.h>（已废弃）",
+      "category": "字符串",
+      "summary": "strrchr 的老名字：找最后一个 c",
+      "params": [
+        {"name": "s", "type": "const char *", "note": "被扫描字符串"},
+        {"name": "c", "type": "int", "note": "目标字符"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "该字符地址"},
+        {"condition": "没找到", "value": "NULL"}
+      ],
+      "notes": [
+        "切路径后缀（最后一个 '.' / '/'）用最顺手"
+      ],
+      "tags": ["str", "查找", "废弃"]
+    },
+    {
+      "name": "sbrk",
+      "prototype": "void *sbrk(intptr_t increment);",
+      "header": "<unistd.h> <malloc.h>",
+      "category": "内存",
+      "summary": "按增量移动 program break（堆顶）",
+      "params": [
+        {"name": "increment", "type": "intptr_t", "note": "增量：正数扩张 / 负数收缩 / 0 只查询"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "移动前的旧 break 地址"},
+        {"condition": "失败", "value": "(void *)-1 并置 errno"}
+      ],
+      "notes": [
+        "sbrk(0) 拿当前堆顶——exp 里算 heap base 与 chunk 偏移的起点",
+        "glibc 主 arena 用 brk/sbrk 扩堆；泄漏该值等于定位 heap 段"
+      ],
+      "tags": ["heap", "brk", "堆顶"]
+    },
+    {
+      "name": "brk",
+      "prototype": "int brk(void *addr);",
+      "header": "<unistd.h>",
+      "category": "内存",
+      "summary": "把 program break 直接设到指定地址",
+      "params": [
+        {"name": "addr", "type": "void *", "note": "新的堆顶地址"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "和 sbrk 一对；把堆顶拉回低位可以做「收缩再扩张」的重用技巧"
+      ],
+      "tags": ["heap", "brk"]
+    },
+    {
+      "name": "alloca",
+      "prototype": "void *alloca(size_t size);",
+      "header": "<alloca.h>（编译器内建）",
+      "category": "内存",
+      "summary": "在当前栈帧上分配（函数返回自动释放）",
+      "params": [
+        {"name": "size", "type": "size_t", "note": "分配字节数"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "栈上空间的首地址"}
+      ],
+      "notes": [
+        "size 过大直接把栈打穿——无堆保护的题目里 alloca(超大值) 是现成的栈溢出/stack clash",
+        "没有失败返回值，也 free 不得；VLA 是同样风险"
+      ],
+      "tags": ["栈", "分配", "危险"]
+    },
+    {
+      "name": "posix_memalign",
+      "prototype": "int posix_memalign(void **memptr, size_t alignment, size_t size);",
+      "header": "<stdlib.h>",
+      "category": "内存",
+      "summary": "分配对齐内存（返回码制）",
+      "params": [
+        {"name": "memptr", "type": "void **", "note": "回传分配地址"},
+        {"name": "alignment", "type": "size_t", "note": "对齐要求：2 的幂且为 sizeof(void *) 的倍数"},
+        {"name": "size", "type": "size_t", "note": "请求字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "errno 错误码（ENOMEM/EINVAL）"}
+      ],
+      "notes": [
+        "错误经返回值传递而不是置 errno；堆题里用它改变 chunk 尺寸布局，对齐过大时 glibc 会 mmap"
+      ],
+      "tags": ["heap", "对齐"]
+    },
+    {
+      "name": "memalign",
+      "prototype": "void *memalign(size_t alignment, size_t size);",
+      "header": "<malloc.h>",
+      "category": "内存",
+      "summary": "分配对齐内存（已废弃，改用 posix_memalign / aligned_alloc）",
+      "params": [
+        {"name": "alignment", "type": "size_t", "note": "对齐字节数"},
+        {"name": "size", "type": "size_t", "note": "请求字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "对齐地址"},
+        {"condition": "失败", "value": "NULL"}
+      ],
+      "notes": [
+        "老二进制常见；glibc 内部走 _int_memalign，调试时能观察到内部 chunk 拆分"
+      ],
+      "tags": ["heap", "对齐", "废弃"]
+    },
+    {
+      "name": "aligned_alloc",
+      "prototype": "void *aligned_alloc(size_t alignment, size_t size);",
+      "header": "<stdlib.h>（C11）",
+      "category": "内存",
+      "summary": "C11 对齐分配",
+      "params": [
+        {"name": "alignment", "type": "size_t", "note": "对齐：2 的幂"},
+        {"name": "size", "type": "size_t", "note": "字节数，C11 要求是 alignment 的整数倍（glibc 不强制）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "对齐地址"},
+        {"condition": "失败", "value": "NULL 并置 errno"}
+      ],
+      "notes": [
+        "与 posix_memalign 的区别：参数顺序与 size 约束；free 释放同样走普通 free"
+      ],
+      "tags": ["heap", "对齐", "C11"]
+    },
+    {
+      "name": "reallocarray",
+      "prototype": "void *reallocarray(void *ptr, size_t nmemb, size_t size);",
+      "header": "<stdlib.h>（GNU/BSD）",
+      "category": "内存",
+      "summary": "乘法带溢出检查的 realloc",
+      "params": [
+        {"name": "ptr", "type": "void *", "note": "旧指针（NULL 时等同 malloc）"},
+        {"name": "nmemb", "type": "size_t", "note": "元素个数"},
+        {"name": "size", "type": "size_t", "note": "单个元素大小"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新块地址"},
+        {"condition": "失败", "value": "NULL 且旧块不变"}
+      ],
+      "notes": [
+        "补 realloc(n*m) 的整数溢出洞；审计看到 calloc 风格两参数就该想到它"
+      ],
+      "tags": ["heap", "溢出检查"]
+    },
+    {
+      "name": "mremap",
+      "prototype": "void *mremap(void *old_address, size_t old_size, size_t new_size, int flags, ...);",
+      "header": "<sys/mman.h>",
+      "category": "内存",
+      "summary": "扩张/收缩/搬移已有映射",
+      "params": [
+        {"name": "old_address", "type": "void *", "note": "原映射地址（需页对齐）"},
+        {"name": "old_size", "type": "size_t", "note": "原大小"},
+        {"name": "new_size", "type": "size_t", "note": "新大小"},
+        {"name": "flags", "type": "int", "note": "MREMAP_MAYMOVE 允许搬家；…, MREMAP_FIXED, new_addr 固定新址"},
+        {"name": "...", "type": "", "note": "MREMAP_FIXED 时跟一个新地址"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新映射地址"},
+        {"condition": "失败", "value": "MAP_FAILED（(void *)-1）"}
+      ],
+      "notes": [
+        "mmap 版 realloc：huge chunk 的 realloc 底层可能走它；MREMAP_FIXED 是「在指定地址放映射」的原语"
+      ],
+      "tags": ["mmap", "重映射"]
+    },
+    {
+      "name": "madvise",
+      "prototype": "int madvise(void *addr, size_t length, int advice);",
+      "header": "<sys/mman.h>",
+      "category": "内存",
+      "summary": "向内核提示一段内存的使用模式",
+      "params": [
+        {"name": "addr", "type": "void *", "note": "映射起始地址（页对齐）"},
+        {"name": "length", "type": "size_t", "note": "长度（按页向上取整）"},
+        {"name": "advice", "type": "int", "note": "MADV_NORMAL / MADV_DONTNEED 丢弃页内容 / MADV_WILLNEED 等"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "匿名内存 MADV_DONTNEED 后再读回来的是清零页——利用/修复 use-after-free 里都能见到它的身影"
+      ],
+      "tags": ["mmap", "建议"]
+    },
+    {
+      "name": "lseek",
+      "prototype": "off_t lseek(int fd, off_t offset, int whence);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "移动文件描述符的读写偏移",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标 fd"},
+        {"name": "offset", "type": "off_t", "note": "偏移量（可负）"},
+        {"name": "whence", "type": "int", "note": "SEEK_SET / SEEK_CUR / SEEK_END"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新的绝对偏移"},
+        {"condition": "失败", "value": "(off_t)-1"}
+      ],
+      "notes": [
+        "open 后先 lseek(fd, 0, SEEK_END) 拿文件大小；负偏移越过文件头会返回 EINVAL——偏移回绕类题的判定点"
+      ],
+      "tags": ["fd", "定位"]
+    },
+    {
+      "name": "pread",
+      "prototype": "ssize_t pread(int fd, void *buf, size_t count, off_t offset);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "从指定偏移读，不动文件偏移",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标 fd"},
+        {"name": "buf", "type": "void *", "note": "接收缓冲区"},
+        {"name": "count", "type": "size_t", "note": "最多读取字节数"},
+        {"name": "offset", "type": "off_t", "note": "读取起点"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际读取字节数"},
+        {"condition": "EOF", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "等价 lseek+read 但原子且不干扰共享 fd 的偏移——多线程读同一文件的标准姿势"
+      ],
+      "tags": ["fd", "读取"]
+    },
+    {
+      "name": "pwrite",
+      "prototype": "ssize_t pwrite(int fd, const void *buf, size_t count, off_t offset);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "向指定偏移写，不动文件偏移",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标 fd"},
+        {"name": "buf", "type": "const void *", "note": "写入内容"},
+        {"name": "count", "type": "size_t", "note": "最多写入字节数"},
+        {"name": "offset", "type": "off_t", "note": "写入起点"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际写入字节数"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "定位写——配合偏移可写 0/负值可以打「向任意偏移写」的逻辑漏洞"
+      ],
+      "tags": ["fd", "写入"]
+    },
+    {
+      "name": "dup",
+      "prototype": "int dup(int oldfd);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "复制 fd，新 fd 取最小可用值",
+      "params": [
+        {"name": "oldfd", "type": "int", "note": "原 fd"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新 fd"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "重定向三件套 dup + close + dup2 的组成部分；与 dup2 的区别是不能指定新 fd 号"
+      ],
+      "tags": ["fd", "复制", "重定向"]
+    },
+    {
+      "name": "dup3",
+      "prototype": "int dup3(int oldfd, int newfd, int flags);",
+      "header": "<unistd.h>（Linux）",
+      "category": "文件描述符",
+      "summary": "强制把 fd 复制到指定号，可带标志",
+      "params": [
+        {"name": "oldfd", "type": "int", "note": "原 fd"},
+        {"name": "newfd", "type": "int", "note": "目标 fd（已打开则先关闭它）"},
+        {"name": "flags", "type": "int", "note": "可 O_CLOEXEC"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "newfd"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "oldfd==newfd 时直接返回 EINVAL（dup2 则原样返回）——行为差异点"
+      ],
+      "tags": ["fd", "复制", "重定向"]
+    },
+    {
+      "name": "fcntl",
+      "prototype": "int fcntl(int fd, int cmd, ...);",
+      "header": "<fcntl.h>",
+      "category": "文件描述符",
+      "summary": "fd 级别的杂项控制",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标 fd"},
+        {"name": "cmd", "type": "int", "note": "F_DUPFD 复制 / F_GETFD/F_SETFD fd 标志 / F_GETFL/F_SETFL 状态标志"},
+        {"name": "...", "type": "", "note": "按 cmd 决定：新 fd 下限 / 标志值 / struct flock *"}
+      ],
+      "returns": [
+        {"condition": "依 cmd 而定", "value": "新 fd / 标志值 / 0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "给已打开的 fd 加 O_NONBLOCK（F_SETFL）绕不开它；F_SETLK 做文件锁"
+      ],
+      "tags": ["fd", "控制"]
+    },
+    {
+      "name": "ioctl",
+      "prototype": "int ioctl(int fd, unsigned long request, ...);",
+      "header": "<sys/ioctl.h>",
+      "category": "文件描述符",
+      "summary": "设备/终端杂项控制接口（巨型攻击面）",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标设备或套接字 fd"},
+        {"name": "request", "type": "unsigned long", "note": "命令码（方向/大小/序号编码在里头）"},
+        {"name": "...", "type": "", "note": "按命令：缓冲区指针或值"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "依命令而定（多为 0）"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "内核题第一大攻击面：命令码里的 size 字段决定拷贝长度，老内核驱动的越界读写全在这",
+        "逆向用户态程序时 request 常量（如 0xdeadbeef 之类魔数）能直接指向漏洞命令"
+      ],
+      "tags": ["fd", "设备", "内核", "攻击面"]
+    },
+    {
+      "name": "sendfile",
+      "prototype": "ssize_t sendfile(int out_fd, int in_fd, off_t *offset, size_t count);",
+      "header": "<sys/sendfile.h>",
+      "category": "文件描述符",
+      "summary": "内核内零拷贝转发文件到 fd",
+      "params": [
+        {"name": "out_fd", "type": "int", "note": "输出 fd（2.6.33+ 起可为任意可写 fd）"},
+        {"name": "in_fd", "type": "int", "note": "输入 fd（必须是文件类）"},
+        {"name": "offset", "type": "off_t *", "note": "起点指针；NULL 表示用当前偏移并推进"},
+        {"name": "count", "type": "size_t", "note": "转发字节数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际转发字节数"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "seccomp 只放行 sendfile 时泄露 flag 的优雅姿势：sendfile(1, fd, 0, 0x1000)"
+      ],
+      "tags": ["fd", "零拷贝", "ORW"]
+    },
+    {
+      "name": "ftruncate",
+      "prototype": "int ftruncate(int fd, off_t length);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "把 fd 指向的文件截断/扩张到指定长度",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标 fd（须以可写打开）"},
+        {"name": "length", "type": "off_t", "note": "新长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "mmap 后 ftruncate 收缩文件会让映射页触发 SIGBUS——协议处理里的经典崩溃源"
+      ],
+      "tags": ["fd", "文件"]
+    },
+    {
+      "name": "fstat",
+      "prototype": "int fstat(int fd, struct stat *buf);",
+      "header": "<sys/stat.h>",
+      "category": "文件描述符",
+      "summary": "按 fd 取文件元数据",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标 fd"},
+        {"name": "buf", "type": "struct stat *", "note": "接收结构体（大小/权限/设备号…）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "st_size 定读取长度；对比 /proc/self/fd 指向可以识别 stdin 是不是管道/文件"
+      ],
+      "tags": ["fd", "元数据"]
+    },
+    {
+      "name": "fsync",
+      "prototype": "int fsync(int fd);",
+      "header": "<unistd.h>",
+      "category": "文件描述符",
+      "summary": "把 fd 的脏数据与元数据刷盘",
+      "params": [
+        {"name": "fd", "type": "int", "note": "目标 fd"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "保证崩溃一致性时用；fdatasync 少刷元数据更快"
+      ],
+      "tags": ["fd", "持久化"]
+    },
+    {
+      "name": "openat",
+      "prototype": "int openat(int dirfd, const char *pathname, int flags, ...);",
+      "header": "<fcntl.h> <unistd.h>",
+      "category": "文件描述符",
+      "summary": "相对目录 fd 打开文件",
+      "params": [
+        {"name": "dirfd", "type": "int", "note": "基准目录 fd；AT_FDCWD 表示当前目录"},
+        {"name": "pathname", "type": "const char *", "note": "相对（或绝对）路径"},
+        {"name": "flags", "type": "int", "note": "O_RDONLY / O_WRONLY / O_RDWR 与 O_CREAT 等组合"},
+        {"name": "...", "type": "", "note": "带 O_CREAT/O_TMPFILE 时给 mode"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "新 fd（最小可用）"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "seccomp 沙箱常只放行 openat 而封 open（open 就是它的包装）——ORW 被拦时换 openat",
+        "路径以 / 开头时忽略 dirfd"
+      ],
+      "tags": ["fd", "open", "ORW", "seccomp"]
+    },
+    {
+      "name": "unlink",
+      "prototype": "int unlink(const char *pathname);",
+      "header": "<unistd.h>",
+      "category": "文件系统",
+      "summary": "删除文件链接（引用计数减一）",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "目标路径"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "只删目录项：有进程仍打开该文件时数据还在——利用时「删了还能读」的窗口"
+      ],
+      "tags": ["文件", "删除"]
+    },
+    {
+      "name": "access",
+      "prototype": "int access(const char *pathname, int mode);",
+      "header": "<unistd.h>",
+      "category": "文件系统",
+      "summary": "按真实（有效）uid 检查文件权限",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "目标路径"},
+        {"name": "mode", "type": "int", "note": "F_OK 存在 / R_OK / W_OK / X_OK 组合"}
+      ],
+      "returns": [
+        {"condition": "允许", "value": "0"},
+        {"condition": "不允许或出错", "value": "-1"}
+      ],
+      "notes": [
+        "access + open 两步之间存在 TOCTOU 竞态——提权经典；服务以 root 跑时 access 用的是 root 的真实 uid"
+      ],
+      "tags": ["文件", "权限", "TOCTOU"]
+    },
+    {
+      "name": "stat",
+      "prototype": "int stat(const char *pathname, struct stat *buf);",
+      "header": "<sys/stat.h>",
+      "category": "文件系统",
+      "summary": "按路径取文件元数据（跟随符号链接）",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "目标路径"},
+        {"name": "buf", "type": "struct stat *", "note": "接收结构体"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "判 S_ISDIR/S_ISREG 分流逻辑；st_mode 权限位是提权题的关注点"
+      ],
+      "tags": ["文件", "元数据"]
+    },
+    {
+      "name": "lstat",
+      "prototype": "int lstat(const char *pathname, struct stat *buf);",
+      "header": "<sys/stat.h>",
+      "category": "文件系统",
+      "summary": "取元数据但不跟随符号链接",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "目标路径"},
+        {"name": "buf", "type": "struct stat *", "note": "接收结构体"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "对符号链接本身取信息（S_ISLNK）；与 stat 的差异是「链接攻击」检测点"
+      ],
+      "tags": ["文件", "元数据"]
+    },
+    {
+      "name": "mkdir",
+      "prototype": "int mkdir(const char *pathname, mode_t mode);",
+      "header": "<sys/stat.h>",
+      "category": "文件系统",
+      "summary": "创建目录",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "新目录路径"},
+        {"name": "mode", "type": "mode_t", "note": "权限位（受 umask 过滤）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1（EEXIST 已存在）"}
+      ],
+      "notes": [
+        "路径逻辑题：拼接出来的目录路径没清洗 ../ 就是穿越点"
+      ],
+      "tags": ["文件", "目录"]
+    },
+    {
+      "name": "rmdir",
+      "prototype": "int rmdir(const char *pathname);",
+      "header": "<unistd.h>",
+      "category": "文件系统",
+      "summary": "删除空目录",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "目标目录（必须为空）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "非空返回 ENOTEMPTY；目录清理顺序错误是常见逻辑 bug"
+      ],
+      "tags": ["文件", "目录"]
+    },
+    {
+      "name": "realpath",
+      "prototype": "char *realpath(const char *path, char *resolved_path);",
+      "header": "<stdlib.h> <limits.h>",
+      "category": "文件系统",
+      "summary": "解析成绝对真实路径（消解 . .. 与符号链接）",
+      "params": [
+        {"name": "path", "type": "const char *", "note": "输入路径"},
+        {"name": "resolved_path", "type": "char *", "note": "输出缓冲；NULL（GNU）时自动 malloc"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "绝对路径指针"},
+        {"condition": "失败", "value": "NULL 并置 errno"}
+      ],
+      "notes": [
+        "路径穿越防御的正面教材；非 NULL 时缓冲至少 PATH_MAX(4096) 字节——历史溢出高发点",
+        "对比前后 realpath 结果是否仍落在允许目录内是标准清洗姿势"
+      ],
+      "tags": ["文件", "路径", "安全"]
+    },
+    {
+      "name": "dirname",
+      "prototype": "char *dirname(char *path);",
+      "header": "<libgen.h>",
+      "category": "文件系统",
+      "summary": "取路径的目录部分",
+      "params": [
+        {"name": "path", "type": "char *", "note": "路径（可能被就地修改，也可能返回静态串）"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "目录部分的指针（不带结尾 /）"}
+      ],
+      "notes": [
+        "会改写入参、可能返回静态缓冲——传字符串常量是坑；连续调用结果会被覆盖"
+      ],
+      "tags": ["文件", "路径"]
+    },
+    {
+      "name": "basename",
+      "prototype": "char *basename(char *path);",
+      "header": "<libgen.h>",
+      "category": "文件系统",
+      "summary": "取路径最后一段文件名",
+      "params": [
+        {"name": "path", "type": "char *", "note": "路径（可能被就地修改）"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "文件名指针；以 / 结尾返回空串，空串返回 \".\""}
+      ],
+      "notes": [
+        "与 dirname 同样会动入参；glibc 忽略尾部斜杠的规则和 shell 不完全一致"
+      ],
+      "tags": ["文件", "路径"]
+    },
+    {
+      "name": "getcwd",
+      "prototype": "char *getcwd(char *buf, size_t size);",
+      "header": "<unistd.h>",
+      "category": "文件系统",
+      "summary": "取当前工作目录",
+      "params": [
+        {"name": "buf", "type": "char *", "note": "输出缓冲；NULL（GNU 扩展）时自动分配"},
+        {"name": "size", "type": "size_t", "note": "缓冲大小；size=0 且 buf=NULL 时按需分配"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "buf（或分配的地址）"},
+        {"condition": "失败", "value": "NULL 并置 errno"}
+      ],
+      "notes": [
+        "路径过短/过长分别 ERANGE——固定 0x100 缓冲在深目录下会炸；泄露 cwd 也是信息收集一环"
+      ],
+      "tags": ["文件", "目录"]
+    },
+    {
+      "name": "chdir",
+      "prototype": "int chdir(const char *path);",
+      "header": "<unistd.h>",
+      "category": "文件系统",
+      "summary": "切换当前工作目录",
+      "params": [
+        {"name": "path", "type": "const char *", "note": "目标目录"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "chroot 逃逸组合拳：保留 chroot 前的 fd，再 fchdir 回去"
+      ],
+      "tags": ["文件", "目录", "逃逸"]
+    },
+    {
+      "name": "readlink",
+      "prototype": "ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);",
+      "header": "<unistd.h>",
+      "category": "文件系统",
+      "summary": "读符号链接指向的内容",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "链接路径"},
+        {"name": "buf", "type": "char *", "note": "接收缓冲"},
+        {"name": "bufsiz", "type": "size_t", "note": "缓冲大小"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "写入的字节数"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "不追加 \\0、内容可能被截断到 bufsiz——老代码拿 strlen(buf) 是错的，必须用返回值"
+      ],
+      "tags": ["文件", "链接"]
+    },
+    {
+      "name": "chmod",
+      "prototype": "int chmod(const char *pathname, mode_t mode);",
+      "header": "<sys/stat.h>",
+      "category": "文件系统",
+      "summary": "按路径改权限位",
+      "params": [
+        {"name": "pathname", "type": "const char *", "note": "目标路径"},
+        {"name": "mode", "type": "mode_t", "note": "新权限位（如 0755 / 04755）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "S 位（setuid/setgid/sticky，04000/02000/01000）是提权题眼；fchmod 是它的 fd 版"
+      ],
+      "tags": ["文件", "权限", "提权"]
+    },
+    {
+      "name": "execv",
+      "prototype": "int execv(const char *path, char *const argv[]);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "按路径加载程序替换当前进程（数组参数版）",
+      "params": [
+        {"name": "path", "type": "const char *", "note": "可执行文件路径"},
+        {"name": "argv", "type": "char *const[]", "note": "参数数组，约定 argv[0] 是程序名，以 NULL 结尾"}
+      ],
+      "returns": [
+        {"condition": "成功则不返回", "value": "进入新程序"},
+        {"condition": "失败", "value": "-1 并置 errno"}
+      ],
+      "notes": [
+        "argv 必须以 NULL 收尾——漏掉就是越界读栈当参数用",
+        "构造 ROP 时 execve(\"/bin/sh\", argv, envp) 的数组版写法"
+      ],
+      "tags": ["exec", "进程替换"]
+    },
+    {
+      "name": "execle",
+      "prototype": "int execle(const char *path, const char *arg, ..., NULL, char *const envp[]);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "逐个参数 + 显式环境变量的 exec",
+      "params": [
+        {"name": "path", "type": "const char *", "note": "可执行文件路径"},
+        {"name": "arg", "type": "const char *", "note": "argv[0]，后面继续列各参数"},
+        {"name": "...", "type": "", "note": "arg1, arg2, …，最后必须 NULL"},
+        {"name": "envp", "type": "char *const[]", "note": "环境变量数组，NULL 结尾"}
+      ],
+      "returns": [
+        {"condition": "成功则不返回", "value": "进入新程序"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "空环境执行 setuid 程序的姿势（envp={NULL}）——避免 LD_PRELOAD 之类继承影响行为判定"
+      ],
+      "tags": ["exec", "环境变量"]
+    },
+    {
+      "name": "execlp",
+      "prototype": "int execlp(const char *file, const char *arg, ..., NULL);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "按名字在 PATH 中搜索并 exec（逐个参数版）",
+      "params": [
+        {"name": "file", "type": "const char *", "note": "程序名（不含 / 时按 PATH 搜索）"},
+        {"name": "arg", "type": "const char *", "note": "argv[0]，后续参数依次列出，NULL 结尾"}
+      ],
+      "returns": [
+        {"condition": "成功则不返回", "value": "进入新程序"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "system 的底层就是 execlp/shell 组合；PATH 搜索劫持（当前目录/可写 PATH 项）是提权点"
+      ],
+      "tags": ["exec", "PATH"]
+    },
+    {
+      "name": "posix_spawn",
+      "prototype": "int posix_spawn(pid_t *pid, const char *path, const posix_spawn_file_actions_t *file_actions, const posix_spawnattr_t *attrp, char *const argv[], char *const envp[]);",
+      "header": "<spawn.h>",
+      "category": "进程执行",
+      "summary": "生成子进程执行程序（fork+exec 的组合接口）",
+      "params": [
+        {"name": "pid", "type": "pid_t *", "note": "回传子进程 pid"},
+        {"name": "path", "type": "const char *", "note": "可执行文件路径"},
+        {"name": "file_actions", "type": "const posix_spawn_file_actions_t *", "note": "子进程 fd 操作序列（dup2/close 等），NULL 表示不动"},
+        {"name": "attrp", "type": "const posix_spawnattr_t *", "note": "属性（信号/调度/进程组），NULL 默认"},
+        {"name": "argv", "type": "char *const[]", "note": "参数数组，NULL 结尾"},
+        {"name": "envp", "type": "char *const[]", "note": "环境数组，NULL 结尾"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "错误码（非 0，errno 语义）"}
+      ],
+      "notes": [
+        "file_actions 把 dup2 重定向做成声明式——写输出重定向的利用率比手写 fork+dup2 简单"
+      ],
+      "tags": ["进程", "spawn"]
+    },
+    {
+      "name": "wait",
+      "prototype": "pid_t wait(int *wstatus);",
+      "header": "<sys/wait.h>",
+      "category": "进程执行",
+      "summary": "等待任意一个子进程结束",
+      "params": [
+        {"name": "wstatus", "type": "int *", "note": "回传状态；NULL 表示不关心"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "被回收子进程的 pid"},
+        {"condition": "无子进程", "value": "-1 且 errno=ECHILD"}
+      ],
+      "notes": [
+        "wstatus 要用 WIFEXITED/WEXITSTATUS/WIFSIGNALED 宏解；waitpid(−1, …, 0) 与它等价"
+      ],
+      "tags": ["进程", "等待"]
+    },
+    {
+      "name": "atexit",
+      "prototype": "int atexit(void (*func)(void));",
+      "header": "<stdlib.h>",
+      "category": "进程执行",
+      "summary": "注册 exit() 时调用的清理函数",
+      "params": [
+        {"name": "func", "type": "void (*)(void)", "note": "无参无返回的回调"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "非 0"}
+      ],
+      "notes": [
+        "glibc 用 __exit_funcs 链表存这些指针并 PTR_MANGLE 加密——exit 流程劫持/FSOP 的研究对象",
+        "由 exit 调用（return 也算），_exit 不触发"
+      ],
+      "tags": ["exit", "回调", "FSOP"]
+    },
+    {
+      "name": "abort",
+      "prototype": "void abort(void);",
+      "header": "<stdlib.h>",
+      "category": "进程执行",
+      "summary": "异常终止当前进程（SIGABRT）",
+      "params": [],
+      "returns": [
+        {"condition": "总是终止", "value": "不返回"}
+      ],
+      "notes": [
+        "assert 失败的出口；先解除 SIGABRT 阻塞再 raise，装了处理器也可能被忽略再次触发"
+      ],
+      "tags": ["进程", "终止"]
+    },
+    {
+      "name": "usleep",
+      "prototype": "int usleep(useconds_t usec);",
+      "header": "<unistd.h>（已废弃）",
+      "category": "进程执行",
+      "summary": "微秒级睡眠",
+      "params": [
+        {"name": "usec", "type": "useconds_t", "note": "睡眠微秒数（须 < 1000000）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "被信号打断", "value": "-1 且 errno=EINTR"}
+      ],
+      "notes": [
+        "交互时序题里对齐输入；新代码用 nanosleep"
+      ],
+      "tags": ["时间", "睡眠", "废弃"]
+    },
+    {
+      "name": "nanosleep",
+      "prototype": "int nanosleep(const struct timespec *req, struct timespec *rem);",
+      "header": "<time.h>",
+      "category": "进程执行",
+      "summary": "纳秒精度睡眠",
+      "params": [
+        {"name": "req", "type": "const struct timespec *", "note": "请求时长（tv_sec + tv_nsec）"},
+        {"name": "rem", "type": "struct timespec *", "note": "被信号打断时回传剩余时长，可 NULL"}
+      ],
+      "returns": [
+        {"condition": "睡满", "value": "0"},
+        {"condition": "被信号打断", "value": "-1 且 errno=EINTR"}
+      ],
+      "notes": [
+        "被中断后用 rem 续睡是标准循环——比赛脚本里 pause 前对齐时序常用"
+      ],
+      "tags": ["时间", "睡眠"]
+    },
+    {
+      "name": "vfork",
+      "prototype": "pid_t vfork(void);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "不复制地址空间的 fork（子进程借用父进程内存直到 exec/_exit）",
+      "params": [],
+      "returns": [
+        {"condition": "父进程", "value": "子进程 pid"},
+        {"condition": "子进程", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "子进程里写变量/return（而非 _exit）直接破坏父进程状态——按 UB 利用题出过",
+        "现代 glibc 已按 fork 语义带上 CLONE_VM|CLONE_VFORK 实现"
+      ],
+      "tags": ["进程", "fork", "危险"]
+    },
+    {
+      "name": "chroot",
+      "prototype": "int chroot(const char *path);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "改变进程的文件系统根目录（需特权）",
+      "params": [
+        {"name": "path", "type": "const char *", "note": "新根目录路径"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "经典逃逸：chroot 前保留的目录 fd + fchdir(fd) + 连续 chdir(\"..\") 再 chroot(\".\")",
+        "只改文件系统视图，不改 cwd——这就是逃逸的根因"
+      ],
+      "tags": ["沙箱", "逃逸", "特权"]
+    },
+    {
+      "name": "daemon",
+      "prototype": "int daemon(int nochdir, int noclose);",
+      "header": "<unistd.h>",
+      "category": "进程执行",
+      "summary": "脱离终端转后台运行",
+      "params": [
+        {"name": "nochdir", "type": "int", "note": "0 表示 chdir(\"/\")"},
+        {"name": "noclose", "type": "int", "note": "0 表示把 stdin/stdout/stderr 重定向到 /dev/null"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "内部 fork+setsid+重定向一套；服务题里进程突然「没输出」先想它"
+      ],
+      "tags": ["进程", "后台"]
+    },
+    {
+      "name": "ptrace",
+      "prototype": "long ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data);",
+      "header": "<sys/ptrace.h>",
+      "category": "进程执行",
+      "summary": "进程跟踪与控制（调试器的地基）",
+      "params": [
+        {"name": "request", "type": "enum __ptrace_request", "note": "PTRACE_TRACEME / PTRACE_PEEKTEXT / PTRACE_POKEDATA / PTRACE_GETREGS / PTRACE_CONT 等"},
+        {"name": "pid", "type": "pid_t", "note": "目标进程 pid"},
+        {"name": "addr", "type": "void *", "note": "依命令：目标地址"},
+        {"name": "data", "type": "void *", "note": "依命令：写入数据或接收缓冲"}
+      ],
+      "returns": [
+        {"condition": "依命令", "value": "PEEK* 返回读到的字（错误置 errno）其他多为 0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "反调试标配：开头 PTRACE_TRACEME，附加失败即检测到调试器——patch 掉或 fork 换姿势过",
+        "PTRACE_PEEKTEXT/POKEDATA 是读写目标进程内存的原语；seccomp 用户态仿真也靠它"
+      ],
+      "tags": ["调试", "反调试", "进程"]
+    },
+    {
+      "name": "prctl",
+      "prototype": "int prctl(int option, unsigned long arg2, unsigned long arg3, unsigned long arg4, unsigned long arg5);",
+      "header": "<sys/prctl.h>",
+      "category": "进程执行",
+      "summary": "进程级杂项控制",
+      "params": [
+        {"name": "option", "type": "int", "note": "PR_SET_NO_NEW_PRIVS 禁提权 / PR_SET_SECCOMP 装沙箱 / PR_SET_NAME 改 comm 名等"},
+        {"name": "arg2", "type": "unsigned long", "note": "依选项的参数"},
+        {"name": "arg3", "type": "unsigned long", "note": "依选项（常为 0）"},
+        {"name": "arg4", "type": "unsigned long", "note": "依选项（常为 0）"},
+        {"name": "arg5", "type": "unsigned long", "note": "依选项（常为 0）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "seccomp-tools 反汇编出来的规则由 PR_SET_NO_NEW_PRIVS + PR_SET_SECCOMP 两步落地——见 seccomp 题先搜它",
+        "PR_SET_NAME 改 /proc/pid/comm，反取证/逻辑分流都见得到"
+      ],
+      "tags": ["seccomp", "沙箱", "进程"]
+    },
+    {
+      "name": "personality",
+      "prototype": "int personality(unsigned long persona);",
+      "header": "<sys/personality.h>",
+      "category": "进程执行",
+      "summary": "改进程执行域标志位",
+      "params": [
+        {"name": "persona", "type": "unsigned long", "note": "ADDR_NO_RANDOMIZE(0x0040000) 关 ASLR；0xffffffff 表示只查询"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "先前的 persona 值"},
+        {"condition": "失败", "value": "-1 并置 errno"}
+      ],
+      "notes": [
+        "老 CTF 固定栈地址的开关：personality(ADDR_NO_RANDOMIZE) 后 exec 重载布局；setarch -R 就是它"
+      ],
+      "tags": ["ASLR", "布局", "进程"]
+    },
+    {
+      "name": "sigaction",
+      "prototype": "int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);",
+      "header": "<signal.h>",
+      "category": "信号处理",
+      "summary": "注册信号处理器（比 signal 语义可控）",
+      "params": [
+        {"name": "signum", "type": "int", "note": "信号编号（SIGKILL/SIGSTOP 不可捕获）"},
+        {"name": "act", "type": "const struct sigaction *", "note": "新处置：sa_handler/sa_sigaction、sa_mask、sa_flags"},
+        {"name": "oldact", "type": "struct sigaction *", "note": "回传旧处置，可 NULL"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "SA_RESTART 决定被信号打断的系统调用是否自动重启；SA_SIGINFO 换三参处理函数（能拿到 ucontext）",
+        "ROP 里常见 sigreturn 导向的思路源头：信号处理返回时内核恢复 ucontext"
+      ],
+      "tags": ["信号", "注册", "SROP"]
+    },
+    {
+      "name": "kill",
+      "prototype": "int kill(pid_t pid, int sig);",
+      "header": "<signal.h>",
+      "category": "信号处理",
+      "summary": "向进程/进程组发信号",
+      "params": [
+        {"name": "pid", "type": "pid_t", "note": ">0 指定进程 / 0 同进程组 / -1 所有有权限的 / <-pgid 指定组"},
+        {"name": "sig", "type": "int", "note": "信号编号；0 表示只做权限探测"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "sig=0 是「进程是否存活 + 能不能发」的探测原语——PID 猜测类题的第一步"
+      ],
+      "tags": ["信号", "发送"]
+    },
+    {
+      "name": "raise",
+      "prototype": "int raise(int sig);",
+      "header": "<signal.h>",
+      "category": "信号处理",
+      "summary": "向调用进程自身发信号",
+      "params": [
+        {"name": "sig", "type": "int", "note": "信号编号"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "非 0"}
+      ],
+      "notes": [
+        "单线程等价 kill(getpid(), sig)，多线程走 pthread_kill"
+      ],
+      "tags": ["信号", "发送"]
+    },
+    {
+      "name": "alarm",
+      "prototype": "unsigned int alarm(unsigned int seconds);",
+      "header": "<time.h>",
+      "category": "信号处理",
+      "summary": "定时到点向自身发 SIGALRM",
+      "params": [
+        {"name": "seconds", "type": "unsigned int", "note": "秒数；0 表示取消先前定时"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "先前定时剩余的秒数（无定时为 0）"}
+      ],
+      "notes": [
+        "alarm + SIGALRM 默认动作是终止——题目限时杀进程基本靠它；处理器里做清理+重新 alarm 实现心跳"
+      ],
+      "tags": ["信号", "定时器"]
+    },
+    {
+      "name": "sigprocmask",
+      "prototype": "int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);",
+      "header": "<signal.h>",
+      "category": "信号处理",
+      "summary": "改信号阻塞集",
+      "params": [
+        {"name": "how", "type": "int", "note": "SIG_BLOCK 并集阻塞 / SIG_UNBLOCK 解除 / SIG_SETMASK 直接替换"},
+        {"name": "set", "type": "const sigset_t *", "note": "信号集；NULL 表示只查询"},
+        {"name": "oldset", "type": "sigset_t *", "note": "回传旧集合，可 NULL"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "先阻塞 SIGSEGV 再故意触发 = 信号挂起 → sigwait/解除后再炸——竞态类题的操控手段",
+        "多线程用 pthread_sigmask"
+      ],
+      "tags": ["信号", "阻塞"]
+    },
+    {
+      "name": "sigemptyset",
+      "prototype": "int sigemptyset(sigset_t *set);",
+      "header": "<signal.h>",
+      "category": "信号处理",
+      "summary": "把信号集清空",
+      "params": [
+        {"name": "set", "type": "sigset_t *", "note": "要初始化的信号集"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "信号集必须先 init（empty/full）再用 sigaddset——用栈上随机值当 set 是未定义行为"
+      ],
+      "tags": ["信号", "初始化"]
+    },
+    {
+      "name": "sendto",
+      "prototype": "ssize_t sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "向指定地址发送（UDP 主力）",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "套接字 fd"},
+        {"name": "buf", "type": "const void *", "note": "发送内容"},
+        {"name": "len", "type": "size_t", "note": "发送字节数"},
+        {"name": "flags", "type": "int", "note": "MSG_NOSIGNAL 等；0 普通发送"},
+        {"name": "dest_addr", "type": "const struct sockaddr *", "note": "目标地址"},
+        {"name": "addrlen", "type": "socklen_t", "note": "地址长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "实际发送字节数"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "对已 connect 的 UDP 也能用；dest_addr 传 NULL 等价 send"
+      ],
+      "tags": ["socket", "发送", "UDP"]
+    },
+    {
+      "name": "recvfrom",
+      "prototype": "ssize_t recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "接收数据并取来源地址",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "套接字 fd"},
+        {"name": "buf", "type": "void *", "note": "接收缓冲区"},
+        {"name": "len", "type": "size_t", "note": "缓冲区大小"},
+        {"name": "flags", "type": "int", "note": "MSG_DONTWAIT / MSG_PEEK 等"},
+        {"name": "src_addr", "type": "struct sockaddr *", "note": "回传来源地址，可 NULL"},
+        {"name": "addrlen", "type": "socklen_t *", "note": "进出参：传入缓冲大小，回传实际地址长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "收到的字节数"},
+        {"condition": "对端正常关闭", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "MSG_PEEK 看一眼不消费——实现「下一个包是什么」的探测"
+      ],
+      "tags": ["socket", "接收", "UDP"]
+    },
+    {
+      "name": "shutdown",
+      "prototype": "int shutdown(int sockfd, int how);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "关闭连接的一个/两个方向（不释放 fd）",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "套接字 fd"},
+        {"name": "how", "type": "int", "note": "SHUT_RD 断读 / SHUT_WR 断写（发 FIN）/ SHUT_RDWR 双向"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "与 close 的区别：多进程共享 fd 时 close 要计数归零才发 FIN，shutdown 立即生效",
+        "半关闭后还能读对端剩余数据——协议题常见收尾姿势"
+      ],
+      "tags": ["socket", "半关闭"]
+    },
+    {
+      "name": "setsockopt",
+      "prototype": "int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "设置套接字选项",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "套接字 fd"},
+        {"name": "level", "type": "int", "note": "SOL_SOCKET 通用层 / IPPROTO_TCP 等"},
+        {"name": "optname", "type": "int", "note": "SO_REUSEADDR 复用地址 / SO_RCVTIMEO 收超时 / SO_SNDBUF 等"},
+        {"name": "optval", "type": "const void *", "note": "选项值指针"},
+        {"name": "optlen", "type": "socklen_t", "note": "值长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "SO_REUSEADDR 是 bind 复现 TIME_WAIT 的标配；内核网络子系统 optlen 校验漏洞的老窝"
+      ],
+      "tags": ["socket", "选项"]
+    },
+    {
+      "name": "getsockopt",
+      "prototype": "int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "读取套接字选项",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "套接字 fd"},
+        {"name": "level", "type": "int", "note": "选项层次"},
+        {"name": "optname", "type": "int", "note": "选项名"},
+        {"name": "optval", "type": "void *", "note": "接收缓冲"},
+        {"name": "optlen", "type": "socklen_t *", "note": "进出参长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "SO_ERROR 取异步错误；optlen 传短了会被截断——老内核拷贝漏洞模式"
+      ],
+      "tags": ["socket", "选项"]
+    },
+    {
+      "name": "getsockname",
+      "prototype": "int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "取套接字本地一侧地址",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "套接字 fd"},
+        {"name": "addr", "type": "struct sockaddr *", "note": "回传地址"},
+        {"name": "addrlen", "type": "socklen_t *", "note": "进出参长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "临时端口服务端 bind(port=0) 后用它查实际端口"
+      ],
+      "tags": ["socket", "地址"]
+    },
+    {
+      "name": "getpeername",
+      "prototype": "int getpeername(int sockfd, struct sockaddr *addr, socklen_t *addrlen);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "取套接字对端地址",
+      "params": [
+        {"name": "sockfd", "type": "int", "note": "套接字 fd"},
+        {"name": "addr", "type": "struct sockaddr *", "note": "回传对端地址"},
+        {"name": "addrlen", "type": "socklen_t *", "note": "进出参长度"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "连接被劫持/代理转发后核对对端是否还是原目标"
+      ],
+      "tags": ["socket", "地址"]
+    },
+    {
+      "name": "socketpair",
+      "prototype": "int socketpair(int domain, int type, int protocol, int sv[2]);",
+      "header": "<sys/socket.h>",
+      "category": "网络套接字",
+      "summary": "创建一对相连的匿名套接字（双向管道）",
+      "params": [
+        {"name": "domain", "type": "int", "note": "AF_UNIX（本地唯一支持）"},
+        {"name": "type", "type": "int", "note": "SOCK_STREAM / SOCK_DGRAM"},
+        {"name": "protocol", "type": "int", "note": "0"},
+        {"name": "sv", "type": "int[2]", "note": "回传两个 fd，互为两端"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "比 pipe 强在双向 + 全双工；父子进程各持一端做进程间通信"
+      ],
+      "tags": ["socket", "IPC", "管道"]
+    },
+    {
+      "name": "inet_addr",
+      "prototype": "in_addr_t inet_addr(const char *cp);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "点分十进制转网络序 32 位地址",
+      "params": [
+        {"name": "cp", "type": "const char *", "note": "如 \"127.0.0.1\""}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "网络序 in_addr_t"},
+        {"condition": "非法输入", "value": "INADDR_NONE（即 0xffffffff，与 255.255.255.255 撞值）"}
+      ],
+      "notes": [
+        "255.255.255.255 分不清成败——歧义输入要用 inet_aton/pton"
+      ],
+      "tags": ["地址转换", "IPv4"]
+    },
+    {
+      "name": "inet_aton",
+      "prototype": "int inet_aton(const char *cp, struct in_addr *inp);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "点分十进制转 in_addr（无歧义版）",
+      "params": [
+        {"name": "cp", "type": "const char *", "note": "点分地址字符串"},
+        {"name": "inp", "type": "struct in_addr *", "note": "回传网络序地址"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "非 0"},
+        {"condition": "失败", "value": "0"}
+      ],
+      "notes": [
+        "接受简写形式（127.1 == 127.0.0.1）和十六进制——解析差异曾是绕过黑名单的姿势"
+      ],
+      "tags": ["地址转换", "IPv4"]
+    },
+    {
+      "name": "inet_ntoa",
+      "prototype": "char *inet_ntoa(struct in_addr in);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "网络序地址转点分字符串",
+      "params": [
+        {"name": "in", "type": "struct in_addr", "note": "网络序地址"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "静态缓冲区指针"}
+      ],
+      "notes": [
+        "返回静态缓冲——连续两次调用的第一个结果会被覆盖，多线程不安全"
+      ],
+      "tags": ["地址转换", "IPv4", "不安全"]
+    },
+    {
+      "name": "inet_pton",
+      "prototype": "int inet_pton(int af, const char *src, void *dst);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "文本地址转二进制（IPv4/IPv6 通吃，现代首选）",
+      "params": [
+        {"name": "af", "type": "int", "note": "AF_INET / AF_INET6"},
+        {"name": "src", "type": "const char *", "note": "文本地址"},
+        {"name": "dst", "type": "void *", "note": "回传二进制（4 或 16 字节）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "1"},
+        {"condition": "格式非法", "value": "0"},
+        {"condition": "af 不支持", "value": "-1"}
+      ],
+      "notes": [
+        "严格格式：不接受 inet_aton 的简写——白名单校验用它"
+      ],
+      "tags": ["地址转换", "IPv6"]
+    },
+    {
+      "name": "inet_ntop",
+      "prototype": "const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "二进制地址转文本（调用方给缓冲）",
+      "params": [
+        {"name": "af", "type": "int", "note": "AF_INET / AF_INET6"},
+        {"name": "src", "type": "const void *", "note": "二进制地址"},
+        {"name": "dst", "type": "char *", "note": "输出缓冲（IPv6 至少 INET6_ADDRSTRLEN=46）"},
+        {"name": "size", "type": "socklen_t", "note": "缓冲大小"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "dst 指针"},
+        {"condition": "失败", "value": "NULL（缓冲过小置 errno=ENOSPC）"}
+      ],
+      "notes": [
+        "线程安全版 inet_ntoa；打日志标准姿势"
+      ],
+      "tags": ["地址转换", "IPv6"]
+    },
+    {
+      "name": "htons",
+      "prototype": "uint16_t htons(uint16_t hostshort);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "16 位主机序 → 网络序（大端）",
+      "params": [
+        {"name": "hostshort", "type": "uint16_t", "note": "主机序 16 位值"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "网络序值"}
+      ],
+      "notes": [
+        "端口字段必经转换：htons(1234)；x86 小端机上它真的字节翻转，逆向网络结构体时盯住它"
+      ],
+      "tags": ["字节序", "端口"]
+    },
+    {
+      "name": "htonl",
+      "prototype": "uint32_t htonl(uint32_t hostlong);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "32 位主机序 → 网络序（大端）",
+      "params": [
+        {"name": "hostlong", "type": "uint32_t", "note": "主机序 32 位值"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "网络序值"}
+      ],
+      "notes": [
+        "IPv4 地址字段用；net2host 反向是 ntohl"
+      ],
+      "tags": ["字节序", "地址"]
+    },
+    {
+      "name": "ntohs",
+      "prototype": "uint16_t ntohs(uint16_t netshort);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "16 位网络序 → 主机序",
+      "params": [
+        {"name": "netshort", "type": "uint16_t", "note": "网络序 16 位值"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "主机序值"}
+      ],
+      "notes": [
+        "收到报文头第一件事：端口/长度字段 ntohs"
+      ],
+      "tags": ["字节序", "端口"]
+    },
+    {
+      "name": "ntohl",
+      "prototype": "uint32_t ntohl(uint32_t netlong);",
+      "header": "<arpa/inet.h>",
+      "category": "网络套接字",
+      "summary": "32 位网络序 → 主机序",
+      "params": [
+        {"name": "netlong", "type": "uint32_t", "note": "网络序 32 位值"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "主机序值"}
+      ],
+      "notes": [
+        "协议长度/地址字段解析必用；漏转换的「长度忽大忽小」是越界经典来源"
+      ],
+      "tags": ["字节序", "地址"]
+    },
+    {
+      "name": "gethostbyname",
+      "prototype": "struct hostent *gethostbyname(const char *name);",
+      "header": "<netdb.h>（已废弃）",
+      "category": "网络套接字",
+      "summary": "按名字查 IPv4 地址",
+      "params": [
+        {"name": "name", "type": "const char *", "note": "主机名"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "指向静态 hostent 的指针"},
+        {"condition": "失败", "value": "NULL，错误码在 h_errno"}
+      ],
+      "notes": [
+        "静态缓冲 + 错误不走 errno，线程不安全——老代码常见，新代码用 getaddrinfo"
+      ],
+      "tags": ["DNS", "废弃", "不安全"]
+    },
+    {
+      "name": "getaddrinfo",
+      "prototype": "int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);",
+      "header": "<netdb.h>",
+      "category": "网络套接字",
+      "summary": "名字+服务 → 地址链（DNS 解析现代接口）",
+      "params": [
+        {"name": "node", "type": "const char *", "note": "主机名或点分地址，NULL 配 AI_PASSIVE"},
+        {"name": "service", "type": "const char *", "note": "服务名或端口字符串"},
+        {"name": "hints", "type": "const struct addrinfo *", "note": "过滤提示：ai_family/ai_socktype/AI_PASSIVE 等，可 NULL"},
+        {"name": "res", "type": "struct addrinfo **", "note": "回传结果链表头，用完 freeaddrinfo"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "非 0 错误码（EAI_*），gai_strerror 转文本"}
+      ],
+      "notes": [
+        "IPv4/IPv6 通吃；返回的链表要用遍历姿势取第一个能 connect 的"
+      ],
+      "tags": ["DNS", "解析", "现代"]
+    },
+    {
+      "name": "freeaddrinfo",
+      "prototype": "void freeaddrinfo(struct addrinfo *res);",
+      "header": "<netdb.h>",
+      "category": "网络套接字",
+      "summary": "释放 getaddrinfo 的结果链表",
+      "params": [
+        {"name": "res", "type": "struct addrinfo *", "note": "链表头指针"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "void"}
+      ],
+      "notes": [
+        "res 为 NULL 安全；忘记释放 = 内存泄漏（长跑服务的经典审计发现）"
+      ],
+      "tags": ["DNS", "释放"]
+    },
+    {
+      "name": "select",
+      "prototype": "int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);",
+      "header": "<sys/select.h>",
+      "category": "网络套接字",
+      "summary": "等待一组 fd 就绪（老牌 IO 多路复用）",
+      "params": [
+        {"name": "nfds", "type": "int", "note": "三个集合中最大 fd + 1"},
+        {"name": "readfds", "type": "fd_set *", "note": "关注可读的集合，回传就绪集合，可 NULL"},
+        {"name": "writefds", "type": "fd_set *", "note": "关注可写，可 NULL"},
+        {"name": "exceptfds", "type": "fd_set *", "note": "关注异常（OOB 数据），可 NULL"},
+        {"name": "timeout", "type": "struct timeval *", "note": "超时；NULL 阻塞等待"}
+      ],
+      "returns": [
+        {"condition": "有就绪", "value": "就绪 fd 总数"},
+        {"condition": "超时", "value": "0"},
+        {"condition": "失败", "value": "-1（EINTR 被信号打断）"}
+      ],
+      "notes": [
+        "FD_SETSIZE=1024 上限；每次返回后集合被改写，循环里要重置——漏重置导致忙转/漏读是常见 bug",
+        "timeout 在 Linux 上会被剩余时间改写，跨平台别当常量"
+      ],
+      "tags": ["IO 复用", "等待"]
+    },
+    {
+      "name": "poll",
+      "prototype": "int poll(struct pollfd *fds, nfds_t nfds, int timeout);",
+      "header": "<poll.h>",
+      "category": "网络套接字",
+      "summary": "无 fd 数量硬上限的多路复用",
+      "params": [
+        {"name": "fds", "type": "struct pollfd *", "note": "元素含 fd/events/revents 的数组"},
+        {"name": "nfds", "type": "nfds_t", "note": "数组长度"},
+        {"name": "timeout", "type": "int", "note": "毫秒；-1 阻塞，0 立即返回"}
+      ],
+      "returns": [
+        {"condition": "有就绪", "value": "revents 非 0 的元素个数"},
+        {"condition": "超时", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "POLLIN/POLLOUT/POLLHUP/POLLERR 组合；events 不改写、revents 回填——比 select 省心"
+      ],
+      "tags": ["IO 复用", "等待"]
+    },
+    {
+      "name": "epoll_create",
+      "prototype": "int epoll_create(int size);",
+      "header": "<sys/epoll.h>",
+      "category": "网络套接字",
+      "summary": "创建 epoll 实例",
+      "params": [
+        {"name": "size", "type": "int", "note": "历史参数（提示内核规模，>0 即可，被忽略）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "epoll fd"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "新代码用 epoll_create1(0)；epoll fd 本身也是 fd，close 才释放"
+      ],
+      "tags": ["epoll", "IO 复用"]
+    },
+    {
+      "name": "epoll_ctl",
+      "prototype": "int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event);",
+      "header": "<sys/epoll.h>",
+      "category": "网络套接字",
+      "summary": "向 epoll 实例增删改关注的 fd",
+      "params": [
+        {"name": "epfd", "type": "int", "note": "epoll fd"},
+        {"name": "op", "type": "int", "note": "EPOLL_CTL_ADD / EPOLL_CTL_MOD / EPOLL_CTL_DEL"},
+        {"name": "fd", "type": "int", "note": "目标 fd"},
+        {"name": "event", "type": "struct epoll_event *", "note": "关注事件：EPOLLIN/EPOLLOUT/EPOLLET 边沿触发等"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "EPOLLET 边沿模式只在状态切换时通知一次——必须把数据读干净（循环读到 EAGAIN）"
+      ],
+      "tags": ["epoll", "IO 复用"]
+    },
+    {
+      "name": "epoll_wait",
+      "prototype": "int epoll_wait(int epfd, struct epoll_event *events, int maxevents, int timeout);",
+      "header": "<sys/epoll.h>",
+      "category": "网络套接字",
+      "summary": "等待 epoll 实例上的事件",
+      "params": [
+        {"name": "epfd", "type": "int", "note": "epoll fd"},
+        {"name": "events", "type": "struct epoll_event *", "note": "就绪事件回填数组（调用方分配）"},
+        {"name": "maxevents", "type": "int", "note": "数组容量（>0）"},
+        {"name": "timeout", "type": "int", "note": "毫秒；-1 阻塞"}
+      ],
+      "returns": [
+        {"condition": "有就绪", "value": "就绪事件数（不超过 maxevents）"},
+        {"condition": "超时", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "只回传就绪项、不扫描全表——万级并发下替代 select 的原因"
+      ],
+      "tags": ["epoll", "IO 复用"]
+    },
+    {
+      "name": "setenv",
+      "prototype": "int setenv(const char *name, const char *value, int overwrite);",
+      "header": "<stdlib.h>",
+      "category": "系统环境",
+      "summary": "设置环境变量（带覆盖开关，拷贝参数）",
+      "params": [
+        {"name": "name", "type": "const char *", "note": "变量名（不含 =）"},
+        {"name": "value", "type": "const char *", "note": "值"},
+        {"name": "overwrite", "type": "int", "note": "0 表示已存在则不动"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "与 putenv 的区别：拷贝 name/value，原字符串之后修改无影响；exec 前塞 LD_PRELOAD 类变量看它"
+      ],
+      "tags": ["环境变量"]
+    },
+    {
+      "name": "unsetenv",
+      "prototype": "int unsetenv(const char *name);",
+      "header": "<stdlib.h>",
+      "category": "系统环境",
+      "summary": "删除环境变量",
+      "params": [
+        {"name": "name", "type": "const char *", "note": "变量名"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "name 含 =", "value": "-1 且 errno=EINVAL"}
+      ],
+      "notes": [
+        "setuid 程序开头 unsetenv(\"LD_PRELOAD\") 是历史加固；environ 整体交换的细节在 glibc 内部走 environ 数组搬移"
+      ],
+      "tags": ["环境变量"]
+    },
+    {
+      "name": "putenv",
+      "prototype": "int putenv(char *string);",
+      "header": "<stdlib.h>",
+      "category": "系统环境",
+      "summary": "把 \"NAME=value\" 字符串直接挂进环境",
+      "params": [
+        {"name": "string", "type": "char *", "note": "完整的 name=value 串"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "非 0"}
+      ],
+      "notes": [
+        "不拷贝——string 之后被改，环境变量跟着变（缓冲区生命周期陷阱）；新代码用 setenv"
+      ],
+      "tags": ["环境变量", "不安全"]
+    },
+    {
+      "name": "getpid",
+      "prototype": "pid_t getpid(void);",
+      "header": "<unistd.h>",
+      "category": "系统环境",
+      "summary": "取当前进程 pid",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "进程 id"}
+      ],
+      "notes": [
+        "日志/临时文件名里常见；反调试配合 /proc/self/stat 检查 TracerPid"
+      ],
+      "tags": ["进程", "标识"]
+    },
+    {
+      "name": "getppid",
+      "prototype": "pid_t getppid(void);",
+      "header": "<unistd.h>",
+      "category": "系统环境",
+      "summary": "取父进程 pid",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "父进程 id（父已死则为 1 或 init 替代者）"}
+      ],
+      "notes": [
+        "守护进程判孤儿/重挂的依据"
+      ],
+      "tags": ["进程", "标识"]
+    },
+    {
+      "name": "getuid",
+      "prototype": "uid_t getuid(void);",
+      "header": "<unistd.h> <sys/types.h>",
+      "category": "系统环境",
+      "summary": "取真实 uid",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "真实 uid（ruid）"}
+      ],
+      "notes": [
+        "setuid 二进制里 getuid() != geteuid() 是「正以提升权限运行」的判定式——exp 阶段检查点"
+      ],
+      "tags": ["用户", "权限"]
+    },
+    {
+      "name": "geteuid",
+      "prototype": "uid_t geteuid(void);",
+      "header": "<unistd.h> <sys/types.h>",
+      "category": "系统环境",
+      "summary": "取有效 uid",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "有效 uid（euid），决定实际权限"}
+      ],
+      "notes": [
+        "提权是否成功看它是否变 0；getresuid 一次拿全 ruid/euid/suid"
+      ],
+      "tags": ["用户", "权限", "提权"]
+    },
+    {
+      "name": "getgid",
+      "prototype": "gid_t getgid(void);",
+      "header": "<unistd.h> <sys/types.h>",
+      "category": "系统环境",
+      "summary": "取真实 gid",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "真实组 id"}
+      ],
+      "notes": [
+        "组权限文件判定的组成部分"
+      ],
+      "tags": ["组", "权限"]
+    },
+    {
+      "name": "getegid",
+      "prototype": "gid_t getegid(void);",
+      "header": "<unistd.h> <sys/types.h>",
+      "category": "系统环境",
+      "summary": "取有效 gid",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "有效组 id"}
+      ],
+      "notes": [
+        "setgid 二进制提权检查点"
+      ],
+      "tags": ["组", "权限"]
+    },
+    {
+      "name": "setuid",
+      "prototype": "int setuid(uid_t uid);",
+      "header": "<unistd.h>",
+      "category": "系统环境",
+      "summary": "设置 uid（非特权只能切回自己的 ruid）",
+      "params": [
+        {"name": "uid", "type": "uid_t", "note": "目标 uid"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1 且 errno（EPERM 权限不足）"}
+      ],
+      "notes": [
+        "以 root 运行时一次性改 ruid/euid/suid 三个；非 root 只能降回——「先 setuid(0) 再做事」失败即降权的写法是加固/绕过的分界线"
+      ],
+      "tags": ["用户", "提权"]
+    },
+    {
+      "name": "setgid",
+      "prototype": "int setgid(gid_t gid);",
+      "header": "<unistd.h>",
+      "category": "系统环境",
+      "summary": "设置 gid",
+      "params": [
+        {"name": "gid", "type": "gid_t", "note": "目标 gid"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "配合组文件权限；服务降权（drop privileges）流程之一"
+      ],
+      "tags": ["组", "降权"]
+    },
+    {
+      "name": "sysconf",
+      "prototype": "long sysconf(int name);",
+      "header": "<unistd.h>",
+      "category": "系统环境",
+      "summary": "取系统运行时限值",
+      "params": [
+        {"name": "name", "type": "int", "note": "_SC_PAGESIZE 页大小 / _SC_OPEN_MAX 最大 fd / _SC_NPROCESSORS_ONLN 等"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "对应值"},
+        {"condition": "无限制", "value": "-1 且不置 errno"},
+        {"condition": "非法 name", "value": "-1 且置 errno"}
+      ],
+      "notes": [
+        "页大小别写死 4096——arm64 上 64K 页环境吃过亏；与 getpagesize 等价来源不同"
+      ],
+      "tags": ["系统", "配置"]
+    },
+    {
+      "name": "getpagesize",
+      "prototype": "int getpagesize(void);",
+      "header": "<unistd.h>",
+      "category": "系统环境",
+      "summary": "取内存页大小",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "页大小字节数"}
+      ],
+      "notes": [
+        "mmap 偏移/长度对齐计算用；等价 sysconf(_SC_PAGESIZE)"
+      ],
+      "tags": ["内存", "页"]
+    },
+    {
+      "name": "uname",
+      "prototype": "int uname(struct utsname *buf);",
+      "header": "<sys/utsname.h>",
+      "category": "系统环境",
+      "summary": "取内核与主机信息",
+      "params": [
+        {"name": "buf", "type": "struct utsname *", "note": "回传 sysname/nodename/release/version/machine/domainname"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "release 字段判内核版本——CVE 利用条件核对第一步；exploit 里常先打印它"
+      ],
+      "tags": ["系统", "内核版本"]
+    },
+    {
+      "name": "gettimeofday",
+      "prototype": "int gettimeofday(struct timeval *tv, struct timezone *tz);",
+      "header": "<sys/time.h>",
+      "category": "系统环境",
+      "summary": "取当前时间（秒+微秒）",
+      "params": [
+        {"name": "tv", "type": "struct timeval *", "note": "回传时间，可 NULL"},
+        {"name": "tz", "type": "struct timezone *", "note": "历史参数，传 NULL"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1（tz 非 NULL 且非 Linux）"}
+      ],
+      "notes": [
+        "计时打点老三样；高精度计时用 clock_gettime(CLOCK_MONOTONIC) 不受改系统时间影响"
+      ],
+      "tags": ["时间"]
+    },
+    {
+      "name": "clock_gettime",
+      "prototype": "int clock_gettime(clockid_t clk_id, struct timespec *tp);",
+      "header": "<time.h>",
+      "category": "系统环境",
+      "summary": "按指定时钟取高精度时间",
+      "params": [
+        {"name": "clk_id", "type": "clockid_t", "note": "CLOCK_REALTIME 墙上时间 / CLOCK_MONOTONIC 单调时钟 / CLOCK_PROCESS_CPUTIME_ID 等"},
+        {"name": "tp", "type": "struct timespec *", "note": "回传秒+纳秒"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "竞态/性能测量用 MONOTONIC——NTP 改不动它；vDSO 加速不陷入内核"
+      ],
+      "tags": ["时间", "单调钟"]
+    },
+    {
+      "name": "umask",
+      "prototype": "mode_t umask(mode_t mask);",
+      "header": "<sys/stat.h>",
+      "category": "系统环境",
+      "summary": "设置并返回旧文件权限掩码",
+      "params": [
+        {"name": "mask", "type": "mode_t", "note": "要屏蔽的权限位（如 0077）"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "先前的 umask"}
+      ],
+      "notes": [
+        "open/mkdir 的 mode 会先过它——「明明给了 0666 建出来 0644」就是 umask 0022 干的"
+      ],
+      "tags": ["权限", "掩码"]
+    },
+    {
+      "name": "getrlimit",
+      "prototype": "int getrlimit(int resource, struct rlimit *rlim);",
+      "header": "<sys/resource.h>",
+      "category": "系统环境",
+      "summary": "读资源上限",
+      "params": [
+        {"name": "resource", "type": "int", "note": "RLIMIT_NOFILE fd 数 / RLIMIT_STACK 栈 / RLIMIT_AS 内存 / RLIMIT_CORE core 大小"},
+        {"name": "rlim", "type": "struct rlimit *", "note": "回传 rlim_cur 软限 / rlim_max 硬限"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "RLIMIT_STACK==infinity 时 mmap 布局会变（legacy layout）——影响 libc 基址猜测；解题前先 cat /proc/self/limits"
+      ],
+      "tags": ["资源", "限制", "布局"]
+    },
+    {
+      "name": "setrlimit",
+      "prototype": "int setrlimit(int resource, const struct rlimit *rlim);",
+      "header": "<sys/resource.h>",
+      "category": "系统环境",
+      "summary": "设资源上限（软限可调，硬限非特权只能降）",
+      "params": [
+        {"name": "resource", "type": "int", "note": "资源种类"},
+        {"name": "rlim", "type": "const struct rlimit *", "note": "新的软/硬限；RLIM_INFINITY 表示无限"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "-1"}
+      ],
+      "notes": [
+        "服务加固标配 setrlimit(RLIMIT_CORE, 0)——core dump 里全是敏感数据"
+      ],
+      "tags": ["资源", "限制", "加固"]
+    },
+    {
+      "name": "strerror_r",
+      "prototype": "int strerror_r(int errnum, char *buf, size_t buflen);",
+      "header": "<string.h>",
+      "category": "错误诊断",
+      "summary": "线程安全的错误码转文本（XSI 版）",
+      "params": [
+        {"name": "errnum", "type": "int", "note": "错误码"},
+        {"name": "buf", "type": "char *", "note": "输出缓冲"},
+        {"name": "buflen", "type": "size_t", "note": "缓冲大小"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "未知错误码", "value": "EINVAL；缓冲过小 ERANGE"}
+      ],
+      "notes": [
+        "返回码制（XSI）；GNU 版返回 char* 指向可能不落在 buf 的串——宏 _GNU_SOURCE 决定是哪版，混用是移植坑"
+      ],
+      "tags": ["错误", "线程安全"]
+    },
+    {
+      "name": "assert",
+      "prototype": "void assert(int expression);",
+      "header": "<assert.h>（宏）",
+      "category": "错误诊断",
+      "summary": "断言宏：条件为假则打印并 abort",
+      "params": [
+        {"name": "expression", "type": "int", "note": "断言条件"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "失败路径直接终止程序"}
+      ],
+      "notes": [
+        "定义 NDEBUG 后整个表达式消失——带副作用的断言（assert(close(fd)==0)）在 release 里被编译掉，成为「调试版正常、发布版泄漏 fd」的根源",
+        "失败信息含文件名/行号/表达式——泄露源码结构"
+      ],
+      "tags": ["断言", "调试", "宏"]
+    },
+    {
+      "name": "random",
+      "prototype": "long random(void);",
+      "header": "<stdlib.h>",
+      "category": "随机数",
+      "summary": "取更好的伪随机数（rand 的强实现）",
+      "params": [],
+      "returns": [
+        {"condition": "总是成功", "value": "0 到 RAND_MAX 之间的 long"}
+      ],
+      "notes": [
+        "默认 srandom(1) 种子——不播种每次运行序列相同；和 rand 互相独立，混用不共享状态"
+      ],
+      "tags": ["随机", "可预测"]
+    },
+    {
+      "name": "srandom",
+      "prototype": "void srandom(unsigned int seed);",
+      "header": "<stdlib.h>",
+      "category": "随机数",
+      "summary": "给 random 播种",
+      "params": [
+        {"name": "seed", "type": "unsigned int", "note": "种子值"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "void"}
+      ],
+      "notes": [
+        "srandom(time(0)) 仍是可预测种子——预测类题直接枚举种子范围；initstate 可换状态数组"
+      ],
+      "tags": ["随机", "种子"]
+    },
+    {
+      "name": "rand_r",
+      "prototype": "int rand_r(unsigned int *seedp);",
+      "header": "<stdlib.h>",
+      "category": "随机数",
+      "summary": "可重入 rand（种子由调用方保管）",
+      "params": [
+        {"name": "seedp", "type": "unsigned int *", "note": "进出的种子状态，每次调用被更新"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "0 到 RAND_MAX 的整数"}
+      ],
+      "notes": [
+        "无静态状态可重入；实现弱于 random——密码用途谁都不行，用 getrandom"
+      ],
+      "tags": ["随机", "可重入"]
+    },
+    {
+      "name": "strtoll",
+      "prototype": "long long strtoll(const char *nptr, char **endptr, int base);",
+      "header": "<stdlib.h>",
+      "category": "数值转换",
+      "summary": "字符串转 long long（64 位）",
+      "params": [
+        {"name": "nptr", "type": "const char *", "note": "输入字符串（可带空白/正负号）"},
+        {"name": "endptr", "type": "char **", "note": "回传停止扫描的位置，可 NULL"},
+        {"name": "base", "type": "int", "note": "2~36 进制；0 表示按前缀自动判（0x 十六/0 八/默认十）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "转换结果（溢出时回绕为 LLONG_MAX/MIN 并置 ERANGE）"},
+        {"condition": "无转换", "value": "0"}
+      ],
+      "notes": [
+        "64 位输入整数的标准入口——base 16 时前缀 0x 可选，解析 payload 里的十六进制很顺手"
+      ],
+      "tags": ["转换", "64 位"]
+    },
+    {
+      "name": "strtod",
+      "prototype": "double strtod(const char *nptr, char **endptr);",
+      "header": "<stdlib.h>",
+      "category": "数值转换",
+      "summary": "字符串转 double",
+      "params": [
+        {"name": "nptr", "type": "const char *", "note": "输入字符串（支持正负号/小数/指数/hex 浮点/inf/nan）"},
+        {"name": "endptr", "type": "char **", "note": "回传停止位置，可 NULL"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "转换结果（溢出置 ERANGE 返回 ±HUGE_VAL）"},
+        {"condition": "无转换", "value": "0"}
+      ],
+      "notes": [
+        "接受 \"nan\"/\"inf\"/十六进制浮点——解析差异常被当特性利用"
+      ],
+      "tags": ["转换", "浮点"]
+    },
+    {
+      "name": "atof",
+      "prototype": "double atof(const char *nptr);",
+      "header": "<stdlib.h>",
+      "category": "数值转换",
+      "summary": "字符串转 double（简版 strtod）",
+      "params": [
+        {"name": "nptr", "type": "const char *", "note": "输入字符串"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "转换结果；无法区分失败与 0.0"}
+      ],
+      "notes": [
+        "没有 endptr，错误静默返回 0——要判错用 strtod"
+      ],
+      "tags": ["转换", "浮点", "简版"]
+    },
+    {
+      "name": "isalnum",
+      "prototype": "int isalnum(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否字母或数字",
+      "params": [
+        {"name": "c", "type": "int", "note": "字符值：必须是 unsigned char 值（0~255）或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "参数传负数 char 是未定义行为——glibc 靠查 __ctype_b 表，越界索引是信息泄露面（正确姿势 (unsigned char)ch）"
+      ],
+      "tags": ["ctype", "判断"]
+    },
+    {
+      "name": "isalpha",
+      "prototype": "int isalpha(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否字母",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "受 locale 影响（如带变音符的字母）——解析逻辑在不同环境行为漂移"
+      ],
+      "tags": ["ctype", "判断"]
+    },
+    {
+      "name": "isdigit",
+      "prototype": "int isdigit(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否十进制数字 0-9",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "不受 locale 影响；'0'<=c<='9' 的等价表达式，编译器会内联"
+      ],
+      "tags": ["ctype", "判断"]
+    },
+    {
+      "name": "isxdigit",
+      "prototype": "int isxdigit(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否十六进制字符 0-9 a-f A-F",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "解析 hex 地址/哈希字符串的过滤函数；自己写时注意大小写都收"
+      ],
+      "tags": ["ctype", "判断", "hex"]
+    },
+    {
+      "name": "islower",
+      "prototype": "int islower(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否小写字母",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "判断细节受 locale 影响"
+      ],
+      "tags": ["ctype", "判断"]
+    },
+    {
+      "name": "isupper",
+      "prototype": "int isupper(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否大写字母",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "与 islower 对偶"
+      ],
+      "tags": ["ctype", "判断"]
+    },
+    {
+      "name": "isspace",
+      "prototype": "int isspace(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否空白字符（空格 \\t \\n \\v \\f \\r）",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "切分输入前的过滤；注意 \\r——Windows 换行残留让 \"看起来一样\" 的 token 匹配失败的经典坑"
+      ],
+      "tags": ["ctype", "判断", "空白"]
+    },
+    {
+      "name": "ispunct",
+      "prototype": "int ispunct(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否标点符号（可打印且非字母数字非空白）",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "分隔符集合判断用"
+      ],
+      "tags": ["ctype", "判断"]
+    },
+    {
+      "name": "isprint",
+      "prototype": "int isprint(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否可打印字符（含空格，0x20~0x7E）",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "dump 内存时用它判显示/打点；ASCII 0x20-0x7e 范围即 glibc \"C\" locale 行为"
+      ],
+      "tags": ["ctype", "判断", "可视化"]
+    },
+    {
+      "name": "iscntrl",
+      "prototype": "int iscntrl(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "判断是否控制字符（0x00-0x1F 与 0x7F）",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "是", "value": "非 0"},
+        {"condition": "否", "value": "0"}
+      ],
+      "notes": [
+        "与 isprint 互补；过滤坏字节（payload 不能含 \\x00\\n 等）时反向用它"
+      ],
+      "tags": ["ctype", "判断"]
+    },
+    {
+      "name": "tolower",
+      "prototype": "int tolower(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "转小写（非大写字母原样返回）",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "转换后的值"}
+      ],
+      "notes": [
+        "参数越界行为未定义——同 isalnum 的表查询问题"
+      ],
+      "tags": ["ctype", "转换"]
+    },
+    {
+      "name": "toupper",
+      "prototype": "int toupper(int c);",
+      "header": "<ctype.h>",
+      "category": "字符处理",
+      "summary": "转大写（非小写字母原样返回）",
+      "params": [
+        {"name": "c", "type": "int", "note": "unsigned char 值或 EOF"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "转换后的值"}
+      ],
+      "notes": [
+        "case-insensitive 比较 = tolower 后逐字符比，比 strcasecmp 手写版可控"
+      ],
+      "tags": ["ctype", "转换"]
+    },
+    {
+      "name": "qsort",
+      "prototype": "void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));",
+      "header": "<stdlib.h>",
+      "category": "排序查找",
+      "summary": "就地排序数组",
+      "params": [
+        {"name": "base", "type": "void *", "note": "数组首地址"},
+        {"name": "nmemb", "type": "size_t", "note": "元素个数"},
+        {"name": "size", "type": "size_t", "note": "单元素字节数"},
+        {"name": "compar", "type": "int (*)(const void *, const void *)", "note": "比较函数指针：负/零/正"}
+      ],
+      "returns": [
+        {"condition": "无返回值", "value": "void"}
+      ],
+      "notes": [
+        "compar 是函数指针——劫持它就等于劫持控制流（got/结构体里存它）；compar 返回值不一致会导致越界写（老 glibc 的排序漏洞温床）",
+        "glibc 混合快排/归并，元素多时要 malloc 临时缓冲——堆监控里会看到额外分配"
+      ],
+      "tags": ["排序", "函数指针", "控制流"]
+    },
+    {
+      "name": "bsearch",
+      "prototype": "void *bsearch(const void *key, const void *base, size_t nmemb, size_t size, int (*compar)(const void *, const void *));",
+      "header": "<stdlib.h>",
+      "category": "排序查找",
+      "summary": "在有序数组中二分查找",
+      "params": [
+        {"name": "key", "type": "const void *", "note": "要找的键"},
+        {"name": "base", "type": "const void *", "note": "升序数组首地址"},
+        {"name": "nmemb", "type": "size_t", "note": "元素个数"},
+        {"name": "size", "type": "size_t", "note": "单元素字节数"},
+        {"name": "compar", "type": "int (*)(const void *, const void *)", "note": "比较函数"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "匹配元素地址"},
+        {"condition": "没找到", "value": "NULL"}
+      ],
+      "notes": [
+        "数组必须已按同一 compar 排序——顺序错了查找结果不可预测但不报错"
+      ],
+      "tags": ["查找", "二分"]
+    },
+    {
+      "name": "setjmp",
+      "prototype": "int setjmp(jmp_buf env);",
+      "header": "<setjmp.h>",
+      "category": "非局部跳转",
+      "summary": "保存调用环境以便 longjmp 跳回（宏）",
+      "params": [
+        {"name": "env", "type": "jmp_buf", "note": "保存寄存器/栈状态（含返回地址）的缓冲"}
+      ],
+      "returns": [
+        {"condition": "直接调用", "value": "0"},
+        {"condition": "longjmp 跳回时", "value": "非 0（longjmp 传入的 val）"}
+      ],
+      "notes": [
+        "jmp_buf 就是寄存器快照——若能伪造它再触发 longjmp，等于同时控制 RIP/RSP/RBP 一票寄存器",
+        "C++ 异常、协程、深层错误处理都靠这对搭档"
+      ],
+      "tags": ["跳转", "寄存器快照", "控制流"]
+    },
+    {
+      "name": "longjmp",
+      "prototype": "void longjmp(jmp_buf env, int val);",
+      "header": "<setjmp.h>",
+      "category": "非局部跳转",
+      "summary": "跳回 setjmp 保存的点",
+      "params": [
+        {"name": "env", "type": "jmp_buf", "note": "setjmp 填好的环境"},
+        {"name": "val", "type": "int", "note": "setjmp 处看到的返回值（0 会被强制改成 1）"}
+      ],
+      "returns": [
+        {"condition": "正常情况", "value": "不返回"},
+        {"condition": "env 已失效（栈帧没了）", "value": "未定义行为，通常崩溃"}
+      ],
+      "notes": [
+        "跳回时恢复 callee-saved 寄存器 + sp + pc——env 被篡改即任意跳转原语；glibc 对指针字段做了 PTR_MANGLE 混淆",
+        "跳过所有中间栈帧的释放逻辑——资源泄漏审计点"
+      ],
+      "tags": ["跳转", "控制流", "利用原语"]
+    },
+    {
+      "name": "abs",
+      "prototype": "int abs(int x);",
+      "header": "<stdlib.h>",
+      "category": "数学",
+      "summary": "整数绝对值",
+      "params": [
+        {"name": "x", "type": "int", "note": "输入整数"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "|x|"}
+      ],
+      "notes": [
+        "INT_MIN 的 abs 是未定义行为（结果不可表示）——calc 类题的边界测试点"
+      ],
+      "tags": ["数学", "边界"]
+    },
+    {
+      "name": "labs",
+      "prototype": "long labs(long x);",
+      "header": "<stdlib.h>",
+      "category": "数学",
+      "summary": "long 绝对值",
+      "params": [
+        {"name": "x", "type": "long", "note": "输入"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "|x|"}
+      ],
+      "notes": [
+        "LONG_MIN 同样溢出 UB"
+      ],
+      "tags": ["数学"]
+    },
+    {
+      "name": "llabs",
+      "prototype": "long long llabs(long long x);",
+      "header": "<stdlib.h>",
+      "category": "数学",
+      "summary": "long long 绝对值",
+      "params": [
+        {"name": "x", "type": "long long", "note": "输入"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "|x|"}
+      ],
+      "notes": [
+        "LLONG_MIN 溢出 UB；64 位 calc 必查"
+      ],
+      "tags": ["数学"]
+    },
+    {
+      "name": "fabs",
+      "prototype": "double fabs(double x);",
+      "header": "<math.h>",
+      "category": "数学",
+      "summary": "浮点绝对值",
+      "params": [
+        {"name": "x", "type": "double", "note": "输入"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "|x|（对 -0.0 返回 +0.0，对 NaN 返回 NaN）"}
+      ],
+      "notes": [
+        "浮点比较判 0 要用 fabs(a-b) < eps，别直接 =="
+      ],
+      "tags": ["数学", "浮点"]
+    },
+    {
+      "name": "sqrt",
+      "prototype": "double sqrt(double x);",
+      "header": "<math.h>",
+      "category": "数学",
+      "summary": "平方根",
+      "params": [
+        {"name": "x", "type": "double", "note": "非负输入；负数是定义域错误（置 errno=EDOM 返回 NaN）"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "算术平方根"},
+        {"condition": "定义域错误", "value": "NaN"}
+      ],
+      "notes": [
+        "整数平方根要防浮点精度坑——大数用 sqrtl 或 (long long)sqrt(x+0.5) 校正"
+      ],
+      "tags": ["数学"]
+    },
+    {
+      "name": "pow",
+      "prototype": "double pow(double base, double exponent);",
+      "header": "<math.h>",
+      "category": "数学",
+      "summary": "幂运算",
+      "params": [
+        {"name": "base", "type": "double", "note": "底数"},
+        {"name": "exponent", "type": "double", "note": "指数"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "base 的 exponent 次幂"},
+        {"condition": "定义域/值域错误", "value": "±HUGE_VAL 或 NaN 并置 errno"}
+      ],
+      "notes": [
+        "结果不精确（exp(log(x)*y) 实现）——金额/大整数场景别用 pow 代替乘法循环"
+      ],
+      "tags": ["数学", "精度"]
+    },
+    {
+      "name": "floor",
+      "prototype": "double floor(double x);",
+      "header": "<math.h>",
+      "category": "数学",
+      "summary": "向下取整",
+      "params": [
+        {"name": "x", "type": "double", "note": "输入"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "不大于 x 的最大整数值（以 double 表示）"}
+      ],
+      "notes": [
+        "floor(-0.5) == -1.0——向「更小」不是「向零」；要整型记得显式转换"
+      ],
+      "tags": ["数学", "取整"]
+    },
+    {
+      "name": "ceil",
+      "prototype": "double ceil(double x);",
+      "header": "<math.h>",
+      "category": "数学",
+      "summary": "向上取整",
+      "params": [
+        {"name": "x", "type": "double", "note": "输入"}
+      ],
+      "returns": [
+        {"condition": "总是成功", "value": "不小于 x 的最小整数值"}
+      ],
+      "notes": [
+        "计算页数/分块数：ceil(n/page) 写成 (n+page-1)/page 避免浮点"
+      ],
+      "tags": ["数学", "取整"]
+    },
+    {
+      "name": "dlopen",
+      "prototype": "void *dlopen(const char *filename, int flags);",
+      "header": "<dlfcn.h>",
+      "category": "动态链接",
+      "summary": "运行时加载动态库",
+      "params": [
+        {"name": "filename", "type": "const char *", "note": "so 路径；NULL 取主程序自身，\"libc.so.6\" 按名字搜"},
+        {"name": "flags", "type": "int", "note": "RTLD_LAZY 延迟绑定 / RTLD_NOW 立即绑定；可加 RTLD_GLOBAL / RTLD_LOCAL"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "库句柄"},
+        {"condition": "失败", "value": "NULL，dlerror 取原因"}
+      ],
+      "notes": [
+        "RTLD_NOW 会触发所有重定位完成——配合 ret2dlresolve 的场景理解绑定时机",
+        "path 未含 / 时按 LD_LIBRARY_PATH/标准目录搜——可写目录劫持点"
+      ],
+      "tags": ["dlopen", "动态加载", "劫持"]
+    },
+    {
+      "name": "dlsym",
+      "prototype": "void *dlsym(void *handle, const char *symbol);",
+      "header": "<dlfcn.h>",
+      "category": "动态链接",
+      "summary": "按名字查符号地址",
+      "params": [
+        {"name": "handle", "type": "void *", "note": "dlopen 句柄；特殊值 RTLD_DEFAULT 全局查 / RTLD_NEXT 下一个同名符号"},
+        {"name": "symbol", "type": "const char *", "note": "符号名"}
+      ],
+      "returns": [
+        {"condition": "找到", "value": "符号地址"},
+        {"condition": "没找到", "value": "NULL，dlerror 取原因"}
+      ],
+      "notes": [
+        "dlsym(RTLD_DEFAULT, \"system\") 是泄露 libc 基址的函数级姿势（与逐版本偏移无关）",
+        "RTLD_NEXT 是写 hook（包装 malloc/free 做追踪）的钥匙"
+      ],
+      "tags": ["dlsym", "符号解析", "泄露"]
+    },
+    {
+      "name": "dlclose",
+      "prototype": "int dlclose(void *handle);",
+      "header": "<dlfcn.h>",
+      "category": "动态链接",
+      "summary": "减少库引用计数（归零卸载）",
+      "params": [
+        {"name": "handle", "type": "void *", "note": "dlopen 返回的句柄"}
+      ],
+      "returns": [
+        {"condition": "成功", "value": "0"},
+        {"condition": "失败", "value": "非 0"}
+      ],
+      "notes": [
+        "有代码还引用就卸载 = use-after-free 级别崩溃；带 __attribute__((destructor)) 的库卸载时执行清理"
+      ],
+      "tags": ["dl", "卸载"]
+    },
+    {
+      "name": "dlerror",
+      "prototype": "char *dlerror(void);",
+      "header": "<dlfcn.h>",
+      "category": "动态链接",
+      "summary": "取最近一次 dl 系列错误",
+      "params": [],
+      "returns": [
+        {"condition": "有错", "value": "错误文本指针（下次调用前有效）"},
+        {"condition": "无新错误", "value": "NULL"}
+      ],
+      "notes": [
+        "调用它会清除错误状态——连续查两个符号时第一次的 NULL 要靠它区分「没找到」和「没错误」"
+      ],
+      "tags": ["dl", "错误"]
     }
   ],
   "operators": [

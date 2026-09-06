@@ -4845,3 +4845,24 @@ select.input { font: inherit; }
   border-radius: 4px; font-family: "Cascadia Mono", Consolas, monospace;
   font-size: 11px; padding: 4px 6px; resize: vertical;
 }
+
+/* ---- VNext: debug 终端下方显示不完修复 ---- */
+/* xterm viewport 必须填满容器高度, 否则底部行被裁切 */
+#debug-term-host .xterm-viewport {
+  height: 100% !important;
+  max-height: none !important;
+}
+/* debug-term-slot 最小高度保障, 防止 flex 压缩到不可见 */
+#debug-term-slot.debug-term-slot {
+  min-height: 120px;
+  overflow: visible;
+}
+/* xterm-helper-textarea 不可阻挡正常布局流 */
+#debug-term-host .xterm-helper-textarea {
+  position: absolute !important;
+  opacity: 0;
+  left: -9999px !important;
+  top: 0 !important;
+  height: 1px !important;
+  width: 1px !important;
+}

@@ -1124,6 +1124,9 @@
     new ResizeObserver(refit).observe(host);
     terminals.set(id, entry);
     refit();
+    // 延迟 refit：确保 DOM 布局完成后 xterm 获取正确容器尺寸
+    setTimeout(refit, 100);
+    setTimeout(refit, 300);
     renderTerminalTabs();
     if (state.page === 'debug') {
       const start = $('#debug-start');
