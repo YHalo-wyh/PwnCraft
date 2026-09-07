@@ -19,7 +19,8 @@
     "tcache metadata 可写只证明可改 entry；只有 observed base、精确 entry 几何、positive count、target alignment 与 size-class semantics 全部审核后，才能证明一次 exact allocation target，且不得外推为 unrestricted arbitrary allocation。",
     "wide_data 区域地址与 wide+0xe0 指针只能证明结构准备；wide-vtable slot 的数值目标必须独立解析，不能从 Apple2/FSOP 名称或 region 地址直接推导 system/control transfer。",
     "ELF/libc 的 symbol、relocation、RELRO、可执行范围和指令语义必须绑定 exact artifact SHA256；远程连接器看不到二进制时必须转本地 artifact provider，不得用社区 magic address 补真值。",
-    "runtime libc base 与 symbol table 组合前必须重新核对 base-formula anchor offset 与 exact libc artifact；不同 libc build 的 base/symbol 事实禁止混用。"
+    "runtime libc base 与 symbol table 组合前必须重新核对 base-formula anchor offset 与 exact libc artifact；不同 libc build 的 base/symbol 事实禁止混用。",
+    "setcontext/类似上下文恢复路径必须把 exact artifact instruction semantics、frame 字段值与 runtime mitigation branch 分层；静态存在普通 ret 路径不得自动等同运行时会选择该路径。"
   ],
   "challenge_intake": {
     "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
@@ -54,19 +55,20 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "heap_ubw: exact setcontext dispatch -> local libc instruction window -> context restore offsets -> reviewed stack pivot/ORW",
+      "heap_ubw: exact setcontext dispatch -> artifact-reviewed frame restore semantics -> runtime shadow-stack branch gate -> exact add-rsp/pop-rsp pivot -> ORW",
       "format_string: ELF-bound exact GOT rebind plan -> payload placement/reachability -> runtime validation",
       "heap_heapMage: exact wide_data/wide_vtable state + artifact-anchored system slot -> exact fake stderr FILE target/state -> stdio invocation",
       "binary_semantics: IDA/IDACLI semantic provider + local ELF artifact provider -> BinaryIR integration -> Escape CET vulnerability/control primitive"
     ],
     "real_challenge_training": "READY_ARTIFACT_DRIVEN",
     "latest_completed": [
+      "Cycle 41 / SCTF 2026 UBW: exact official libc artifact + setcontext instruction window proves original rdi -> rdx frame base, RSP <- frame+0xa0, and ordinary-path continuation <- frame+0xa8; shadow-stack runtime branch remains unresolved, so no pivot/ROP promotion",
       "Cycle 40 / heapMage infrastructure: prepared wide_data + exact wide_vtable allocation + artifact-anchored executable symbol binding + reviewed +0x68 slot write -> exact wide-vtable dispatch target; invocation still deferred",
       "Cycle 39 / libc evidence: runtime libc base must re-anchor to the exact libc artifact before resolving role-specific executable/writable runtime symbols",
       "Cycle 38 / Format String: exact import relocation + RELRO writability + observed libc symbol + exact libc symbols -> ELF-bound numeric modulo GOT rebind plan",
       "Cycle 37 / Binary Semantics: offline local-binutils ELF artifact provider with SHA256, symbols, relocations, PT_LOAD/GNU_RELRO and bounded objdump instruction windows",
       "SCTF 2026 / heapMage: two exact runtime-bound tcache returns at libc+0x204800 (wide_data) and libc+0x204900 (wide_vtable) + reviewed wide_data fields 0x18=0/0x20=1/0x30=0/0xe0=wide_vtable -> wide_data state prepared",
-      "SCTF 2026 / UBW: reviewed FILE->_wide_data/vtable bindings + wide->_wide_vtable geometry + reviewed __doallocate slot -> exact libc+setcontext dispatch target; context restoration still deferred",
+      "SCTF 2026 / UBW: reviewed FILE->_wide_data/vtable bindings + wide->_wide_vtable geometry + reviewed __doallocate slot -> exact libc+setcontext dispatch target",
       "SCTF 2026 / UBW: exact stdout pointer binding -> reviewed fake FILE field state -> blade printf reaches reviewed stdout stdio path; no control transfer inferred",
       "Binary Semantic Provider foundation: strict offline IDA/IDACLI semantic snapshot with exact address/backend/provenance records; name-only evidence rejected",
       "SCTF 2026 / heapMage: fake 0x100 unsorted insertion seeds libc-origin pointer into tcache entries[14]/[15] -> finite low16 stdout candidate -> runtime-only libc base formula",
@@ -77,12 +79,12 @@
       "Format String / CSAW contacts: positional %n target/write-width with unknown runtime count preserved"
     ],
     "next_lanes": [
-      "SCTF 2026 / UBW: collect the exact target-libc setcontext instruction window locally, derive consumed context-base/RSP/return-pointer offsets from instruction evidence, then bind those offsets to official fake_file/wide bytes before any pivot claim",
+      "SCTF 2026 / UBW: obtain an explicit runtime mitigation/shadow-stack state (or keep it unknown); only if the ordinary setcontext ret path is valid, compose exact libc+0x12dfba `add rsp,0x38; ret` and libc+0x3c068 `pop rsp; ret` with wide+0x38/+0x40 and prove the first exact ROP target",
       "Format String / CCTF pwn3: materialize exact main-ELF/libc snapshots locally, bind the observed puts leak into the new ELF-bound write plan, then validate payload reachability; blind_fmt_got remains validation-only",
       "SCTF 2026 / heapMage: resolve _IO_2_1_stderr_ and _IO_wfile_jumps from the exact libc artifact, prove the third exact fake-FILE allocation and reviewed FILE fields, then compose the already-bound system slot with the exit/stdio trigger",
       "R3CTF 2026 / Escape CET: combine inspectable IDA/IDACLI records with ELF mitigation/artifact evidence in BinaryIR and derive the first actual vulnerability/control primitive under the CET gate",
       "R3CTF 2026 / blinky: add measured timing observation/tag recovery as runtime evidence, separate from static oracle existence",
-      "BUUCTF/CTF-Wiki validation clusters: verify ELF relocation/RELRO, runtime-libc-anchor, exact-format-plan, exact-tcache-target and stdio dispatch gates do not over-promote unrelated cases"
+      "BUUCTF/CTF-Wiki validation clusters: verify ELF relocation/RELRO, runtime-libc-anchor, exact-format-plan, exact-tcache-target, setcontext-restore and stdio dispatch gates do not over-promote unrelated cases"
     ]
   }
 }
