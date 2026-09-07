@@ -1,0 +1,142 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-ubw-1b3b161e",
+  "domain": "io_file",
+  "subdomains": [
+    "stdout",
+    "file_object",
+    "stdio_trigger",
+    "fsop_boundary"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_binary_git_blob_sha1": "9c942f4bdf8d9f53e756b31f2a2f3dda7ade7380",
+    "official_libc_git_blob_sha1": "c8b8655438083b0561974c5f857c7b3069af3d0f",
+    "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+    "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+  },
+  "truth_layers": {
+    "UPSTREAM_STDOUT_POINTER_WRITE": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "reviewed_largebin_stdout_pointer_write",
+          "relation": "Cycle-29 proves that the reviewed smaller largebin insertion writes B's chunk-header address to the stdout pointer variable",
+          "provenance": "CYCLE29"
+        }
+      ]
+    },
+    "FILE_OBJECT_BINDING": {
+      "status": "PROVEN_OFFICIAL_EXP_WRITEUP",
+      "facts": [
+        {
+          "kind": "stdout_points_to_fake_file_chunk_header",
+          "relation": "the stdout pointer variable is rebound to B's chunk header, which the official solution treats as the fake FILE object base",
+          "provenance": "OFFICIAL_EXP_PLUS_WRITEUP"
+        },
+        {
+          "kind": "fake_file_payload_starts_after_chunk_header",
+          "relation": "fake_file() writes its bytearray from the allocation user pointer while computing fake = p - 0x10, so payload byte zero corresponds to FILE+0x10",
+          "provenance": "OFFICIAL_EXP"
+        }
+      ]
+    },
+    "REVIEWED_FILE_FIELD_STATE": {
+      "status": "PROVEN_OFFICIAL_EXP",
+      "facts": [
+        {
+          "kind": "stdout_write_window",
+          "relation": "FILE+0x20 is zero and FILE+0x28 is one, establishing a non-empty reviewed write window",
+          "provenance": "OFFICIAL_EXP"
+        },
+        {
+          "kind": "reviewed_file_structural_pointers",
+          "relation": "the fake FILE carries reviewed non-zero lock, wide_data and vtable-related pointers at offsets 0x88, 0xa0 and 0xd8; the solution also places reviewed continuation data at 0xa8 and 0xe0",
+          "provenance": "OFFICIAL_EXP"
+        }
+      ]
+    },
+    "STDIO_TRIGGER": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_AND_EXP_SEQUENCE",
+      "facts": [
+        {
+          "kind": "blade_printf_reaches_stdout_path",
+          "relation": "after installing/freeing the fake FILE chunk, the solution invokes menu add and the challenge's later printf(\"blade: ...\") output reaches the stdout stdio path",
+          "provenance": "OFFICIAL_WRITEUP_PLUS_EXP"
+        }
+      ]
+    },
+    "CONTROL_TRANSFER": {
+      "status": "DEFER_UNTIL_WIDE_VTABLE_DISPATCH_REVIEWED",
+      "facts": [
+        {
+          "kind": "stdio_path_is_not_control_transfer",
+          "relation": "the reviewed FILE binding and printf reachability do not by themselves prove the eventual wide-data/vtable dispatch, stack pivot, ORW chain, shell or flag retrieval",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "official-target-reviewed",
+    "pointer_width": 8,
+    "payload_start_offset": 16,
+    "required_file_fields": {
+      "write_base": {"offset": 32, "value": 0},
+      "write_ptr": {"offset": 40, "value": 1},
+      "lock": {"offset": 136, "value_relation": "libc + lock"},
+      "wide_data": {"offset": 160, "value_relation": "wide allocation"},
+      "vtable": {"offset": 216, "value_relation": "libc + wfile"}
+    },
+    "reviewed_extra_fields": {
+      "continuation": {"offset": 168, "value_relation": "libc + add_rsp_38"},
+      "post_vtable": {"offset": 224, "value_relation": "fake + 0x300"}
+    },
+    "trigger": {
+      "call_kind": "printf",
+      "stream": "stdout",
+      "site_label": "blade prompt",
+      "reaches_stream_reviewed": true
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "STDOUT_POINTER_BINDS_REVIEWED_FILE_OBJECT",
+      "REVIEWED_FILE_FIELD_STATE",
+      "REVIEWED_STDOUT_WRITE_WINDOW",
+      "REVIEWED_STDIO_TRIGGER_REACHES_STREAM"
+    ],
+    "required_capabilities": [
+      "stdout_rebound_to_reviewed_file_object",
+      "reviewed_stdio_path_reachable"
+    ],
+    "forbidden_shortcuts": [
+      "do not infer FSOP from the technique name or the presence of _IO symbols",
+      "do not treat a stdout pointer overwrite as proof that the pointed memory is a valid reviewed FILE state",
+      "do not treat a fake FILE state as reachable unless a reviewed stdout/stdio trigger exists",
+      "do not promote stdio-path reachability to vtable dispatch, control transfer, ROP/ORW execution, shell or flag retrieval"
+    ]
+  },
+  "unknown": [
+    "runtime heap/libc addresses remain ASLR-dependent",
+    "the exact wide-data/vtable dispatch semantics and setcontext/pop-rsp continuation remain downstream",
+    "successful ORW execution is runtime-only and is not established by this static cycle"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-ubw-reviewed-stdio-file-path-v5",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 5,
+    "supersedes": "truth-sctf2026-ubw-reviewed-largebin-stdout-write-v4",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_binary_git_blob_sha1": "9c942f4bdf8d9f53e756b31f2a2f3dda7ade7380",
+      "official_libc_git_blob_sha1": "c8b8655438083b0561974c5f857c7b3069af3d0f",
+      "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+      "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+    }
+  }
+}
