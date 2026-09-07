@@ -81,12 +81,13 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "memory_write/compiler: static cross-iteration type confusion -> forged value layout/write semantics",
+      "memory_write/control_flow: constrained additive write -> target identity/control plan",
       "stack_runtime_control_truth",
       "heap_physical_memory_truth"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "SCTF 2026 / slang: exact forge bytes + reviewed vec layout + reviewed scribble semantics -> constrained additive 64-bit write",
       "SCTF 2026 / slang: reviewed slot reuse + deterministic loop state -> second-iteration str-as-vec type-confusion relation",
       "SCTF 2026 / slang: reviewed compiler liveness omission -> vec_slot/forged_header first-fit slot reuse",
       "SCTF 2026 / slang: exact outbound payload -> typed embedded functions/calls/loop order",
@@ -95,7 +96,7 @@
       "Cyber Apocalypse 2026 / The Emptiness Machine: EXP-only FSOP intent truth"
     ],
     "next_lanes": [
-      "SCTF 2026 / slang: exact forge return bytes -> target vec field interpretation -> scribble index/delta semantics -> constrained additive write",
+      "SCTF 2026 / slang: address 0x404018 target identity + non-PIE evidence + additive delta goal -> reviewed control plan (no remote execution claim)",
       "SCTF 2026 / CHAOS;HEAD: object lifetime/UAF -> leak -> adjacent object function-pointer overwrite",
       "SCTF 2026 / UBW or heapMage: modern glibc heap lane with allocator/version evidence",
       "2026 国内官方 Stack/Format String/Control Flow 新题优先插队",
