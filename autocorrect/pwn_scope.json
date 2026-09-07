@@ -20,7 +20,8 @@
     "wide_data 区域地址与 wide+0xe0 指针只能证明结构准备；wide-vtable slot 的数值目标必须独立解析，不能从 Apple2/FSOP 名称或 region 地址直接推导 system/control transfer。",
     "ELF/libc 的 symbol、relocation、RELRO、可执行范围和指令语义必须绑定 exact artifact SHA256；远程连接器看不到二进制时必须转本地 artifact provider，不得用社区 magic address 补真值。",
     "runtime libc base 与 symbol table 组合前必须重新核对 base-formula anchor offset 与 exact libc artifact；不同 libc build 的 base/symbol 事实禁止混用。",
-    "setcontext/类似上下文恢复路径必须把 exact artifact instruction semantics、frame 字段值与 runtime mitigation branch 分层；静态存在普通 ret 路径不得自动等同运行时会选择该路径。"
+    "setcontext/类似上下文恢复路径必须把 exact artifact instruction semantics、frame 字段值与 runtime mitigation branch 分层；静态存在普通 ret 路径不得自动等同运行时会选择该路径。",
+    "exact format GOT plan 只证明数值写计划；payload placement、formatter sink reachability、写入实际执行与后续 rebound call-site 必须分别审核，不得由 plan 直接升级为 system/shell。"
   ],
   "challenge_intake": {
     "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
@@ -37,7 +38,7 @@
   "domains": {
     "stack": {"examples": ["stack overflow", "canary", "stack pivot", "saved RIP control"], "truth_goal": "输入长度/偏移 -> 栈帧/保存寄存器影响 -> 缓解策略 gate -> 控制流能力"},
     "heap": {"examples": ["UAF", "double free", "tcache", "smallbin", "largebin", "overlap"], "truth_goal": "allocator family/version + physical/bin state -> 精确能力；技术名不能替代状态证据"},
-    "format_string": {"examples": ["argument offset", "read", "%n-family write"], "truth_goal": "转换 -> 参数位置 -> ELF relocation/RELRO -> runtime symbol value -> exact modulo plan -> reachability/runtime 分层"},
+    "format_string": {"examples": ["argument offset", "read", "%n-family write"], "truth_goal": "转换 -> 参数位置 -> ELF relocation/RELRO -> runtime symbol value -> exact modulo plan -> payload placement/sink reachability -> rebound call-site/runtime 分层"},
     "control_flow": {"examples": ["ROP", "SROP", "CET", "IBT", "shadow stack", "PAC", "speculation"], "truth_goal": "控制原语 + runtime mitigation + reviewed target/oracle -> 可验证 path，不编造绕过状态"},
     "leak": {"examples": ["libc leak", "PIE leak", "stack leak", "heap leak"], "truth_goal": "原始泄露、候选重定向、解析值、基址公式、artifact anchor 与 provenance 分层可追溯"},
     "syscall_sandbox": {"examples": ["seccomp", "syscall availability", "ORW constraints"], "truth_goal": "策略观测 -> syscall 允许/阻断 -> path 约束"},
@@ -56,12 +57,13 @@
     ],
     "active_lanes": [
       "heap_ubw: exact setcontext dispatch -> artifact-reviewed frame restore semantics -> runtime shadow-stack branch gate -> exact add-rsp/pop-rsp pivot -> ORW",
-      "format_string: ELF-bound exact GOT rebind plan -> payload placement/reachability -> runtime validation",
+      "format_string: exact CCTF artifact GOT plan -> payload placement/formatter reachability -> rebound call-site trigger -> runtime validation",
       "heap_heapMage: exact wide_data/wide_vtable state + artifact-anchored system slot -> exact fake stderr FILE target/state -> stdio invocation",
       "binary_semantics: IDA/IDACLI semantic provider + local ELF artifact provider -> BinaryIR integration -> Escape CET vulnerability/control primitive"
     ],
     "real_challenge_training": "READY_ARTIFACT_DRIVEN",
     "latest_completed": [
+      "Cycle 42 / CCTF pwn3: pinned exact pwn3/libc artifacts prove puts@GOT=0x0804a028 outside GNU_RELRO, paired libc puts=0x5fca0/system=0x3ada0, and an observed puts leak now yields an exact artifact-bound 32-bit modulo GOT rebind plan with pointer argument 7; execution remains deferred",
       "Cycle 41 / SCTF 2026 UBW: exact official libc artifact + setcontext instruction window proves original rdi -> rdx frame base, RSP <- frame+0xa0, and ordinary-path continuation <- frame+0xa8; shadow-stack runtime branch remains unresolved, so no pivot/ROP promotion",
       "Cycle 40 / heapMage infrastructure: prepared wide_data + exact wide_vtable allocation + artifact-anchored executable symbol binding + reviewed +0x68 slot write -> exact wide-vtable dispatch target; invocation still deferred",
       "Cycle 39 / libc evidence: runtime libc base must re-anchor to the exact libc artifact before resolving role-specific executable/writable runtime symbols",
@@ -75,12 +77,11 @@
       "Format String / CCTF pwn3 train corpus: symbolic puts@GOT->system binding + offset 7; exact modulo planner emits only after numeric target/value/writability are resolved",
       "SCTF 2026 / UBW: controlled A.fd_nextsize/A.bk_nextsize geometry + reviewed smaller largebin insertion -> exact 8-byte stdout pointer write",
       "R3CTF 2026 / blinky: reviewed PAC speculative timing oracle",
-      "SCTF 2026 / heapMage: reviewed smallbin/tcache stash -> heap+0x90 metadata-user acquisition",
-      "Format String / CSAW contacts: positional %n target/write-width with unknown runtime count preserved"
+      "SCTF 2026 / heapMage: reviewed smallbin/tcache stash -> heap+0x90 metadata-user acquisition"
     ],
     "next_lanes": [
       "SCTF 2026 / UBW: obtain an explicit runtime mitigation/shadow-stack state (or keep it unknown); only if the ordinary setcontext ret path is valid, compose exact libc+0x12dfba `add rsp,0x38; ret` and libc+0x3c068 `pop rsp; ret` with wide+0x38/+0x40 and prove the first exact ROP target",
-      "Format String / CCTF pwn3: materialize exact main-ELF/libc snapshots locally, bind the observed puts leak into the new ELF-bound write plan, then validate payload reachability; blind_fmt_got remains validation-only",
+      "Format String / CCTF pwn3: derive inspectable BinaryIR/data-flow evidence from the exact pwn3 artifact for uploaded content reaching the formatting sink, then separately prove the post-write get/dir call-site consumes the rebound puts GOT entry; do not infer system invocation from the exact plan alone",
       "SCTF 2026 / heapMage: resolve _IO_2_1_stderr_ and _IO_wfile_jumps from the exact libc artifact, prove the third exact fake-FILE allocation and reviewed FILE fields, then compose the already-bound system slot with the exit/stdio trigger",
       "R3CTF 2026 / Escape CET: combine inspectable IDA/IDACLI records with ELF mitigation/artifact evidence in BinaryIR and derive the first actual vulnerability/control primitive under the CET gate",
       "R3CTF 2026 / blinky: add measured timing observation/tag recovery as runtime evidence, separate from static oracle existence",
