@@ -1,0 +1,125 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-heapmage-9765b15f",
+  "domain": "heap",
+  "subdomains": [
+    "tcache_metadata",
+    "exact_allocation_target",
+    "runtime_libc_base",
+    "glibc_2_39"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+    "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+  },
+  "truth_layers": {
+    "UPSTREAM_METADATA_USER": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "reviewed_fake_user_allocation_acquired",
+          "relation": "Cycle-27 proves heap+0x90 is acquired as the user view beginning at tcache->entries",
+          "provenance": "CYCLE27"
+        }
+      ]
+    },
+    "UPSTREAM_LIBC_BASE": {
+      "status": "RUNTIME_OBSERVATION_REQUIRED_AND_PROVEN_WHEN_OBSERVED",
+      "facts": [
+        {
+          "kind": "libc_base_derived_from_stdout_observation",
+          "relation": "Cycle-31 derives an exact libc base only from an observed stdout-relative pointer",
+          "provenance": "CYCLE31_RUNTIME"
+        }
+      ]
+    },
+    "ENTRY14_RETARGET": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {
+          "kind": "reviewed_tcache_entry_exact_write",
+          "relation": "malloc_100_at rewrites metadata-user offset 0x70, which is entries[14], with one exact runtime address",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "reviewed_tcache_count_positive_before_allocation",
+          "relation": "the official writeup explicitly states tcache[0x100] still has a positive count after the stdout leak",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ]
+    },
+    "FIRST_EXACT_LIBC_TARGET": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_RUNTIME_BOUND",
+      "facts": [
+        {
+          "kind": "reviewed_libc_relative_allocation_target",
+          "relation": "the first Apple2 preparation target is wide_data = libc_base + 0x204800",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "reviewed_next_allocation_returns_exact_target",
+          "relation": "after entries[14] is rewritten to wide_data, add(choice=2) / malloc(0xf0) returns wide_data under the reviewed positive-count 0x100 tcache state",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ]
+    },
+    "APPLE2_FILE_STATE": {
+      "status": "DEFER_UNTIL_MULTIPLE_TARGETS_AND_WRITES_COMPOSED",
+      "facts": [
+        {
+          "kind": "one_exact_target_is_not_apple2",
+          "relation": "returning wide_data alone does not prove wide_vtable, fake FILE, system dispatch or runtime command execution",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "2.39",
+    "metadata_user_heap_offset": 144,
+    "target_entry_index": 14,
+    "target_entry_offset_from_metadata_user": 112,
+    "target_entry_heap_offset": 256,
+    "pointer_width": 8,
+    "request_size": 240,
+    "chunk_size": 256,
+    "first_target_name": "wide_data",
+    "first_target_libc_offset": 2115584
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "REVIEWED_TCACHE_ENTRY_EXACT_WRITE",
+      "REVIEWED_TCACHE_COUNT_POSITIVE_BEFORE_ALLOCATION",
+      "REVIEWED_LIBC_RELATIVE_ALLOCATION_TARGET",
+      "REVIEWED_NEXT_ALLOCATION_RETURNS_EXACT_TARGET"
+    ],
+    "required_capability": "reviewed_exact_tcache_allocation_target",
+    "forbidden_shortcuts": [
+      "do not derive a libc target from a static low16 stdout candidate",
+      "do not claim the target before an observed libc base exists",
+      "do not promote one reviewed target return to unrestricted arbitrary allocation",
+      "do not infer Apple2 FILE/wide-vtable/control-flow semantics from the wide_data allocation alone"
+    ]
+  },
+  "unknown": [
+    "runtime libc base remains observation-dependent",
+    "the later wide_vtable and fake FILE target allocations are downstream compositions",
+    "system dispatch, shell and flag retrieval are not established by this cycle"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-heapmage-exact-wide-data-allocation-v4",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 4,
+    "supersedes": "truth-sctf2026-heapmage-libc-seed-stdout-leak-v3",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+      "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+    }
+  }
+}
