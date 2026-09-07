@@ -40,25 +40,6 @@ jobs:
           python -m pip install -r pwncraft/requirements.txt
           python -m pip install pytest
 
-      - name: Temporary pinned CCTF pwn3 artifact evidence
-        run: |
-          set -euo pipefail
-          base='https://raw.githubusercontent.com/ctf-wiki/ctf-challenges/047935a8cd4020c78bf84c36e761cf6d19421e1f/pwn/linux/user-mode/fmtstr/2016-CCTF-pwn3'
-          curl -L --fail --silent --show-error "$base/pwn3" -o /tmp/pwn3
-          curl -L --fail --silent --show-error "$base/libc.so" -o /tmp/libc.so
-          echo '=== SHA256 ==='
-          sha256sum /tmp/pwn3 /tmp/libc.so
-          echo '=== PWN3 HEADER ==='
-          readelf -hW /tmp/pwn3
-          echo '=== PWN3 PUTS RELOCATION ==='
-          readelf -rW /tmp/pwn3 | grep -E 'puts(@|$)|Offset|Relocation section' || true
-          echo '=== PWN3 PROGRAM HEADERS ==='
-          readelf -lW /tmp/pwn3
-          echo '=== PWN3 DYNAMIC RELRO/BIND ==='
-          readelf -dW /tmp/pwn3 | grep -E 'BIND_NOW|FLAGS|PLTGOT' || true
-          echo '=== LIBC PUTS/SYSTEM ==='
-          readelf -Ws /tmp/libc.so | grep -E ' (puts|system)(@@|@|$)' || true
-
       - name: Project regression
         working-directory: pwncraft
         env:
