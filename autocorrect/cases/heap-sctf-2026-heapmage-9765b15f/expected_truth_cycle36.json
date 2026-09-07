@@ -1,0 +1,100 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-heapmage-9765b15f",
+  "domain": "io_file",
+  "subdomains": ["tcache_metadata", "wide_data", "wide_vtable_pointer", "glibc_2_39"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+    "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+  },
+  "truth_layers": {
+    "UPSTREAM_FIRST_TARGET": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [{
+        "kind": "reviewed_exact_tcache_allocation_target",
+        "relation": "Cycle-35 proves the runtime-bound malloc(0xf0) return at wide_data = libc_base + 0x204800",
+        "provenance": "CYCLE35"
+      }]
+    },
+    "SECOND_EXACT_TARGET": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_RUNTIME_BOUND",
+      "facts": [{
+        "kind": "reviewed_next_allocation_returns_exact_target",
+        "relation": "the same reviewed malloc_100_at mechanism next targets wide_vtable = libc_base + 0x204900",
+        "provenance": "OFFICIAL_WRITEUP"
+      }]
+    },
+    "WIDE_DATA_STATE": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {
+          "kind": "reviewed_wide_data_write_window",
+          "relation": "build_fake_wide_data writes wide+0x18=0, wide+0x20=1 and wide+0x30=0",
+          "provenance": "OFFICIAL_WRITEUP"
+        },
+        {
+          "kind": "reviewed_wide_data_vtable_pointer",
+          "relation": "build_fake_wide_data writes wide+0xe0 = wide_vtable",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ]
+    },
+    "WIDE_VTABLE_CONTENT": {
+      "status": "DEFER_UNTIL_SYSTEM_SYMBOL_RESOLVED",
+      "facts": [{
+        "kind": "wide_vtable_region_is_not_dispatch_target_proof",
+        "relation": "allocating the wide_vtable region and pointing wide_data at it does not prove its __doallocate slot value until the target system symbol is independently resolved",
+        "provenance": "DETERMINISTIC_POLICY"
+      }]
+    }
+  },
+  "relative_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "2.39",
+    "metadata_user_heap_offset": 144,
+    "target_entry_index": 14,
+    "request_size": 240,
+    "chunk_size": 256,
+    "alignment": 16,
+    "wide_data_libc_offset": 2115584,
+    "wide_vtable_libc_offset": 2115840,
+    "wide_write_base_offset": 24,
+    "wide_write_ptr_offset": 32,
+    "wide_buf_base_offset": 48,
+    "wide_vtable_pointer_offset": 224
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "REVIEWED_WIDE_DATA_WRITE_WINDOW",
+      "REVIEWED_WIDE_DATA_VTABLE_POINTER",
+      "REVIEWED_WIDE_DATA_FIELD_WRITES"
+    ],
+    "required_capability": "reviewed_wide_data_state_prepared",
+    "forbidden_shortcuts": [
+      "do not prepare wide_data unless both wide_data and wide_vtable allocations are exact reviewed returns",
+      "do not accept a wrong wide+0xe0 pointer merely because the wide_vtable allocation exists",
+      "do not infer system or a valid __doallocate dispatch slot from the wide_vtable region address alone",
+      "do not infer fake FILE binding, shell or flag retrieval from wide_data preparation"
+    ]
+  },
+  "unknown": [
+    "the numeric system address is not resolved in this cycle",
+    "the fake stderr FILE target and its field state remain downstream",
+    "Apple2 dispatch and runtime command execution remain unproven"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-heapmage-reviewed-wide-data-state-v5",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 5,
+    "supersedes": "truth-sctf2026-heapmage-exact-wide-data-allocation-v4",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+      "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+    }
+  }
+}
