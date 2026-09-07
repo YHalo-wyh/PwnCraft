@@ -29,12 +29,20 @@
       "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13"
     },
     {
+      "case_id": "heap-sctf-2026-ubw-1b3b161e",
+      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/UBW|official-exp-writeup"
+    },
+    {
       "case_id": "io_file-htb-cyber-apocalypse-2026-the-emptiness-machine-exp-32b6c777",
       "cluster": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026|pwn/The Emptiness Machine|exp-semantics"
     },
     {
       "case_id": "integer-sekaictf-2026-echo-chamber-99fc2e72",
       "cluster": "https://github.com/project-sekai-ctf/sekaictf-2026|pwn/echo-chamber|official-source-solution"
+    },
+    {
+      "case_id": "memory_write-sctf-2026-chaos-head-576f58ec",
+      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/CHAOS;HEAD|official-exp-writeup"
     },
     {
       "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
