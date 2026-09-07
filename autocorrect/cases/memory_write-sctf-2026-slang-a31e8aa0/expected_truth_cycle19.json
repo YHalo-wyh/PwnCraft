@@ -1,0 +1,91 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
+  "domain": "control_flow",
+  "subdomains": ["memory_write", "compiler", "type_confusion"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/slang",
+  "source_class": "official_challenge_archive",
+  "event": {"name": "SCTF 2026", "challenge": "slang", "region": "China"},
+  "materials": {
+    "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+    "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+  },
+  "upstream_accepted_primitive": {
+    "name": "constrained additive 64-bit write",
+    "address": 4210712,
+    "address_hex": "0x404018",
+    "width": 8,
+    "delta": -205200,
+    "state": "derived_static",
+    "truth_source": "truth-sctf2026-slang-forged-vec-additive-write-v5"
+  },
+  "reviewed_control_target_policy": {
+    "name": "sctf-slang-puts-got-to-system-additive-target",
+    "address": 4210712,
+    "width": 8,
+    "storage_kind": "got_relocation",
+    "target_symbol": "puts@GOT",
+    "current_symbol": "puts",
+    "desired_symbol": "system",
+    "reviewed_symbol_delta": -205200,
+    "writable": true,
+    "fixed_address": true,
+    "current_value_resolved": true,
+    "provenance": "OFFICIAL_WRITEUP_PLUS_OFFICIAL_PAYLOAD_REVIEW"
+  },
+  "truth_layers": {
+    "TARGET_IDENTITY": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {"kind": "reviewed_control_target", "address": "0x404018", "identity": "puts@GOT", "provenance": "OFFICIAL_WRITEUP"},
+        {"kind": "fixed_target_address", "relation": "generated ELF is linked -no-pie", "provenance": "OFFICIAL_WRITEUP"},
+        {"kind": "writable_control_target", "relation": "official exploitation route overwrites puts@GOT", "provenance": "OFFICIAL_WRITEUP"}
+      ]
+    },
+    "VALUE_TRANSITION": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {"kind": "resolved_current_value", "relation": "payload calls say(\"resolve puts\") before the additive write", "provenance": "OFFICIAL_EMBEDDED_SLANG_PLUS_WRITEUP"},
+        {"kind": "reviewed_relative_symbol_delta", "relation": "system - puts = -0x32190 = -205200", "provenance": "OFFICIAL_WRITEUP"}
+      ]
+    },
+    "CONTROL_PLAN": {
+      "status": "DERIVABLE_STATICALLY_FROM_ACCEPTED_PRIMITIVE_AND_REVIEWED_TARGET",
+      "facts": [
+        {"kind": "reviewed_additive_control_plan", "relation": "ADD64(puts@GOT,-205200) transforms the resolved puts value to system under the reviewed target facts", "provenance": "CYCLE18_PRIMITIVE_PLUS_REVIEWED_CONTROL_TARGET_POLICY"}
+      ],
+      "limitations": [
+        "the plan is static/reviewed and is not a runtime observation",
+        "this layer does not prove that the later say(\"/bin/sh\") trigger executes system successfully",
+        "remote exploit success is not claimed"
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": ["REVIEWED_ADDITIVE_CONTROL_PLAN"],
+    "forbidden_shortcuts": [
+      "do not identify a target symbol from address alone without reviewed binary/target evidence",
+      "do not invent absolute libc symbol offsets when only the reviewed relative delta is needed",
+      "do not promote a static control plan to runtime exploit success"
+    ]
+  },
+  "unknown": [
+    "runtime confirmation of the GOT contents before and after scribble is not present",
+    "automatic trigger-success proof for say(\"/bin/sh\") is deferred",
+    "remote shell/flag acquisition is outside this truth layer"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-slang-additive-control-plan-v6",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 6,
+    "supersedes": "truth-sctf2026-slang-forged-vec-additive-write-v5",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+      "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+    }
+  }
+}

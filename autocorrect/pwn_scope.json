@@ -81,12 +81,16 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "memory_write/control_flow: constrained additive write -> target identity/control plan",
+      "heap_ubw: conditional alias double-release -> allocator-state proof -> first/second release bin placement -> tcache poisoning",
+      "heap_heapMage: glibc-2.39 allocator profile -> House of Rust / House of Apple2 evidence chain",
       "stack_runtime_control_truth",
-      "heap_physical_memory_truth"
+      "format_string_write_truth"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "SCTF 2026 / UBW: reviewed merge alias semantics + merge(0,0) -> conditional realloc-move stale read / same-identity double release",
+      "SCTF 2026 / CHAOS;HEAD: reviewed corrupted bounds + SnapshotPage/Route geometry -> adjacent leak + route.sink overwrite + indirect transfer",
+      "SCTF 2026 / slang: accepted additive write + reviewed puts@GOT identity / writable fixed target / relative symbol delta -> static puts-to-system control plan",
       "SCTF 2026 / slang: exact forge bytes + reviewed vec layout + reviewed scribble semantics -> constrained additive 64-bit write",
       "SCTF 2026 / slang: reviewed slot reuse + deterministic loop state -> second-iteration str-as-vec type-confusion relation",
       "SCTF 2026 / slang: reviewed compiler liveness omission -> vec_slot/forged_header first-fit slot reuse",
@@ -96,11 +100,11 @@
       "Cyber Apocalypse 2026 / The Emptiness Machine: EXP-only FSOP intent truth"
     ],
     "next_lanes": [
-      "SCTF 2026 / slang: address 0x404018 target identity + non-PIE evidence + additive delta goal -> reviewed control plan (no remote execution claim)",
-      "SCTF 2026 / CHAOS;HEAD: object lifetime/UAF -> leak -> adjacent object function-pointer overwrite",
-      "SCTF 2026 / UBW or heapMage: modern glibc heap lane with allocator/version evidence",
-      "2026 国内官方 Stack/Format String/Control Flow 新题优先插队",
-      "BUUCTF/CTF-Wiki: supplement missing classic patterns and validation clusters",
+      "SCTF 2026 / UBW: prove concrete realloc-move precondition + allocator state -> unsorted/consolidation -> changed-size second release -> tcache/fastbin placement",
+      "SCTF 2026 / heapMage: lock allocator/glibc version from official environment, then train House of Rust metadata primitives before Apple2",
+      "SCTF 2026 / CHAOS;HEAD: automate dangling transaction-reference root cause from binary/decompiler evidence instead of reviewed upstream capability",
+      "2026 国内官方 Stack/Format String/Control Flow 新题继续插队，避免 heap/compiler 过拟合",
+      "BUUCTF/CTF-Wiki validation clusters: verify alias, adjacent-object and control-plan rules do not over-promote unrelated cases",
       "heap: PHYSICAL_MEMORY -> BINS continuation for accepted lab13"
     ]
   }
