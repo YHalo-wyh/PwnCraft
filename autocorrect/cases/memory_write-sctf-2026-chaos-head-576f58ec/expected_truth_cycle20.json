@@ -1,0 +1,102 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "memory_write-sctf-2026-chaos-head-576f58ec",
+  "domain": "memory_write",
+  "subdomains": ["heap", "leak", "control_flow", "uaf"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/CHAOS;HEAD",
+  "source_class": "official_challenge_archive",
+  "event": {"name": "SCTF 2026", "challenge": "CHAOS;HEAD", "region": "China"},
+  "materials": {
+    "official_exp_git_blob_sha1": "576f58ec3939bfdef9b806263f65e98f9b0bbb1b",
+    "official_writeup_git_blob_sha1": "7a033c7fb9c5e684dfcb78cd8b4a1c457d1a086a",
+    "challenge_binary_git_blob_sha1": "7fd0f9ddc878e17e1a34ead25b711c392c0da2d1"
+  },
+  "reviewed_adjacent_object_policy": {
+    "name": "sctf-chaos-snapshot-page-route-layout",
+    "primary_object_size": 2048,
+    "data_offset": 32,
+    "original_capacity": 2016,
+    "dump_cap": 4096,
+    "corrupted_len_lower_bound": 2112,
+    "corrupted_capacity_lower_bound": 2304,
+    "adjacent_field_name": "SnapshotRoute.sink",
+    "adjacent_field_offset_from_data": 2096,
+    "adjacent_field_width": 8,
+    "clear_preserves_capacity": true,
+    "dump_calls_adjacent_field": true,
+    "provenance": "OFFICIAL_WRITEUP_PLUS_OFFICIAL_EXP_REVIEW"
+  },
+  "truth_layers": {
+    "UAF_ROOT_CAUSE": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_NOT_YET_AUTOMATIC",
+      "facts": [
+        {"kind": "dangling_transaction_reference", "relation": "after nested transaction growth and COMMIT, an internal reference to freed transaction storage remains and later BEGIN writes through it", "provenance": "OFFICIAL_WRITEUP"},
+        {"kind": "freed_storage_reuse", "relation": "LOAD SNAPSHOT OPEN reuses the freed storage as SnapshotPage", "provenance": "OFFICIAL_WRITEUP"}
+      ]
+    },
+    "CORRUPTED_PAGE_HEADER": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {"kind": "corrupted_length", "relation": "page.len becomes large enough for DUMP to expose data through at least offset 0x83f from page.data", "provenance": "OFFICIAL_WRITEUP_PLUS_EXP"},
+        {"kind": "corrupted_capacity", "relation": "page.capacity becomes at least 0x900 and CLEAR does not restore it", "provenance": "OFFICIAL_WRITEUP"}
+      ]
+    },
+    "ADJACENT_OBJECT_READ": {
+      "status": "DERIVABLE_STATICALLY_FROM_REVIEWED_GEOMETRY",
+      "facts": [
+        {"kind": "adjacent_object_read_leak", "relation": "DUMP from page.data reaches SnapshotRoute.sink at data+0x830", "provenance": "REVIEWED_ADJACENT_OBJECT_POLICY"}
+      ]
+    },
+    "PERSISTENT_BOUNDS_AND_WRITE": {
+      "status": "DERIVABLE_STATICALLY_FROM_REVIEWED_GEOMETRY",
+      "facts": [
+        {"kind": "corrupted_capacity_persists_across_clear", "relation": "CLEAR resets len/hash but preserves corrupted capacity", "provenance": "OFFICIAL_WRITEUP"},
+        {"kind": "adjacent_function_pointer_overwrite", "relation": "an accepted 0x900-byte post-CLEAR payload reaches SnapshotRoute.sink at page.data+0x830", "provenance": "OFFICIAL_WRITEUP_PLUS_OFFICIAL_EXP"}
+      ]
+    },
+    "INDIRECT_CONTROL_TRANSFER": {
+      "status": "DERIVABLE_STATICALLY_FROM_REVIEWED_GEOMETRY",
+      "facts": [
+        {"kind": "indirect_control_transfer_via_overwritten_field", "relation": "the next DUMP invokes route.sink after the field is overwritten", "provenance": "OFFICIAL_WRITEUP"}
+      ],
+      "limitations": [
+        "the root dangling-reference corruption is reviewed truth, not yet automatically recognized from the binary",
+        "this layer does not prove the chosen setcontext/context/ROP payload is valid at runtime",
+        "shell or flag acquisition is not claimed"
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "ADJACENT_OBJECT_READ_LEAK",
+      "CORRUPTED_CAPACITY_PERSISTS_ACROSS_CLEAR",
+      "ADJACENT_FUNCTION_POINTER_OVERWRITE",
+      "INDIRECT_CONTROL_TRANSFER_VIA_OVERWRITTEN_FIELD"
+    ],
+    "forbidden_shortcuts": [
+      "do not infer object adjacency from allocation order alone without reviewed geometry",
+      "do not infer an overwrite if CLEAR repairs capacity or the accepted payload is too short",
+      "do not claim ROP or shell success from function-pointer control alone"
+    ]
+  },
+  "unknown": [
+    "automatic binary/decompiler proof of the transaction dangling-reference root cause is deferred",
+    "runtime heap placement and exact corruption values are not observed in this cycle",
+    "setcontext/ROP viability and remote exploit success remain outside this truth layer"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-chaos-head-adjacent-route-control-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 1,
+    "supersedes": null,
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_exp_git_blob_sha1": "576f58ec3939bfdef9b806263f65e98f9b0bbb1b",
+      "official_writeup_git_blob_sha1": "7a033c7fb9c5e684dfcb78cd8b4a1c457d1a086a",
+      "challenge_binary_git_blob_sha1": "7fd0f9ddc878e17e1a34ead25b711c392c0da2d1"
+    }
+  }
+}
