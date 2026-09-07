@@ -11,30 +11,31 @@
     "真实题目在任何 PwnCraft 输出产生之前必须先注册唯一 split；train 可驱动 patch，validation 只评估，frozen_test 禁止参与规则选择。",
     "真实题目选择采用 latest-first + evidence-gated：优先最新高质量赛事，但材料不完整或来源可信度不足时宁可 BLOCKED/validation-first，也不得为追新降低真值标准。",
     "2026 国内官方公开题库优先于同等材料质量的海外旧题；SCTF/R3CTF/强网杯/国赛等官方归档优先，BUUCTF/CTF-Wiki 等公开目录用于补齐覆盖面和 validation，但来源分级仍必须显式。",
-    "heap/allocator 事实必须携带 allocator family；未知 allocator 不得自动套用 glibc chunk/bin 语义。"
+    "heap/allocator 事实必须携带 allocator family/version；未知 allocator 不得自动套用 glibc chunk/bin/House-of-* 语义。",
+    "控制流能力必须经过运行时缓解策略 gate；在 shadow stack/IBT/CET 已审核生效时，saved RIP overwrite 不得直接等同 executable ROP control。"
   ],
   "challenge_intake": {
     "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
     "gate": "challenge_intake.py",
     "policy": "split_before_observe",
     "splits": {
-      "train": "允许 clean-room truth 后产生 first divergence，并驱动通用 patch",
+      "train": "允许 clean-room truth 后产生 first-divergence/patch feedback",
       "validation": "只验证泛化，不允许据此修改规则",
       "frozen_test": "训练和 validation 完成后最终评估；禁止作为 patch feedback",
       "unsplit": "BLOCKED"
     },
-    "fresh_user_case": "先建立 manifest 并登记 train/validation/frozen_test，再运行 PwnCraft；默认训练请求登记为 train"
+    "fresh_user_case": "先建立 manifest/split，再运行 PwnCraft；默认训练请求登记为 train"
   },
   "domains": {
     "stack": {
       "examples": ["stack overflow", "canary", "stack pivot", "saved RIP control"],
       "existing_components": ["Workspace.stack", "cyclic", "Stack page", "pwndbg/debug runtime"],
-      "truth_goal": "输入长度/偏移 -> 栈帧/保存寄存器影响 -> 控制流能力，区分静态推导与运行时观测"
+      "truth_goal": "输入长度/偏移 -> 栈帧/保存寄存器影响 -> 缓解策略 gate -> 控制流能力，区分静态推导与运行时观测"
     },
     "heap": {
       "examples": ["UAF", "double free", "off-by-one", "tcache/fastbin/bin transitions", "overlap", "custom allocator/type confusion"],
       "existing_components": ["HeapViz", "GlibcHeapEngine", "PhysicalMemory", "allocator profiles"],
-      "truth_goal": "先证明 allocator family，再进入对应 allocator/physical-memory/bin/object-state 真值；非 glibc 目标不得伪装成 glibc chunk"
+      "truth_goal": "先证明 allocator family/version，再进入对应 allocator/physical-memory/bin/object-state 真值；技术名不能替代状态证据"
     },
     "format_string": {
       "examples": ["argument offset", "arbitrary read", "format write"],
@@ -42,9 +43,9 @@
       "truth_goal": "偏移证据、读写 primitive 与目标地址/写值规划分离"
     },
     "control_flow": {
-      "examples": ["ret2win", "ret2libc", "ROP", "SROP", "ORW", "stack pivot"],
+      "examples": ["ret2win", "ret2libc", "ROP", "SROP", "ORW", "stack pivot", "CET", "IBT", "shadow stack"],
       "existing_components": ["GadgetExplorer", "ROPChain", "Capability Analyzer", "syscall planner"],
-      "truth_goal": "控制原语 + gadget/符号/库/约束 -> 可验证 exploit path，不编造地址"
+      "truth_goal": "控制原语 + runtime mitigation + gadget/符号/库/约束 -> 可验证 exploit path，不编造地址或绕过状态"
     },
     "leak": {
       "examples": ["libc leak", "PIE leak", "stack leak", "heap leak"],
@@ -57,9 +58,9 @@
       "truth_goal": "策略观测 -> 允许/阻断 syscall -> exploit path 约束"
     },
     "memory_write": {
-      "examples": ["arbitrary write", "write-what-where", "OOB write"],
+      "examples": ["arbitrary write", "write-what-where", "OOB write", "adjacent metadata overwrite"],
       "existing_components": ["Workspace.exploit.primitives", "runtime/write evidence"],
-      "truth_goal": "写入地址、宽度、来源、可重复性和约束作为一等事实"
+      "truth_goal": "写入地址/相对范围、宽度、来源、可重复性和约束作为一等事实；bounded write 不升级 arbitrary write"
     },
     "integer": {
       "examples": ["integer overflow", "signedness", "truncation", "OOB"],
@@ -69,7 +70,7 @@
     "io_file": {
       "examples": ["FILE corruption", "FSOP", "stdio state"],
       "existing_components": ["libc/runtime facts", "Workspace.exploit.primitives", "EXP symbol-reference facts"],
-      "truth_goal": "FILE/stdio 对象状态与 libc 版本约束单独建模；EXP intent、target primitive、runtime reachability 分层，不混进通用 heap chunk"
+      "truth_goal": "FILE/stdio 对象状态与 libc 版本约束单独建模；EXP intent、target primitive、runtime reachability 分层"
     }
   },
   "scheduler": {
@@ -81,31 +82,30 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "heap_ubw: conditional alias double-release -> allocator-state proof -> first/second release bin placement -> tcache poisoning",
-      "heap_heapMage: glibc-2.39 allocator profile -> House of Rust / House of Apple2 evidence chain",
-      "stack_runtime_control_truth",
+      "heap_ubw: reviewed resized double-release cross-bin membership -> freelist pointer manipulation -> proven poisoned allocation",
+      "heap_heapMage: glibc-2.39 bounded adjacent metadata overwrite -> smallbin/largebin state composition -> House of Rust metadata acquisition",
+      "stack_control_escape_cet: reviewed CET runtime gate -> binary vulnerability primitive -> CET-compatible executable-control proof",
       "format_string_write_truth"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "R3CTF 2026 / Escape CET: official Intel SDE CET+ENDBR runtime -> saved-RIP/indirect-target control-promotion gates",
+      "SCTF 2026 / heapMage: official source 0xc0 object vs 0xf0 edit -> bounded 0x30 adjacent chunk metadata overwrite + source guards; official WP locks glibc 2.39",
+      "SCTF 2026 / UBW: conditional alias double-release + reviewed allocator state -> 0xa0 first cache bypass/consolidation -> resized 0xf0 second release -> same-identity cross-bin membership",
       "SCTF 2026 / UBW: reviewed merge alias semantics + merge(0,0) -> conditional realloc-move stale read / same-identity double release",
       "SCTF 2026 / CHAOS;HEAD: reviewed corrupted bounds + SnapshotPage/Route geometry -> adjacent leak + route.sink overwrite + indirect transfer",
       "SCTF 2026 / slang: accepted additive write + reviewed puts@GOT identity / writable fixed target / relative symbol delta -> static puts-to-system control plan",
       "SCTF 2026 / slang: exact forge bytes + reviewed vec layout + reviewed scribble semantics -> constrained additive 64-bit write",
-      "SCTF 2026 / slang: reviewed slot reuse + deterministic loop state -> second-iteration str-as-vec type-confusion relation",
-      "SCTF 2026 / slang: reviewed compiler liveness omission -> vec_slot/forged_header first-fit slot reuse",
-      "SCTF 2026 / slang: exact outbound payload -> typed embedded functions/calls/loop order",
-      "SCTF 2026 / slang: Python wrapper -> embedded Slang program -> exact outbound payload",
       "SekaiCTF 2026 / echo-chamber: source+EXP modular integer composition",
       "Cyber Apocalypse 2026 / The Emptiness Machine: EXP-only FSOP intent truth"
     ],
     "next_lanes": [
-      "SCTF 2026 / UBW: prove concrete realloc-move precondition + allocator state -> unsorted/consolidation -> changed-size second release -> tcache/fastbin placement",
-      "SCTF 2026 / heapMage: lock allocator/glibc version from official environment, then train House of Rust metadata primitives before Apple2",
-      "SCTF 2026 / CHAOS;HEAD: automate dangling transaction-reference root cause from binary/decompiler evidence instead of reviewed upstream capability",
-      "2026 国内官方 Stack/Format String/Control Flow 新题继续插队，避免 heap/compiler 过拟合",
-      "BUUCTF/CTF-Wiki validation clusters: verify alias, adjacent-object and control-plan rules do not over-promote unrelated cases",
-      "heap: PHYSICAL_MEMORY -> BINS continuation for accepted lab13"
+      "SCTF 2026 / UBW: compose safe-linking encoded freelist write from official EXP -> prove tcache poisoning target and returned allocation identity",
+      "SCTF 2026 / heapMage: model exact glibc-2.39 smallbin/largebin transitions used to acquire tcache metadata chunk; keep House of Rust as derived state chain, not name trigger",
+      "R3CTF 2026 / Escape CET: inspect official handout binary semantics and derive the first actual CET-compatible control primitive; do not use saved RIP alone",
+      "2026 国内官方 Format String 真题优先插入下一批，补 argument-offset -> read/write -> target-plan 闭环",
+      "SCTF 2026 / CHAOS;HEAD: automate dangling transaction-reference root cause from binary/decompiler evidence",
+      "BUUCTF/CTF-Wiki validation clusters: verify resized-double-release, adjacent-metadata and CET gates do not over-promote unrelated cases"
     ]
   }
 }

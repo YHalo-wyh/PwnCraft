@@ -1,0 +1,70 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "stack_control-r3ctf-2026-escape-cet-8950e5fd",
+  "domain": "control_flow",
+  "subdomains": ["stack", "cet", "shadow_stack", "ibt"],
+  "source_repository": "https://github.com/r3kapig/r3ctf-2026",
+  "source_commit": "master",
+  "source_challenge_path": "escape-cet",
+  "source_class": "official_challenge_archive",
+  "event": {"name": "R3CTF 2026", "challenge": "Escape CET", "region": "China"},
+  "materials": {
+    "official_handout_git_blob_sha1": "8950e5fd06f1f596ceb47cb0a0aeae589583431a",
+    "official_readme_git_blob_sha1": "cd17118a638c2cfc735eeff0a03c45ea9a207a5c",
+    "official_run_script_git_blob_sha1": "6b4317b5755e4ff4fc232b86077c947659fc61b8"
+  },
+  "reviewed_control_flow_policy": {
+    "shadow_stack_enforced": true,
+    "ibt_enforced": true,
+    "endbr_enforced_for_indirect_targets": true,
+    "runtime_engine": "Intel SDE 10.8.0",
+    "runtime_arguments": ["-cet", "1", "-cet-endbr-exe", "1"],
+    "provenance": "OFFICIAL_DEPLOYMENT_RUNTIME"
+  },
+  "truth_layers": {
+    "RUNTIME_ENFORCEMENT": {
+      "status": "PROVEN_OFFICIAL_DEPLOYMENT",
+      "facts": [
+        {"kind": "cet_runtime_enabled", "relation": "the official launch script executes tcet under Intel SDE with -cet 1", "provenance": "OFFICIAL_RUN_SCRIPT"},
+        {"kind": "endbr_enforcement_enabled", "relation": "the official launch script also supplies -cet-endbr-exe 1", "provenance": "OFFICIAL_RUN_SCRIPT"}
+      ]
+    },
+    "CONTROL_PROMOTION_GATE": {
+      "status": "DERIVABLE_FROM_REVIEWED_RUNTIME_POLICY",
+      "facts": [
+        {"kind": "saved_rip_not_equivalent_to_executable_control", "relation": "under enforced shadow-stack semantics, a conventional saved-return-address overwrite alone is insufficient to certify return-based control flow", "provenance": "REVIEWED_CET_POLICY"},
+        {"kind": "indirect_target_requires_ibt_compatible_evidence", "relation": "an indirect branch target is not certified under the reviewed policy without compatible ENDBR evidence", "provenance": "REVIEWED_CET_POLICY"}
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "CET_RUNTIME_ENABLED",
+      "SHADOW_STACK_CONTROL_GATE",
+      "IBT_TARGET_CONTROL_GATE"
+    ],
+    "forbidden_shortcuts": [
+      "do not promote saved RIP overwrite to executable ROP control when shadow-stack synchronization is unproven",
+      "do not certify an indirect target under IBT without reviewed ENDBR-compatible evidence",
+      "do not infer CET enforcement solely from an ELF feature note when reviewed runtime evidence is available"
+    ]
+  },
+  "unknown": [
+    "the concrete challenge vulnerability and CET bypass primitive are intentionally deferred",
+    "no gadget chain or root flag read is claimed in this cycle",
+    "runtime exploit success is not observed"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-r3ctf2026-escape-cet-control-gate-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 1,
+    "supersedes": null,
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_handout_git_blob_sha1": "8950e5fd06f1f596ceb47cb0a0aeae589583431a",
+      "official_readme_git_blob_sha1": "cd17118a638c2cfc735eeff0a03c45ea9a207a5c",
+      "official_run_script_git_blob_sha1": "6b4317b5755e4ff4fc232b86077c947659fc61b8"
+    }
+  }
+}

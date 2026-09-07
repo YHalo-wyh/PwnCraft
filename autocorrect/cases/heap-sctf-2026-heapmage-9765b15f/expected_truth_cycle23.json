@@ -1,0 +1,95 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-heapmage-9765b15f",
+  "domain": "heap",
+  "subdomains": ["adjacent_overflow", "chunk_metadata", "largebin", "glibc_2_39"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/heapMage",
+  "source_class": "official_challenge_archive",
+  "event": {"name": "SCTF 2026", "challenge": "heapMage", "region": "China"},
+  "materials": {
+    "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+    "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+  },
+  "reviewed_adjacent_metadata_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "2.39",
+    "user_capacity": 192,
+    "maximum_write_length": 240,
+    "metadata_fields": [
+      ["prev_size", 192, 8],
+      ["size", 200, 8],
+      ["fd", 208, 8],
+      ["bk", 216, 8],
+      ["fd_nextsize", 224, 8],
+      ["bk_nextsize", 232, 8]
+    ],
+    "guard_threshold": 216,
+    "guarded_size_field_offset": 200,
+    "guarded_size_mask": -16,
+    "guarded_size_min": 32,
+    "guarded_size_max": 1312,
+    "guarded_bk_field_offset": 216,
+    "guarded_bk_must_be_heap": true,
+    "provenance": "OFFICIAL_SOURCE_PLUS_OFFICIAL_WRITEUP_REVIEWED_GLIBC239"
+  },
+  "truth_layers": {
+    "SOURCE_WRITE_GEOMETRY": {
+      "status": "PROVEN_OFFICIAL_SOURCE",
+      "facts": [
+        {"kind": "small_a_capacity", "relation": "choice 1 allocates 0xc0 user bytes", "provenance": "OFFICIAL_SOURCE"},
+        {"kind": "edit_bound", "relation": "edit always permits read(..., 0xf0), giving a maximum 0x30-byte overflow past a 0xc0 allocation", "provenance": "OFFICIAL_SOURCE"}
+      ]
+    },
+    "ADJACENT_METADATA_COVERAGE": {
+      "status": "PROVEN_OFFICIAL_SOURCE",
+      "facts": [
+        {"kind": "reviewed_adjacent_chunk_metadata_overwrite", "relation": "a full 0xf0 edit covers next chunk prev_size,size,fd,bk,fd_nextsize,bk_nextsize", "provenance": "OFFICIAL_SOURCE"}
+      ]
+    },
+    "SOURCE_GUARDS": {
+      "status": "PROVEN_OFFICIAL_SOURCE",
+      "facts": [
+        {"kind": "masked_size_interval", "relation": "when len > 0xd8, next size at +0xc8 masked with ~0xf must be in [0x20,0x520]", "provenance": "OFFICIAL_SOURCE"},
+        {"kind": "pointer_must_reference_heap_range", "relation": "when len > 0xd8, next bk at +0xd8 must fall inside the tracked heap range", "provenance": "OFFICIAL_SOURCE"}
+      ]
+    },
+    "ALLOCATOR_VERSION": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {"kind": "reviewed_allocator_version", "relation": "official exploitation notes explicitly target glibc 2.39 allocator behavior", "provenance": "OFFICIAL_WRITEUP"}
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "BOUNDED_ADJACENT_METADATA_OVERWRITE",
+      "MASKED_SIZE_INTERVAL",
+      "HEAP_RANGE_BK_CONSTRAINT",
+      "REVIEWED_ALLOCATOR_VERSION"
+    ],
+    "forbidden_shortcuts": [
+      "do not label the bounded adjacent overwrite as arbitrary-address write",
+      "do not infer largebin attack from metadata coverage alone",
+      "do not apply House of Rust semantics without reviewed allocator-version/state facts"
+    ]
+  },
+  "unknown": [
+    "the exact largebin/smallbin/tcache choreography is deferred",
+    "House of Rust metadata acquisition is not automatically derived in this cycle",
+    "House of Apple2 and shell execution are downstream layers"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-heapmage-bounded-adjacent-metadata-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 1,
+    "supersedes": null,
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+      "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+    }
+  }
+}
