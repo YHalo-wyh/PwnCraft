@@ -43,18 +43,21 @@ jobs:
       - name: Temporary pinned UBW libc instruction evidence
         run: |
           set -euo pipefail
-          url='https://raw.githubusercontent.com/SycloverTeam/SCTF-2026/6e9cc7e92ce1749080e9d11ee99b678493d6e2d9/Pwn/UBW/attachments/libc.so.6'
-          curl -L --fail --silent --show-error "$url" -o /tmp/ubw-libc.so.6
+          base='https://raw.githubusercontent.com/SycloverTeam/SCTF-2026/6e9cc7e92ce1749080e9d11ee99b678493d6e2d9/Pwn/UBW/attachments'
+          curl -L --fail --silent --show-error "$base/libc.so.6" -o /tmp/ubw-libc.so.6
+          curl -L --fail --silent --show-error "$base/UBW" -o /tmp/UBW
           echo '=== SHA256 ==='
-          sha256sum /tmp/ubw-libc.so.6
+          sha256sum /tmp/ubw-libc.so.6 /tmp/UBW
           echo '=== SETCONTEXT SYMBOL ==='
           readelf -Ws /tmp/ubw-libc.so.6 | grep -E ' setcontext(@@|@|$)' || true
-          echo '=== SETCONTEXT WINDOW ==='
-          objdump -d -M intel --start-address=0x4a960 --stop-address=0x4aa30 /tmp/ubw-libc.so.6
+          echo '=== SETCONTEXT ENTRY/RESTORE WINDOW ==='
+          objdump -d -M intel --start-address=0x4a960 --stop-address=0x4aab8 /tmp/ubw-libc.so.6
           echo '=== ADD_RSP_38 WINDOW ==='
           objdump -d -M intel --start-address=0x12dfba --stop-address=0x12dfc8 /tmp/ubw-libc.so.6
           echo '=== POP_RSP WINDOW ==='
           objdump -d -M intel --start-address=0x3c068 --stop-address=0x3c074 /tmp/ubw-libc.so.6
+          echo '=== UBW GNU PROPERTY NOTES ==='
+          readelf -nW /tmp/UBW || true
 
       - name: Project regression
         working-directory: pwncraft
