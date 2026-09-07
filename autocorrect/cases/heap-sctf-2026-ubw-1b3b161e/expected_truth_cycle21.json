@@ -1,0 +1,89 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-ubw-1b3b161e",
+  "domain": "heap",
+  "subdomains": ["uaf", "double_free", "allocator", "io_file"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/UBW",
+  "source_class": "official_challenge_archive",
+  "event": {"name": "SCTF 2026", "challenge": "UBW", "region": "China"},
+  "materials": {
+    "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+    "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+  },
+  "reviewed_alias_helper_policy": {
+    "name": "sctf-ubw-merge-realloc-concat-free",
+    "helper": "merge",
+    "alias_parameter_indexes": [0, 1],
+    "realloc_old_parameter_index": 0,
+    "realloc_may_move_and_free_old": true,
+    "stale_read_parameter_index": 1,
+    "explicit_free_parameter_index": 1,
+    "provenance": "OFFICIAL_WRITEUP_REVIEWED_HELPER_SEMANTICS"
+  },
+  "truth_layers": {
+    "HELPER_SEMANTICS": {
+      "status": "PROVEN_OFFICIAL_WRITEUP",
+      "facts": [
+        {"kind": "reviewed_merge_semantics", "relation": "merge performs realloc(arr[dst], combined_size), then strcat(new,arr[src]), then free(arr[src])", "provenance": "OFFICIAL_WRITEUP"}
+      ]
+    },
+    "ALIAS_TRIGGER": {
+      "status": "PROVEN_OFFICIAL_EXP",
+      "facts": [
+        {"kind": "same_argument_alias", "relation": "official EXP invokes merge(0,0), so dst and src select the same stored allocation", "provenance": "OFFICIAL_EXP"}
+      ]
+    },
+    "CONDITIONAL_RELEASE_CHAIN": {
+      "status": "DERIVABLE_STATICALLY_UNDER_REVIEWED_REALLOC_MOVE_CONDITION",
+      "facts": [
+        {"kind": "conditional_realloc_release", "relation": "if realloc moves, it releases the old allocation", "provenance": "REVIEWED_HELPER_SEMANTICS"},
+        {"kind": "conditional_stale_read_after_realloc", "relation": "under that same move condition strcat(new,arr[src]) reads through the old aliased pointer", "provenance": "REVIEWED_HELPER_SEMANTICS_PLUS_ALIAS"},
+        {"kind": "conditional_double_release_same_identity", "relation": "the later free(arr[src]) releases the same old identity a second time", "provenance": "REVIEWED_HELPER_SEMANTICS_PLUS_ALIAS"}
+      ],
+      "limitations": [
+        "the double release is conditional on realloc actually moving/freeing the old allocation",
+        "this truth layer does not claim which bin receives either release",
+        "consolidation, changed chunk size, tcache/fastbin placement and poisoning are deferred"
+      ]
+    },
+    "DOWNSTREAM_EXPLOIT": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_NOT_YET_AUTOMATIC",
+      "facts": [
+        {"kind": "reviewed_downstream_route", "relation": "official solution steers the two releases into different allocator states, reaches tcache poisoning, then largebin/FSOP", "provenance": "OFFICIAL_WRITEUP"}
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "SAME_ARGUMENT_ALIAS",
+      "CONDITIONAL_REALLOC_RELEASE",
+      "CONDITIONAL_STALE_READ_AFTER_REALLOC",
+      "CONDITIONAL_DOUBLE_RELEASE_SAME_IDENTITY"
+    ],
+    "forbidden_shortcuts": [
+      "do not infer aliasing when dst and src expressions differ",
+      "do not state that realloc moved in a concrete run without allocator/runtime evidence",
+      "do not jump from conditional double release directly to tcache poisoning or FSOP"
+    ]
+  },
+  "unknown": [
+    "the concrete allocator state that forces realloc to move is deferred",
+    "first/second release bin placement and consolidation are deferred",
+    "tcache poisoning, largebin attack and FSOP are later training layers",
+    "runtime exploit success is not observed in this cycle"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-ubw-alias-realloc-double-release-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 1,
+    "supersedes": null,
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+      "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+    }
+  }
+}
