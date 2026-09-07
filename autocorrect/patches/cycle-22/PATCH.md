@@ -1,6 +1,6 @@
 # Cycle-22 — SCTF 2026 / UBW allocator-state composition
 
-Status: **ACCEPTED candidate pending final branch/main gate**
+Status: **ACCEPTED on branch; pending final main gate**
 
 ## First divergence
 
