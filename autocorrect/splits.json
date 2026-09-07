@@ -33,6 +33,10 @@
       "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/UBW|official-exp-writeup"
     },
     {
+      "case_id": "heap-sctf-2026-heapmage-9765b15f",
+      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/heapMage|official-source-exp-writeup"
+    },
+    {
       "case_id": "io_file-htb-cyber-apocalypse-2026-the-emptiness-machine-exp-32b6c777",
       "cluster": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026|pwn/The Emptiness Machine|exp-semantics"
     },
@@ -47,6 +51,10 @@
     {
       "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
       "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/slang|official-exp-writeup"
+    },
+    {
+      "case_id": "stack_control-r3ctf-2026-escape-cet-8950e5fd",
+      "cluster": "https://github.com/r3kapig/r3ctf-2026|escape-cet|official-runtime-handout"
     },
     {
       "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
