@@ -24,6 +24,7 @@ class ExactTcacheMetadataTargetPolicy:
     chunk_size: int
     target_libc_offset: int
     target_address: int
+    alignment: int = 16
     tcache_count_positive_reviewed: bool = False
     entry_write_reviewed: bool = False
     allocation_semantics_reviewed: bool = False
@@ -41,11 +42,12 @@ class ExactTcacheMetadataTargetPolicy:
             self.chunk_size,
             self.target_libc_offset,
             self.target_address,
+            self.alignment,
         )
         if any(value < 0 for value in numeric):
             raise ValueError("tcache target addresses/geometry must be non-negative")
-        if self.pointer_width <= 0 or self.request_size <= 0 or self.chunk_size <= 0:
-            raise ValueError("tcache target widths/sizes must be positive")
+        if self.pointer_width <= 0 or self.request_size <= 0 or self.chunk_size <= 0 or self.alignment <= 0:
+            raise ValueError("tcache target widths/sizes/alignment must be positive")
         if self.request_size >= self.chunk_size:
             raise ValueError("reviewed request must fit inside the reviewed chunk size")
 
@@ -82,8 +84,8 @@ def derive_exact_tcache_metadata_target(
     Both upstream layers are mandatory: the metadata user must already be
     acquired and the libc base must come from an actual runtime observation.
     The rule then checks entry geometry, target = libc_base + reviewed offset,
-    a positive reviewed count, the reviewed entry write and the reviewed size
-    class allocation semantics.
+    target-user alignment, a positive reviewed count, the reviewed entry write
+    and the reviewed size-class allocation semantics.
     """
     policy.validate()
     metadata_user = _metadata_user(metadata_upstream)
@@ -96,6 +98,8 @@ def derive_exact_tcache_metadata_target(
     entry_address = policy.tcache_entries_base + policy.target_entry_index * policy.pointer_width
     expected_target = libc_base + policy.target_libc_offset
     if expected_target != policy.target_address:
+        return None
+    if policy.target_address % policy.alignment != 0:
         return None
     if not (
         policy.tcache_count_positive_reviewed
@@ -119,6 +123,11 @@ def derive_exact_tcache_metadata_target(
                 "width": policy.pointer_width,
             },
             {
+                "kind": "reviewed_tcache_target_alignment",
+                "target_address": policy.target_address,
+                "alignment": policy.alignment,
+            },
+            {
                 "kind": "reviewed_tcache_count_positive_before_allocation",
                 "chunk_size": policy.chunk_size,
             },
@@ -139,7 +148,7 @@ def derive_exact_tcache_metadata_target(
         "provenance": policy.provenance,
         "limitations": [
             "this proves one reviewed next allocation target for one reviewed size class, not unrestricted arbitrary allocation",
-            "the target is runtime-bound to an observed libc base and cannot be emitted from a static libc candidate",
+            "the target is runtime-bound to an observed libc base and must satisfy the reviewed allocator alignment gate",
             "later wide-data, vtable, FILE, control-transfer, shell or flag semantics require separate reviewed layers",
         ],
     }
