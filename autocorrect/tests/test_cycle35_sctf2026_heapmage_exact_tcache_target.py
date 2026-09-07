@@ -50,6 +50,7 @@ def _policy(entries: int, base: int, target_offset: int):
         chunk_size=0x100,
         target_libc_offset=target_offset,
         target_address=base + target_offset,
+        alignment=16,
         tcache_count_positive_reviewed=True,
         entry_write_reviewed=True,
         allocation_semantics_reviewed=True,
@@ -73,6 +74,11 @@ def test_cycle35_observed_libc_base_plus_entry14_returns_exact_wide_data_target(
     assert result["facts"][0]["entry_index"] == 14
     assert result["facts"][0]["entry_address"] == heap + 0x100
     assert result["facts"][0]["value"] == libc + 0x204800
+    assert result["facts"][1] == {
+        "kind": "reviewed_tcache_target_alignment",
+        "target_address": libc + 0x204800,
+        "alignment": 16,
+    }
     assert result["facts"][-1]["request_size"] == 0xF0
     assert result["facts"][-1]["returned_user_address"] == libc + 0x204800
     assert result["capabilities"] == ["reviewed_exact_tcache_allocation_target"]
@@ -108,6 +114,22 @@ def test_cycle35_wrong_libc_relative_target_stays_unknown():
     policy = _policy(entries, libc, 0x204800)
     bad = ExactTcacheMetadataTargetPolicy(
         **{**policy.__dict__, "target_address": libc + 0x204900}
+    )
+    assert derive_exact_tcache_metadata_target(
+        _metadata_upstream(entries), _libc_upstream(libc), bad
+    ) is None
+
+
+def test_cycle35_unaligned_target_stays_unknown():
+    entries = 0x555550000090
+    libc = 0x7F4567000000
+    policy = _policy(entries, libc, 0x204800)
+    bad = ExactTcacheMetadataTargetPolicy(
+        **{
+            **policy.__dict__,
+            "target_libc_offset": 0x204801,
+            "target_address": libc + 0x204801,
+        }
     )
     assert derive_exact_tcache_metadata_target(
         _metadata_upstream(entries), _libc_upstream(libc), bad
