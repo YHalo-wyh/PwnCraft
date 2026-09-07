@@ -81,8 +81,8 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "heap/UBW: conditional alias double-release -> allocator-state proof -> first/second release bin placement -> tcache poisoning",
-      "heap/heapMage: glibc-2.39 allocator profile -> House of Rust / House of Apple2 evidence chain",
+      "heap_ubw: conditional alias double-release -> allocator-state proof -> first/second release bin placement -> tcache poisoning",
+      "heap_heapMage: glibc-2.39 allocator profile -> House of Rust / House of Apple2 evidence chain",
       "stack_runtime_control_truth",
       "format_string_write_truth"
     ],
