@@ -1,0 +1,95 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-ubw-1b3b161e",
+  "domain": "heap",
+  "subdomains": [
+    "largebin",
+    "metadata_write",
+    "stdout_pointer"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+    "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+  },
+  "truth_layers": {
+    "UPSTREAM_CONTROLLED_RETURN": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "controlled_tcache_allocation_target",
+          "relation": "the reviewed safe-linked second pop returns a+0x10",
+          "provenance": "CYCLE25"
+        }
+      ]
+    },
+    "LARGEBIN_METADATA_BINDING": {
+      "status": "PROVEN_OFFICIAL_EXP",
+      "facts": [
+        {
+          "kind": "controlled_largebin_metadata_fields",
+          "relation": "the a+0x10 controlled user begins at A.fd_nextsize; the payload writes A.fd_nextsize=A and A.bk_nextsize=stdout_ptr-0x20",
+          "provenance": "OFFICIAL_EXP"
+        },
+        {
+          "kind": "reviewed_smaller_largebin_insertion",
+          "relation": "the official sequence later frees the smaller largebin chunk B before triggering insertion",
+          "provenance": "OFFICIAL_EXP"
+        }
+      ]
+    },
+    "POINTER_WRITE_EFFECT": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_REVIEWED_GLIBC_STATE",
+      "facts": [
+        {
+          "kind": "largebin_insertion_pointer_write",
+          "relation": "reviewed insertion writes B's chunk-header pointer to the stdout pointer variable",
+          "provenance": "OFFICIAL_WRITEUP_PLUS_EXP"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "official-target-reviewed",
+    "controlled_user_relation": "A_header + 0x20",
+    "fd_nextsize_value_relation": "A_header",
+    "bk_nextsize_value_relation": "stdout_ptr - 0x20",
+    "target_relation": "stdout_ptr",
+    "written_value_relation": "B_header",
+    "write_width": 8,
+    "target_writable_reviewed": true,
+    "insertion_semantics_reviewed": true
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "CONTROLLED_LARGEBIN_METADATA_FIELDS",
+      "REVIEWED_SMALLER_LARGEBIN_INSERTION",
+      "LARGEBIN_INSERTION_POINTER_WRITE"
+    ],
+    "required_capability": "reviewed_largebin_pointer_write",
+    "forbidden_shortcuts": [
+      "do not infer the largebin write from the House/FSOP technique name",
+      "do not accept a target unless bk_nextsize+0x20 resolves exactly to that target",
+      "do not promote stdout pointer overwrite to FILE/FSOP execution"
+    ]
+  },
+  "unknown": [
+    "runtime A/B/libc addresses are ASLR-dependent",
+    "the fake FILE state and later printf-triggered IO chain are downstream"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-ubw-reviewed-largebin-stdout-write-v4",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 4,
+    "supersedes": "truth-sctf2026-ubw-safe-linked-controlled-return-v3",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+      "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+    }
+  }
+}
