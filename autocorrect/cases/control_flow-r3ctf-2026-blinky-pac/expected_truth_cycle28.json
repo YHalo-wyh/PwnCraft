@@ -1,0 +1,63 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "control_flow-r3ctf-2026-blinky-pac",
+  "domain": "control_flow",
+  "subdomains": ["pointer_authentication", "speculation", "cache_timing", "MIPS64r6"],
+  "source_repository": "https://github.com/r3kapig/r3ctf-2026",
+  "source_commit": "e69d3053d12dbe4ba014a53926cb9b4e0deb341b",
+  "source_challenge_path": "blinky",
+  "source_class": "official_challenge_archive",
+  "event": {"name":"R3CTF 2026","challenge":"blinky"},
+  "truth_layers": {
+    "PAC_POLICY": {
+      "status": "PROVEN_OFFICIAL_README_RTL_DESCRIPTION",
+      "facts": [
+        {"kind":"protected_indirect_jump_region","relation":"user-mode indirect jumps into [0x2000,0x100000) require an 8-bit PAC tag from bits 63:56","provenance":"OFFICIAL_README_RTL"},
+        {"kind":"fixed_authenticated_target","relation":"kernel flag routine target is 0x2030","provenance":"OFFICIAL_README"}
+      ]
+    },
+    "SPECULATIVE_ORACLE": {
+      "status": "PROVEN_OFFICIAL_README_REFERENCE_SOLVER_DESCRIPTION",
+      "facts": [
+        {"kind":"speculative_pac_tag_cache_oracle","relation":"under the reviewed misprediction window a good tag fills user probe 0x1000; a bad tag is NO_LOAD and speculative drain prevents a committed PAC fault","provenance":"OFFICIAL_README"},
+        {"kind":"timing_observation","relation":"probe reload timing distinguishes the cache-hit good guess from miss wrong guesses","provenance":"OFFICIAL_README"}
+      ]
+    },
+    "FINITE_SEARCH": {
+      "status": "DERIVABLE_STATICALLY",
+      "facts": [{"kind":"finite_tag_search_space","relation":"8 tag bits imply exactly 256 candidates per fresh run","provenance":"REVIEWED_PAC_POLICY"}]
+    }
+  },
+  "reviewed_pac_policy": {
+    "architecture": "MIPS64r6",
+    "protected_region_start": 8192,
+    "protected_region_end": 1048576,
+    "tag_bits": 8,
+    "tag_high_bit": 63,
+    "probe_address": 4096,
+    "target_address": 8240,
+    "good_tag_speculative_loads_probe": true,
+    "bad_tag_speculative_loads_probe": false,
+    "speculative_bad_tag_commits_fault": false,
+    "timing_hit_distinguishable": true,
+    "provenance": "OFFICIAL_R3CTF_README_RTL_REFERENCE_SOLVER_DESCRIPTION"
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": ["SPECULATIVE_PAC_TAG_CACHE_ORACLE","FINITE_TAG_SEARCH_SPACE","AUTHENTICATED_INDIRECT_TARGET_AFTER_TAG_RECOVERY"],
+    "required_capability": "pac_tag_recoverable_via_reviewed_timing_oracle",
+    "forbidden_shortcuts": [
+      "do not infer a concrete PAC tag before timing observations",
+      "do not generalize this oracle to cores without the reviewed speculative cache effect",
+      "do not call a known kernel target reachable before tag recovery"
+    ]
+  },
+  "truth_lock": {
+    "truth_id": "truth-r3ctf2026-blinky-pac-speculative-oracle-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 1,
+    "supersedes": null,
+    "superseded_by": null,
+    "analyst_input_hashes": {"official_repo_commit":"e69d3053d12dbe4ba014a53926cb9b4e0deb341b"}
+  }
+}
