@@ -46,7 +46,7 @@
     "binary_semantics": {"examples": ["IDA", "IDACLI", "readelf", "objdump", "ELF symbols", "relocations", "decompiler evidence", "indirect call"], "truth_goal": "exact artifact -> provider snapshot -> address-anchored evidence -> BinaryIR/domain reasoning；禁止函数名/社区常量猜测"}
   },
   "scheduler": {
-    "policy": "domestic_2026_first_latest_first_evidence_gated_cross_domain_interleave_artifact_driven",
+    "policy": "domestic_2026_first_latest_first_evidence_gated_cross_domain_interleave",
     "source_priority": [
       "2026 中国国内比赛官方公开仓库（完整 source/binary/EXP/writeup 优先）",
       "2026 海内外官方公开仓库",
