@@ -40,6 +40,23 @@ jobs:
           python -m pip install -r pwncraft/requirements.txt
           python -m pip install pytest
 
+      - name: Temporary pinned CCTF pwn3 data-flow evidence
+        run: |
+          set -euo pipefail
+          url='https://raw.githubusercontent.com/ctf-wiki/ctf-challenges/047935a8cd4020c78bf84c36e761cf6d19421e1f/pwn/linux/user-mode/fmtstr/2016-CCTF-pwn3/pwn3'
+          curl -L --fail --silent --show-error "$url" -o /tmp/pwn3
+          chmod +x /tmp/pwn3
+          echo '=== SHA256 ==='
+          sha256sum /tmp/pwn3
+          echo '=== SYMBOLS ==='
+          nm -n /tmp/pwn3 || true
+          echo '=== PLT ==='
+          objdump -d -M intel -j .plt /tmp/pwn3
+          echo '=== TEXT ==='
+          objdump -d -M intel -j .text /tmp/pwn3
+          echo '=== RODATA ==='
+          objdump -s -j .rodata /tmp/pwn3
+
       - name: Project regression
         working-directory: pwncraft
         env:
