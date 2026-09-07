@@ -1,6 +1,6 @@
 # Cycle-24 — R3CTF 2026 / Escape CET runtime control gate
 
-Status: **ACCEPTED candidate pending final branch/main gate**
+Status: **ACCEPTED on branch; pending final main gate**
 
 ## Why this lane
 
