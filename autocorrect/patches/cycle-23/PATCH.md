@@ -1,6 +1,6 @@
 # Cycle-23 — SCTF 2026 / heapMage bounded adjacent metadata truth
 
-Status: **ACCEPTED candidate pending final branch/main gate**
+Status: **ACCEPTED on branch; pending final main gate**
 
 ## Clean-room source truth
 
