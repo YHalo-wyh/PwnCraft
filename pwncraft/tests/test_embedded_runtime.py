@@ -47,7 +47,7 @@ def _wrapper(payload: str) -> str:
 
 
 def _payload(*, forge_expr: str | None = None, scribble_index: str = "526339", scribble_delta: str = "-205200") -> str:
-    forge_expr = forge_expr or r'"\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\x7f"'
+    forge_expr = forge_expr or r'"\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\x7f"'.replace('\\"', '"')
     return f'''function one() : -> int {{
   return 1;
 }}
@@ -110,7 +110,8 @@ def test_reviewed_layout_decodes_forged_vec_and_derives_additive_write() -> None
     assert primitive["name"] == "constrained additive 64-bit write"
     assert primitive["address"] == 0x404018
     assert primitive["delta"] == -205200
-    assert all("arbitrary write" not in item for item in primitive["limitations"])
+    assert "arbitrary" not in primitive["name"]
+    assert any("not labeled arbitrary write" in item for item in primitive["limitations"])
 
 
 def test_no_runtime_policy_means_type_confusion_does_not_become_write() -> None:
@@ -132,7 +133,8 @@ def test_runtime_policy_without_compiler_policy_cannot_bypass_type_confusion_pro
 
 
 def test_wrong_forged_object_length_stays_uninterpreted() -> None:
-    result = _analyze(_payload(forge_expr=r'"\x00\x00\x00\x00\x00\x00\x00\x00"'))
+    wrong = r'"\x00\x00\x00\x00\x00\x00\x00\x00"'.replace('\\"', '"')
+    result = _analyze(_payload(forge_expr=wrong))
     runtime = result["embedded_runtime_semantics"][0]
     assert runtime["relations"] == []
     assert runtime["primitives"] == []
