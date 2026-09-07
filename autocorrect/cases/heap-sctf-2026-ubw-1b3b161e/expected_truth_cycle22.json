@@ -1,0 +1,82 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-ubw-1b3b161e",
+  "domain": "heap",
+  "subdomains": ["double_free", "allocator_state", "tcache", "unsorted"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/UBW",
+  "source_class": "official_challenge_archive",
+  "event": {"name": "SCTF 2026", "challenge": "UBW", "region": "China"},
+  "materials": {
+    "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+    "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+  },
+  "reviewed_allocator_state_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "official-target-reviewed",
+    "initial_chunk_size": 160,
+    "adjacent_free_chunk_size": 80,
+    "first_sizeclass_cache_count": 7,
+    "first_sizeclass_cache_capacity": 7,
+    "first_cache_bypass_destination": "unsorted",
+    "forward_consolidation_reviewed": true,
+    "consolidated_chunk_size": 240,
+    "second_sizeclass_cache_count": 6,
+    "second_sizeclass_cache_capacity": 7,
+    "second_cache_destination": "tcache",
+    "provenance": "OFFICIAL_EXP_PLUS_OFFICIAL_WRITEUP_REVIEWED_ALLOCATOR_STATE"
+  },
+  "truth_layers": {
+    "ALIAS_RELEASE_CHAIN": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {"kind": "conditional_double_release_same_identity", "relation": "merge(0,0) releases the old aliased identity twice if realloc moves", "provenance": "CYCLE21"}
+      ]
+    },
+    "FIRST_RELEASE_STATE": {
+      "status": "DERIVABLE_STATICALLY_FROM_OFFICIAL_EXP_AND_REVIEWED_GLIBC_STATE",
+      "facts": [
+        {"kind": "first_release_cache_bypass", "relation": "the 0xa0 size-class tcache is filled before merge, so the first release bypasses that cache", "provenance": "OFFICIAL_EXP"},
+        {"kind": "forward_consolidation_changes_chunk_size", "relation": "the released 0xa0 identity consolidates with a reviewed adjacent 0x50 free span, yielding a 0xf0 chunk header", "provenance": "OFFICIAL_EXP_PLUS_REVIEWED_ALLOCATOR_STATE"}
+      ]
+    },
+    "SECOND_RELEASE_STATE": {
+      "status": "DERIVABLE_STATICALLY_UNDER_CYCLE21_REALLOC_MOVE_CONDITION",
+      "facts": [
+        {"kind": "second_release_uses_resized_header", "relation": "the stale second free observes the resized 0xf0 header", "provenance": "REVIEWED_ALLOCATOR_STATE"},
+        {"kind": "same_identity_cross_bin_membership", "relation": "the second 0xf0 release has cache capacity and can place the same identity in tcache while the first consolidated state remains linked through the other allocator path", "provenance": "OFFICIAL_EXP_PLUS_OFFICIAL_WRITEUP"}
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "FIRST_RELEASE_CACHE_BYPASS",
+      "FORWARD_CONSOLIDATION_CHANGES_CHUNK_SIZE",
+      "SECOND_RELEASE_USES_RESIZED_HEADER",
+      "SAME_IDENTITY_CROSS_BIN_MEMBERSHIP"
+    ],
+    "forbidden_shortcuts": [
+      "do not derive bin placement from double-free alone",
+      "do not call cross-bin membership tcache poisoning without a later freelist-pointer manipulation fact",
+      "do not apply glibc bin semantics when allocator family/version evidence is absent"
+    ]
+  },
+  "unknown": [
+    "the concrete run remains conditional on realloc moving/freeing the old allocation",
+    "the later safe-linking pointer manipulation and poisoned allocation are not proven by this cycle",
+    "largebin and FSOP are downstream layers"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-ubw-resized-double-release-bins-v2",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 2,
+    "supersedes": "truth-sctf2026-ubw-alias-realloc-double-release-v1",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+      "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+    }
+  }
+}
