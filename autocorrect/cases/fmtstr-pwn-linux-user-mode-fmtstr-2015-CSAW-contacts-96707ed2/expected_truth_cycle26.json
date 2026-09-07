@@ -1,0 +1,41 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2015-CSAW-contacts-96707ed2",
+  "domain": "format_string",
+  "subdomains": ["positional_argument", "counted_write", "write_width"],
+  "source_repository": "https://github.com/ctf-wiki/ctf-challenges",
+  "source_commit": "18d67d158d0729fca20597723c763f475f7968cd",
+  "source_class": "registered_train_corpus",
+  "materials": {"solution_exp_git_blob_sha1": "64fb544632ed04e6e7c050a5ab8f650aa715e884"},
+  "truth_layers": {
+    "POSITIONAL_LEAK": {
+      "status": "PROVEN_CORPUS_EXP",
+      "facts": [{"kind":"positional_pointer_read","relation":"the EXP uses %31$p and later %6$p/%11$p to select concrete printf argument positions","provenance":"CORPUS_EXP"}]
+    },
+    "POSITIONAL_WRITE": {
+      "status": "PROVEN_CORPUS_EXP",
+      "facts": [{"kind":"positional_n_write","relation":"the final payload contains %6$n, selecting argument 6 as the write-through pointer and using default int-width %n","provenance":"CORPUS_EXP"}]
+    },
+    "WRITE_VALUE": {
+      "status": "UNKNOWN_WITHOUT_RUNTIME_EXPRESSION_VALUES",
+      "facts": [{"kind":"counted_write_value_unknown","relation":"the two preceding widths are assembled from runtime part1/part2 expressions, so a literal-only format parser must not invent the final printed count","provenance":"CORPUS_EXP"}]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required": {"target_argument_index": 6, "write_width": 4, "exact_write_value_known": false},
+    "forbidden_shortcuts": [
+      "do not label presence of %n as an unrestricted arbitrary write",
+      "do not invent a write value when preceding output length depends on unresolved runtime values",
+      "do not conflate %hhn/%hn/%n/%ln widths"
+    ]
+  },
+  "truth_lock": {
+    "truth_id": "truth-csaw-contacts-positional-n-write-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 1,
+    "supersedes": null,
+    "superseded_by": null,
+    "analyst_input_hashes": {"solution_exp_git_blob_sha1": "64fb544632ed04e6e7c050a5ab8f650aa715e884"}
+  }
+}
