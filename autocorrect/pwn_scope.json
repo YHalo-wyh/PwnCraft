@@ -14,7 +14,8 @@
     "heap/allocator 事实必须携带 allocator family/version；未知 allocator 不得自动套用 glibc chunk/bin/House-of-* 语义。",
     "控制流能力必须经过运行时缓解策略 gate；在 shadow stack/IBT/CET/PAC 已审核生效时，传统 saved RIP/known target 不得直接等同 executable control。",
     "format-string 的 %n-family 只证明写转换面；目标参数、写宽、写值、目标地址可写性必须分层，未知输出计数不得伪造 exact write value。",
-    "IDA/IDACLI/反编译器输出进入推理层前必须经过 Binary Semantic Provider：语义记录必须地址锚定并携带 backend/provenance；函数名提示不得升级为漏洞或控制流事实。"
+    "IDA/IDACLI/反编译器输出进入推理层前必须经过 Binary Semantic Provider：语义记录必须地址锚定并携带 backend/provenance；函数名提示不得升级为漏洞或控制流事实。",
+    "stdio/FILE reachability、wide-vtable dispatch target、setcontext frame validity 与最终 ROP/ORW 必须分层；命中 setcontext 符号不得直接等同栈迁移成功。"
   ],
   "challenge_intake": {
     "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
@@ -37,7 +38,7 @@
     "syscall_sandbox": {"examples": ["seccomp", "syscall availability", "ORW constraints"], "truth_goal": "策略观测 -> syscall 允许/阻断 -> path 约束"},
     "memory_write": {"examples": ["write-what-where", "OOB write", "adjacent metadata overwrite", "largebin pointer write"], "truth_goal": "地址/相对范围、宽度、来源、可重复性、约束作为一等事实；bounded/reviewed side effect != arbitrary"},
     "integer": {"examples": ["overflow", "signedness", "truncation"], "truth_goal": "值域/边界条件 -> 内存或控制影响"},
-    "io_file": {"examples": ["FILE corruption", "FSOP", "stdio state"], "truth_goal": "FILE 状态与 libc 版本约束单独建模；intent/primitive/reachability 分层"},
+    "io_file": {"examples": ["FILE corruption", "FSOP", "stdio state"], "truth_goal": "FILE 状态与 libc 版本约束单独建模；intent/primitive/reachability/dispatch/control-transfer 分层"},
     "binary_semantics": {"examples": ["IDA", "IDACLI", "decompiler evidence", "indirect call", "bounds compare"], "truth_goal": "provider snapshot -> address-anchored evidence -> BinaryIR -> domain reasoning；禁止函数名猜测"}
   },
   "scheduler": {
@@ -49,13 +50,15 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "heap_ubw: reviewed stdout pointer write -> FILE object state -> printf-triggered FSOP reachability",
+      "heap_ubw: reviewed stdio path -> exact wide-vtable setcontext dispatch -> target-libc context restore -> stack pivot/ORW",
       "format_string: exact numeric target/value/writability -> modulo atom plan -> payload placement/runtime validation",
       "heap_heapMage: glibc-2.39 runtime stdout leak/libc base -> reviewed arbitrary libc tcache target -> Apple2 FILE state",
       "binary_semantics: strict IDA/IDACLI evidence provider -> BinaryIR integration -> Escape CET vulnerability/control primitive"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "SCTF 2026 / UBW: reviewed FILE->_wide_data/vtable bindings + wide->_wide_vtable geometry + reviewed __doallocate slot -> exact libc+setcontext dispatch target; context restoration still deferred",
+      "SCTF 2026 / UBW: exact stdout pointer binding -> reviewed fake FILE field state -> blade printf reaches reviewed stdout stdio path; no control transfer inferred",
       "Binary Semantic Provider foundation: strict offline IDA/IDACLI semantic snapshot with exact address/backend/provenance records; name-only evidence rejected",
       "SCTF 2026 / heapMage: fake 0x100 unsorted insertion seeds libc-origin pointer into tcache entries[14]/[15] -> finite low16 stdout candidate -> runtime-only libc base formula",
       "Format String / CCTF pwn3 train corpus: symbolic puts@GOT->system binding + offset 7; exact modulo planner emits only after numeric target/value/writability are resolved",
@@ -66,12 +69,12 @@
       "SCTF 2026 / UBW: safe-linked controlled tcache return"
     ],
     "next_lanes": [
-      "SCTF 2026 / UBW: bind stdout pointer overwrite to reviewed fake FILE layout and prove the later blade printf reaches the relevant stdio path; stop before shell unless control transfer is proven",
+      "SCTF 2026 / UBW: inspect the exact target-libc setcontext instructions through a binary-semantic provider, bind consumed register/frame offsets to wide()/fake_file() bytes, and prove the first exact restored RSP/RIP or keep the pivot unknown",
       "Format String: add runtime/ELF target facts so CCTF pwn3 can move from symbolic puts@GOT/system to an exact write plan, then validate against blind_fmt_got without patch feedback",
       "SCTF 2026 / heapMage: use derived libc base and metadata user to prove one exact libc allocation target before modeling Apple2 wide-data/vtable state",
       "R3CTF 2026 / Escape CET: feed inspectable IDA/IDACLI provider records into BinaryIR and derive the first actual vulnerability/control primitive under the accepted CET gate",
       "R3CTF 2026 / blinky: add measured timing observation/tag recovery as runtime evidence, separate from static oracle existence",
-      "BUUCTF/CTF-Wiki validation clusters: verify largebin-write, exact-fmt-plan, libc-leak and binary-provider gates do not over-promote unrelated cases"
+      "BUUCTF/CTF-Wiki validation clusters: verify largebin-write, exact-fmt-plan, libc-leak, stdio/wide-dispatch and binary-provider gates do not over-promote unrelated cases"
     ]
   }
 }
