@@ -12,7 +12,8 @@
     "真实题目选择采用 latest-first + evidence-gated：优先最新高质量赛事，但材料不完整或来源可信度不足时宁可 BLOCKED/validation-first，也不得为追新降低真值标准。",
     "2026 国内官方公开题库优先于同等材料质量的海外旧题；SCTF/R3CTF/强网杯/国赛等官方归档优先，BUUCTF/CTF-Wiki 等公开目录用于补齐覆盖面和 validation，但来源分级仍必须显式。",
     "heap/allocator 事实必须携带 allocator family/version；未知 allocator 不得自动套用 glibc chunk/bin/House-of-* 语义。",
-    "控制流能力必须经过运行时缓解策略 gate；在 shadow stack/IBT/CET 已审核生效时，saved RIP overwrite 不得直接等同 executable ROP control。"
+    "控制流能力必须经过运行时缓解策略 gate；在 shadow stack/IBT/CET/PAC 已审核生效时，传统 saved RIP/known target 不得直接等同 executable control。",
+    "format-string 的 %n-family 只证明写转换面；目标参数、写宽、写值、目标地址可写性必须分层，未知输出计数不得伪造 exact write value。"
   ],
   "challenge_intake": {
     "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
@@ -27,51 +28,15 @@
     "fresh_user_case": "先建立 manifest/split，再运行 PwnCraft；默认训练请求登记为 train"
   },
   "domains": {
-    "stack": {
-      "examples": ["stack overflow", "canary", "stack pivot", "saved RIP control"],
-      "existing_components": ["Workspace.stack", "cyclic", "Stack page", "pwndbg/debug runtime"],
-      "truth_goal": "输入长度/偏移 -> 栈帧/保存寄存器影响 -> 缓解策略 gate -> 控制流能力，区分静态推导与运行时观测"
-    },
-    "heap": {
-      "examples": ["UAF", "double free", "off-by-one", "tcache/fastbin/bin transitions", "overlap", "custom allocator/type confusion"],
-      "existing_components": ["HeapViz", "GlibcHeapEngine", "PhysicalMemory", "allocator profiles"],
-      "truth_goal": "先证明 allocator family/version，再进入对应 allocator/physical-memory/bin/object-state 真值；技术名不能替代状态证据"
-    },
-    "format_string": {
-      "examples": ["argument offset", "arbitrary read", "format write"],
-      "existing_components": ["FormatLabPage", "fmt planning", "Workspace.exploit.primitives"],
-      "truth_goal": "偏移证据、读写 primitive 与目标地址/写值规划分离"
-    },
-    "control_flow": {
-      "examples": ["ret2win", "ret2libc", "ROP", "SROP", "ORW", "stack pivot", "CET", "IBT", "shadow stack"],
-      "existing_components": ["GadgetExplorer", "ROPChain", "Capability Analyzer", "syscall planner"],
-      "truth_goal": "控制原语 + runtime mitigation + gadget/符号/库/约束 -> 可验证 exploit path，不编造地址或绕过状态"
-    },
-    "leak": {
-      "examples": ["libc leak", "PIE leak", "stack leak", "heap leak"],
-      "existing_components": ["Workspace.leaks", "Workspace variables", "library base derivation"],
-      "truth_goal": "原始泄露、解析值、基址公式与来源/provenance 可追溯"
-    },
-    "syscall_sandbox": {
-      "examples": ["seccomp", "syscall availability", "ORW constraints"],
-      "existing_components": ["syscall table", "seccomp parser", "ORW capability"],
-      "truth_goal": "策略观测 -> 允许/阻断 syscall -> exploit path 约束"
-    },
-    "memory_write": {
-      "examples": ["arbitrary write", "write-what-where", "OOB write", "adjacent metadata overwrite"],
-      "existing_components": ["Workspace.exploit.primitives", "runtime/write evidence"],
-      "truth_goal": "写入地址/相对范围、宽度、来源、可重复性和约束作为一等事实；bounded write 不升级 arbitrary write"
-    },
-    "integer": {
-      "examples": ["integer overflow", "signedness", "truncation", "OOB"],
-      "existing_components": ["Binary/source IR", "Workspace.exploit.primitives"],
-      "truth_goal": "值域/边界条件 -> 内存或控制影响，禁止仅凭危险函数名判定"
-    },
-    "io_file": {
-      "examples": ["FILE corruption", "FSOP", "stdio state"],
-      "existing_components": ["libc/runtime facts", "Workspace.exploit.primitives", "EXP symbol-reference facts"],
-      "truth_goal": "FILE/stdio 对象状态与 libc 版本约束单独建模；EXP intent、target primitive、runtime reachability 分层"
-    }
+    "stack": {"examples":["stack overflow","canary","stack pivot","saved RIP control"],"truth_goal":"输入长度/偏移 -> 栈帧/保存寄存器影响 -> 缓解策略 gate -> 控制流能力"},
+    "heap": {"examples":["UAF","double free","tcache","smallbin","largebin","overlap"],"truth_goal":"allocator family/version + physical/bin state -> 精确能力；技术名不能替代状态证据"},
+    "format_string": {"examples":["argument offset","read","%n-family write"],"truth_goal":"转换 -> 参数位置 -> 写宽/计数 -> 目标地址/可写性 -> exploit plan 分层"},
+    "control_flow": {"examples":["ROP","SROP","CET","IBT","shadow stack","PAC","speculation"],"truth_goal":"控制原语 + runtime mitigation + reviewed target/oracle -> 可验证 path，不编造绕过状态"},
+    "leak": {"examples":["libc leak","PIE leak","stack leak","heap leak"],"truth_goal":"原始泄露、解析值、基址公式与 provenance 可追溯"},
+    "syscall_sandbox": {"examples":["seccomp","syscall availability","ORW constraints"],"truth_goal":"策略观测 -> syscall 允许/阻断 -> path 约束"},
+    "memory_write": {"examples":["write-what-where","OOB write","adjacent metadata overwrite"],"truth_goal":"地址/相对范围、宽度、来源、可重复性、约束作为一等事实；bounded != arbitrary"},
+    "integer": {"examples":["overflow","signedness","truncation"],"truth_goal":"值域/边界条件 -> 内存或控制影响"},
+    "io_file": {"examples":["FILE corruption","FSOP","stdio state"],"truth_goal":"FILE 状态与 libc 版本约束单独建模；intent/primitive/reachability 分层"}
   },
   "scheduler": {
     "policy": "domestic_2026_first_latest_first_evidence_gated_cross_domain_interleave",
@@ -82,30 +47,30 @@
       "社区 writeup/archive 仅在来源不足时进入 validation-first"
     ],
     "active_lanes": [
-      "heap_ubw: reviewed resized double-release cross-bin membership -> freelist pointer manipulation -> proven poisoned allocation",
-      "heap_heapMage: glibc-2.39 bounded adjacent metadata overwrite -> smallbin/largebin state composition -> House of Rust metadata acquisition",
-      "stack_control_escape_cet: reviewed CET runtime gate -> binary vulnerability primitive -> CET-compatible executable-control proof",
-      "format_string_write_truth"
+      "heap_ubw: controlled safe-linked tcache return -> reviewed largebin metadata write -> FSOP state",
+      "format_string: positional target/write width/count truth -> target address/value plan",
+      "heap_heapMage: glibc-2.39 fake tcache-metadata user acquisition -> libc pointer seed/stdout leak -> Apple2 state",
+      "control_flow_modern: CET binary-provider lane + PAC/speculation runtime-evidence lane"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "R3CTF 2026 / blinky: reviewed PAC gate + speculative good/bad cache asymmetry + no committed bad-tag fault + timing distinction -> finite 256-candidate PAC tag oracle",
+      "SCTF 2026 / heapMage: reviewed smallbin traversal V1,V2,V3,fake,p2,V4 -> LIFO V4,p2,fake -> heap+0x90 fake-user allocation acquired",
+      "Format String / CSAW contacts train corpus: positional %n target + ABI write width separated from exact printed-count knowledge; unresolved count remains unknown",
+      "SCTF 2026 / UBW: official safe-link expression (a+0x10)^(p0>>12) + reviewed cache pop -> controlled tcache allocation target",
       "R3CTF 2026 / Escape CET: official Intel SDE CET+ENDBR runtime -> saved-RIP/indirect-target control-promotion gates",
-      "SCTF 2026 / heapMage: official source 0xc0 object vs 0xf0 edit -> bounded 0x30 adjacent chunk metadata overwrite + source guards; official WP locks glibc 2.39",
-      "SCTF 2026 / UBW: conditional alias double-release + reviewed allocator state -> 0xa0 first cache bypass/consolidation -> resized 0xf0 second release -> same-identity cross-bin membership",
-      "SCTF 2026 / UBW: reviewed merge alias semantics + merge(0,0) -> conditional realloc-move stale read / same-identity double release",
-      "SCTF 2026 / CHAOS;HEAD: reviewed corrupted bounds + SnapshotPage/Route geometry -> adjacent leak + route.sink overwrite + indirect transfer",
-      "SCTF 2026 / slang: accepted additive write + reviewed puts@GOT identity / writable fixed target / relative symbol delta -> static puts-to-system control plan",
-      "SCTF 2026 / slang: exact forge bytes + reviewed vec layout + reviewed scribble semantics -> constrained additive 64-bit write",
-      "SekaiCTF 2026 / echo-chamber: source+EXP modular integer composition",
-      "Cyber Apocalypse 2026 / The Emptiness Machine: EXP-only FSOP intent truth"
+      "SCTF 2026 / heapMage: bounded 0x30 adjacent chunk metadata overwrite + glibc 2.39",
+      "SCTF 2026 / UBW: resized double-release -> same-identity cross-bin membership",
+      "SCTF 2026 / CHAOS;HEAD: adjacent leak + route.sink overwrite + indirect transfer",
+      "SCTF 2026 / slang: constrained additive write -> reviewed puts-to-system static control plan"
     ],
     "next_lanes": [
-      "SCTF 2026 / UBW: compose safe-linking encoded freelist write from official EXP -> prove tcache poisoning target and returned allocation identity",
-      "SCTF 2026 / heapMage: model exact glibc-2.39 smallbin/largebin transitions used to acquire tcache metadata chunk; keep House of Rust as derived state chain, not name trigger",
-      "R3CTF 2026 / Escape CET: inspect official handout binary semantics and derive the first actual CET-compatible control primitive; do not use saved RIP alone",
-      "2026 国内官方 Format String 真题优先插入下一批，补 argument-offset -> read/write -> target-plan 闭环",
-      "SCTF 2026 / CHAOS;HEAD: automate dangling transaction-reference root cause from binary/decompiler evidence",
-      "BUUCTF/CTF-Wiki validation clusters: verify resized-double-release, adjacent-metadata and CET gates do not over-promote unrelated cases"
+      "SCTF 2026 / UBW: compose controlled returned chunk with exact largebin metadata target/write and stop before FSOP unless FILE state is proven",
+      "Format String: use registered train/validation clusters to derive target-address binding and exact modulo write plan without treating fmtstr_payload as magic",
+      "SCTF 2026 / heapMage: use heap+0x90 tcache metadata user to prove libc-pointer insertion and stdout leak, then model Apple2 separately",
+      "R3CTF 2026 / Escape CET: wait for inspectable binary/decompiler provider evidence; official runtime policy remains accepted but community exploit conclusions cannot drive train",
+      "R3CTF 2026 / blinky: add measured timing observations/tag recovery separately from static oracle existence",
+      "BUUCTF/CTF-Wiki validation clusters: verify safe-link, counted-write, stash and mitigation/oracle gates do not over-promote unrelated cases"
     ]
   }
 }
