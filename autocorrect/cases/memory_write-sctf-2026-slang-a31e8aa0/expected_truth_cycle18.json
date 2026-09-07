@@ -1,0 +1,149 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
+  "domain": "memory_write",
+  "subdomains": ["control_flow", "type_confusion", "compiler", "runtime_layout"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_challenge_path": "Pwn/slang",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "exp_wrapper_git_blob_sha1": "a31e8aa066aab023f58750923652f3f40fbbb874",
+    "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+    "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9",
+    "official_attachment_zip_git_blob_sha1": "f3ddfbe5dc209f2e95fe3dc72daa9131b341285c"
+  },
+  "reviewed_compiler_policy": {
+    "name": "sctf-slang-loop-void-arg-scan-omission",
+    "skip_loop_void_call_arguments_in_liveness": true,
+    "codegen_preserves_call_arguments": true,
+    "slot_allocator": "first_fit_nonoverlap",
+    "provenance": "OFFICIAL_WRITEUP_REVIEWED_POLICY"
+  },
+  "reviewed_runtime_policy": {
+    "name": "sctf-slang-runtime-vec-indexed-add",
+    "endianness": "little",
+    "pointer_width": 8,
+    "provenance": "OFFICIAL_WRITEUP_REVIEWED_RUNTIME_POLICY",
+    "object_layouts": [
+      {
+        "type_name": "vec",
+        "size": 16,
+        "fields": [
+          {"name": "data", "offset": 0, "width": 8, "kind": "pointer", "signed": false},
+          {"name": "size", "offset": 8, "width": 8, "kind": "int", "signed": true}
+        ]
+      }
+    ],
+    "indexed_add_operations": [
+      {
+        "callee": "scribble",
+        "object_type": "vec",
+        "object_arg_index": 0,
+        "index_arg_index": 1,
+        "delta_arg_index": 2,
+        "data_field": "data",
+        "size_field": "size",
+        "element_width": 8,
+        "bounds_kind": "nonnegative_lt_size"
+      }
+    ]
+  },
+  "truth_layers": {
+    "TYPE_CONFUSION": {
+      "status": "PROVEN_AND_AUTOMATIC",
+      "facts": [
+        {
+          "kind": "runtime_type_confusion",
+          "relation": "second-iteration resident forged_header str is consumed through vec_slot as vec",
+          "provenance": "CYCLE17_STATIC_PROOF"
+        }
+      ]
+    },
+    "FORGED_OBJECT_LAYOUT": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_AND_DERIVABLE_FROM_EXACT_BYTES_PLUS_REVIEWED_RUNTIME_POLICY",
+      "facts": [
+        {
+          "kind": "forged_object_field_interpretation",
+          "producer": "forge",
+          "raw_hex": "0000000000000000ffffffffffffff7f",
+          "object_type": "vec",
+          "fields": {"data": 0, "size": 9223372036854775807},
+          "provenance": "OFFICIAL_EMBEDDED_SLANG_PLUS_REVIEWED_RUNTIME_POLICY"
+        }
+      ]
+    },
+    "INDEXED_ADDITIVE_WRITE": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_AND_DERIVABLE_STATICALLY_NOT_RUNTIME_OBSERVED",
+      "facts": [
+        {
+          "kind": "indexed_additive_write",
+          "callee": "scribble",
+          "data": 0,
+          "size": 9223372036854775807,
+          "index": 526339,
+          "delta": -205200,
+          "element_width": 8,
+          "address": 4210712,
+          "address_hex": "0x404018",
+          "width": 8,
+          "operation": "add",
+          "bounds_proven": true,
+          "provenance": "TYPE_CONFUSION_PLUS_REVIEWED_RUNTIME_POLICY_PLUS_STATIC_ARGUMENT_EVAL"
+        }
+      ],
+      "primitive": {
+        "name": "constrained additive 64-bit write",
+        "state": "derived_static",
+        "runtime_observed": false,
+        "must_not_be_labeled": ["arbitrary write", "arbitrary 64-bit write"]
+      }
+    },
+    "CONTROL_PLAN": {
+      "status": "PROVEN_OFFICIAL_WRITEUP_NOT_YET_AUTOMATIC",
+      "facts": [
+        {
+          "kind": "official_control_plan",
+          "relation": "official writeup uses non-PIE fixed puts@GOT and additive delta to redirect puts to system",
+          "provenance": "OFFICIAL_WRITEUP"
+        }
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "FORGED_OBJECT_FIELD_INTERPRETATION",
+      "INDEXED_ADDITIVE_WRITE",
+      "CONSTRAINED_ADDITIVE_64BIT_WRITE"
+    ],
+    "required_relations": [
+      "exact 16-byte forge return + reviewed little-endian vec layout -> data=0,size=INT64_MAX",
+      "second-iteration pwn reachability + reviewed scribble semantics + idx=526339,delta=-205200 -> address 0x404018 additive 8-byte write"
+    ],
+    "forbidden_shortcuts": [
+      "do not interpret bytes as vec without a reviewed runtime layout",
+      "do not derive a write when the exact producer bytes are unknown or wrong-sized",
+      "do not derive a write when index/delta or the call reachability is unknown",
+      "do not label the additive bounds-constrained primitive as arbitrary write",
+      "do not identify 0x404018 as puts@GOT or propose system redirection in this cycle"
+    ]
+  },
+  "unknown": [
+    "runtime memory contents are not observed by GDB/pwndbg in this cycle",
+    "automatic symbol identity for address 0x404018 is deferred",
+    "automatic GOT/control-flow target selection and puts-to-system planning are deferred to the next cycle",
+    "remote exploit success is not claimed"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-slang-forged-vec-additive-write-v5",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "analyst_input_hashes": {
+      "embedded_slang_git_blob_sha1": "7b7bd122aef50d6bc2a27218a48f4107d0a51d1f",
+      "official_writeup_git_blob_sha1": "f6d4a55258e8cd64fe31565eb3ce8fa7de7b1ab9"
+    },
+    "truth_revision": 5,
+    "supersedes": "truth-sctf2026-slang-cross-iteration-type-confusion-v4",
+    "superseded_by": null
+  }
+}
