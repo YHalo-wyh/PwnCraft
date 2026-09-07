@@ -45,6 +45,11 @@
           "provenance": "OFFICIAL_WRITEUP"
         },
         {
+          "kind": "reviewed_tcache_target_alignment",
+          "relation": "the first reviewed target wide_data = libc_base + 0x204800 is 0x10-aligned, satisfying the target-user alignment gate for the reviewed tcache pop",
+          "provenance": "OFFICIAL_WRITEUP_PLUS_ALLOCATOR_POLICY"
+        },
+        {
           "kind": "reviewed_tcache_count_positive_before_allocation",
           "relation": "the official writeup explicitly states tcache[0x100] still has a positive count after the stdout leak",
           "provenance": "OFFICIAL_WRITEUP"
@@ -85,6 +90,7 @@
     "target_entry_offset_from_metadata_user": 112,
     "target_entry_heap_offset": 256,
     "pointer_width": 8,
+    "alignment": 16,
     "request_size": 240,
     "chunk_size": 256,
     "first_target_name": "wide_data",
@@ -93,6 +99,7 @@
   "expected_pwncraft_semantics": {
     "required_fact_kinds": [
       "REVIEWED_TCACHE_ENTRY_EXACT_WRITE",
+      "REVIEWED_TCACHE_TARGET_ALIGNMENT",
       "REVIEWED_TCACHE_COUNT_POSITIVE_BEFORE_ALLOCATION",
       "REVIEWED_LIBC_RELATIVE_ALLOCATION_TARGET",
       "REVIEWED_NEXT_ALLOCATION_RETURNS_EXACT_TARGET"
@@ -101,6 +108,7 @@
     "forbidden_shortcuts": [
       "do not derive a libc target from a static low16 stdout candidate",
       "do not claim the target before an observed libc base exists",
+      "do not accept an unaligned target merely because the tcache entry is writable",
       "do not promote one reviewed target return to unrestricted arbitrary allocation",
       "do not infer Apple2 FILE/wide-vtable/control-flow semantics from the wide_data allocation alone"
     ]
