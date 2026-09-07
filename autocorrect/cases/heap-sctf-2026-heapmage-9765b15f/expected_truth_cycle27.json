@@ -1,0 +1,66 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-heapmage-9765b15f",
+  "domain": "heap",
+  "subdomains": ["smallbin", "tcache_stashing", "glibc_2_39", "fake_chunk"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+    "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+  },
+  "truth_layers": {
+    "UPSTREAM_OVERWRITE": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [{"kind":"bounded_adjacent_metadata_overwrite","provenance":"CYCLE23"}]
+    },
+    "STASH_TRAVERSAL": {
+      "status": "PROVEN_OFFICIAL_EXP_WRITEUP",
+      "facts": [{
+        "kind":"reviewed_smallbin_stash_traversal",
+        "relation":"the official exploit documents one allocation returning V0 while stashing V1,V2,V3,fake,p2,V4",
+        "provenance":"OFFICIAL_EXP_WRITEUP"
+      }]
+    },
+    "FOLLOWUP_RETURNS": {
+      "status": "PROVEN_OFFICIAL_EXP",
+      "facts": [{
+        "kind":"reviewed_tcache_pop_order",
+        "relation":"the following allocations are documented as V4, p2, then heap+0x90 (the fake user at tcache->entries)",
+        "provenance":"OFFICIAL_EXP"
+      }]
+    }
+  },
+  "relative_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "2.39",
+    "fake_user_heap_offset": 144,
+    "reviewed_traversal_labels": ["V1","V2","V3","fake","p2","V4"],
+    "reviewed_pop_labels": ["V4","p2","fake"],
+    "requested_pop_index_for_fake": 3,
+    "integrity_reviewed": true
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": ["SMALLBIN_TCACHE_STASH_SEQUENCE","TCACHE_LIFO_AFTER_STASH","NTH_ALLOCATION_RETURNS_REVIEWED_USER"],
+    "required_capability": "reviewed_fake_user_allocation_acquired",
+    "forbidden_shortcuts": [
+      "do not derive stash order from the House of Rust name",
+      "do not report a fake-user allocation unless the reviewed traversal fits available tcache room and integrity conditions",
+      "do not promote heap+0x90 acquisition to arbitrary libc allocation or House of Apple2 success"
+    ]
+  },
+  "unknown": ["later libc-pointer seeding and stdout leak are downstream", "House of Apple2 control execution is not proven here"],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-heapmage-smallbin-tcache-stash-v2",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 2,
+    "supersedes": "truth-sctf2026-heapmage-bounded-adjacent-metadata-v1",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+      "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+    }
+  }
+}
