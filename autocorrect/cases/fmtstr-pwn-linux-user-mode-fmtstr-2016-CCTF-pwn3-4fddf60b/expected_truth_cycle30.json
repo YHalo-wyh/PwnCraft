@@ -1,0 +1,82 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b",
+  "domain": "format_string",
+  "subdomains": [
+    "target_binding",
+    "write_plan",
+    "got"
+  ],
+  "source_repository": "https://github.com/ctf-wiki/ctf-challenges",
+  "source_class": "registered_train_corpus",
+  "materials": {
+    "solution_exp_git_blob_sha1": "a3ee2f9dc614ab3b38303dbc747b6b5e137c0a9a"
+  },
+  "truth_layers": {
+    "TARGET_BINDING": {
+      "status": "PROVEN_CORPUS_EXP",
+      "facts": [
+        {
+          "kind": "symbolic_format_target_binding",
+          "relation": "the EXP binds the destination to pwn3.got['puts']",
+          "provenance": "CORPUS_EXP"
+        }
+      ]
+    },
+    "DESIRED_VALUE": {
+      "status": "RUNTIME_DERIVED_IN_EXP",
+      "facts": [
+        {
+          "kind": "symbolic_format_desired_value",
+          "relation": "system_addr is derived from the leaked puts address and libc symbol offsets",
+          "provenance": "CORPUS_EXP"
+        }
+      ]
+    },
+    "ARGUMENT_OFFSET": {
+      "status": "PROVEN_CORPUS_EXP",
+      "facts": [
+        {
+          "kind": "format_pointer_argument_start",
+          "relation": "fmtstr_payload is invoked with offset 7",
+          "provenance": "CORPUS_EXP"
+        }
+      ]
+    },
+    "EXACT_PLAN": {
+      "status": "DEFER_UNTIL_NUMERIC_TARGET_VALUE_AND_WRITABILITY",
+      "facts": [
+        {
+          "kind": "exact_format_plan_requires_resolved_values",
+          "relation": "a deterministic modulo-padding plan may only be emitted after target address, desired value and target writability are exact",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_deferred_fields": [
+      "target_address",
+      "desired_value",
+      "target_writable_reviewed"
+    ],
+    "required_argument_start": 7,
+    "forbidden_shortcuts": [
+      "do not treat fmtstr_payload as proof of exact padding math",
+      "do not invent the puts GOT address when ELF evidence is absent",
+      "do not invent system_addr before the runtime leak/libc derivation",
+      "do not emit an exact write plan unless target writability is reviewed"
+    ]
+  },
+  "truth_lock": {
+    "truth_id": "truth-cctf-pwn3-fmt-target-plan-gate-v1",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 1,
+    "supersedes": null,
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "solution_exp_git_blob_sha1": "a3ee2f9dc614ab3b38303dbc747b6b5e137c0a9a"
+    }
+  }
+}
