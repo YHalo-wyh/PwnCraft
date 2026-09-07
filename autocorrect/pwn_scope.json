@@ -15,7 +15,8 @@
     "控制流能力必须经过运行时缓解策略 gate；在 shadow stack/IBT/CET/PAC 已审核生效时，传统 saved RIP/known target 不得直接等同 executable control。",
     "format-string 的 %n-family 只证明写转换面；目标参数、写宽、写值、目标地址可写性必须分层，未知输出计数不得伪造 exact write value。",
     "IDA/IDACLI/反编译器输出进入推理层前必须经过 Binary Semantic Provider：语义记录必须地址锚定并携带 backend/provenance；函数名提示不得升级为漏洞或控制流事实。",
-    "stdio/FILE reachability、wide-vtable dispatch target、setcontext frame validity 与最终 ROP/ORW 必须分层；命中 setcontext 符号不得直接等同栈迁移成功。"
+    "stdio/FILE reachability、wide-vtable dispatch target、setcontext frame validity 与最终 ROP/ORW 必须分层；命中 setcontext 符号不得直接等同栈迁移成功。",
+    "tcache metadata 可写只证明可改 entry；只有 observed base、精确 entry 几何、positive count、target alignment 与 size-class semantics 全部审核后，才能证明一次 exact allocation target，且不得外推为 unrestricted arbitrary allocation。"
   ],
   "challenge_intake": {
     "protocol": "GENERAL_PWN_TRAINING_PROTOCOL.md",
@@ -51,12 +52,13 @@
     ],
     "active_lanes": [
       "heap_ubw: reviewed stdio path -> exact wide-vtable setcontext dispatch -> target-libc context restore -> stack pivot/ORW",
-      "format_string: exact numeric target/value/writability -> modulo atom plan -> payload placement/runtime validation",
-      "heap_heapMage: glibc-2.39 runtime stdout leak/libc base -> reviewed arbitrary libc tcache target -> Apple2 FILE state",
+      "format_string: symbolic target binding -> exact ELF/runtime target/value/writability -> modulo atom plan -> payload placement/runtime validation (exact binary evidence currently required)",
+      "heap_heapMage: observed libc base + acquired tcache metadata -> exact wide_data allocation -> wide_vtable/fake FILE target composition -> Apple2 state",
       "binary_semantics: strict IDA/IDACLI evidence provider -> BinaryIR integration -> Escape CET vulnerability/control primitive"
     ],
     "real_challenge_training": "READY",
     "latest_completed": [
+      "SCTF 2026 / heapMage: observed stdout-derived libc base + acquired tcache entries user + reviewed entries[14]/positive-count/alignment/size-class gates -> one exact malloc(0xf0) return at libc+0x204800 (wide_data); not arbitrary allocation",
       "SCTF 2026 / UBW: reviewed FILE->_wide_data/vtable bindings + wide->_wide_vtable geometry + reviewed __doallocate slot -> exact libc+setcontext dispatch target; context restoration still deferred",
       "SCTF 2026 / UBW: exact stdout pointer binding -> reviewed fake FILE field state -> blade printf reaches reviewed stdout stdio path; no control transfer inferred",
       "Binary Semantic Provider foundation: strict offline IDA/IDACLI semantic snapshot with exact address/backend/provenance records; name-only evidence rejected",
@@ -70,11 +72,11 @@
     ],
     "next_lanes": [
       "SCTF 2026 / UBW: inspect the exact target-libc setcontext instructions through a binary-semantic provider, bind consumed register/frame offsets to wide()/fake_file() bytes, and prove the first exact restored RSP/RIP or keep the pivot unknown",
-      "Format String: add runtime/ELF target facts so CCTF pwn3 can move from symbolic puts@GOT/system to an exact write plan, then validate against blind_fmt_got without patch feedback",
-      "SCTF 2026 / heapMage: use derived libc base and metadata user to prove one exact libc allocation target before modeling Apple2 wide-data/vtable state",
+      "Format String: obtain exact ELF/runtime target facts through an inspectable binary/runtime provider before moving CCTF pwn3 from symbolic puts@GOT/system to an exact plan; blind_fmt_got remains validation-only",
+      "SCTF 2026 / heapMage: compose the next exact targets (wide_vtable and fake FILE) from the same reviewed metadata entry mechanism, then validate their field writes before any Apple2/system dispatch claim",
       "R3CTF 2026 / Escape CET: feed inspectable IDA/IDACLI provider records into BinaryIR and derive the first actual vulnerability/control primitive under the accepted CET gate",
       "R3CTF 2026 / blinky: add measured timing observation/tag recovery as runtime evidence, separate from static oracle existence",
-      "BUUCTF/CTF-Wiki validation clusters: verify largebin-write, exact-fmt-plan, libc-leak, stdio/wide-dispatch and binary-provider gates do not over-promote unrelated cases"
+      "BUUCTF/CTF-Wiki validation clusters: verify largebin-write, exact-fmt-plan, libc-leak, exact-tcache-target, stdio/wide-dispatch and binary-provider gates do not over-promote unrelated cases"
     ]
   }
 }
