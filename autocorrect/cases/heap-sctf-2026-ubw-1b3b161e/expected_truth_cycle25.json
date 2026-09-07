@@ -1,0 +1,68 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-ubw-1b3b161e",
+  "domain": "heap",
+  "subdomains": ["tcache", "safe_linking", "freelist_poisoning"],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+    "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+  },
+  "truth_layers": {
+    "UPSTREAM_STATE": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [{"kind":"same_identity_cross_bin_membership","provenance":"CYCLE22"}]
+    },
+    "SAFE_LINK_ENCODING": {
+      "status": "PROVEN_OFFICIAL_EXP",
+      "facts": [{
+        "kind": "safe_link_pointer_expression",
+        "relation": "official EXP writes p64((a + 0x10) ^ (p0 >> 12)) as the freelist pointer payload",
+        "provenance": "OFFICIAL_EXP"
+      }]
+    },
+    "RETURNED_IDENTITY": {
+      "status": "PROVEN_OFFICIAL_EXP",
+      "facts": [{
+        "kind": "reviewed_second_cache_pop_identity",
+        "relation": "after the poisoning sequence, the official EXP asserts the later allocation returns a + 0x10",
+        "provenance": "OFFICIAL_EXP"
+      }]
+    }
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": ["SAFE_LINK_POINTER_ENCODING_MATCHES","TCACHE_NEXT_POINTER_RETARGETED","REVIEWED_CACHE_POP_RETURNS_TARGET"],
+    "required_capability": "controlled_tcache_allocation_target",
+    "forbidden_shortcuts": [
+      "do not accept an encoded pointer that does not decode from the reviewed storage address",
+      "do not call one controlled tcache return unrestricted arbitrary allocation",
+      "do not jump from the returned allocation to largebin/FSOP success"
+    ]
+  },
+  "symbolic_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "official-target-reviewed",
+    "safe_linking_enabled": true,
+    "pointer_shift": 12,
+    "alignment": 16,
+    "storage_symbol": "p0",
+    "target_symbol": "a + 0x10",
+    "encoded_expression": "(a + 0x10) ^ (p0 >> 12)",
+    "required_pop_index": 2
+  },
+  "unknown": ["runtime p0/a addresses are ASLR-dependent", "largebin and FSOP remain downstream"],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-ubw-safe-linked-controlled-return-v3",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 3,
+    "supersedes": "truth-sctf2026-ubw-resized-double-release-bins-v2",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+      "official_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153"
+    }
+  }
+}

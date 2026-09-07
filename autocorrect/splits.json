@@ -1,124 +1,38 @@
 {
   "train": [
-    {
-      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2015-CSAW-contacts-96707ed2",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/fmtstr/2015-CSAW-contacts"
-    },
-    {
-      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/fmtstr/2016-CCTF-pwn3"
-    },
-    {
-      "case_id": "heap-ctf-wiki-2014-hitcon-stkof-13e0c84f",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof"
-    },
-    {
-      "case_id": "heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore"
-    },
-    {
-      "case_id": "heap-ctf-wiki-2017-0ctf-babyheap-9527e180",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap"
-    },
-    {
-      "case_id": "heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots"
-    },
-    {
-      "case_id": "heap-ctf-wiki-hitcontraning-lab13-bae716d5",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13"
-    },
-    {
-      "case_id": "heap-sctf-2026-ubw-1b3b161e",
-      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/UBW|official-exp-writeup"
-    },
-    {
-      "case_id": "heap-sctf-2026-heapmage-9765b15f",
-      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/heapMage|official-source-exp-writeup"
-    },
-    {
-      "case_id": "io_file-htb-cyber-apocalypse-2026-the-emptiness-machine-exp-32b6c777",
-      "cluster": "https://github.com/hackthebox/cyber-apocalypse-ctf-2026|pwn/The Emptiness Machine|exp-semantics"
-    },
-    {
-      "case_id": "integer-sekaictf-2026-echo-chamber-99fc2e72",
-      "cluster": "https://github.com/project-sekai-ctf/sekaictf-2026|pwn/echo-chamber|official-source-solution"
-    },
-    {
-      "case_id": "memory_write-sctf-2026-chaos-head-576f58ec",
-      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/CHAOS;HEAD|official-exp-writeup"
-    },
-    {
-      "case_id": "memory_write-sctf-2026-slang-a31e8aa0",
-      "cluster": "https://github.com/SycloverTeam/SCTF-2026|Pwn/slang|official-exp-writeup"
-    },
-    {
-      "case_id": "stack_control-r3ctf-2026-escape-cet-8950e5fd",
-      "cluster": "https://github.com/r3kapig/r3ctf-2026|escape-cet|official-runtime-handout"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/brop"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-StarCTF2018-not-97cad9a0",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/fake_frame/StarCTF2018-note"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--1f442466",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-readable"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--20d0b2ae",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-blinkroot"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-39d477bf",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/partial-relro"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-train.cs.nctu.edu-96d465d5",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2libc/train.cs.nctu.edu.tw"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-guess-ec95cf56",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/stacksmashes/guess"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1"
-    }
+    {"case_id":"fmtstr-pwn-linux-user-mode-fmtstr-2015-CSAW-contacts-96707ed2","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/fmtstr/2015-CSAW-contacts"},
+    {"case_id":"fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/fmtstr/2016-CCTF-pwn3"},
+    {"case_id":"heap-ctf-wiki-2014-hitcon-stkof-13e0c84f","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unlink/2014_hitcon_stkof"},
+    {"case_id":"heap-ctf-wiki-2015-hacklu-bookstore-8bd55c59","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/chunk-extend-shrink/2015_hacklu_bookstore"},
+    {"case_id":"heap-ctf-wiki-2017-0ctf-babyheap-9527e180","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/fastbin-attack/2017_0ctf_babyheap"},
+    {"case_id":"heap-ctf-wiki-2017-insomni-hack-wheelofrobots-ebbbaf52","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unlink/2017_insomni'hack_wheelofrobots"},
+    {"case_id":"heap-ctf-wiki-hitcontraning-lab13-bae716d5","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/chunk-extend-shrink/hitcontraning_lab13"},
+    {"case_id":"heap-sctf-2026-ubw-1b3b161e","cluster":"https://github.com/SycloverTeam/SCTF-2026|Pwn/UBW|official-exp-writeup"},
+    {"case_id":"heap-sctf-2026-heapmage-9765b15f","cluster":"https://github.com/SycloverTeam/SCTF-2026|Pwn/heapMage|official-source-exp-writeup"},
+    {"case_id":"io_file-htb-cyber-apocalypse-2026-the-emptiness-machine-exp-32b6c777","cluster":"https://github.com/hackthebox/cyber-apocalypse-ctf-2026|pwn/The Emptiness Machine|exp-semantics"},
+    {"case_id":"integer-sekaictf-2026-echo-chamber-99fc2e72","cluster":"https://github.com/project-sekai-ctf/sekaictf-2026|pwn/echo-chamber|official-source-solution"},
+    {"case_id":"memory_write-sctf-2026-chaos-head-576f58ec","cluster":"https://github.com/SycloverTeam/SCTF-2026|Pwn/CHAOS;HEAD|official-exp-writeup"},
+    {"case_id":"memory_write-sctf-2026-slang-a31e8aa0","cluster":"https://github.com/SycloverTeam/SCTF-2026|Pwn/slang|official-exp-writeup"},
+    {"case_id":"stack_control-r3ctf-2026-escape-cet-8950e5fd","cluster":"https://github.com/r3kapig/r3ctf-2026|escape-cet|official-runtime-handout"},
+    {"case_id":"control_flow-r3ctf-2026-blinky-pac","cluster":"https://github.com/r3kapig/r3ctf-2026|blinky|official-rtl-readme-solver"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-brop-c3503469","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/brop"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-fake_frame-StarCTF2018-not-97cad9a0","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/fake_frame/StarCTF2018-note"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--1f442466","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-readable"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-hitcon--20d0b2ae","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-hitcon-quals-blinkroot"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-ret2dlresolve-2015-xdctf-p-39d477bf","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2dlresolve/2015-xdctf-pwn200/64/partial-relro"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-train.cs.nctu.edu-96d465d5","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2libc/train.cs.nctu.edu.tw"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-stacksmashes-guess-ec95cf56","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/stacksmashes/guess"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc1-c5603c89","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc1"}
   ],
   "validation": [
-    {
-      "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_got-3087984b",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/fmtstr/blind_fmt_got"
-    },
-    {
-      "case_id": "heap-ctf-wiki-2015-9447ctf-search-engine-3a28f615",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine"
-    },
-    {
-      "case_id": "heap-ctf-wiki-2016-zctf-note2-a85b75f2",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unlink/2016_zctf_note2"
-    },
-    {
-      "case_id": "heap-ctf-wiki-zerostorage-c06ff06c",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage"
-    },
-    {
-      "case_id": "memory_write-asis-ctf-quals-2026-arena-snapshots-d4276d86",
-      "cluster": "https://github.com/hax1ng/ASIS-CTF-Quals-2026|pwn/arena-snapshots|community-archive-validation"
-    },
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-rop-2013-PlaidCTF-ropasaur-fec23fd9",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/rop/2013-PlaidCTF-ropasaurusrex"
-    }
+    {"case_id":"fmtstr-pwn-linux-user-mode-fmtstr-blind_fmt_got-3087984b","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/fmtstr/blind_fmt_got"},
+    {"case_id":"heap-ctf-wiki-2015-9447ctf-search-engine-3a28f615","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/fastbin-attack/2015_9447ctf_search-engine"},
+    {"case_id":"heap-ctf-wiki-2016-zctf-note2-a85b75f2","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unlink/2016_zctf_note2"},
+    {"case_id":"heap-ctf-wiki-zerostorage-c06ff06c","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/heap/unsorted_bin_attack/zerostorage"},
+    {"case_id":"memory_write-asis-ctf-quals-2026-arena-snapshots-d4276d86","cluster":"https://github.com/hax1ng/ASIS-CTF-Quals-2026|pwn/arena-snapshots|community-archive-validation"},
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-rop-2013-PlaidCTF-ropasaur-fec23fd9","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/rop/2013-PlaidCTF-ropasaurusrex"}
   ],
   "frozen_test": [
-    {
-      "case_id": "stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc3-f3683777",
-      "cluster": "https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc3"
-    }
+    {"case_id":"stack_rop-pwn-linux-user-mode-stackoverflow-ret2libc-ret2libc3-f3683777","cluster":"https://github.com/ctf-wiki/ctf-challenges|pwn/linux/user-mode/stackoverflow/ret2libc/ret2libc3"}
   ]
 }
