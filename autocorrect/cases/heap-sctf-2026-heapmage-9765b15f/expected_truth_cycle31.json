@@ -1,0 +1,108 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-heapmage-9765b15f",
+  "domain": "leak",
+  "subdomains": [
+    "tcache_metadata",
+    "unsorted",
+    "stdout",
+    "libc_base",
+    "glibc_2_39"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+    "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+  },
+  "truth_layers": {
+    "UPSTREAM_METADATA_USER": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "reviewed_fake_user_allocation_acquired",
+          "relation": "heap+0x90 is returned as the tcache->entries user",
+          "provenance": "CYCLE27"
+        }
+      ]
+    },
+    "LIBC_POINTER_SEED": {
+      "status": "PROVEN_OFFICIAL_EXP_WRITEUP",
+      "facts": [
+        {
+          "kind": "fake_chunk_bypasses_full_tcache",
+          "relation": "the fake 0x100 chunk is freed after tcache[0x100] is refilled, so it bypasses the cache",
+          "provenance": "OFFICIAL_EXP"
+        },
+        {
+          "kind": "unsorted_fd_bk_overlap_tcache_entries",
+          "relation": "unsorted fd/bk land directly over entries[14]/entries[15] because fake user is heap+0x100",
+          "provenance": "OFFICIAL_EXP"
+        }
+      ]
+    },
+    "STDOUT_CANDIDATE": {
+      "status": "STATIC_FINITE_CANDIDATE_SET",
+      "facts": [
+        {
+          "kind": "stdout_low16_candidate_retarget",
+          "relation": "the EXP tries one of 16 libc low-nibble candidates and rewrites only entries[14]'s low 16 bits toward _IO_2_1_stdout_",
+          "provenance": "OFFICIAL_EXP"
+        }
+      ]
+    },
+    "LIBC_BASE": {
+      "status": "RUNTIME_OBSERVATION_REQUIRED",
+      "facts": [
+        {
+          "kind": "libc_base_formula",
+          "relation": "after an observed stdout leak pointer, base = pointer - (_IO_2_1_stdout_ + 0x84)",
+          "provenance": "OFFICIAL_EXP_RUNTIME_FORMULA"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "2.39",
+    "metadata_user_heap_offset": 144,
+    "target_entry_index": 14,
+    "target_entry_heap_offset": 256,
+    "fake_chunk_header_heap_offset": 240,
+    "fake_chunk_size": 256,
+    "pointer_width": 8,
+    "stdout_candidate_bits": 4,
+    "stdout_partial_write_bits": 16,
+    "observed_stdout_field_offset": 132
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "LIBC_ORIGIN_POINTER_SEEDED_INTO_TCACHE_ENTRY",
+      "STDOUT_LOW16_CANDIDATE_RETARGET",
+      "LIBC_BASE_FORMULA"
+    ],
+    "required_capabilities_by_layer": [
+      "libc_pointer_seeded_in_tcache_metadata",
+      "stdout_partial_retarget_candidate",
+      "libc_base_derived_from_stdout_observation"
+    ],
+    "forbidden_shortcuts": [
+      "do not call a libc-origin unsorted pointer an exact libc base",
+      "do not mark a low16 candidate as correct before runtime observation",
+      "do not derive House of Apple2 execution from the stdout leak"
+    ]
+  },
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-heapmage-libc-seed-stdout-leak-v3",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 3,
+    "supersedes": "truth-sctf2026-heapmage-smallbin-tcache-stash-v2",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_source_zip_git_blob_sha1": "9765b15f9f33b4f5452e1a03b8713a990e230bdb",
+      "official_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+    }
+  }
+}
