@@ -23,6 +23,9 @@ Surface map (v0.29):
   heap_learn / heap_rule_toggle / heap_save / heap_open
 - iofile: iofile_layout / iofile_validate / iofile_analyze
 - debugger: pwndbg_status / pwndbg_ensure / debug_launch
+- awdp patch (v0.33): patch_recipes / patch_preview / patch_apply / patch_list /
+  patch_undo / patch_clear / patch_export / patch_instructions / patch_disasm_raw /
+  patch_bytecode_lookup / patch_encode
 """
 from __future__ import annotations
 
@@ -45,7 +48,8 @@ from pwncraft.core.gadgets import Gadget, GadgetShelf, parse_ropgadget_output, s
 from pwncraft.core.rop_builder import RopChainBuilder, chain_to_pwntools
 from pwncraft.core.srop import SROPBuilder
 from pwncraft.core.orw import ORWBuilder
-from pwncraft.core.syscalls import syscall_table, normalize_architecture, parse_seccomp_tools_dump
+from pwncraft.core.syscalls import (parse_seccomp_policy_structured, parse_seccomp_tools_dump,
+                                    syscall_table, normalize_architecture)
 from pwncraft.core.leaks import derive_base
 from pwncraft.core.cyclic import cyclic_pattern, cyclic_find
 from pwncraft.core.fmtlab import find_fmt_offset, plan_fmt_writes
@@ -59,6 +63,15 @@ from pwncraft.features.heapviz.allocators.profiles import ALLOCATOR_PROFILE_REVI
 from pwncraft.features.heapviz.bridge_session import HeapSession
 from pwncraft.features.heapviz.dataset import validate_case
 from pwncraft.features.heapviz.templates import HEAP_TEMPLATES
+from pwncraft.features.patch.patch_core import PatchLab, PatchOp, parse_instruction_lines
+from pwncraft.features.patch.recipes import (
+    RECIPE_CATALOG, build_custom_bytes, build_nop_function, build_nop_range,
+    build_plt_call_redirect, build_plt_stub_redirect, build_read_length,
+    build_ret_function, normalize_patch_arch)
+from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
+from pwncraft.features.patch.bytecode_catalog import catalog_entries, disasm_raw, encode_template
+from pwncraft.features.patch.exporters import (
+    export_diff_text, export_pwntools_script, materialize_patched)
 from pwncraft.core.pwndbg_manager import PWNDBG_MOGAI_VERSION, PwndbgManager
 
 
@@ -82,6 +95,7 @@ class ElectronBridge:
         self._triage_lock = threading.Lock()
         self._triage_running: set[str] = set()
         self._triage_cache: dict[str, dict] = {}
+        self._patch_labs: dict[str, PatchLab] = {}
 
     # ------------------------------------------------------------------
     def handle(self, request: dict) -> dict:
@@ -284,8 +298,214 @@ class ElectronBridge:
                 response["assembly_error"] = str(error)
         return response
 
-    def rpc_workspace_get(self, params: dict) -> dict:
-        return {
+    # ------------------------------------------------------------------
+    # AWDP patch lab（字节级补丁真值；全部等长替换，不改文件大小）
+
+    def _patch_lab(self, params: dict | None = None) -> PatchLab:
+        binary = Path(str((params or {}).get("path") or "") or self._target_binary())
+        key = str(binary)
+        lab = self._patch_labs.get(key)
+        if lab is None:
+            target = self.workspace.target or {}
+            project = str(target.get("project_root") or binary.parent)
+            lab = PatchLab(binary, project_root=Path(project))
+            self._patch_labs[key] = lab
+        return lab
+
+    def _disassemble_functions(self, binary: Path) -> tuple[list[dict], str]:
+        result = self._runner.run_tool("objdump", ["-d", "--",
+                                                   self._runner.to_wsl_path(binary)])
+        if not result.ok:
+            return [], result.combined_output() or f"objdump 退出码 {result.returncode}"
+        from pwncraft.core.code_analysis import parse_disassembly
+        return parse_disassembly(result.stdout)["functions"], ""
+
+    def _patch_arch(self, binary: Path) -> str:
+        facts = BinaryInspector().inspect(binary)
+        return normalize_patch_arch(facts.architecture, facts.bits)
+
+    def _seccomp_policy_names(self, request: dict) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        preset = str(request.get("preset") or "").strip()
+        if preset and preset != "custom":
+            conf = SECCOMP_PRESETS.get(preset)
+            if conf is None:
+                raise ValueError(f"未知 seccomp 预设: {preset}")
+            return tuple(conf["kill"]), tuple(conf["allow"])
+        structured = parse_seccomp_policy_structured(str(request.get("policy") or ""))
+        verdicts: dict[str, str] = structured["policy"]
+        default = str(structured["default_action"] or "allow").lower()
+        if default == "kill":
+            return (), tuple(name for name, verdict in verdicts.items()
+                             if verdict == "ALLOWED")
+        return tuple(name for name, verdict in verdicts.items()
+                     if verdict == "BLOCKED"), ()
+
+    def _build_patch_ops(self, params: dict) -> tuple[list[PatchOp], list[str]]:
+        request = params.get("request") if isinstance(params.get("request"), dict) else params
+        kind = str(request.get("kind") or "").strip()
+        lab = self._patch_lab(params)
+        binary = lab.binary
+        arch = self._patch_arch(binary)
+
+        def functions() -> list[dict]:
+            found, error = self._disassemble_functions(binary)
+            if error:
+                raise ValueError(f"反汇编失败，无法构建补丁: {error}")
+            return found
+
+        def pick_function(name: str) -> str:
+            value = str(request.get("function") or name or "").strip()
+            if not value:
+                raise ValueError("未选择目标函数")
+            return value
+
+        warnings: list[str] = []
+        if kind == "seccomp":
+            kill, allow = self._seccomp_policy_names(request)
+            geometry = lab.geometry()
+            result = self._runner.run_tool("objdump", [
+                "-d",
+                f"--start-address={geometry['entry']}",
+                f"--stop-address={geometry['entry'] + 64}",
+                "--", self._runner.to_wsl_path(binary)])
+            if not result.ok:
+                raise ValueError(f"入口反汇编失败: {result.combined_output()}")
+            built = build_seccomp_ops(lab, arch=arch, kill=kill, allow=allow,
+                                      entry_lines=parse_instruction_lines(result.stdout))
+            return built["ops"], built["warnings"] + warnings
+        if kind == "plt_call":
+            built = build_plt_call_redirect(lab, functions(),
+                                            str(request.get("source") or ""),
+                                            str(request.get("target") or ""))
+            return built["ops"], built["warnings"]
+        if kind == "plt_stub":
+            built = build_plt_stub_redirect(lab, functions(),
+                                            str(request.get("source") or ""),
+                                            str(request.get("target") or ""))
+            return built["ops"], built["warnings"]
+        if kind == "readlen":
+            built = build_read_length(lab, functions(), pick_function(""),
+                                      str(request.get("callee") or "read"),
+                                      int(str(request.get("size") or "0"), 0))
+            return built["ops"], built["warnings"]
+        if kind == "nop_function":
+            built = build_nop_function(lab, functions(), pick_function(""))
+            return built["ops"], built["warnings"]
+        if kind == "ret_function":
+            built = build_ret_function(lab, functions(), pick_function(""))
+            return built["ops"], built["warnings"]
+        if kind == "nop_range":
+            built = build_nop_range(lab, int(str(request.get("start") or "0"), 0),
+                                    int(str(request.get("end") or "0"), 0))
+            return built["ops"], built["warnings"]
+        if kind == "custom":
+            expected = request.get("expected_size")
+            built = build_custom_bytes(lab, int(str(request.get("vaddr") or "0"), 0),
+                                       str(request.get("hex") or ""),
+                                       expected_size=(int(expected)
+                                                      if expected is not None else None))
+            return built["ops"], built["warnings"]
+        raise ValueError(f"未知补丁类型: {kind or '(空)'}")
+
+    def rpc_patch_recipes(self, params: dict) -> dict:
+        return {"recipes": list(RECIPE_CATALOG),
+                "seccomp_presets": {key: {k: v for k, v in conf.items() if k != "warnings"}
+                                    for key, conf in SECCOMP_PRESETS.items()}}
+
+    def rpc_patch_preview(self, params: dict) -> dict:
+        ops, warnings = self._build_patch_ops(params)
+        return {"ops": [op.to_dict() for op in ops], "warnings": warnings,
+                "binary": str(self._patch_lab(params).binary)}
+
+    def rpc_patch_apply(self, params: dict) -> dict:
+        ops, warnings = self._build_patch_ops(params)
+        lab = self._patch_lab(params)
+        outcome = lab.apply(ops)
+        self._log(f"AWDP 补丁已应用 {len(ops)} 条（备份: {Path(outcome['backup']).name}）")
+        return {"applied": outcome["applied"], "backup": outcome["backup"],
+                "warnings": warnings, "binary": str(lab.binary),
+                "log": [op.to_dict() for op in lab.log_ops()]}
+
+    def rpc_patch_list(self, params: dict) -> dict:
+        lab = self._patch_lab(params)
+        return {"ops": [op.to_dict() for op in lab.log_ops()],
+                "binary": str(lab.binary), "log_path": str(lab.log_path)}
+
+    def rpc_patch_undo(self, params: dict) -> dict:
+        lab = self._patch_lab(params)
+        outcome = lab.undo(str(params.get("op_id") or ""))
+        self._log(f"已撤销补丁 {params.get('op_id')}")
+        return {**outcome, "log": [op.to_dict() for op in lab.log_ops()]}
+
+    def rpc_patch_clear(self, params: dict) -> dict:
+        lab = self._patch_lab(params)
+        outcome = lab.undo_all()
+        self._log(f"已撤销全部 {outcome['count']} 条补丁")
+        return {**outcome, "log": []}
+
+    def rpc_patch_export(self, params: dict) -> dict:
+        kind = str(params.get("kind") or "").strip()
+        lab = self._patch_lab(params)
+        ops = lab.log_ops()
+        if not ops:
+            raise ValueError("当前没有已应用的补丁可导出")
+        # 目标二进制沿用 params["path"]；导出落盘路径单独用 "dest"，避免同名歧义
+        dest = str(params.get("dest") or "").strip()
+        path = dest
+        if kind == "script":
+            arch = self._patch_arch(lab.binary)
+            text = export_pwntools_script(ops, binary_name=lab.binary.name, arch=arch)
+            if path:
+                Path(path).write_text(text, encoding="utf-8")
+            return {"text": text, "path": path, "count": len(ops)}
+        if kind == "diff":
+            text = export_diff_text(ops, binary_path=str(lab.binary))
+            if path:
+                Path(path).write_text(text, encoding="utf-8")
+            return {"text": text, "path": path, "count": len(ops)}
+        if kind == "patched":
+            if not path:
+                raise ValueError("导出补丁后 ELF 需要一个保存路径")
+            target = self.workspace.target or {}
+            original = str(target.get("original_binary") or "")
+            if not original or not Path(original).is_file():
+                raise ValueError("找不到只读原始副本（original_binary），无法回放生成干净 ELF")
+            outcome = materialize_patched(Path(original), ops, Path(path))
+            self._log(f"已导出补丁后 ELF: {path}")
+            return outcome
+        raise ValueError(f"未知导出类型: {kind or '(空)'}（支持 script/diff/patched）")
+
+    def rpc_patch_instructions(self, params: dict) -> dict:
+        name = str(params.get("function") or "").strip()
+        if not name:
+            raise ValueError("未选择函数")
+        lab = self._patch_lab(params)
+        functions, error = self._disassemble_functions(lab.binary)
+        if error:
+            raise ValueError(f"反汇编失败: {error}")
+        fn = next((f for f in functions if str(f.get("name")) == name), None)
+        if fn is None:
+            raise ValueError(f"函数 {name!r} 不在当前反汇编列表中")
+        return {"function": name, "address": fn.get("address"),
+                "instructions": [
+                    {"address": f"0x{insn['address']:x}", "size": insn["size"],
+                     "bytes": insn["bytes"].hex(" "), "text": insn["text"]}
+                    for insn in parse_instruction_lines(fn.get("assembly") or "")]}
+
+    def rpc_patch_disasm_raw(self, params: dict) -> dict:
+        lab = self._patch_lab(params)
+        bits = 64 if lab.geometry()["is64"] else 32
+        return disasm_raw(str(params.get("hex") or ""), bits=bits, runner=self._runner,
+                          work_dir=lab.binary.parent / ".pwncraft" / "work")
+
+    def rpc_patch_bytecode_lookup(self, params: dict) -> dict:
+        return {"entries": catalog_entries(str(params.get("query") or ""))}
+
+    def rpc_patch_encode(self, params: dict) -> dict:
+        payload = params.get("params") if isinstance(params.get("params"), dict) else {}
+        return encode_template(str(params.get("kind") or ""), payload)
+
+    def rpc_workspace_get(self, params: dict) -> dict:        return {
             "project": self.workspace.project,
             "binary": self.workspace.binary,
             "target": self.workspace.target,

@@ -1,0 +1,544 @@
+"""AWDP patch lab 真值单测：ELF 几何、code cave、seccomp 注入、recipes、导出。
+
+全部使用手工构造的最小 ELF64 fixture（ET_EXEC、单 PT_LOAD R+X、
+.text + 全零 cave + 节表），不依赖 WSL / 真实工具。
+"""
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest import TestCase
+from unittest.mock import Mock
+import struct
+
+from pwncraft.core.wsl import ToolResult
+from pwncraft.features.patch.patch_core import (
+    PatchLab, PatchOp, entry_prefix_bytes, find_code_cave, parse_instruction_lines,
+    rel32_jmp)
+from pwncraft.features.patch.seccomp_inject import (
+    SECCOMP_PRESETS, build_bpf_filter, build_install_shellcode, build_seccomp_ops,
+    resolve_policy_names, shellcode_length)
+from pwncraft.features.patch.recipes import (
+    build_custom_bytes, build_nop_function, build_nop_range, build_plt_call_redirect,
+    build_plt_stub_redirect, build_read_length, build_ret_function, extract_plt_stubs,
+    find_call_sites, normalize_patch_arch)
+from pwncraft.features.patch.bytecode_catalog import (
+    catalog_entries, disasm_raw, encode_template)
+from pwncraft.features.patch.exporters import (
+    export_diff_text, export_pwntools_script, materialize_patched)
+
+BASE = 0x400000
+ENTRY_BYTES = b"\xf3\x0f\x1e\xfa\x31\xed\x5f\x5e"          # endbr64; xor ebp; pop rdi; pop rsi
+STUB_READ = b"\xff\x25\x00\x00\x00\x00" + b"\x90" * 10      # 16 字节 PLT stub
+STUB_EXIT = b"\xff\x25\x01\x00\x00\x00" + b"\x90" * 10
+MAIN_CALL_REL = struct.pack("<i", (BASE + 0x80) - (BASE + 0xA0 + 15))
+MAIN_BYTES = b"\xba\x2c\x01\x00\x00" + b"\xbf\x00\x00\x00\x00" + b"\xe8" + MAIN_CALL_REL
+
+
+def insn_lines(start: int, chunks: list[tuple[bytes, str]]) -> str:
+    lines, addr = [], start
+    for blob, text in chunks:
+        lines.append(f"  {addr:x}:\t{blob.hex(' ')}\t{text}")
+        addr += len(blob)
+    return "\n".join(lines)
+
+
+ENTRY_ASSEMBLY = insn_lines(BASE + 0x78, [
+    (b"\xf3\x0f\x1e\xfa", "endbr64"),
+    (b"\x31\xed", "xor %ebp,%ebp"),
+    (b"\x5f", "pop %rdi"),
+    (b"\x5e", "pop %rsi"),
+])
+STUB_ASSEMBLY_READ = insn_lines(BASE + 0x80, [
+    (b"\xff\x25\x00\x00\x00\x00", "jmpq *0x0(%rip)"),
+    (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"),
+    (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"),
+    (b"\x90", "nop"), (b"\x90", "nop"),
+])
+STUB_ASSEMBLY_EXIT = insn_lines(BASE + 0x90, [
+    (b"\xff\x25\x01\x00\x00\x00", "jmpq *0x1(%rip)"),
+    (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"),
+    (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"), (b"\x90", "nop"),
+    (b"\x90", "nop"), (b"\x90", "nop"),
+])
+MAIN_ASSEMBLY = insn_lines(BASE + 0xA0, [
+    (b"\xba\x2c\x01\x00\x00", "mov $0x12c,%edx"),
+    (b"\xbf\x00\x00\x00\x00", "mov $0x0,%edi"),
+    (b"\xe8" + MAIN_CALL_REL, "callq 400080 <read@plt>"),
+])
+TEXT_BLOB = ENTRY_BYTES + STUB_READ + STUB_EXIT + MAIN_BYTES   # 0x78..0xAF
+
+
+def fake_functions() -> list[dict]:
+    return [
+        {"name": "read@plt", "address": "0x400080", "section": ".plt",
+         "assembly": STUB_ASSEMBLY_READ},
+        {"name": "exit@plt", "address": "0x400090", "section": ".plt",
+         "assembly": STUB_ASSEMBLY_EXIT},
+        {"name": ".plt", "address": "0x400060", "section": ".plt",
+         "assembly": insn_lines(BASE + 0x60, [(b"\xff\x35\x02\x00\x00\x00", "push 0x2(%rip)")])},
+        {"name": "system@plt", "address": "0x4000b0", "section": ".plt.sec",
+         "assembly": insn_lines(BASE + 0xB0, [(b"\xf3\x0f\x1e\xfa", "endbr64"),
+                                              (b"\xf2\xff\x25\x01\x00\x00\x00", "bnd jmp *0x1(%rip)"),
+                                              (b"\x0f\x1f\x44\x00\x00", "nop 0x0(%rax,%rax,1)")])},
+        {"name": "main", "address": "0x4000a0", "section": ".text",
+         "assembly": MAIN_ASSEMBLY},
+    ]
+
+
+def fake_functions_legacy() -> list[dict]:
+    """传统布局：无 .plt.sec，全部 @plt 在 .plt 节。"""
+    return [fn for fn in fake_functions() if fn["section"] != ".plt.sec"]
+
+
+def build_fixture(folder: Path, *, cave_size: int = 256) -> Path:
+    """最小 ELF64：Ehdr + 1 个 R+X PT_LOAD + .text + 全零 cave + shstrtab + 节表。"""
+    text_off = 0x78
+    cave_off = text_off + len(TEXT_BLOB)
+    shstr = b"\0.text\0.shstrtab\0"
+    shstr_off = cave_off + cave_size
+    shoff = (shstr_off + len(shstr) + 7) & ~7
+    shnum = 3
+    file_size = shoff + shnum * 64
+    entry = BASE + text_off
+
+    ehdr = bytearray(64)
+    ehdr[:6] = b"\x7fELF\x02\x01"
+    struct.pack_into("<HHIQQQIHHHHHH", ehdr, 16,
+                     2, 0x3E, 1, entry, 64, shoff, 0, 64, 56, 1, 64, shnum, 2)
+    ph = struct.pack("<IIQQQQQQ", 1, 5, 0, BASE, 0, file_size, file_size, 0x1000)
+    sh_text = struct.pack("<IIQQQQIIQQ", 1, 1, 6, BASE + text_off, text_off,
+                          len(TEXT_BLOB), 0, 0, 1, 0)
+    sh_str = struct.pack("<IIQQQQIIQQ", 7, 3, 0, 0, shstr_off, len(shstr), 0, 0, 1, 0)
+
+    data = bytearray(file_size)
+    data[0:64] = ehdr
+    data[64:120] = ph
+    data[text_off:text_off + len(TEXT_BLOB)] = TEXT_BLOB
+    data[shstr_off:shstr_off + len(shstr)] = shstr
+    data[shoff + 64:shoff + 128] = sh_text
+    data[shoff + 128:shoff + 192] = sh_str
+    target = folder / "pwn"
+    target.write_bytes(bytes(data))
+    return target
+
+
+class FixtureCase(TestCase):
+    def setUp(self):
+        self._tmp = TemporaryDirectory()
+        self.folder = Path(self._tmp.name)
+        self.binary = build_fixture(self.folder)
+        self.lab = PatchLab(self.binary)
+
+
+class GeometryTests(FixtureCase):
+    def test_geometry_maps_vaddr_to_offset(self):
+        geo = self.lab.geometry()
+        self.assertEqual(geo["entry"], BASE + 0x78)
+        self.assertTrue(geo["is64"])
+        self.assertEqual(self.lab.offset_of(BASE + 0x80), 0x80)
+        with self.assertRaises(ValueError):
+            self.lab.offset_of(0x100)
+
+    def test_parse_instruction_lines(self):
+        instructions = parse_instruction_lines(MAIN_ASSEMBLY)
+        self.assertEqual([insn["address"] for insn in instructions],
+                         [BASE + 0xA0, BASE + 0xA5, BASE + 0xAA])
+        self.assertEqual(instructions[0]["bytes"], b"\xba\x2c\x01\x00\x00")
+        self.assertEqual(instructions[0]["size"], 5)
+        self.assertEqual(parse_instruction_lines("随便一行不是指令"), [])
+
+
+class CodeCaveTests(FixtureCase):
+    def test_page_aware_offset_falls_back_to_segment_tail(self):
+        from pwncraft.features.patch.patch_core import page_aware_vaddr_to_offset
+        # 模拟真实布局：RX 段 vaddr 0x401000 filesz 0x1d1，页尾填充到 0x402000
+        geometry = {"file_size": 0x2338, "program_headers": [
+            {"type": 1, "flags": 5, "offset": 0x1000, "vaddr": 0x401000,
+             "filesz": 0x1d1, "memsz": 0x1d1, "align": 0x1000}], "sections": []}
+        self.assertEqual(page_aware_vaddr_to_offset(geometry, 0x401100), 0x1100)
+        self.assertEqual(page_aware_vaddr_to_offset(geometry, 0x4011d1), 0x11d1)
+        self.assertEqual(page_aware_vaddr_to_offset(geometry, 0x402000), None)
+
+    def test_cave_is_zero_padding_after_text(self):
+        cave = find_code_cave(self.binary, 64)
+        blob = self.lab.read(cave["offset"], cave["size"])
+        self.assertTrue(set(blob) <= {0})
+        self.assertEqual(cave["vaddr"], BASE + cave["offset"])
+        # cave 不得覆盖 .text / 头部
+        self.assertGreaterEqual(cave["offset"], 0x78 + len(TEXT_BLOB))
+
+    def test_no_cave_raises_readable_error(self):
+        import sys
+        mod = sys.modules[__name__]
+        original = mod.TEXT_BLOB
+        try:
+            mod.TEXT_BLOB = original + b"\x00" * 4
+            with TemporaryDirectory() as folder:
+                small = build_fixture(Path(folder))
+                with self.assertRaises(ValueError):
+                    find_code_cave(small, 512)
+        finally:
+            mod.TEXT_BLOB = original
+
+
+class SeccompTests(FixtureCase):
+    def test_bpf_filter_blacklist_and_whitelist(self):
+        bpf = build_bpf_filter("amd64", kill=(59, 322))
+        self.assertEqual(len(bpf), (5 + 2) * 8)
+        insns = [struct.unpack("<HBBI", bpf[i:i + 8]) for i in range(0, len(bpf), 8)]
+        self.assertEqual(insns[0], (0x20, 0, 0, 4))              # A = arch
+        self.assertEqual(insns[1][0], 0x15)                        # JEQ arch
+        self.assertEqual(insns[1][3], 0xC000003E)
+        self.assertEqual(insns[1][2], 4)                           # jf → KILL 行
+        self.assertEqual(insns[3][3], 59)
+        self.assertEqual(insns[4][3], 322)
+        self.assertEqual(insns[5], (0x06, 0, 0, 0x7FFF0000))       # 默认 ALLOW
+        self.assertEqual(insns[6], (0x06, 0, 0, 0x80000000))       # 命中 KILL
+        white = build_bpf_filter("amd64", allow=(0, 1))
+        winsns = [struct.unpack("<HBBI", white[i:i + 8]) for i in range(0, len(white), 8)]
+        self.assertEqual(winsns[5], (0x06, 0, 0, 0x80000000))      # 默认 KILL
+        self.assertEqual(winsns[6], (0x06, 0, 0, 0x7FFF0000))      # 命中 ALLOW
+        with self.assertRaises(ValueError):
+            build_bpf_filter("arm", kill=(1,))
+        with self.assertRaises(ValueError):
+            build_bpf_filter("amd64")
+
+    def test_shellcode_encoding_and_displacements(self):
+        sc = build_install_shellcode("amd64", 0x1000, 0x1000 + 82, 7)
+        self.assertEqual(len(sc), shellcode_length("amd64"))
+        self.assertIn(b"\xb8\x9d\x00\x00\x00", sc)                  # mov eax,157
+        self.assertIn(b"\xbf\x16\x00\x00\x00", sc)                  # mov edi,22
+        self.assertEqual(sc[0], 0x52)                               # push rdx（保存 rtld_fini）
+        self.assertEqual(sc[-1], 0x5A)                              # pop rdx
+        self.assertEqual(sc[29:33], struct.pack("<i", 82 - 33))     # lea rip 位移
+        sc32 = build_install_shellcode("i386", 0x2000, 0x2000 + 100, 9)
+        self.assertEqual(len(sc32), shellcode_length("i386"))
+        self.assertIn(b"\xb8\xac\x00\x00\x00", sc32)                # mov eax,172
+        self.assertEqual(sc32[31:35], struct.pack("<i", 100 - 28))  # add ebx 位移
+
+    def test_resolve_policy_names(self):
+        self.assertEqual(resolve_policy_names(("execve", "execveat"), "amd64"), (59, 322))
+        self.assertEqual(resolve_policy_names(["exit_group"], "i386"), (252,))
+        with self.assertRaises(ValueError):
+            resolve_policy_names(("not_a_syscall",), "amd64")
+
+    def test_build_seccomp_ops_layout(self):
+        entry_lines = parse_instruction_lines(ENTRY_ASSEMBLY)
+        result = build_seccomp_ops(self.lab, arch="amd64",
+                                   kill=("execve", "execveat"), entry_lines=entry_lines)
+        ops = result["ops"]
+        self.assertEqual(len(ops), 2)
+        entry_op, cave_op = ops
+        prefix_len = result["prefix_len"]
+        self.assertEqual(prefix_len, 6)                             # endbr64 + xor ebp
+        # 入口 → jmp cave + NOP 填充
+        cave_vaddr = cave_op.vaddr
+        self.assertEqual(entry_op.new_bytes[:5],
+                         b"\xe9" + struct.pack("<i", cave_vaddr - (BASE + 0x78 + 5)))
+        self.assertEqual(entry_op.new_bytes[5:], b"\x90")
+        # cave 载荷 = shellcode + 原前缀 + 回跳 + BPF
+        sc_len = shellcode_length("amd64")
+        payload = cave_op.new_bytes
+        self.assertEqual(len(payload), sc_len + 6 + 5 + (5 + 2) * 8)
+        self.assertEqual(payload[sc_len:sc_len + 6], ENTRY_BYTES[:6])
+        back_jmp_at = sc_len + 6
+        self.assertEqual(payload[back_jmp_at:back_jmp_at + 5],
+                         rel32_jmp(cave_vaddr + back_jmp_at, BASE + 0x78 + 6))
+        self.assertEqual(payload[sc_len + 11:],
+                         build_bpf_filter("amd64", kill=(59, 322)))
+
+    def test_seccomp_roundtrip_apply_and_undo(self):
+        entry_lines = parse_instruction_lines(ENTRY_ASSEMBLY)
+        result = build_seccomp_ops(self.lab, arch="amd64",
+                                   allow=("read", "write", "exit_group"),
+                                   entry_lines=entry_lines)
+        original = self.binary.read_bytes()
+        applied = self.lab.apply(result["ops"])
+        self.assertTrue(Path(applied["backup"]).is_file())
+        self.assertNotEqual(self.binary.read_bytes(), original)
+        restored = self.lab.undo_all()
+        self.assertEqual(restored["count"], 2)
+        self.assertEqual(self.binary.read_bytes(), original)
+
+    def test_presets_are_self_consistent(self):
+        for preset in SECCOMP_PRESETS.values():
+            names = preset["kill"] if preset["default"] == "allow" else preset["allow"]
+            self.assertTrue(names)
+            self.assertTrue(resolve_policy_names(names, "amd64"))
+
+
+class RecipeTests(FixtureCase):
+    def test_plt_stubs_and_call_sites(self):
+        # IBT 布局：@plt 入口在 .plt.sec，.plt 只剩名为 ".plt" 的整块（跳过）
+        stubs = extract_plt_stubs(fake_functions())
+        self.assertEqual(set(stubs), {"read", "exit", "system"})
+        self.assertEqual(stubs["system"]["address"], BASE + 0xB0)
+        self.assertEqual(stubs["system"]["size"], 16)
+        # 传统布局：无 .plt.sec 时 @plt 直接在 .plt 节
+        legacy = extract_plt_stubs(fake_functions_legacy())
+        self.assertEqual(set(legacy), {"read", "exit"})
+        self.assertEqual(legacy["read"]["address"], BASE + 0x80)
+        self.assertEqual(legacy["read"]["size"], 16)
+        sites = find_call_sites(fake_functions(), "read")
+        self.assertEqual(len(sites), 1)
+        self.assertEqual(sites[0]["insn"]["address"], BASE + 0xAA)
+
+    def test_plt_call_redirect_recomputes_rel32(self):
+        result = build_plt_call_redirect(self.lab, fake_functions(), "read", "exit")
+        op = result["ops"][0]
+        self.assertEqual(op.vaddr, BASE + 0xAA)
+        expected = b"\xe8" + struct.pack("<i", (BASE + 0x90) - (BASE + 0xAA + 5))
+        self.assertEqual(op.new_bytes, expected)
+        with self.assertRaises(ValueError):
+            build_plt_call_redirect(self.lab, fake_functions(), "nosuch", "exit")
+
+    def test_plt_stub_redirect(self):
+        op = build_plt_stub_redirect(self.lab, fake_functions(), "read", "exit")["ops"][0]
+        self.assertEqual(op.new_bytes[:5],
+                         b"\xe9" + struct.pack("<i", (BASE + 0x90) - (BASE + 0x80 + 5)))
+        self.assertEqual(op.new_bytes[5:], b"\x90" * 11)
+
+    def test_read_length_patch(self):
+        op = build_read_length(self.lab, fake_functions(), "main", "read", 0x30)["ops"][0]
+        self.assertEqual(op.vaddr, BASE + 0xA0)
+        self.assertEqual(op.new_bytes, b"\xba\x30\x00\x00\x00")
+        with self.assertRaises(ValueError):
+            build_read_length(self.lab, fake_functions(), "main", "system", 0x30)
+
+    def test_nop_and_ret_function(self):
+        nop = build_nop_function(self.lab, fake_functions(), "main")["ops"][0]
+        self.assertEqual(nop.new_bytes, b"\x90" * 15)
+        self.assertEqual(nop.original_bytes, MAIN_BYTES)
+        ret = build_ret_function(self.lab, fake_functions(), "main")["ops"][0]
+        self.assertEqual(ret.new_bytes, b"\xc3")
+
+    def test_nop_range_and_custom_bytes(self):
+        op = build_nop_range(self.lab, BASE + 0xA0, BASE + 0xAA)["ops"][0]
+        self.assertEqual(op.new_bytes, b"\x90" * 10)
+        custom = build_custom_bytes(self.lab, BASE + 0xA0, "31 d2")["ops"][0]
+        self.assertEqual(custom.new_bytes, b"\x31\xd2")
+        with self.assertRaises(ValueError):
+            build_custom_bytes(self.lab, BASE + 0xA0, "xyz")
+        with self.assertRaises(ValueError):
+            build_custom_bytes(self.lab, BASE + 0xA0, "ba")  # 与原首字节相同
+
+    def test_normalize_patch_arch(self):
+        self.assertEqual(normalize_patch_arch("x86-64", 64), "amd64")
+        self.assertEqual(normalize_patch_arch("i386", 32), "i386")
+        with self.assertRaises(ValueError):
+            normalize_patch_arch("aarch64", 64)
+
+
+class PatchLabTests(FixtureCase):
+    def test_apply_undo_and_log(self):
+        op = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                     original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5, note="t")
+        self.lab.apply([op])
+        self.assertEqual(self.lab.read(0xA0, 5), b"\x90" * 5)
+        self.assertEqual(len(self.lab.log_ops()), 1)
+        self.assertEqual(self.lab.log_ops()[0].note, "t")
+        # 重叠补丁被拒绝
+        clash = PatchOp(kind="custom", vaddr=BASE + 0xA2, file_offset=0xA2,
+                        original_bytes=MAIN_BYTES[2:5], new_bytes=b"\x90" * 3)
+        with self.assertRaises(ValueError):
+            self.lab.apply([clash])
+        self.lab.undo(self.lab.log_ops()[0].op_id)
+        self.assertEqual(self.lab.read(0xA0, 5), MAIN_BYTES[:5])
+        self.assertEqual(self.lab.log_ops(), [])
+
+    def test_apply_rejects_stale_original_bytes(self):
+        stale = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                        original_bytes=b"\xff" * 5, new_bytes=b"\x90" * 5)
+        with self.assertRaises(ValueError):
+            self.lab.apply([stale])
+
+    def test_patchop_rejects_length_change(self):
+        with self.assertRaises(ValueError):
+            PatchOp(kind="custom", vaddr=0, file_offset=0,
+                    original_bytes=b"\x90", new_bytes=b"\x90\x90")
+
+    def test_entry_prefix_needs_five_bytes(self):
+        lines = [{"address": BASE, "bytes": b"\x90", "size": 1, "text": "nop"}]
+        with self.assertRaises(ValueError):
+            entry_prefix_bytes(lines)
+        self.assertEqual(entry_prefix_bytes(parse_instruction_lines(ENTRY_ASSEMBLY)),
+                         b"\xf3\x0f\x1e\xfa\x31\xed")
+
+
+class CatalogTests(TestCase):
+    def test_catalog_lookup(self):
+        nops = catalog_entries("nop")
+        self.assertTrue(any(entry["mnemonic"] == "nop 5" for entry in nops))
+        self.assertEqual(catalog_entries("e9 cd")[0]["mnemonic"], "jmp rel32")
+        self.assertGreater(len(catalog_entries("")), 40)
+
+    def test_encode_templates(self):
+        self.assertEqual(encode_template("nop", {"length": 5})["bytes"], "0f 1f 44 00 00")
+        self.assertEqual(encode_template("mov_reg_imm32",
+                                         {"register": "edx", "value": "0x30"})["bytes"],
+                         "ba 30 00 00 00")
+        self.assertEqual(encode_template("xor_reg", {"register": "edx"})["bytes"], "31 d2")
+        self.assertEqual(encode_template("jmp_rel32", {"origin": "0x1000", "target": "0x2000"})["bytes"],
+                         "e9 fb 0f 00 00")
+        with self.assertRaises(ValueError):
+            encode_template("keystone", {})
+
+    def test_disasm_raw_parses_objdump(self):
+        runner = Mock()
+        runner.to_wsl_path.side_effect = lambda p: f"/mnt/x/{Path(p).name}"
+        runner.run_tool.return_value = ToolResult(
+            [], 0,
+            "patch_disasm.bin:     file format binary\n\n"
+            "Disassembly of section .data:\n\n"
+            "0000000000000000 <.data>:\n"
+            "   0:\t55              \tpush   rbp\n"
+            "   1:\t48 89 e5        \tmov    rbp,rsp\n",
+            "")
+        with TemporaryDirectory() as folder:
+            result = disasm_raw("55 48 89 e5", bits=64, runner=runner,
+                                work_dir=Path(folder))
+        self.assertEqual([insn["offset"] for insn in result["instructions"]], [0, 1])
+        self.assertIn("push", result["instructions"][0]["text"])
+        self.assertEqual(runner.run_tool.call_args.args[0], "objdump")
+        self.assertIn("-b", runner.run_tool.call_args.args[1])
+
+
+class ExporterTests(FixtureCase):
+    def _two_ops(self):
+        return [
+            PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                    original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5, note="NOP 测试"),
+            PatchOp(kind="custom", vaddr=BASE + 0xA5, file_offset=0xA5,
+                    original_bytes=MAIN_BYTES[5:10], new_bytes=b"\x31\xd2\x90\x90\x90",
+                    note="xor edx"),
+        ]
+
+    def test_pwntools_script(self):
+        script = export_pwntools_script(self._two_ops(), binary_name="pwn", arch="amd64")
+        self.assertIn("context.arch = 'amd64'", script)
+        self.assertIn("elf.write(0x4000a0, bytes.fromhex('90 90 90 90 90'))", script)
+        self.assertIn("elf.save(output)", script)
+
+    def test_diff_text(self):
+        diff = export_diff_text(self._two_ops(), binary_path=str(self.binary))
+        self.assertIn("vaddr 0x4000a0", diff)
+        self.assertIn("ba 2c 01 00 00", diff)
+        self.assertIn("NOP 测试", diff)
+
+    def test_materialize_patched_replays_on_original(self):
+        pristine = self.folder / "original"
+        pristine.write_bytes(build_fixture_bytes())
+        self.lab.apply(self._two_ops())
+        dest = self.folder / "pwn_patched"
+        result = materialize_patched(pristine, self.lab.log_ops(), dest)
+        self.assertEqual(result["count"], 2)
+        blob = dest.read_bytes()
+        self.assertEqual(blob[0xA0:0xA5], b"\x90" * 5)
+        self.assertEqual(blob[0xA5:0xAA], b"\x31\xd2\x90\x90\x90")
+        # 原始副本与工作副本的其余字节保持一致
+        self.assertEqual(blob[:0xA0], pristine.read_bytes()[:0xA0])
+
+    def test_materialize_rejects_mismatched_source(self):
+        pristine = self.folder / "original2"
+        pristine.write_bytes(build_fixture_bytes())
+        patched = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                          original_bytes=b"\xff" * 5, new_bytes=b"\x90" * 5)
+        with self.assertRaises(ValueError):
+            materialize_patched(pristine, [patched], self.folder / "out")
+
+
+class BridgePatchTests(FixtureCase):
+    """rpc_patch_* 调度层：Mock objdump，验证 preview 不写盘、apply/undo/export 走通。"""
+
+    FULL_DISASSEMBLY = (
+        "Disassembly of section .plt:\n\n"
+        "0000000000400080 <read@plt>:\n" + STUB_ASSEMBLY_READ + "\n"
+        "0000000000400090 <exit@plt>:\n" + STUB_ASSEMBLY_EXIT + "\n"
+        "Disassembly of section .text:\n\n"
+        "00000000004000a0 <main>:\n" + MAIN_ASSEMBLY + "\n")
+
+    def _bridge(self):
+        from pwncraft.electron_bridge import ElectronBridge
+        bridge = ElectronBridge()
+
+        def run_tool(tool, args):
+            if any(str(arg).startswith("--start-address") for arg in args):
+                return ToolResult([], 0, ENTRY_ASSEMBLY, "")
+            return ToolResult([], 0, self.FULL_DISASSEMBLY, "")
+
+        runner = Mock()
+        runner.to_wsl_path.side_effect = lambda p: f"/mnt/x/{Path(p).name}"
+        runner.run_tool.side_effect = run_tool
+        bridge._runner = runner
+        return bridge
+
+    def test_preview_does_not_touch_file(self):
+        bridge = self._bridge()
+        before = self.binary.read_bytes()
+        result = bridge.rpc_patch_preview(
+            {"path": str(self.binary), "request": {"kind": "nop_function", "function": "main"}})
+        self.assertEqual(result["ops"][0]["new_bytes"].replace(" ", ""), "90" * 15)
+        self.assertEqual(self.binary.read_bytes(), before)
+
+    def test_apply_then_undo_via_rpc(self):
+        bridge = self._bridge()
+        params = {"path": str(self.binary),
+                  "request": {"kind": "custom", "vaddr": hex(BASE + 0xA0), "hex": "31 d2 90 90 90"}}
+        original = self.binary.read_bytes()
+        applied = bridge.rpc_patch_apply(params)
+        self.assertEqual(applied["backup"], applied["backup"])
+        self.assertNotEqual(self.binary.read_bytes(), original)
+        listed = bridge.rpc_patch_list({"path": str(self.binary)})
+        self.assertEqual(len(listed["ops"]), 1)
+        bridge.rpc_patch_undo({"path": str(self.binary), "op_id": listed["ops"][0]["op_id"]})
+        self.assertEqual(self.binary.read_bytes(), original)
+
+    def test_export_script_and_diff(self):
+        bridge = self._bridge()
+        bridge.rpc_patch_apply({"path": str(self.binary),
+                                "request": {"kind": "ret_function", "function": "main"}})
+        original = self.binary.read_bytes()
+        script = bridge.rpc_patch_export({"path": str(self.binary), "kind": "script"})
+        self.assertIn("elf.write(0x4000a0", script["text"])
+        self.assertEqual(self.binary.read_bytes(), original,
+                         "导出脚本不得写坏目标二进制（path/dest 歧义回归）")
+        diff = bridge.rpc_patch_export({"path": str(self.binary), "kind": "diff"})
+        self.assertIn("ret_function", diff["text"])
+        written = bridge.rpc_patch_export({"path": str(self.binary), "kind": "diff",
+                                           "dest": str(self.folder / "out.diff")})
+        self.assertTrue((self.folder / "out.diff").is_file())
+        self.assertIn("out.diff", written["path"])
+        with self.assertRaises(ValueError):
+            bridge.rpc_patch_export({"path": str(self.binary), "kind": "nope"})
+
+    def test_seccomp_rpc_end_to_end(self):
+        bridge = self._bridge()
+        original = self.binary.read_bytes()
+        result = bridge.rpc_patch_apply(
+            {"path": str(self.binary),
+             "request": {"kind": "seccomp", "preset": "blacklist_min"}})
+        self.assertEqual(len(result["applied"]), 2)
+        self.assertNotEqual(self.binary.read_bytes(), original)
+        bridge.rpc_patch_clear({"path": str(self.binary)})
+        self.assertEqual(self.binary.read_bytes(), original)
+
+    def test_bytecode_rpc_surface(self):
+        bridge = self._bridge()
+        entries = bridge.rpc_patch_bytecode_lookup({"query": "nop"})["entries"]
+        self.assertTrue(entries)
+        encoded = bridge.rpc_patch_encode(
+            {"kind": "mov_reg_imm32", "params": {"register": "edx", "value": "0x30"}})
+        self.assertEqual(encoded["bytes"], "ba 30 00 00 00")
+        instructions = bridge.rpc_patch_instructions(
+            {"path": str(self.binary), "function": "main"})["instructions"]
+        self.assertEqual(instructions[0]["bytes"], "ba 2c 01 00 00")
+
+    def test_unknown_request_kind_is_rejected(self):
+        bridge = self._bridge()
+        with self.assertRaises(ValueError):
+            bridge.rpc_patch_preview({"path": str(self.binary), "request": {"kind": "magic"}})
+
+
+def build_fixture_bytes() -> bytes:
+    """与 build_fixture 相同布局的字节串（不落盘）。"""
+    with TemporaryDirectory() as folder:
+        return build_fixture(Path(folder)).read_bytes()

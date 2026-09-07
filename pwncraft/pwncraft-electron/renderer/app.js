@@ -144,6 +144,7 @@
     if (page) page.hidden = false;
     if (key === 'binary') window.PwnPages.renderBinary();
     if (key === 'analysis') window.PwnAnalysis.render();
+    if (key === 'patch') window.PwnPatch.render();
     for (const button of $$('.activity-item')) {
       button.classList.toggle('active', button.dataset.key === key);
       if (button.dataset.key === key) button.setAttribute('aria-current', 'page');
@@ -177,6 +178,7 @@
     { key: 'welcome', title: '概览 / 导入 Target', icon: 'home' },
     { key: 'binary', title: 'Binary 概览', icon: 'box' },
     { key: 'analysis', title: '代码分析 · 汇编函数 / 漏洞建议', icon: 'scan-search' },
+    { key: 'patch', title: 'AWDP Patch · ELF 补丁', icon: 'bandage' },
     { key: 'exp', title: 'EXP 编辑器', icon: 'file-code' },
     { key: 'heap', title: 'Heap 物理堆画布', icon: 'cpu' },
     { key: 'rop', title: 'ROP / Gadget', icon: 'zap' },
@@ -407,7 +409,7 @@
       await restartShellTerminal(entry.project && entry.project.project_path || '');
     }
     // 数据页跟着新 Target 重渲染；Heap 画布是独立仿真沙盘，保持原状
-    if (['binary', 'analysis', 'rop', 'debug', 'format', 'syscall', 'stack', 'tools'].includes(state.page)) {
+    if (['binary', 'analysis', 'patch', 'rop', 'debug', 'format', 'syscall', 'stack', 'tools'].includes(state.page)) {
       switchPage(state.page);
     }
     // ELF 拖入即自动分析：ROPgadget / seccomp-tools / fmt 探测在 WSL 后台
@@ -1324,6 +1326,7 @@
     { id: 'welcome', label: '转到概览', icon: 'home', run: () => switchPage('welcome') },
     { id: 'binary', label: '转到 Binary 概览', icon: 'box', run: () => switchPage('binary') },
     { id: 'analysis', label: '转到代码分析：汇编函数 / 漏洞建议', icon: 'scan-search', run: () => switchPage('analysis') },
+    { id: 'patch', label: '转到 AWDP Patch：字节级补丁 / 一键通防', icon: 'bandage', run: () => switchPage('patch') },
     { id: 'exp', label: '转到 EXP 编辑器', icon: 'file-code', run: () => switchPage('exp') },
     { id: 'heap', label: '转到 Heap 物理堆画布', icon: 'cpu', run: () => switchPage('heap') },
     { id: 'rop', label: '转到 ROP / Gadget', icon: 'zap', run: () => switchPage('rop') },

@@ -323,9 +323,13 @@ ipcMain.handle('dialog:openElf', async () => {
 ipcMain.handle('dialog:saveFile', async (_event, defaultName, kind) => {
   const filters = kind === 'json'
     ? [{ name: 'PwnCraft 场景', extensions: ['json'] }]
-    : [{ name: 'Python', extensions: ['py'] }];
+    : kind === 'txt'
+      ? [{ name: '文本文件', extensions: ['txt'] }]
+      : kind === 'bin'
+        ? [{ name: '所有文件', extensions: ['*'] }]
+        : [{ name: 'Python', extensions: ['py'] }];
   const result = await dialog.showSaveDialog(mainWindow, {
-    title: kind === 'json' ? '保存堆场景' : '保存 exp 文本',
+    title: kind === 'json' ? '保存堆场景' : kind === 'bin' ? '导出补丁文件' : '保存文本',
     defaultPath: String(defaultName || 'exp.py'),
     filters,
   });

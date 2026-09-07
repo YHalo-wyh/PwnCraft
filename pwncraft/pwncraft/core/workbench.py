@@ -312,6 +312,44 @@ def parse_elf_security(path: str | Path) -> dict[str, str]:
     return result
 
 
+def elf_geometry(path: str | Path) -> dict:
+    """Public read-only ELF layout for byte-level tools (AWDP patch lab).
+
+    Wraps the offline header parsers so feature code never re-implements
+    address↔offset truth.  Raises ``ValueError`` for non-ELF input.
+    """
+    target = Path(path)
+    data = target.read_bytes()
+    layout = _elf_header_layout(data)
+    if layout is None:
+        raise ValueError(f"不是有效 ELF 文件: {target}")
+    endian, e_type, phoff, phentsize, phnum, shoff, shentsize, shnum = layout
+    order = "<" if endian == "little" else ">"
+    is64 = data[4] == 2
+    entry = int.from_bytes(data[24:32] if is64 else data[24:28], endian)
+    with target.open("rb") as stream:
+        program_headers = _program_headers(stream, order, phoff, phentsize, min(phnum, 65535))
+        sections = _section_headers(stream, order, shoff, shentsize, min(shnum, 65535))
+    return {
+        "is64": is64,
+        "endian": endian,
+        "order": order,
+        "e_type": e_type,
+        "entry": entry,
+        "phoff": phoff,
+        "phentsize": phentsize,
+        "phnum": phnum,
+        "program_headers": program_headers,
+        "sections": sections,
+        "file_size": len(data),
+    }
+
+
+def vaddr_to_offset(geometry: dict, vaddr: int) -> int | None:
+    """Resolve a virtual address to a file offset via PT_LOAD headers."""
+    return _vaddr_to_offset(list(geometry.get("program_headers") or []), int(vaddr))
+
+
 class BinaryInspector:
     """Read static ELF facts and optionally merge explicit checksec output."""
 
