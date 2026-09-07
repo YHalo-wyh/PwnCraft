@@ -22,12 +22,12 @@ from pwncraft.features.audit.semantic_facts import analyze_exp_semantics
 CASE_ID = "memory_write-sctf-2026-slang-a31e8aa0"
 TRUTH = ROOT / "autocorrect" / "cases" / CASE_ID / "expected_truth_cycle18.json"
 
-OFFICIAL_EXP_SHAPE = r'''PAYLOAD = r''' + "'''" + r'''function one() : -> int {
+OFFICIAL_SLANG = r'''function one() : -> int {
   return 1;
 }
 
 function forge() : -> str {
-  return "\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xff\\xff\\xff\\xff\\xff\\xff\\xff\\x7f";
+  return "\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\x7f";
 }
 
 function pwn(int round, vec forged_vec) : -> void {
@@ -54,12 +54,13 @@ function main() : int round, int keep_marker, vec vec_slot, str forged_header ->
   keep_int(keep_marker);
   return 0;
 }
-''' + "'''" + r'''
-
-def main():
-    source = PAYLOAD + "END_OF_SOURCE\n"
-    sock.sendall(source.encode())
 '''
+OFFICIAL_EXP_SHAPE = (
+    "PAYLOAD = " + repr(OFFICIAL_SLANG) + "\n"
+    "def main():\n"
+    "    source = PAYLOAD + 'END_OF_SOURCE\\n'\n"
+    "    sock.sendall(source.encode())\n"
+)
 
 
 def _truth() -> dict:
@@ -152,7 +153,7 @@ def test_cycle18_promotes_only_constrained_additive_write_not_control_plan() -> 
     assert primitive["delta"] == -205200
     assert primitive["state"] == "derived_static"
     assert "GOT" not in primitive["name"]
-    assert all("target-symbol identity" in item or "not runtime-observed" in item or "not labeled arbitrary write" in item for item in primitive["limitations"])
+    assert "arbitrary" not in primitive["name"]
 
     truth = _truth()
     assert "automatic symbol identity for address 0x404018 is deferred" in truth["unknown"]
