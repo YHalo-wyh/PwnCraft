@@ -1,9 +1,7 @@
-"""Cross-domain semantic facts derived only from ExploitIR source evidence.
+"""Cross-domain semantic facts derived from explicit source and reviewed target facts.
 
-This module intentionally models *EXP intent*, not target vulnerability truth.
-A referenced libc symbol proves that the exploit source names that object; it
-does not prove the target contains a reachable corruption primitive or that the
-exploit succeeds at runtime.
+EXP source evidence proves source intent only.  Compiler/runtime-specific facts are
+opt-in reviewed policies and remain distinct from runtime observations.
 """
 from __future__ import annotations
 
@@ -15,6 +13,10 @@ from pwncraft.features.audit.embedded_compiler import (
 )
 from pwncraft.features.audit.embedded_execution import analyze_embedded_execution_semantics
 from pwncraft.features.audit.embedded_program import extract_embedded_function_program
+from pwncraft.features.audit.embedded_runtime import (
+    EmbeddedRuntimePolicy,
+    analyze_embedded_runtime_semantics,
+)
 from pwncraft.features.audit.extract import extract_exploit_ir
 from pwncraft.features.audit.model import ExploitIR, SymbolRef
 from pwncraft.features.audit.outbound_payload import extract_outbound_literal_payloads
@@ -36,15 +38,7 @@ def _ref_evidence(ref: SymbolRef) -> dict:
 
 
 def infer_exp_primitives(ir: ExploitIR) -> list[dict]:
-    """Infer narrow, reviewable exploit-intent primitives from an ExploitIR.
-
-    Current FSOP rule requires both:
-      1. a standard libc FILE object reference (``_IO_2_1_*``), and
-      2. an ``_IO_*_jumps`` vtable reference.
-
-    This conjunction is intentionally stronger than seeing ``system`` or one
-    FILE symbol in isolation, but the resulting state remains ``derived``.
-    """
+    """Infer narrow exploit-intent facts from ExploitIR symbol references."""
     refs = list(ir.symbol_refs)
     stream_refs = [ref for ref in refs if ref.symbol.startswith("_IO_2_1_")]
     vtable_refs = [
@@ -96,18 +90,20 @@ def _embedded_program_facts(payloads: list) -> list[dict]:
 
 def _embedded_semantic_facts(
     payloads: list,
-    policy: EmbeddedCompilerPolicy | None,
-) -> tuple[list[dict], list[dict]]:
-    """Apply reviewed compiler semantics and the deterministic execution layer."""
-    if policy is None:
-        return [], []
+    compiler_policy: EmbeddedCompilerPolicy | None,
+    runtime_policy: EmbeddedRuntimePolicy | None,
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Apply reviewed compiler, deterministic execution and reviewed runtime layers."""
+    if compiler_policy is None:
+        return [], [], []
     compiler_result: list[dict] = []
     execution_result: list[dict] = []
+    runtime_result: list[dict] = []
     for payload in payloads:
         program = extract_embedded_function_program(payload.content)
         if program is None:
             continue
-        compiler = analyze_embedded_compiler_semantics(program, policy)
+        compiler = analyze_embedded_compiler_semantics(program, compiler_policy)
         compiler["source_payload_sha256"] = payload.sha256
         compiler["source_payload_line"] = payload.line
         compiler["source_payload_scope"] = payload.scope
@@ -122,19 +118,32 @@ def _embedded_semantic_facts(
         execution["source_payload_line"] = payload.line
         execution["source_payload_scope"] = payload.scope
         execution_result.append(execution)
-    return compiler_result, execution_result
+
+        if runtime_policy is not None:
+            runtime = analyze_embedded_runtime_semantics(
+                program,
+                execution,
+                payload.content,
+                runtime_policy,
+            )
+            runtime["source_payload_sha256"] = payload.sha256
+            runtime["source_payload_line"] = payload.line
+            runtime["source_payload_scope"] = payload.scope
+            runtime_result.append(runtime)
+    return compiler_result, execution_result, runtime_result
 
 
 def analyze_exp_semantics(
     source: str,
     *,
     embedded_compiler_policy: EmbeddedCompilerPolicy | None = None,
+    embedded_runtime_policy: EmbeddedRuntimePolicy | None = None,
 ) -> dict:
-    """Return source-derived semantic facts without mutating a workspace.
+    """Return source/reviewed-policy semantic facts without executing the target.
 
-    Compiler-specific facts are opt-in and require a reviewed policy.  The
-    cross-iteration execution layer is downstream of those reviewed facts and
-    never runs when no policy is supplied.
+    Runtime semantics are intentionally downstream of reviewed compiler facts:
+    supplying a runtime policy without a compiler policy does not bypass the type-
+    confusion proof requirement.
     """
     ir, syntax_error = extract_exploit_ir(source)
     if syntax_error is not None:
@@ -148,17 +157,20 @@ def analyze_exp_semantics(
             "embedded_programs": [],
             "embedded_compiler_semantics": [],
             "embedded_execution_semantics": [],
+            "embedded_runtime_semantics": [],
             "primitives": [],
         }
     payloads, payload_error = extract_outbound_literal_payloads(source)
-    # Both extractors consume the same Python grammar.  Keep this defensive
-    # branch explicit rather than silently dropping payload evidence if they ever
-    # diverge in supported syntax.
     if payload_error is not None:
         payloads = []
-    compiler_facts, execution_facts = _embedded_semantic_facts(
-        payloads, embedded_compiler_policy
+    compiler_facts, execution_facts, runtime_facts = _embedded_semantic_facts(
+        payloads,
+        embedded_compiler_policy,
+        embedded_runtime_policy,
     )
+    primitives = infer_exp_primitives(ir)
+    for runtime in runtime_facts:
+        primitives.extend(runtime.get("primitives") or [])
     return {
         "status": "ok",
         "reason": "",
@@ -176,7 +188,8 @@ def analyze_exp_semantics(
         "embedded_programs": _embedded_program_facts(payloads),
         "embedded_compiler_semantics": compiler_facts,
         "embedded_execution_semantics": execution_facts,
-        "primitives": infer_exp_primitives(ir),
+        "embedded_runtime_semantics": runtime_facts,
+        "primitives": primitives,
     }
 
 
@@ -185,18 +198,22 @@ def apply_exp_semantics_to_workspace(
     source: str,
     *,
     embedded_compiler_policy: EmbeddedCompilerPolicy | None = None,
+    embedded_runtime_policy: EmbeddedRuntimePolicy | None = None,
 ) -> dict:
-    """Publish EXP-derived primitives with their non-observed state intact."""
+    """Publish derived primitives while preserving their non-observed state."""
     result = analyze_exp_semantics(
-        source, embedded_compiler_policy=embedded_compiler_policy
+        source,
+        embedded_compiler_policy=embedded_compiler_policy,
+        embedded_runtime_policy=embedded_runtime_policy,
     )
     if result["status"] != "ok":
         return result
     for primitive in result["primitives"]:
         evidence_items = primitive.get("evidence") or []
         evidence = "; ".join(
-            f"L{item.get('line', 0)} {item.get('expression', '')}"
+            f"L{item.get('line', 0)} {item.get('expression', item.get('kind', ''))}"
             for item in evidence_items
+            if isinstance(item, dict)
         )
         workspace.add_primitive(
             str(primitive["name"]),
