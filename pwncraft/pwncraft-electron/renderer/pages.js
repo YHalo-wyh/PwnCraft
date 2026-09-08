@@ -1330,39 +1330,105 @@
     await renderTab(0);
   }
 
+  // 常用速记块：与目录块同处「代码块」一个面板，全部可拖入编辑器。
+  const QUICK_BLOCKS = [
+    { label: 'u64 ljust 补齐', code: "u64(leak.ljust(8, b'\\x00'))",
+      hint: 'EXP_LEAK_001 · 6 字节泄露补齐 8 字节' },
+    { label: 'p64 打包', code: 'p64(target_addr)', hint: 'amd64 地址打包' },
+    { label: 'recvuntil 菜单同步', code: 'io.recvuntil(b"Choice:")', hint: 'PROMPT_SYNC' },
+  ];
+
+  function quickChipHtml(block) {
+    return `
+      <div class="pwncraft-code-chip" data-pwncraft-code="${esc(block.code)}">
+        <div class="pwncraft-chip-label">${esc(block.label)}</div>
+        <pre class="pwncraft-chip-code">${esc(block.code)}</pre>
+        ${block.hint ? `<div class="pwncraft-chip-hint">${esc(block.hint)}</div>` : ''}
+      </div>`;
+  }
+
+  function blockGroupHtml(title, count, body, open) {
+    return `
+      <details class="block-group" ${open ? 'open' : ''}>
+        <summary>${esc(title)}<span class="block-group-count">${count}</span></summary>
+        <div class="block-group-body">${body}</div>
+      </details>`;
+  }
+
   async function renderBlockCatalog(host) {
+    host.innerHTML = `
+      <input id="block-filter" class="input" placeholder="搜索 tcache / overlap / ret2libc…" />
+      <div class="hint-dim block-catalog-hint">全部代码块可拖入编辑器；目录块双击可先填参数，速记块双击就地编辑。</div>
+      <div id="block-list" class="block-list"></div>`;
+    const quickFixes = Array.isArray(window.PwnExpDnD && window.PwnExpDnD.quickFixes)
+      ? window.PwnExpDnD.quickFixes : [];
     let blocks = [];
+    let query = '';
+    const renderList = () => {
+      const needle = query.trim().toLowerCase();
+      const hit = (text) => text.toLowerCase().includes(needle);
+      // 目录块按分类分组（保持 blocks_list 的目录顺序）
+      const groups = new Map();
+      for (const block of blocks) {
+        const matched = !needle
+          || hit(block.title) || hit(block.category)
+          || hit(block.description || '')
+          || (block.tags || []).some((tag) => hit(tag));
+        if (!matched) continue;
+        if (!groups.has(block.category)) groups.set(block.category, []);
+        groups.get(block.category).push(block);
+      }
+      const quickHit = (item) => !needle
+        || hit(item.label || '') || hit(item.code || '') || hit(item.hint || '');
+      let html = '';
+      const fixes = quickFixes.filter(quickHit);
+      if (fixes.length) {
+        html += blockGroupHtml('审计快速修复', fixes.length, fixes.map(quickChipHtml).join(''), true);
+      }
+      const quicks = QUICK_BLOCKS.filter(quickHit);
+      if (quicks.length) {
+        html += blockGroupHtml('常用速记', quicks.length, quicks.map(quickChipHtml).join(''), true);
+      }
+      for (const [category, items] of groups) {
+        const body = items.map((block) => `
+          <div class="block-row" data-id="${esc(block.id)}" data-pwncraft-code="${esc(block.snippet)}">
+            <div class="block-title">${esc(block.title)}<span class="block-cat">${esc(block.category)}</span>
+              <span class="block-drag-note">拖入编辑器 · 双击填参</span></div>
+            <div class="hint-dim">${esc(block.description)}</div>
+          </div>`).join('');
+        // 搜索时自动展开分组；浏览时默认收起，保持面板紧凑
+        html += blockGroupHtml(category, items.length, body, !!needle);
+      }
+      $('#block-list', host).innerHTML = html || '<div class="hint-dim">没有匹配代码块。</div>';
+      $$('.block-row[data-id]', host).forEach((row) => {
+        const block = blocks.find((item) => item.id === row.dataset.id);
+        if (window.PwnExpDnD && block) window.PwnExpDnD.register(row, block.snippet);
+        row.addEventListener('dblclick', async () => {
+          const target = blocks.find((item) => item.id === row.dataset.id);
+          if (target) await insertBlockWithPlaceholders(target);
+        });
+      });
+      $$('.pwncraft-code-chip', host).forEach((chipEl) => {
+        if (window.PwnExpDnD) {
+          window.PwnExpDnD.register(chipEl, chipEl.getAttribute('data-pwncraft-code'),
+            { editable: true });
+        }
+      });
+    };
+    $('#block-filter', host).addEventListener('input', (event) => {
+      query = event.target.value;
+      renderList();
+    });
+    renderList();   // 速记块同步先上屏；目录分组等桥返回后补充
     try {
       const result = await window.pwncraft.request('blocks_list');
       blocks = result.blocks || [];
     } catch (error) {
-      host.innerHTML = `<div class="hint-dim">代码块目录加载失败：${esc(error.message)}</div>`;
+      $('#block-list', host).insertAdjacentHTML('beforeend',
+        `<div class="hint-dim">代码块目录加载失败：${esc(error.message)}</div>`);
       return;
     }
-    host.innerHTML = `
-      <input id="block-filter" class="input" placeholder="搜索 tcache / overlap / ret2libc…" />
-      <div id="block-list" class="block-list"></div>`;
-    const renderList = (query) => {
-      const needle = query.trim().toLowerCase();
-      const items = blocks.filter((block) => !needle
-        || block.title.toLowerCase().includes(needle)
-        || block.category.toLowerCase().includes(needle)
-        || (block.tags || []).some((tag) => tag.toLowerCase().includes(needle)));
-      $('#block-list', host).innerHTML = items.map((block) => `
-        <div class="block-row" data-id="${esc(block.id)}">
-          <div class="block-title">${esc(block.title)}<span class="block-cat">${esc(block.category)}</span></div>
-          <div class="hint-dim">${esc(block.description)}</div>
-        </div>`).join('') || '<div class="hint-dim">没有匹配代码块。</div>';
-      $$('.block-row', host).forEach((row) => {
-        row.addEventListener('dblclick', async () => {
-          const block = blocks.find((item) => item.id === row.dataset.id);
-          if (!block) return;
-          await insertBlockWithPlaceholders(block);
-        });
-      });
-    };
-    $('#block-filter', host).addEventListener('input', (event) => renderList(event.target.value));
-    renderList('');
+    renderList();
   }
 
   async function insertBlockWithPlaceholders(block) {

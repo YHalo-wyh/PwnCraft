@@ -661,7 +661,6 @@
       registerExpCompletions(monaco);
       if (window.PwnExpDnD) {
         window.PwnExpDnD.wireMonaco(monacoEditor);
-        window.PwnExpDnD.mountPalette('#exp-chip-palette');
         window.PwnExpDnD.scan(document);
       }
       log('Monaco EXP 编辑器已就绪');

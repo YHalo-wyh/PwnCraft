@@ -480,7 +480,7 @@ async function runSmoke() {
       "(function(){" +
       "  const api = window.PwnExpDnD;" +
       "  if (!api) return {present:false};" +
-      "  const palette = document.querySelectorAll('#exp-chip-palette .pwncraft-code-chip').length;" +
+      "  const palette = document.querySelectorAll('#exp-tools .pwncraft-code-chip, #exp-tools .block-row[data-pwncraft-code]').length;" +
       "  const editor = api.editor;" +
       "  let inserted = null;" +
       "  if (editor) {" +
