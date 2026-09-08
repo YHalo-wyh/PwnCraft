@@ -36,7 +36,6 @@
           <input id="analysis-filter" type="search" placeholder="搜索函数名 / 地址" aria-label="搜索汇编函数" value="${esc(cache.filter)}">
           <div id="analysis-function-list" aria-label="函数列表"></div>
         </aside><div class="analysis-function-detail" id="analysis-function-detail"></div></div>
-        ${data.notice ? `<details class="analysis-notice"><summary>环境提示</summary><pre>${esc(data.notice)}</pre></details>` : ''}
       </div>
       <div id="analysis-diagnostics" role="tabpanel" aria-labelledby="analysis-diagnostics-tab" ${cache.tab !== 'diagnostics' ? 'hidden' : ''}>
         <div class="analysis-hint">检查对象：当前工作区的 EXP。这里展示代码检查提示；二进制漏洞仍需独立核实。</div>

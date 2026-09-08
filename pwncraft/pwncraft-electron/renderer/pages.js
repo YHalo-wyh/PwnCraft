@@ -59,7 +59,7 @@
         <div class="card sec-card">
           <div class="card-title">checksec
             <span class="flex-spacer"></span>
-            <span class="sec-source">${esc(sourceLabel(reports, facts))}</span>
+            <span class="sec-source">${esc(sourceLabel(reportsFresh ? reports : {}, facts))}</span>
             <button id="sec-refresh" class="mini-btn" title="WSL 重新执行 checksec / file / ldd">重新检测</button>
           </div>
           <div id="sec-rows"></div>
@@ -119,8 +119,7 @@
   }
 
   function sourceLabel(reports, facts) {
-    const raw = String(reports.checksec || '');
-    if (raw.trim() && !/^ERROR:/i.test(raw.trim())) return 'checksec（WSL）';
+    if (parseChecksecRows(reports.checksec).length) return 'checksec（WSL）';
     return '本地 ELF 解析';
   }
 
@@ -128,8 +127,13 @@
   function renderChecksecRows(reports, facts) {
     const host = $('#sec-rows');
     if (!host) return;
-    let rows = parseChecksecRows(reports.checksec);
-    if (!rows.length) rows = synthesizeChecksecRows(facts);
+    const parsed = new Map(parseChecksecRows(reports.checksec).map(row => [row.key, row]));
+    const rows = synthesizeChecksecRows(facts).map(row => {
+      const value = parsed.get(row.key) || row;
+      parsed.delete(row.key);
+      return value;
+    });
+    rows.push(...parsed.values());
     host.innerHTML = rows.map((row) => `
       <div class="sec-row">
         <span class="sec-key">${esc(row.key)}:</span>
@@ -187,18 +191,6 @@
   function renderLddRows(reports) {
     const host = $('#ldd-rows');
     if (!host) return;
-    const detail = reports.diagnostics && reports.diagnostics.ldd;
-    const notice = detail && detail.notice;
-    if (notice) {
-      const details = document.createElement('details');
-      details.className = 'analysis-notice';
-      const summary = document.createElement('summary');
-      summary.textContent = '环境提示';
-      const text = document.createElement('pre');
-      text.textContent = notice;
-      details.append(summary, text);
-      host.after(details);
-    }
     const raw = String(reports.ldd || '').trim();
     if (!raw) { host.innerHTML = '<div class="hint-dim">（无输出）</div>'; return; }
     if (/^ERROR:/i.test(raw)) {
@@ -219,9 +211,30 @@
 
   function parseChecksecRows(raw) {
     const rows = [];
-    for (const line of String(raw || '').split(/\r?\n/)) {
+    const keys = { ARCH: 'Arch', RELRO: 'RELRO', STACK: 'Stack', CANARY: 'Stack',
+      'STACK CANARY': 'Stack', NX: 'NX', PIE: 'PIE', FORTIFY: 'FORTIFY',
+      STRIPPED: 'Stripped', RPATH: 'RPATH', RUNPATH: 'RUNPATH', SYMBOLS: 'Symbols',
+      SHSTK: 'SHSTK', IBT: 'IBT' };
+    // checksec.sh prints an ANSI-coloured table; pwntools prints key/value lines.
+    // Only recognised fields count as results: WSL notices and errors do not.
+    const lines = String(raw || '').replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '').split(/\r?\n/);
+    const add = (label, value) => {
+      const key = keys[label.toUpperCase()];
+      if (key && value) rows.push({ key, value, tone: secTone(key, value) });
+    };
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (/^\s*RELRO\s+STACK CANARY\s+NX\s+PIE\b/i.test(line)) {
+        const headers = line.trim().split(/\s{2,}|\t+/);
+        const values = (lines[i + 1] || '').trim().split(/\s{2,}|\t+/);
+        if (/^(Full|Partial|No) RELRO$/i.test(values[0] || '') && values.length >= 4) {
+          headers.forEach((header, index) => add(header, values[index]));
+          i++;
+        }
+        continue;
+      }
       const match = /^\s*([A-Za-z][A-Za-z0-9_]*)\s*:\s*(.+?)\s*$/.exec(line);
-      if (match) rows.push({ key: match[1], value: match[2], tone: secTone(match[1], match[2]) });
+      if (match) add(match[1], match[2]);
     }
     return rows;
   }
@@ -318,10 +331,6 @@
     if (entry) entry.reportsLoading = true;
     state.reportsInFlight = true;
     let reports;
-    const rowsHost = $('#sec-rows');
-    if (rowsHost && !force) {
-      rowsHost.innerHTML = '<div class="hint-dim">WSL 检测中…</div>';
-    }
     try {
       const result = await window.pwncraft.request('binary_reports', { path: working });
       reports = { ...result.reports, diagnostics: result.diagnostics || {} };
@@ -386,7 +395,7 @@
   // =====================================================================
   // ROP page
 
-  const ropState = { gadgets: [], shelf: {} };
+  const ropState = { gadgets: [] };
 
   // 导入时自动分析（WSL）的状态条：三个页面共用同一份 state.triage。
   function triageStrip(stage, label) {
@@ -434,10 +443,6 @@
           <div id="rop-results" class="rop-results"></div>
         </div>
         <div class="card">
-          <div class="card-title">Gadget Shelf（收藏 → Chain Builder 优先使用）</div>
-          <div id="rop-shelf" class="rop-shelf"></div>
-        </div>
-        <div class="card">
           <div class="card-title">Chain Builder</div>
           <div class="form-grid">
             <label class="form-row"><span>function</span><input id="chain-func" class="input" placeholder="0x... 或 system" /></label>
@@ -483,7 +488,6 @@
     $('#r2l-derive').addEventListener('click', deriveR2l);
     $('#r2l-build').addEventListener('click', buildR2l);
     $('#srop-plan').addEventListener('click', planSrop);
-    refreshShelf();
     // 导入时自动扫描的 gadget 直接落表，无需任何点击
     renderGadgets(filterGadgets($('#rop-search').value.trim()));
   }
@@ -526,14 +530,12 @@
     const waiting = !ropAuto && triage && triage.running;
     host.innerHTML = gadgets.length ? `
       <table class="data-table">
-        <thead><tr><th>分数</th><th>地址</th><th>Gadget</th><th></th></tr></thead>
+        <thead><tr><th>地址</th><th>Gadget</th></tr></thead>
         <tbody>
-          ${gadgets.slice(0, 400).map((gadget, index) => `
+          ${gadgets.slice(0, 400).map((gadget) => `
             <tr>
-              <td class="stars">${esc(gadget.stars || '')}</td>
               <td class="mono">${esc('0x' + Number(gadget.address).toString(16))}</td>
               <td class="mono">${esc(gadget.text)}</td>
-              <td><button class="mini-btn" data-pin="${index}">收藏</button></td>
             </tr>`).join('')}
         </tbody>
       </table>`
@@ -541,56 +543,6 @@
       : (ropAuto && ropAuto.status === 'failed')
         ? `<div class="hint-dim">自动扫描未成功：${esc(ropAuto.error || '')}（可用上方参数手动重试）</div>`
         : '<div class="hint-dim">没有匹配的 gadget：调整 --only / 过滤词后重新运行。</div>';
-    $$('button[data-pin]', host).forEach((button) => {
-      button.addEventListener('click', async () => {
-        const gadget = gadgets[Number(button.dataset.pin)];
-        const role = window.prompt('收藏到哪个寄存器/角色？', (gadget.controls || [])[0] || 'rdi');
-        if (!role) return;
-        await pinGadget(role, gadget);
-      });
-    });
-  }
-
-  async function pinGadget(role, gadget) {
-    // The shelf lives in the bridge; gadgets were persisted during cli_run.
-    const index = ropState.gadgets.findIndex((item) => item.address === gadget.address && item.text === gadget.text);
-    const result = await window.pwncraft.request('gadget_shelf', { action: 'pin', role, index });
-    ropState.shelf = result.shelf || {};
-    ropState.gadgets = result.gadgets || ropState.gadgets;
-    refreshShelf();
-    log(`已收藏 gadget 到 ${role}`);
-  }
-
-  async function refreshShelf() {
-    try {
-      const result = await window.pwncraft.request('gadget_shelf', { action: 'list' });
-      ropState.shelf = result.shelf || {};
-      if ((result.gadgets || []).length && !ropState.gadgets.length) {
-        ropState.gadgets = result.gadgets;
-      }
-    } catch { /* offline is fine */ }
-    const host = $('#rop-shelf');
-    if (!host) return;
-    const roles = Object.entries(ropState.shelf || {});
-    host.innerHTML = roles.length ? `
-      <table class="data-table">
-        <thead><tr><th>角色</th><th>地址</th><th>指令</th><th></th></tr></thead>
-        <tbody>${roles.map(([role, gadget]) => `
-          <tr>
-            <td>${esc(role)}</td>
-            <td class="mono">${esc('0x' + Number(gadget.address).toString(16))}</td>
-            <td class="mono">${esc(gadget.text || (gadget.instructions || []).join(' ; '))}</td>
-            <td><button class="mini-btn" data-unpin="${esc(role)}">移除</button></td>
-          </tr>`).join('')}</tbody>
-      </table>`
-      : '<div class="hint-dim">暂无收藏 gadget。</div>';
-    $$('button[data-unpin]', host).forEach((button) => {
-      button.addEventListener('click', async () => {
-        const result = await window.pwncraft.request('gadget_shelf', { action: 'unpin', role: button.dataset.unpin });
-        ropState.shelf = result.shelf || {};
-        refreshShelf();
-      });
-    });
   }
 
   async function buildChain() {

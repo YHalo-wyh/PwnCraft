@@ -37,8 +37,15 @@ const RECIPES = [
 ];
 let functionsPayload = FUNCTIONS;
 const PRESETS = { blacklist_min: { name: '黑名单 · 仅禁 execve 系', default: 'allow' } };
+let opSequence = 0;
 const OP = (kind, vaddr, note) => ({ op_id: `op-${kind}`, kind, vaddr, file_offset: vaddr - 0x1000,
-  original_bytes: 'ba 2c 01 00 00', new_bytes: '90 90 90 90 90', note: note || '' });
+  original_bytes: 'ba 2c 01 00 00', new_bytes: '90 90 90 90 90', note: note || '',
+  batch_id: `batch-${++opSequence}`, applied_at: 1788796800, state: 'applied', current_bytes: '90 90 90 90 90' });
+const patchSummary = () => ({ total: appliedLog.length,
+  applied: appliedLog.filter(op => op.state === 'applied').length,
+  restored: appliedLog.filter(op => op.state === 'restored').length,
+  conflict: appliedLog.filter(op => op.state === 'conflict').length,
+  healthy: appliedLog.every(op => op.state === 'applied') });
 
 ipcMain.handle('terminal:start', () => ({ id: ++terminal }));
 for (const channel of ['terminal:kill', 'terminal:resize', 'terminal:input']) ipcMain.handle(channel, () => ({}));
@@ -66,12 +73,26 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
     return { ops: [OP(kind || 'custom', 0x1004, `预览-${kind}`)], warnings: ['预览警示'], binary: 'fixture' };
   }
   if (method === 'patch_apply') {
-    appliedLog = [...appliedLog, OP((params.request || {}).kind, 0x1004, `应用-${(params.request || {}).kind}`)];
-    return { applied: appliedLog, backup: 'C:/测试/.pwncraft/runtime/pwn.patchbak.123', warnings: [], binary: 'fixture', log: appliedLog };
+    const op = OP((params.request || {}).kind, 0x1004, `应用-${(params.request || {}).kind}`);
+    appliedLog = [...appliedLog, op];
+    return { applied: [op], backup: 'C:/测试/.pwncraft/runtime/pwn.patchbak.123', warnings: [], binary: 'fixture', log: appliedLog };
   }
-  if (method === 'patch_list') return { ops: appliedLog, binary: 'fixture', log_path: 'C:/测试/.pwncraft/patch_log.json' };
-  if (method === 'patch_undo') { appliedLog = appliedLog.slice(0, -1); return { restored: {}, log: appliedLog }; }
+  if (method === 'patch_list') return { ops: appliedLog, summary: patchSummary(), binary: 'fixture', log_path: 'C:/测试/.pwncraft/patch_log.json' };
+  if (method === 'patch_undo') {
+    const target = appliedLog.find(op => op.op_id === params.op_id);
+    const batch = target && target.batch_id;
+    const count = appliedLog.filter(op => op.batch_id === batch).length;
+    appliedLog = appliedLog.filter(op => op.batch_id !== batch);
+    return { restored: target || {}, count, batch_id: batch, log: appliedLog };
+  }
   if (method === 'patch_clear') { appliedLog = []; return { count: 1, log: [] }; }
+  if (method === 'patch_reconcile') { return { count: 0, removed: [], log: appliedLog }; }
+  if (method === 'patch_test_conflict') {
+    appliedLog[0].state = 'conflict'; appliedLog[0].current_bytes = 'cc cc cc cc cc'; return {};
+  }
+  if (method === 'patch_test_heal') {
+    appliedLog[0].state = 'applied'; appliedLog[0].current_bytes = appliedLog[0].new_bytes; return {};
+  }
   if (method === 'patch_export') {
     if (params.kind === 'patched') return { path: params.dest, count: appliedLog.length, sha256: 'abcdef0123456789', size: 12345 };
     return { text: `# patch script fixture\nelf.write(0x1004, bytes.fromhex('90 90 90 90 90'))\n`, path: params.dest || '', count: appliedLog.length };
@@ -174,6 +195,18 @@ app.whenReady().then(async () => {
     await click('[data-tab="manage"]');
     await until('document.querySelectorAll(".patch-undo").length === 2');
     assert.match(await js('document.querySelector("#patch-panel-manage").innerText'), /seccomp/);
+    assert.match(await js('document.querySelector(".patch-integrity").innerText'), /补丁完整性正常/);
+    assert.equal(await js('document.querySelectorAll(".patch-state.applied").length'), 2);
+    await js('window.pwncraft.request("patch_test_conflict", {})');
+    await click('#patch-refresh-log');
+    await until('document.querySelectorAll(".patch-state.conflict").length === 1');
+    assert.match(await js('document.querySelector(".patch-integrity").innerText'), /工作副本与补丁记录不一致/);
+    assert.match(await js('document.querySelector(".patch-bytes-conflict").innerText'), /cc cc cc cc cc/);
+    assert.equal(await js('document.querySelector(".patch-undo").disabled'), true);
+    assert.equal(await js('document.querySelector("#patch-export-elf").disabled'), true);
+    await js('window.pwncraft.request("patch_test_heal", {})');
+    await click('#patch-refresh-log');
+    await until('document.querySelectorAll(".patch-state.applied").length === 2');
     await click('#patch-export-script');
     await until('!!document.querySelector(".patch-export-text")');
     assert.match(await js('document.querySelector(".patch-export-text pre").textContent'), /elf\.write/);
@@ -186,6 +219,7 @@ app.whenReady().then(async () => {
     await until('document.querySelectorAll(".patch-export-text").length === 2');
     assert.equal(lastCall('patch_export').result.kind, 'patched');
     assert.match(await js('document.querySelector(".patch-message").innerText'), /已导出补丁后 ELF/);
+    await shot('manage-populated.png');
     await click('.patch-undo');
     await until('document.querySelectorAll(".patch-undo").length === 1');
     await click('#patch-undo-all');

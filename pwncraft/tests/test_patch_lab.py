@@ -351,10 +351,107 @@ class PatchLabTests(FixtureCase):
         with self.assertRaises(ValueError):
             self.lab.apply([stale])
 
+    def test_apply_rejects_overlap_inside_one_batch(self):
+        first = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                        original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5)
+        second = PatchOp(kind="custom", vaddr=BASE + 0xA4, file_offset=0xA4,
+                         original_bytes=MAIN_BYTES[4:7], new_bytes=b"\xcc" * 3)
+        before = self.binary.read_bytes()
+        with self.assertRaisesRegex(ValueError, "重叠"):
+            self.lab.apply([first, second])
+        self.assertEqual(self.binary.read_bytes(), before)
+        self.assertEqual(self.lab.log_ops(), [])
+
+    def test_grouped_apply_is_undone_atomically(self):
+        first = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                        original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5)
+        second = PatchOp(kind="custom", vaddr=BASE + 0xA5, file_offset=0xA5,
+                         original_bytes=MAIN_BYTES[5:10], new_bytes=b"\x31\xd2\x90\x90\x90")
+        applied = self.lab.apply([first, second])
+        logged = self.lab.log_ops()
+        self.assertEqual({op.batch_id for op in logged}, {applied["batch_id"]})
+        result = self.lab.undo(logged[0].op_id)
+        self.assertEqual(result["count"], 2)
+        self.assertEqual(self.binary.read_bytes(), build_fixture_bytes())
+        self.assertEqual(self.lab.log_ops(), [])
+
+    def test_reconcile_only_removes_fully_restored_groups(self):
+        first = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                        original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5)
+        second = PatchOp(kind="custom", vaddr=BASE + 0xA5, file_offset=0xA5,
+                         original_bytes=MAIN_BYTES[5:10], new_bytes=b"\x31\xd2\x90\x90\x90")
+        self.lab.apply([first, second])
+        with self.binary.open("r+b") as stream:
+            stream.seek(0xA0)
+            stream.write(MAIN_BYTES[:5])
+        partial = self.lab.reconcile_restored()
+        self.assertEqual(partial, {"count": 0, "removed": [], "pending": 1})
+        self.assertEqual(len(self.lab.log_ops()), 2)
+        with self.binary.open("r+b") as stream:
+            stream.seek(0xA5)
+            stream.write(MAIN_BYTES[5:10])
+        complete = self.lab.reconcile_restored()
+        self.assertEqual(complete["count"], 2)
+        self.assertEqual(complete["pending"], 0)
+        self.assertEqual(self.lab.log_ops(), [])
+
+    def test_integrity_states_and_reconcile_external_restore(self):
+        op = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                     original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5)
+        self.lab.apply([op])
+        self.assertEqual(self.lab.inspect_ops()[0]["state"], "applied")
+        with self.binary.open("r+b") as stream:
+            stream.seek(0xA0)
+            stream.write(MAIN_BYTES[:5])
+        self.assertEqual(self.lab.inspect_ops()[0]["state"], "restored")
+        self.assertEqual(self.lab.reconcile_restored()["count"], 1)
+        self.assertEqual(self.lab.log_ops(), [])
+
+    def test_conflict_blocks_single_and_full_undo_without_partial_write(self):
+        first = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                        original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5)
+        second = PatchOp(kind="custom", vaddr=BASE + 0xA5, file_offset=0xA5,
+                         original_bytes=MAIN_BYTES[5:10], new_bytes=b"\x31\xd2\x90\x90\x90")
+        self.lab.apply([first, second])
+        with self.binary.open("r+b") as stream:
+            stream.seek(0xA5)
+            stream.write(b"\xcc" * 5)
+        conflicted = self.binary.read_bytes()
+        self.assertEqual(self.lab.integrity_summary()["conflict"], 1)
+        with self.assertRaisesRegex(ValueError, "无法撤销补丁组"):
+            self.lab.undo(self.lab.log_ops()[0].op_id)
+        self.assertEqual(self.binary.read_bytes(), conflicted)
+        with self.assertRaisesRegex(ValueError, "未修改任何字节"):
+            self.lab.undo_all()
+        self.assertEqual(self.binary.read_bytes(), conflicted)
+        self.assertEqual(len(self.lab.log_ops()), 2)
+
+    def test_log_write_failure_rolls_binary_back(self):
+        op = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA0,
+                     original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5)
+        before = self.binary.read_bytes()
+        self.lab._save_log = Mock(side_effect=OSError("disk full"))
+        with self.assertRaisesRegex(OSError, "disk full"):
+            self.lab.apply([op])
+        self.assertEqual(self.binary.read_bytes(), before)
+
+    def test_invalid_offset_and_corrupt_log_are_rejected(self):
+        misplaced = PatchOp(kind="custom", vaddr=BASE + 0xA0, file_offset=0xA1,
+                            original_bytes=MAIN_BYTES[:5], new_bytes=b"\x90" * 5)
+        with self.assertRaisesRegex(ValueError, "应映射到"):
+            self.lab.apply([misplaced])
+        self.lab.log_path.parent.mkdir(parents=True, exist_ok=True)
+        self.lab.log_path.write_text("{broken", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "补丁日志损坏"):
+            self.lab.log_ops()
+
     def test_patchop_rejects_length_change(self):
         with self.assertRaises(ValueError):
             PatchOp(kind="custom", vaddr=0, file_offset=0,
                     original_bytes=b"\x90", new_bytes=b"\x90\x90")
+        with self.assertRaisesRegex(ValueError, "不能为空"):
+            PatchOp(kind="custom", vaddr=0, file_offset=0,
+                    original_bytes=b"", new_bytes=b"")
 
     def test_entry_prefix_needs_five_bytes(self):
         lines = [{"address": BASE, "bytes": b"\x90", "size": 1, "text": "nop"}]
@@ -489,6 +586,8 @@ class BridgePatchTests(FixtureCase):
         self.assertNotEqual(self.binary.read_bytes(), original)
         listed = bridge.rpc_patch_list({"path": str(self.binary)})
         self.assertEqual(len(listed["ops"]), 1)
+        self.assertEqual(listed["ops"][0]["state"], "applied")
+        self.assertTrue(listed["summary"]["healthy"])
         bridge.rpc_patch_undo({"path": str(self.binary), "op_id": listed["ops"][0]["op_id"]})
         self.assertEqual(self.binary.read_bytes(), original)
 
@@ -518,8 +617,28 @@ class BridgePatchTests(FixtureCase):
              "request": {"kind": "seccomp", "preset": "blacklist_min"}})
         self.assertEqual(len(result["applied"]), 2)
         self.assertNotEqual(self.binary.read_bytes(), original)
-        bridge.rpc_patch_clear({"path": str(self.binary)})
+        listed = bridge.rpc_patch_list({"path": str(self.binary)})
+        undone = bridge.rpc_patch_undo(
+            {"path": str(self.binary), "op_id": listed["ops"][0]["op_id"]})
+        self.assertEqual(undone["count"], 2)
         self.assertEqual(self.binary.read_bytes(), original)
+
+    def test_rpc_blocks_export_until_external_restore_is_reconciled(self):
+        bridge = self._bridge()
+        bridge.rpc_patch_apply(
+            {"path": str(self.binary),
+             "request": {"kind": "custom", "vaddr": hex(BASE + 0xA0),
+                         "hex": "31 d2 90 90 90"}})
+        with self.binary.open("r+b") as stream:
+            stream.seek(0xA0)
+            stream.write(MAIN_BYTES[:5])
+        listed = bridge.rpc_patch_list({"path": str(self.binary)})
+        self.assertEqual(listed["summary"]["restored"], 1)
+        with self.assertRaisesRegex(ValueError, "补丁记录与工作副本不一致"):
+            bridge.rpc_patch_export({"path": str(self.binary), "kind": "script"})
+        reconciled = bridge.rpc_patch_reconcile({"path": str(self.binary)})
+        self.assertEqual(reconciled["count"], 1)
+        self.assertEqual(reconciled["log"], [])
 
     def test_bytecode_rpc_surface(self):
         bridge = self._bridge()

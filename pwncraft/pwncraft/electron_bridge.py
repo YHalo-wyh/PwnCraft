@@ -24,7 +24,7 @@ Surface map (v0.29):
 - iofile: iofile_layout / iofile_validate / iofile_analyze
 - debugger: pwndbg_status / pwndbg_ensure / debug_launch
 - awdp patch (v0.33): patch_recipes / patch_preview / patch_apply / patch_list /
-  patch_undo / patch_clear / patch_export / patch_instructions / patch_disasm_raw /
+  patch_undo / patch_clear / patch_reconcile / patch_export / patch_instructions / patch_disasm_raw /
   patch_bytecode_lookup / patch_encode
 """
 from __future__ import annotations
@@ -424,18 +424,23 @@ class ElectronBridge:
         self._log(f"AWDP 补丁已应用 {len(ops)} 条（备份: {Path(outcome['backup']).name}）")
         return {"applied": outcome["applied"], "backup": outcome["backup"],
                 "warnings": warnings, "binary": str(lab.binary),
-                "log": [op.to_dict() for op in lab.log_ops()]}
+                "batch_id": outcome["batch_id"], "log": lab.inspect_ops()}
 
     def rpc_patch_list(self, params: dict) -> dict:
         lab = self._patch_lab(params)
-        return {"ops": [op.to_dict() for op in lab.log_ops()],
+        ops = lab.inspect_ops()
+        summary = {"total": len(ops), "applied": 0, "restored": 0, "conflict": 0}
+        for op in ops:
+            summary[op["state"]] += 1
+        summary["healthy"] = summary["restored"] == 0 and summary["conflict"] == 0
+        return {"ops": ops, "summary": summary,
                 "binary": str(lab.binary), "log_path": str(lab.log_path)}
 
     def rpc_patch_undo(self, params: dict) -> dict:
         lab = self._patch_lab(params)
         outcome = lab.undo(str(params.get("op_id") or ""))
-        self._log(f"已撤销补丁 {params.get('op_id')}")
-        return {**outcome, "log": [op.to_dict() for op in lab.log_ops()]}
+        self._log(f"已撤销补丁组 {outcome['batch_id']}（{outcome['count']} 条）")
+        return {**outcome, "log": lab.inspect_ops()}
 
     def rpc_patch_clear(self, params: dict) -> dict:
         lab = self._patch_lab(params)
@@ -443,12 +448,19 @@ class ElectronBridge:
         self._log(f"已撤销全部 {outcome['count']} 条补丁")
         return {**outcome, "log": []}
 
+    def rpc_patch_reconcile(self, params: dict) -> dict:
+        lab = self._patch_lab(params)
+        outcome = lab.reconcile_restored()
+        self._log(f"已清理 {outcome['count']} 条外部恢复的补丁记录")
+        return {**outcome, "log": lab.inspect_ops()}
+
     def rpc_patch_export(self, params: dict) -> dict:
         kind = str(params.get("kind") or "").strip()
         lab = self._patch_lab(params)
         ops = lab.log_ops()
         if not ops:
             raise ValueError("当前没有已应用的补丁可导出")
+        lab.assert_all_applied()
         # 目标二进制沿用 params["path"]；导出落盘路径单独用 "dest"，避免同名歧义
         dest = str(params.get("dest") or "").strip()
         path = dest

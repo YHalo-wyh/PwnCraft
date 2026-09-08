@@ -25,7 +25,7 @@
       instructions: null, instructionsError: '', insnLoading: false,
       hex: '', recipes: null, recipesError: '', forms: {},
       preview: null, previewRequest: null, previewTitle: '', previewError: '',
-      log: null, logError: '',
+      log: null, logSummary: null, logError: '',
       catalogQuery: '', catalogData: null,
       disasmInput: '', disasmData: null, disasmError: '',
       relFrom: '', relTo: '', relResult: '',
@@ -125,7 +125,9 @@
     const fn = functions[cache.selectedFn];
     if (fn) await loadInstructions(entry, fn.name, false);
     try {
-      cache.log = (await window.pwncraft.request('patch_list', {})).ops;
+      const result = await window.pwncraft.request('patch_list', {});
+      cache.log = result.ops;
+      cache.logSummary = result.summary || null;
     } catch { /* 日志失败不阻塞补丁视图 */ }
   }
 
@@ -527,47 +529,95 @@
   function renderManage(entry, cache) {
     const panel = query('#patch-panel-manage');
     const ops = cache.log;
+    const summary = cache.logSummary || {
+      total: ops?.length || 0,
+      applied: (ops || []).filter(op => !op.state || op.state === 'applied').length,
+      restored: (ops || []).filter(op => op.state === 'restored').length,
+      conflict: (ops || []).filter(op => op.state === 'conflict').length,
+    };
+    const integrityUnknown = ops === null;
+    const hasDrift = integrityUnknown || summary.restored > 0 || summary.conflict > 0;
+    const batchCounts = new Map();
+    (ops || []).forEach(op => {
+      const key = op.batch_id || op.op_id;
+      batchCounts.set(key, (batchCounts.get(key) || 0) + 1);
+    });
+    const batchHasDrift = new Map();
+    (ops || []).forEach(op => {
+      const key = op.batch_id || op.op_id;
+      if (op.state && op.state !== 'applied') batchHasDrift.set(key, true);
+    });
+    const stateLabel = state => ({ applied: '已生效', restored: '已恢复', conflict: '有冲突' }[state] || '未检查');
     panel.innerHTML = `
+      <div class="patch-integrity ${hasDrift ? 'has-drift' : ''}" role="status">
+        <strong>${integrityUnknown ? (cache.logError ? '补丁完整性检查失败' : '正在检查补丁完整性…')
+          : hasDrift ? '工作副本与补丁记录不一致' : '补丁完整性正常'}</strong>
+        <span>${integrityUnknown ? esc(cache.logError || '')
+          : `记录 ${summary.total} · 生效 ${summary.applied} · 已恢复 ${summary.restored} · 冲突 ${summary.conflict}`}</span>
+      </div>
       <div class="patch-manage-bar">
-        <button class="mini-btn" id="patch-refresh-log">刷新</button>
-        <button class="mini-btn" id="patch-undo-all" ${(ops?.length ?? 0) === 0 ? 'disabled' : ''}>撤销全部</button>
+        <button class="mini-btn" id="patch-refresh-log">重新检查</button>
+        <button class="mini-btn" id="patch-reconcile" ${summary.restored === 0 ? 'disabled' : ''}>清理已恢复记录</button>
+        <button class="mini-btn" id="patch-undo-all" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>安全撤销全部</button>
         <span class="flex-spacer"></span>
-        <button class="mini-btn primary" id="patch-export-script" ${(ops?.length ?? 0) === 0 ? 'disabled' : ''}>生成 patch.py</button>
-        <button class="mini-btn primary" id="patch-export-elf" ${(ops?.length ?? 0) === 0 ? 'disabled' : ''}>导出补丁后 ELF</button>
-        <button class="mini-btn" id="patch-export-diff" ${(ops?.length ?? 0) === 0 ? 'disabled' : ''}>导出 diff 文本</button>
+        <button class="mini-btn primary" id="patch-export-script" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>生成 patch.py</button>
+        <button class="mini-btn primary" id="patch-export-elf" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>导出补丁后 ELF</button>
+        <button class="mini-btn" id="patch-export-diff" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>导出 diff 文本</button>
       </div>
       ${ops === null ? `<div class="analysis-empty">${cache.logError ? esc(cache.logError) : '读取补丁记录…'}</div>` : ops.length === 0
         ? '<div class="analysis-empty">当前工作副本还没有已应用的补丁。</div>' : `
       <div class="patch-insn-scroll">
         <table class="data-table mono"><thead><tr>
-          <th>#</th><th>类型</th><th>vaddr</th><th>原字节</th><th>新字节</th><th>说明</th><th></th>
+          <th>#</th><th>状态</th><th>类型</th><th>vaddr</th><th>原字节</th><th>新字节</th><th>当前字节</th><th>说明</th><th></th>
         </tr></thead><tbody>
           ${ops.map((op, index) => `<tr>
-            <td>${index + 1}</td><td>${esc(op.kind)}</td>
+            <td>${index + 1}</td>
+            <td><span class="patch-state ${esc(op.state || 'unknown')}" title="${esc(op.issue || '')}">${stateLabel(op.state)}</span></td>
+            <td>${esc(op.kind)}</td>
             <td>0x${Number(op.vaddr).toString(16)}</td>
             <td class="patch-bytes-old">${esc(op.original_bytes)}</td>
             <td class="patch-bytes-new">${esc(op.new_bytes)}</td>
+            <td class="${op.state === 'conflict' ? 'patch-bytes-conflict' : 'patch-bytes-current'}">${op.state === 'applied' ? '—' : esc(op.current_bytes || '无法读取')}</td>
             <td>${esc(op.note)}</td>
-            <td><button class="mini-btn patch-undo" data-op="${esc(op.op_id)}">撤销</button></td></tr>`).join('')}
+            <td><button class="mini-btn patch-undo" data-op="${esc(op.op_id)}"
+              ${(op.state && op.state !== 'applied') || batchHasDrift.get(op.batch_id || op.op_id) ? 'disabled' : ''}>
+              ${batchCounts.get(op.batch_id || op.op_id) > 1 ? `撤销整组（${batchCounts.get(op.batch_id || op.op_id)}）` : '撤销'}</button></td></tr>`).join('')}
         </tbody></table>
       </div>`}
-      <div class="analysis-hint">补丁记录持久化在工作区 .pwncraft/patch_log.json；导出的 patched ELF 从只读原始副本按 vaddr 回放，不携带 patchelf 痕迹。</div>
+      <div class="analysis-hint">每次应用形成一个不可拆分的补丁组；撤销前会核对当前字节并自动备份。若显示冲突，请先用外部工具将该位置恢复为“新字节”或“原字节”，再重新检查。</div>
       ${(cache.exportPreviews || []).map(item => `
         <details class="patch-export-text card"><summary>导出内容预览（${esc(item.name)}）</summary>
           <pre class="report-pre">${esc(item.text)}</pre></details>`).join('')}`;
     query('#patch-refresh-log').onclick = () => refreshLog(entry, true);
+    const reconcile = query('#patch-reconcile');
+    if (reconcile) reconcile.onclick = async () => {
+      try {
+        const result = await window.pwncraft.request('patch_reconcile', {});
+        cache.message = result.pending
+          ? `已清理 ${result.count} 条记录；另有 ${result.pending} 条属于尚未完整恢复的补丁组，已保留。`
+          : `已清理 ${result.count} 条已由外部恢复的补丁记录。`;
+        await refreshAfterMutation(entry);
+      } catch (error) {
+        cache.error = error.message || String(error);
+      }
+      render();
+    };
     const undoAll = query('#patch-undo-all');
     if (undoAll) undoAll.onclick = async () => {
-      await window.pwncraft.request('patch_clear', {});
-      cache.message = '已撤销全部补丁。';
-      await refreshAfterMutation(entry);
+      try {
+        const result = await window.pwncraft.request('patch_clear', {});
+        cache.message = `已安全撤销全部 ${result.count} 条补丁。`;
+        await refreshAfterMutation(entry);
+      } catch (error) {
+        cache.error = error.message || String(error);
+      }
       render();
     };
     panel.querySelectorAll('.patch-undo').forEach((button) => {
       button.onclick = async () => {
         try {
-          await window.pwncraft.request('patch_undo', { op_id: button.dataset.op });
-          cache.message = '已撤销一条补丁。';
+          const result = await window.pwncraft.request('patch_undo', { op_id: button.dataset.op });
+          cache.message = result.count > 1 ? `已安全撤销整组 ${result.count} 条补丁。` : '已安全撤销一条补丁。';
           await refreshAfterMutation(entry);
         } catch (error) {
           cache.error = error.message || String(error);
@@ -606,7 +656,9 @@
   async function refreshLog(entry, rerender = false) {
     const cache = cacheOf(entry);
     try {
-      cache.log = (await window.pwncraft.request('patch_list', {})).ops;
+      const result = await window.pwncraft.request('patch_list', {});
+      cache.log = result.ops;
+      cache.logSummary = result.summary || null;
       cache.logError = '';
     } catch (error) {
       cache.logError = error.message || String(error);

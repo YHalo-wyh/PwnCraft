@@ -6,9 +6,14 @@
 
 - 真值在 Python：所有地址↔偏移换算、指令字节、rel32 位移、BPF 过滤器全部由
   `pwncraft/features/patch/` 生成，renderer 只展示与转发请求，不在 JS 里算任何字节。
-- 原始 ELF 只读：补丁只写 `.pwncraft/runtime/` 工作副本；每次应用前自动生成
-  `<name>.patchbak.<微秒时间戳>` 整文件备份，逐条可撤销，记录持久化在
+- 原始 ELF 只读：补丁只写 `.pwncraft/runtime/` 工作副本；应用和撤销前自动生成
+  `<name>.patchbak.<微秒时间戳>` 整文件备份，按应用批次原子撤销，记录持久化在
   `<目标目录>/.pwncraft/patch_log.json`。
+- 完整性保护：补丁管理会实时核对工作副本，区分「已生效 / 已恢复 / 冲突」。只有
+  全部记录仍然生效时才允许撤销或导出，避免外部编辑后覆盖未知字节；已由外部工具
+  恢复的完整补丁组可清理；多段补丁只恢复一部分时会保留全部记录并提示继续处理。
+- 事务写入：同一批补丁先检查地址、文件偏移、原字节、批内及历史范围重叠，再统一
+  写入。二进制或日志落盘失败时从本次备份回滚，不会留下半套补丁。
 - 不改文件大小：所有补丁均为等长替换（`PatchOp` 构造时强制校验），符合 AWDP
   「最小修改」的提交习惯（参考蚁景《AWDPwn 漏洞加固总结》的原则）。
 - 支持架构：x86-64 与 i386；其余架构在请求入口直接报错，不静默降级。
@@ -24,7 +29,7 @@
 | `features/patch/exporters.py` | pwntools `patch.py` 脚本、字节 diff 文本、从只读原始副本回放的干净 patched ELF |
 
 Bridge 方法（`electron_bridge.py`）：`patch_recipes / patch_preview / patch_apply /
-patch_list / patch_undo / patch_clear / patch_export / patch_instructions /
+patch_list / patch_undo / patch_clear / patch_reconcile / patch_export / patch_instructions /
 patch_disasm_raw / patch_bytecode_lookup / patch_encode`。
 
 ## 手法原理
@@ -102,13 +107,17 @@ RIP 相对寻址需人工复核（`_start` 开头通常没有）。
 
 ## 测试
 
-- Python：`tests/test_patch_lab.py`（34 项）——手工构造最小 ELF64 fixture，
+- Python：`tests/test_patch_lab.py`（43 项）——手工构造最小 ELF64 fixture，
   覆盖地址换算、cave 查找、BPF/shellcode 的 golden 字节断言、trampoline 位移回算、
-  recipes 数学、应用/撤销/备份、三种导出、bridge RPC 层（Mock objdump）。
+  recipes 数学、事务应用/整组撤销/冲突拦截、三种导出、bridge RPC 层（Mock objdump）。
   运行：`python -m unittest tests.test_patch_lab`（pwncraft 目录）。
 - Electron UI：`pwncraft-electron/tests/patch-ui.cjs`——真实 renderer + preload +
   IPC fixture，驱动四个 tab 的选择/预览/应用/撤销/导出与 XSS 转义断言。
   运行：`node node_modules/electron/cli.js tests/patch-ui.cjs`。
+- 真实模板验收：`tools/validate_awdp_templates.py` 会用 WSL gcc 临时编译一个真实 ELF，
+  逐项应用 seccomp、PLT 调用点、PLT stub、read 长度、整函数 NOP、函数 ret、区间 NOP、
+  自定义字节共 8 种模板；每项均检查预览不写盘、应用生效、干净 ELF 导出、整组撤销，
+  并对可执行模板核对真实运行行为。运行：`python tools/validate_awdp_templates.py`。
 
 ## 来源
 
