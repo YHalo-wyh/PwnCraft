@@ -242,14 +242,13 @@
           <span>${items.map(render).join('')}</span></div>` : '';
     return `
       <div class="card patch-ida-card">
-        <div class="card-title">IDA pwn 体检
-          <span class="hint-dim">危险导入 / 可疑符号 / 命中字符串</span></div>
+        <div class="card-title">IDA pwn 体检</div>
         ${row('危险导入', overview.dangerous_imports, i =>
-          `<code class="chip">${esc(i.name)}</code>`)}
+          `<span class="patch-ida-item mono">${esc(i.name)}</span>`)}
         ${row('可疑符号', overview.interesting_symbols, i =>
-          `<code class="chip">${esc(i.name)}@0x${Number(i.ea).toString(16)}<span class="hint-dim"> ${esc(i.reason || '')}</span></code>`)}
+          `<span class="patch-ida-item mono">${esc(i.name)}@0x${Number(i.ea).toString(16)}<span class="hint-dim"> ${esc(i.reason || '')}</span></span>`)}
         ${row('命中字符串', overview.string_hits, i =>
-          `<code class="chip">${esc(String(i.value).slice(0, 40))}</code>`)}
+          `<span class="patch-ida-item mono">${esc(String(i.value).slice(0, 40))}</span>`)}
         ${overview.mitigation_hints && Object.keys(overview.mitigation_hints).length
           ? `<div class="patch-ida-row"><span class="patch-ida-key">缓解提示</span><span class="hint-dim">${esc(Object.entries(overview.mitigation_hints).map(([k, v]) => `${k}=${v}`).join(' · '))}</span></div>` : ''}
       </div>`;
@@ -404,7 +403,7 @@
     const instructions = cache.instructions && fn && cache.instructions.function === fn.name
       ? cache.instructions.instructions : null;
     panel.innerHTML = `
-      <div class="analysis-hint" role="status">${cache.loading ? '正在读取汇编函数…' : '选中函数与指令后可 NOP / 写入自定义字节；字节与地址全部来自 Python 桥。'}</div>
+      ${cache.loading ? '<div class="analysis-hint" role="status">正在读取汇编函数…</div>' : ''}
       ${cache.functionsError ? `<div class="analysis-error">${esc(cache.functionsError)}</div>` : ''}
       <div class="analysis-layout"><aside class="analysis-function-sidebar">
         <input id="patch-filter" type="search" placeholder="搜索函数名 / 地址" aria-label="搜索函数" value="${esc(cache.filter)}">
@@ -420,7 +419,6 @@
           <button class="mini-btn" id="patch-ida-refresh" ${cache.idaBusy ? 'disabled' : ''}>检测 IDA</button>
           <button class="mini-btn" id="patch-ida-analyze" ${cache.idaBusy ? 'disabled' : ''}>IDA 分析</button>
           <button class="mini-btn" id="patch-ida-decompile" ${!fn || cache.idaBusy ? 'disabled' : ''}>查看伪代码</button>
-          <span class="hint-dim">IDA-CLI · idalib（IDA 9.x）联动</span>
         </div>
         ${cache.idaError ? `<div class="analysis-error">${esc(cache.idaError)}</div>` : ''}
         ${renderIdaCards(cache)}
@@ -584,7 +582,6 @@
     const recipes = cache.recipes?.recipes || [];
     const presets = cache.recipes?.seccomp_presets || {};
     panel.innerHTML = `
-      <div class="analysis-hint">比赛常用通防手法；点「预览补丁」先看字节差异再应用。使用说明内嵌在每张卡片里。</div>
       ${cache.recipesError ? `<div class="analysis-error">${esc(cache.recipesError)}</div>` : ''}
       <div class="patch-recipes">
         ${recipes.map(recipe => {
@@ -594,7 +591,6 @@
               <span class="flex-spacer"></span>
               <button class="mini-btn primary patch-recipe-preview" data-recipe="${esc(recipe.id)}" ${cache.busy ? 'disabled' : ''}>预览补丁</button>
             </div>
-            <details class="patch-usage"><summary>使用说明</summary><p>${esc(recipe.usage).replace(/\n/g, '<br>')}</p></details>
             <div class="recipe-fields">
               ${recipe.fields.map(field => `
                 <label class="form-row"><span class="k">${esc(field.label)}</span>
@@ -648,7 +644,6 @@
     const panel = query('#patch-panel-bytecode');
     const entries = cache.catalogData?.entries ?? [];
     panel.innerHTML = `
-      <div class="analysis-hint">指令 ↔ 机器码速查（静态目录）；hex 反汇编走已放行的 objdump。查询结果可一键填入手动 Patch。</div>
       <div class="patch-query-row">
         <input id="patch-catalog-query" class="input mono" placeholder="搜索助记符 / 字节 / 标签，如 nop、e9、跳转"
           value="${esc(cache.catalogQuery)}" aria-label="搜索字节码目录">
@@ -790,7 +785,6 @@
               ${batchCounts.get(op.batch_id || op.op_id) > 1 ? `撤销整组（${batchCounts.get(op.batch_id || op.op_id)}）` : '撤销'}</button></td></tr>`).join('')}
         </tbody></table>
       </div>`}
-      <div class="analysis-hint">每次应用形成一个不可拆分的补丁组；撤销前会核对当前字节并自动备份。若显示冲突，请先用外部工具将该位置恢复为“新字节”或“原字节”，再重新检查。</div>
       ${(cache.exportPreviews || []).map(item => `
         <details class="patch-export-text card"><summary>导出内容预览（${esc(item.name)}）</summary>
           <pre class="report-pre">${esc(item.text)}</pre></details>`).join('')}`;

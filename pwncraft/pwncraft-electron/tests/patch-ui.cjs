@@ -196,8 +196,7 @@ app.whenReady().then(async () => {
     await click('[data-tab="recipes"]');
     await until('document.querySelectorAll(".recipe-card").length === 2');
     assert.match(await js('document.querySelector(".recipe-card").innerText'), /seccomp 沙箱注入/);
-    await click('.patch-usage summary');
-    assert.match(await js('document.querySelector(".patch-usage").innerText'), /入口注入/);
+    assert.equal(await js('document.querySelector(".patch-usage")'), null, '使用说明折叠块已移除');
     const presetOptions = () => js('[...document.querySelectorAll(".recipe-card select option")].map(o => o.value)');
     assert.deepEqual(await presetOptions(), ['blacklist_min', 'custom', 'read', 'exit', 'read', 'exit']);
     await click('.patch-recipe-preview[data-recipe="seccomp"]');
@@ -253,7 +252,7 @@ app.whenReady().then(async () => {
     await until('document.querySelectorAll(".patch-export-text").length === 2');
     assert.equal(lastCall('patch_export').result.kind, 'diff');
     await click('#patch-export-elf');
-    await until('document.querySelectorAll(".patch-export-text").length === 2');
+    for (let i = 0; i < 50 && (!lastCall('patch_export') || lastCall('patch_export').result.kind !== 'patched'); i++) await sleep(100);
     assert.equal(lastCall('patch_export').result.kind, 'patched');
     assert.match(await js('document.querySelector(".patch-message").innerText'), /已导出补丁后 ELF/);
     await shot('manage-populated.png');

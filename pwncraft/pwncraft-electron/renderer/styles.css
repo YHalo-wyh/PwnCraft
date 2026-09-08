@@ -9884,3 +9884,6 @@ select.input { font: inherit; }
 .patch-ida-row .chip { margin: 1px 4px 1px 0; }
 .patch-decompile { margin: 10px 14px 0; }
 .patch-decompile pre { max-height: 40vh; overflow: auto; }
+
+/* IDA 体检卡条目：纯文本（替代小蓝框 chip） */
+.patch-ida-item { margin: 1px 10px 1px 0; font-size: 12px; color: var(--text); }
