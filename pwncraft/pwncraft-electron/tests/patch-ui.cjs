@@ -155,6 +155,17 @@ app.whenReady().then(async () => {
     assert.match(await js('document.querySelector(".patch-message").innerText'), /已应用 1 条补丁/);
     assert.equal(lastCall('patch_apply').result.request.kind, 'nop_range');
 
+    // 条件跳转反转（off-by-one 一键修复）；先等 apply 触发的指令表重拉完成
+    await until('document.querySelectorAll(".patch-insn").length === 5 && !document.querySelector(".patch-preview")');
+    await click('.patch-insn[data-index="2"]');
+    await until('document.querySelector(".patch-insn.selected") !== null');
+    await click('#patch-jcc-invert');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'jcc_invert');
+    assert.equal(lastCall('patch_preview').result.request.vaddr, '0x1004');
+    await click('#patch-preview-cancel');
+    await until('!document.querySelector(".patch-preview")');
+
     // 一键通防：seccomp 卡片预览 + 应用
     await click('[data-tab="recipes"]');
     await until('document.querySelectorAll(".recipe-card").length === 2');

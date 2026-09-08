@@ -126,6 +126,7 @@ class WslToolRunner:
             command,
             capture_output=True,
             timeout=timeout,
+            stdin=subprocess.DEVNULL,
             **hidden_windows_process_kwargs(),
         )
         return ToolResult(command, proc.returncode,

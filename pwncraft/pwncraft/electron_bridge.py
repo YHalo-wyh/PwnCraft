@@ -65,9 +65,9 @@ from pwncraft.features.heapviz.dataset import validate_case
 from pwncraft.features.heapviz.templates import HEAP_TEMPLATES
 from pwncraft.features.patch.patch_core import PatchLab, PatchOp, parse_instruction_lines
 from pwncraft.features.patch.recipes import (
-    RECIPE_CATALOG, build_custom_bytes, build_nop_function, build_nop_range,
-    build_plt_call_redirect, build_plt_stub_redirect, build_read_length,
-    build_ret_function, normalize_patch_arch)
+    RECIPE_CATALOG, build_custom_bytes, build_jcc_invert, build_nop_function,
+    build_nop_range, build_plt_call_redirect, build_plt_stub_redirect,
+    build_read_length, build_ret_function, normalize_patch_arch)
 from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
 from pwncraft.features.patch.bytecode_catalog import catalog_entries, disasm_raw, encode_template
 from pwncraft.features.patch.exporters import (
@@ -398,6 +398,9 @@ class ElectronBridge:
             built = build_nop_range(lab, int(str(request.get("start") or "0"), 0),
                                     int(str(request.get("end") or "0"), 0))
             return built["ops"], built["warnings"]
+        if kind == "jcc_invert":
+            built = build_jcc_invert(lab, int(str(request.get("vaddr") or "0"), 0))
+            return built["ops"], built["warnings"]
         if kind == "custom":
             expected = request.get("expected_size")
             built = build_custom_bytes(lab, int(str(request.get("vaddr") or "0"), 0),
@@ -408,7 +411,13 @@ class ElectronBridge:
         raise ValueError(f"未知补丁类型: {kind or '(空)'}")
 
     def rpc_patch_recipes(self, params: dict) -> dict:
-        return {"recipes": list(RECIPE_CATALOG),
+        def normalize(recipe: dict) -> dict:
+            payload = dict(recipe)
+            warnings = payload.get("warnings")
+            payload["warnings"] = list(warnings) if isinstance(warnings, (list, tuple)) \
+                else ([str(warnings)] if warnings else [])
+            return payload
+        return {"recipes": [normalize(recipe) for recipe in RECIPE_CATALOG],
                 "seccomp_presets": {key: {k: v for k, v in conf.items() if k != "warnings"}
                                     for key, conf in SECCOMP_PRESETS.items()}}
 
@@ -466,7 +475,8 @@ class ElectronBridge:
         path = dest
         if kind == "script":
             arch = self._patch_arch(lab.binary)
-            text = export_pwntools_script(ops, binary_name=lab.binary.name, arch=arch)
+            text = export_pwntools_script(ops, binary_name=lab.binary.name, arch=arch,
+                                          geometry=lab.geometry())
             if path:
                 Path(path).write_text(text, encoding="utf-8")
             return {"text": text, "path": path, "count": len(ops)}

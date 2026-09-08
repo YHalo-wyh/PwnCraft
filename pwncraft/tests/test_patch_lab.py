@@ -6,10 +6,11 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import struct
+import subprocess
 
-from pwncraft.core.wsl import ToolResult
+from pwncraft.core.wsl import ToolResult, WslToolRunner
 from pwncraft.features.patch.patch_core import (
     PatchLab, PatchOp, entry_prefix_bytes, find_code_cave, parse_instruction_lines,
     rel32_jmp)
@@ -17,9 +18,9 @@ from pwncraft.features.patch.seccomp_inject import (
     SECCOMP_PRESETS, build_bpf_filter, build_install_shellcode, build_seccomp_ops,
     resolve_policy_names, shellcode_length)
 from pwncraft.features.patch.recipes import (
-    build_custom_bytes, build_nop_function, build_nop_range, build_plt_call_redirect,
-    build_plt_stub_redirect, build_read_length, build_ret_function, extract_plt_stubs,
-    find_call_sites, normalize_patch_arch)
+    build_custom_bytes, build_jcc_invert, build_nop_function, build_nop_range,
+    build_plt_call_redirect, build_plt_stub_redirect, build_read_length,
+    build_ret_function, extract_plt_stubs, find_call_sites, normalize_patch_arch)
 from pwncraft.features.patch.bytecode_catalog import (
     catalog_entries, disasm_raw, encode_template)
 from pwncraft.features.patch.exporters import (
@@ -179,6 +180,34 @@ class CodeCaveTests(FixtureCase):
         finally:
             mod.TEXT_BLOB = original
 
+    def test_cave_never_leaks_into_nonexec_segment_tail(self):
+        # 双 LOAD 布局：RX 段尾只有 0x40 可用；R 段尾有 0x80 全零（旧版误选的陷阱）。
+        # 修复前 R 段尾的零区被当成 cave，跳过去执行即 SIGSEGV（32 位实测踩坑）。
+        text = TEXT_BLOB + b"\x00" * (0xFC0 - len(TEXT_BLOB))
+        shoff = 0x21A0
+        file_size = shoff + 4 * 64
+        ehdr = bytearray(64)
+        ehdr[:6] = b"\x7fELF\x02\x01"
+        struct.pack_into("<HHIQQQIHHHHHH", ehdr, 16,
+                         2, 0x3E, 1, 0x401000, 64, shoff, 0, 64, 56, 2, 64, 4, 0)
+        data = bytearray(file_size)
+        data[0:64] = ehdr
+        data[64:120] = struct.pack("<IIQQQQQQ", 1, 5, 0x1000, 0x401000, 0, 0xFC0, 0xFC0, 0x1000)
+        data[120:176] = struct.pack("<IIQQQQQQ", 1, 4, 0x2000, 0x402000, 0, 0x100, 0x100, 0x1000)
+        data[0x1000:0x1000 + len(text)] = text
+        data[0x2000:0x2100] = b"\xcc" * 0x100          # .rodata（R 段内真实数据）
+        data[0x2180:0x21A0] = b"\xee" * 0x20           # .dynamic 假数据
+        data[shoff + 64:shoff + 128] = struct.pack("<IIQQQQIIQQ", 1, 1, 6, 0x401000, 0x1000, 0xFC0, 0, 0, 1, 0)
+        data[shoff + 128:shoff + 192] = struct.pack("<IIQQQQIIQQ", 1, 1, 2, 0x402000, 0x2000, 0x100, 0, 0, 1, 0)
+        data[shoff + 192:shoff + 256] = struct.pack("<IIQQQQIIQQ", 1, 6, 3, 0, 0x2180, 0x20, 0, 0, 1, 0)
+        with TemporaryDirectory() as folder:
+            split = Path(folder) / "split"
+            split.write_bytes(bytes(data))
+            with self.assertRaises(ValueError):
+                find_code_cave(split, 0x60)
+            cave = find_code_cave(split, 0x20)
+            self.assertLess(cave["offset"], 0x2000)     # 必须落在可执行段范围内
+
 
 class SeccompTests(FixtureCase):
     def test_bpf_filter_blacklist_and_whitelist(self):
@@ -210,10 +239,12 @@ class SeccompTests(FixtureCase):
         self.assertEqual(sc[0], 0x52)                               # push rdx（保存 rtld_fini）
         self.assertEqual(sc[-1], 0x5A)                              # pop rdx
         self.assertEqual(sc[29:33], struct.pack("<i", 82 - 33))     # lea rip 位移
-        sc32 = build_install_shellcode("i386", 0x2000, 0x2000 + 100, 9)
+        sc32 = build_install_shellcode("i386", 0x2000, 0x2000 + 102, 9)
         self.assertEqual(len(sc32), shellcode_length("i386"))
         self.assertIn(b"\xb8\xac\x00\x00\x00", sc32)                # mov eax,172
-        self.assertEqual(sc32[31:35], struct.pack("<i", 100 - 28))  # add ebx 位移
+        self.assertEqual(sc32[0], 0x52)                             # push edx（保存 rtld_fini）
+        self.assertEqual(sc32[-1], 0x5A)                            # pop edx
+        self.assertEqual(sc32[32:36], struct.pack("<i", 102 - 29))  # add ebx 位移（pop_at=29）
 
     def test_resolve_policy_names(self):
         self.assertEqual(resolve_policy_names(("execve", "execveat"), "amd64"), (59, 322))
@@ -320,6 +351,25 @@ class RecipeTests(FixtureCase):
             build_custom_bytes(self.lab, BASE + 0xA0, "xyz")
         with self.assertRaises(ValueError):
             build_custom_bytes(self.lab, BASE + 0xA0, "ba")  # 与原首字节相同
+
+    def test_jcc_invert(self):
+        # 在 cave 空闲区手写跳转指令再反转（短跳转 jg → jle）
+        with self.binary.open("r+b") as stream:
+            stream.seek(0x200)
+            stream.write(b"\x7f\x02\x90\x90")
+        op = build_jcc_invert(self.lab, BASE + 0x200)["ops"][0]
+        self.assertEqual(op.new_bytes, b"\x7e\x02")
+        self.assertIn("jg", op.note)
+        # 近跳转 0f 8f（jg rel32）→ 0f 8e（jle rel32），位移保留
+        with self.binary.open("r+b") as stream:
+            stream.seek(0x210)
+            stream.write(b"\x0f\x8f\x10\x00\x00\x00")
+        op2 = build_jcc_invert(self.lab, BASE + 0x210)["ops"][0]
+        self.assertEqual(op2.new_bytes, b"\x0f\x8e\x10\x00\x00\x00")
+        self.assertEqual(len(op2.original_bytes), 6)
+        # 非跳转指令被拒绝
+        with self.assertRaises(ValueError):
+            build_jcc_invert(self.lab, BASE + 0x78)  # endbr64
 
     def test_normalize_patch_arch(self):
         self.assertEqual(normalize_patch_arch("x86-64", 64), "amd64")
@@ -515,6 +565,24 @@ class ExporterTests(FixtureCase):
         self.assertIn("elf.write(0x4000a0, bytes.fromhex('90 90 90 90 90'))", script)
         self.assertIn("elf.save(output)", script)
 
+    def test_pwntools_script_routes_tail_cave_to_offset_write(self):
+        from pwncraft.core.workbench import vaddr_to_offset as strict
+        geometry = {"program_headers": [
+            {"type": 1, "flags": 5, "offset": 0, "vaddr": 0x400000,
+             "filesz": 0x1000, "memsz": 0x1000, "align": 0x1000},
+            {"type": 1, "flags": 5, "offset": 0x1000, "vaddr": 0x401000,
+             "filesz": 0x1d1, "memsz": 0x1d1, "align": 0x1000}], "sections": []}
+        body, tail = self._two_ops()
+        self.assertIsNotNone(strict(geometry, body.vaddr))     # 普通 op 走 elf.write
+        tail_cave = PatchOp(kind="seccomp_cave", vaddr=0x4011d1, file_offset=0x11d1,
+                            original_bytes=b"\x00" * 4, new_bytes=b"\x90" * 4, note="cave")
+        self.assertIsNone(strict(geometry, tail_cave.vaddr))   # 段尾 op 需要偏移补写
+        script = export_pwntools_script([body, tail_cave], binary_name="pwn",
+                                        arch="amd64", geometry=geometry)
+        self.assertIn("elf.write(0x4000a0", script)
+        self.assertIn("_tail_offset(elf, 0x4011d1)", script)
+        self.assertIn("elf.save(output)", script)
+
     def test_diff_text(self):
         diff = export_diff_text(self._two_ops(), binary_path=str(self.binary))
         self.assertIn("vaddr 0x4000a0", diff)
@@ -541,6 +609,24 @@ class ExporterTests(FixtureCase):
                           original_bytes=b"\xff" * 5, new_bytes=b"\x90" * 5)
         with self.assertRaises(ValueError):
             materialize_patched(pristine, [patched], self.folder / "out")
+
+
+class WslStdinIsolationTests(TestCase):
+    """WSL 查询工具不得继承桥的 stdin：wsl.exe 会把队列中的 JSON-RPC 请求行
+    当输入吃掉，导致后续请求（如 patch 页并发发出的 patch_recipes）永久挂起。"""
+
+    @patch("pwncraft.core.wsl.subprocess.run")
+    def test_run_tool_passes_devnull_stdin(self, run):
+        run.return_value = subprocess.CompletedProcess([], 0, b"", b"")
+        WslToolRunner().run_tool("file", ["/bin/true"])
+        self.assertEqual(run.call_args.kwargs.get("stdin"), subprocess.DEVNULL)
+
+    @patch("pwncraft.core.pwndbg_manager.subprocess.run")
+    def test_pwndbg_wsl_passes_devnull_stdin(self, run):
+        from pwncraft.core.pwndbg_manager import PwndbgManager
+        run.return_value = subprocess.CompletedProcess([], 0, "", "")
+        PwndbgManager()._run_wsl("true")
+        self.assertEqual(run.call_args.kwargs.get("stdin"), subprocess.DEVNULL)
 
 
 class BridgePatchTests(FixtureCase):

@@ -20,12 +20,17 @@ npm start          # 完整工作台
 npm run smoke      # 无头冒烟（桥 + 终端）
 ```
 
-功能面（10 页）：概览/导入 · Binary（WSL 真实 CLI）· EXP 编辑器（代码块/转换/格式化/命令/GDB 工具列）·
+功能面（11 页）：概览/导入 · Binary（WSL 真实 CLI）· EXP 编辑器（代码块/转换/格式化/命令/GDB 工具列）·
 **Heap 物理堆画布**（16 模板 + EXP 回放，全部经 `GlibcHeapEngine` 真实 glibc allocator 仿真；
 JS 弹簧-质量物理引擎动画；画布校正即时回放并**自动推断识别规则**）· IO FILE（glibc 布局 + 约束校验）·
 ROP（ROPgadget 真实执行 + Shelf + Chain/ret2libc/SROP + 终端直接可用）·
 调试（**新开终端实例自动进入 pwndbg-mogai + ELF**，隔离 fork、官方 pwndbg 零改动）·
-Format（偏移/写入计划）· Syscall/ORW · Stack/Leak（cyclic + libc_base 推导）· 工具箱。
+Format（偏移/写入计划）· Syscall/ORW · Stack/Leak（cyclic + libc_base 推导）· 工具箱 ·
+**AWDP Patch**（v0.33：字节级补丁真值在 `features/patch`——入口 trampoline + code cave 的
+seccomp 沙箱注入、PLT 劫持（调用点/stub 双模式，兼容 `.plt.sec`）、read/fgets 长度收紧、
+函数 NOP/ret 化、条件跳转反转、自定义字节；字节码查询目录 + objdump 反汇编 + rel32 计算器；
+补丁逐条可撤销，三种导出：pwntools `patch.py` / 干净 patched ELF / 字节 diff；原始 ELF 只读，
+补丁只写工作副本并自动备份）。
 
 旧桌面栈、PyInstaller 构建产物和旧截图探针已清理；真值层（`PwnWorkspace` / CliToolService / `PhysicalMemory -> Typed Views`）继续由 Electron 的 Python 桥使用，`third_party/pwndbg-mogai` 独立 Fork 不受影响。
 

@@ -1,7 +1,8 @@
 """Patch 文件导出：pwntools 补丁脚本、干净 patched ELF、字节 diff 文本。
 
 三种产物共用同一份 PatchOp 真值：
-- script：比赛提交常用的 patch.py（pwnlib ELF.write 以 vaddr 定位）；
+- script：比赛提交常用的 patch.py（pwnlib ELF.write 以 vaddr 定位；
+  段尾填充区的 cave 无法用 vaddr_to_offset 解析，脚本内按页对齐偏移补写）；
 - patched：从只读原始副本按 vaddr 回放，避开工作副本上 patchelf 的改动；
 - diff：offset | 原字节 | 新字节 | 说明 的核对文本。
 """
@@ -13,8 +14,33 @@ from pathlib import Path
 from pwncraft.core.workbench import elf_geometry
 from .patch_core import PatchOp, page_aware_vaddr_to_offset
 
+_TAIL_HELPER = '''def _tail_offset(elf, vaddr, page=0x1000):
+    # 段尾填充区：pwntools 的 vaddr_to_offset 只认 filesz 区间；
+    # 整页映射的段间填充按页对齐末端换算文件偏移
+    for seg in elf.segments:
+        h = seg.header
+        if h.p_type == 'PT_LOAD' and (h.p_flags & 1):
+            start, size = h.p_vaddr, h.p_filesz
+            end = (start + size + page - 1) & ~(page - 1)
+            if start <= vaddr < end:
+                return h.p_offset + (vaddr - start)
+    raise ValueError('vaddr %#x 不在任何可执行段页范围内' % vaddr)
+'''
 
-def export_pwntools_script(ops: list[PatchOp], *, binary_name: str, arch: str) -> str:
+
+def export_pwntools_script(ops: list[PatchOp], *, binary_name: str, arch: str,
+                           geometry: dict | None = None) -> str:
+    """生成 patch.py。geometry 提供时，把段尾 cave 类 op 归入偏移补写段。"""
+    from pwncraft.core.workbench import vaddr_to_offset as strict_offset
+
+    body_ops: list[PatchOp] = []
+    tail_ops: list[PatchOp] = []
+    for op in ops:
+        if geometry is not None and strict_offset(geometry, op.vaddr) is None:
+            tail_ops.append(op)
+        else:
+            body_ops.append(op)
+
     lines = [
         "#!/usr/bin/env python3",
         "# 由 PwnCraft AWDP Patch 自动生成 —— 字节与地址来自当前工作区补丁记录",
@@ -29,12 +55,33 @@ def export_pwntools_script(ops: list[PatchOp], *, binary_name: str, arch: str) -
         "elf = ELF(source, checksec=False)",
         "",
     ]
-    for index, op in enumerate(ops, start=1):
-        lines.append(f"# ---- [{index}/{len(ops)}] {op.kind} @ 0x{op.vaddr:x} ---- {op.note}")
+    if tail_ops:
+        lines.append(_TAIL_HELPER.rstrip())
+        lines.append("")
+    total = len(ops)
+    index = 0
+    for op in body_ops:
+        index += 1
+        lines.append(f"# ---- [{index}/{total}] {op.kind} @ 0x{op.vaddr:x} ---- {op.note}")
         lines.append(f"elf.write(0x{op.vaddr:x}, bytes.fromhex({op.new_bytes.hex(' ')!r}))")
         lines.append("")
+    if body_ops:
+        lines.append("elf.save(output)")
+        lines.append("")
+    else:
+        # 全部是段尾补丁时也需要先落盘再补写
+        lines.append("elf.save(output)")
+        lines.append("")
+    for op in tail_ops:
+        index += 1
+        lines.append(f"# ---- [{index}/{total}] {op.kind} @ 0x{op.vaddr:x}（段尾填充区，按偏移补写）---- {op.note}")
+        lines.append(f"with open(output, 'r+b') as _f:")
+        lines.append(f"    _f.seek(_tail_offset(elf, 0x{op.vaddr:x}))")
+        lines.append(f"    _f.write(bytes.fromhex({op.new_bytes.hex(' ')!r}))")
+        lines.append("")
     lines += [
-        "elf.save(output)",
+        "import os",
+        "os.chmod(output, os.stat(source).st_mode)",
         'print(f"[+] 已生成 {output}")',
         "",
     ]

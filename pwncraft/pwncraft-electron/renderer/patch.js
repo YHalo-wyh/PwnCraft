@@ -234,6 +234,7 @@
           <div class="patch-actions">
             <button class="mini-btn" id="patch-nop-insn" ${cache.selectedInsn < 0 ? 'disabled' : ''}>NOP 选中指令</button>
             <button class="mini-btn" id="patch-nop-tail" ${cache.selectedInsn < 0 ? 'disabled' : ''}>NOP 到函数尾</button>
+            <button class="mini-btn" id="patch-jcc-invert" ${cache.selectedInsn < 0 ? 'disabled' : ''} title="jg↔jle / jl↔jge / je↔jne 等；off-by-one 边界修复的 1 字节手法">反转跳转条件</button>
             <button class="mini-btn" id="patch-ret-fn">函数 ret 化</button>
             <button class="mini-btn" id="patch-nop-fn">整函数 NOP</button>
             <span class="patch-hex-wrap">
@@ -286,6 +287,9 @@
     bind('#patch-nop-tail', () => selected && fnEnd && previewPatch(entry, {
       kind: 'nop_range', start: selected.address, end: fnEnd,
     }, `NOP 0x${selected.address} → 函数尾`));
+    bind('#patch-jcc-invert', () => selected && previewPatch(entry, {
+      kind: 'jcc_invert', vaddr: selected.address,
+    }, `反转条件跳转 @${selected.address}`));
     bind('#patch-ret-fn', () => fn && previewPatch(entry, {
       kind: 'ret_function', function: fn.name,
     }, `${fn.name} ret 化`));
@@ -394,7 +398,7 @@
                 <label class="form-row"><span class="k">${esc(field.label)}</span>
                   <span class="v">${fieldControl(cache, recipe, field, options)}</span></label>`).join('')}
             </div>
-            ${(recipe.warnings || []).map(w => `<div class="patch-warning">${esc(w)}</div>`).join('')}
+            ${(Array.isArray(recipe.warnings) ? recipe.warnings : []).map(w => `<div class="patch-warning">${esc(w)}</div>`).join('')}
           </article>`;
         }).join('')}
       </div>

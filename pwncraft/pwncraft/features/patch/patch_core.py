@@ -398,7 +398,8 @@ def find_code_cave(binary: Path, min_size: int, *, geometry: dict | None = None)
         free_runs: list[tuple[int, int]] = []
         cursor = seg_start
         for lo, hi in bounds:
-            lo = max(lo, seg_start)
+            # lo 也要封顶在 scan_end 内：否则 R 段尾的全零区会被误认为可执行 cave
+            lo = min(max(lo, seg_start), scan_end)
             hi = min(hi, scan_end)
             if lo > cursor:
                 free_runs.append((cursor, lo))

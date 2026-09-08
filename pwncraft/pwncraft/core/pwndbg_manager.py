@@ -65,6 +65,7 @@ class PwndbgManager:
             encoding="utf-8",
             errors="replace",
             timeout=timeout,
+            stdin=subprocess.DEVNULL,
             **hidden_windows_process_kwargs(),
         )
 

@@ -227,6 +227,47 @@ def build_custom_bytes(lab: PatchLab, vaddr: int, hex_bytes: str, *,
             "warnings": []}
 
 
+_JCC_SHORT_NAMES = {
+    0x70: "jo", 0x71: "jno", 0x72: "jb", 0x73: "jae", 0x74: "je", 0x75: "jne",
+    0x76: "jbe", 0x77: "ja", 0x78: "js", 0x79: "jns", 0x7A: "jp", 0x7B: "jnp",
+    0x7C: "jl", 0x7D: "jge", 0x7E: "jle", 0x7F: "jg",
+}
+
+
+def build_jcc_invert(lab: PatchLab, vaddr: int) -> dict:
+    """反转条件跳转（jg↔jle、jl↔jge、je↔jne…）——off-by-one 边界修复的 1 字节手法。
+
+    短跳转（70-7F）与近跳转（0F 84-8F）的取反都是「操作码 ^ 1」，
+    位移字节原样保留，文件布局不变。
+    """
+    address = int(vaddr)
+    blob = lab.read_at(address, 6)
+    if blob[0] == 0x0F and 0x84 <= blob[1] <= 0x8F:
+        original = bytes(blob[:6])
+        new_bytes = bytes([0x0F, blob[1] ^ 1]) + original[2:]
+        short_opcode = 0x70 | (blob[1] & 0x0F)
+        note = (f"反转条件跳转 @0x{address:x}"
+                f"（{_JCC_SHORT_NAMES.get(short_opcode, 'jcc')} → "
+                f"{_JCC_SHORT_NAMES.get(short_opcode ^ 1, 'jcc')}，近跳转）")
+    elif 0x70 <= blob[0] <= 0x7F:
+        original = bytes(blob[:2])
+        new_bytes = bytes([blob[0] ^ 1]) + original[1:]
+        note = (f"反转条件跳转 @0x{address:x}"
+                f"（{_JCC_SHORT_NAMES.get(blob[0], 'jcc')} → "
+                f"{_JCC_SHORT_NAMES.get(blob[0] ^ 1, 'jcc')}）")
+    else:
+        raise ValueError(
+            f"0x{address:x} 处不是条件跳转（jcc）指令；仅支持短跳转（70-7F）与"
+            "近跳转（0F 84-8F），请先用反汇编确认选中的指令")
+    if original == new_bytes:
+        raise ValueError("反转前后字节相同，无需打补丁")
+    return {"ops": [PatchOp(kind="jcc_invert", vaddr=address,
+                            file_offset=lab.offset_of(address),
+                            original_bytes=original, new_bytes=new_bytes,
+                            note=note)],
+            "warnings": ["条件反转只改变跳转方向，边界语义（多 1/少 1）需结合题意确认。"]}
+
+
 def normalize_patch_arch(architecture, bits) -> str:
     """归一化 patch 用的架构标签（不支持 x86 以外时给出明确错误）。"""
     text = normalize_architecture(architecture, strict=False)
@@ -271,8 +312,8 @@ RECIPE_CATALOG: tuple[dict, ...] = (
             {"key": "source", "label": "被劫持函数（PLT）", "kind": "select", "dynamic": True},
             {"key": "target", "label": "重定向目标（PLT）", "kind": "select", "dynamic": True},
         ],
-        "warnings": ("目标函数与源函数参数语义不同时（如 system(char*) → exit(int)），"
-                     "攻击者可控的字符串指针会被当作退出码，行为是“安全退出”，可接受。"),
+        "warnings": ["目标函数与源函数参数语义不同时（如 system(char*) → exit(int)），"
+                     "攻击者可控的字符串指针会被当作退出码，行为是“安全退出”，可接受。"],
     },
     {
         "id": "plt_stub",

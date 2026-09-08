@@ -106,7 +106,7 @@ def build_bpf_filter(arch: str, kill: tuple[int, ...] = (), allow: tuple[int, ..
 
 
 def shellcode_length(arch: str) -> int:
-    return 71 if arch == "amd64" else 67
+    return 71 if arch == "amd64" else 69
 
 
 def build_install_shellcode(arch: str, shellcode_vaddr: int,
@@ -144,8 +144,10 @@ def build_install_shellcode(arch: str, shellcode_vaddr: int,
         assert len(code) == shellcode_length("amd64")
         return bytes(code)
 
-    # i386：无 RIP 相对寻址，用 call/pop 取当前地址
+    # i386：无 RIP 相对寻址，用 call/pop 取当前地址；edx 同样要保存
+    # （SysV i386 入口约定 edx=rtld_fini，污染它退栈时会跳进 fprog 地址）。
     code = bytearray()
+    code += b"\x52"                                        # push edx（保存 rtld_fini）
     code += b"\xb8\xac\x00\x00\x00"                        # mov eax, 172 (prctl)
     code += b"\xbb\x26\x00\x00\x00"                        # mov ebx, 38
     code += b"\xb9\x01\x00\x00\x00"                        # mov ecx, 1
@@ -168,6 +170,7 @@ def build_install_shellcode(arch: str, shellcode_vaddr: int,
     code += b"\x31\xff"                                    # xor edi, edi
     code += b"\xcd\x80"                                    # int 0x80
     code += b"\x83\xc4\x08"                                # add esp, 8
+    code += b"\x5a"                                        # pop edx（恢复 rtld_fini）
     disp = filter_vaddr - (shellcode_vaddr + pop_at)
     code[add_at + 2:add_at + 6] = struct.pack("<i", disp)
     assert len(code) == shellcode_length("i386")

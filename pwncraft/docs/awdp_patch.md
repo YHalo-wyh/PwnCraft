@@ -71,6 +71,14 @@ RIP 相对寻址需人工复核（`_start` 开头通常没有）。
    （`page_aware_vaddr_to_offset`），严格 PT_LOAD 区间会拒绝。
 4. **防重复注入**：入口首字节已是 `jmp rel32` 时拒绝再次 seccomp 注入
    （避免双重 trampoline）；正常流程由补丁日志的重叠检测兜底。
+5. **WSL 子进程必须 `stdin=DEVNULL`**（v0.33.1，真机排查）：`run_tool` 派生的
+   wsl.exe 会继承并吞掉桥的 stdin 管道里排队的 JSON-RPC 请求行——Patch 页是
+   第一个在导入期间并发发多个请求的界面，排队的 `patch_recipes` 等请求被
+   吃掉后表现为永久挂起。修复覆盖 `core/wsl.py` 与 `pwndbg_manager.py`，
+   回归测试断言两处都传 `subprocess.DEVNULL`。
+6. **cave 不得越出可执行段**：空隙扫描的边界必须封顶在 `scan_end` 内，
+   否则 R（只读不可执行）段尾的全零区会被误选为 cave，跳入即 SIGSEGV
+   （32 位样本实测踩坑，已加双 LOAD 回归测试）。
 
 ### 2. 危险函数劫持（PLT / 调用点）
 
@@ -96,6 +104,12 @@ RIP 相对寻址需人工复核（`_start` 开头通常没有）。
 选中函数 → 指令表（地址 / 原始字节 / 汇编，来自 Python 端 `patch_instructions`）
 → 选中指令 → NOP 该指令 / NOP 到函数尾 / 输入自定义 hex 写入选中地址
 （`expected_size` 校验等长）。字节码查询面板的目录条目可一键填入。
+
+### 6. 条件跳转反转
+
+off-by-one / 边界差一修复的 1 字节手法（V1ct0r 文中的 `jg → jge` 类改写）：
+短跳转（70-7F）与近跳转（0F 84-8F）取反都是「操作码 ^ 1」，位移原样保留。
+手动 Patch 选中 jcc 指令后点「反转跳转条件」即可；非 jcc 指令会被拒绝并提示。
 
 ## 导出格式
 

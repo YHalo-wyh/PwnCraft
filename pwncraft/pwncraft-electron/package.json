@@ -1,7 +1,7 @@
 {
   "name": "pwncraft-electron",
   "productName": "PwnCraft",
-  "version": "0.32.0",
+  "version": "0.33.0",
   "description": "PwnCraft Electron Workbench (Phase B): 全功能迁移 + 堆物理仿真重构 + 画布自学习 + pwndbg-mogai 调试终端",
   "main": "main.js",
   "private": true,
