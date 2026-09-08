@@ -1,0 +1,144 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b",
+  "domain": "format_string",
+  "subdomains": [
+    "binary_semantics",
+    "input_transport",
+    "stored_record",
+    "format_sink_reachability"
+  ],
+  "source_repository": "https://github.com/ctf-wiki/ctf-challenges",
+  "source_commit": "047935a8cd4020c78bf84c36e761cf6d19421e1f",
+  "source_class": "registered_train_corpus",
+  "materials": {
+    "solution_exp_git_blob_sha1": "a3ee2f9dc614ab3b38303dbc747b6b5e137c0a9a",
+    "pwn3_git_blob_sha1": "92ecbbc32e79925f23bd25c141f273398e07068c",
+    "pwn3_sha256": "4fddf60b4838794808fe865579aa6416f53ba40c030dde3854ee63957930bfa5"
+  },
+  "truth_layers": {
+    "UPSTREAM_EXACT_PLAN": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "elf_bound_exact_format_got_rebind_plan",
+          "relation": "Cycle-42 proves the exact artifact-bound numeric puts@GOT->system write plan after an observed puts leak",
+          "provenance": "CYCLE42"
+        }
+      ]
+    },
+    "UPLOAD_CONTENT_STORAGE": {
+      "status": "PROVEN_PINNED_ARTIFACT_INSTRUCTIONS",
+      "facts": [
+        {
+          "kind": "reviewed_user_content_stored_at_record_offset",
+          "relation": "put_file adds 0x28 to the allocated record and passes that pointer to get_input; get_input feeds its destination argument to fread, so the second uploaded input is stored at record+0x28",
+          "provenance": "PINNED_PWN3_OBJDUMP"
+        }
+      ]
+    },
+    "RECORD_SELECTION_AND_COPY": {
+      "status": "PROVEN_PINNED_ARTIFACT_INSTRUCTIONS",
+      "facts": [
+        {
+          "kind": "reviewed_record_content_copied_to_local_buffer",
+          "relation": "after get_file's strcmp match, it computes selected_record+0x28 and passes that value as strcpy source while [ebp-0xfc] is the destination",
+          "provenance": "PINNED_PWN3_OBJDUMP"
+        }
+      ]
+    },
+    "FORMAT_SINK": {
+      "status": "PROVEN_PINNED_ARTIFACT_INSTRUCTIONS",
+      "facts": [
+        {
+          "kind": "reviewed_local_buffer_is_printf_format_argument",
+          "relation": "get_file reloads the same [ebp-0xfc] local buffer into stack argument 0 and calls printf@plt at 0x0804889e",
+          "provenance": "PINNED_PWN3_OBJDUMP"
+        },
+        {
+          "kind": "reviewed_format_plan_reaches_sink_conditionally",
+          "relation": "the content carrying the Cycle-42 plan reaches printf when the attacker requests the matching stored record name",
+          "provenance": "PINNED_PWN3_OBJDUMP_PLUS_CORPUS_EXP"
+        }
+      ]
+    },
+    "WRITE_EXECUTION": {
+      "status": "DEFER_RUNTIME_OR_SERIALIZED_PAYLOAD_PROOF",
+      "facts": [
+        {
+          "kind": "sink_reachability_is_not_write_execution",
+          "relation": "static transport into printf does not yet prove every modulo atom/pointer placement executes and leaves puts@GOT at system",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    },
+    "POST_WRITE_TRIGGER": {
+      "status": "DEFER_NEXT_LAYER",
+      "facts": [
+        {
+          "kind": "rebound_puts_trigger_not_yet_promoted",
+          "relation": "the corpus EXP later sends dir, but Cycle-43 does not yet compose the show_dir puts@plt call with a proven post-format GOT state",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "record_content_offset": 40,
+    "put_record_load_address": 134514623,
+    "put_content_add_address": 134514626,
+    "put_destination_store_address": 134514645,
+    "put_input_call_address": 134514648,
+    "input_helper_address": 134515225,
+    "input_destination_load_address": 134515257,
+    "input_destination_add_address": 134515260,
+    "input_fread_argument_store_address": 134515282,
+    "input_fread_call_address": 134515285,
+    "fread_plt_address": 134513888,
+    "get_record_load_address": 134514793,
+    "get_content_add_address": 134514796,
+    "get_copy_source_store_address": 134514799,
+    "get_local_buffer_lea_address": 134514803,
+    "get_copy_destination_store_address": 134514809,
+    "get_strcpy_call_address": 134514812,
+    "strcpy_plt_address": 134513904,
+    "sink_local_buffer_lea_address": 134514837,
+    "sink_format_argument_store_address": 134514843,
+    "sink_printf_call_address": 134514846,
+    "printf_plt_address": 134513856,
+    "local_buffer_displacement": -252
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "REVIEWED_USER_CONTENT_STORED_AT_RECORD_OFFSET",
+      "REVIEWED_RECORD_CONTENT_COPIED_TO_LOCAL_BUFFER",
+      "REVIEWED_LOCAL_BUFFER_IS_PRINTF_FORMAT_ARGUMENT",
+      "REVIEWED_FORMAT_PLAN_REACHES_SINK_CONDITIONALLY"
+    ],
+    "required_capability": "reviewed_format_payload_sink_reachable",
+    "forbidden_shortcuts": [
+      "do not infer format sink reachability from the existence of printf@plt alone",
+      "do not treat record+0x28 as attacker content without the reviewed input-helper data flow",
+      "do not treat sink reachability as proof that the exact write atoms executed",
+      "do not infer a rebound puts call, system invocation, shell or flag retrieval from this layer"
+    ]
+  },
+  "unknown": [
+    "serialized fmt payload pointer placement/write execution remains downstream",
+    "post-format puts@GOT state remains downstream",
+    "show_dir rebound call execution remains downstream"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-cctf-pwn3-reviewed-format-sink-path-v3",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 3,
+    "supersedes": "truth-cctf-pwn3-exact-artifact-fmt-plan-v2",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "solution_exp_git_blob_sha1": "a3ee2f9dc614ab3b38303dbc747b6b5e137c0a9a",
+      "pwn3_git_blob_sha1": "92ecbbc32e79925f23bd25c141f273398e07068c",
+      "pwn3_sha256": "4fddf60b4838794808fe865579aa6416f53ba40c030dde3854ee63957930bfa5"
+    }
+  }
+}
