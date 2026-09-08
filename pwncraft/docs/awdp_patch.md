@@ -34,6 +34,24 @@ patch_disasm_raw / patch_bytecode_lookup / patch_encode`。
 
 ## 手法原理
 
+### 0. Keypatch 式汇编补丁 + IDA 联动（VNext.5）
+
+- **汇编补丁**（手动 Patch 选中指令 → 「汇编补丁」）：输入 Intel 语法汇编，
+  keystone（IDA 插件 Keypatch 同款引擎）实时编译显示机器码与长度；新指令
+  短于原指令时按 Keypatch 行为自动 NOP 填充，超出则禁止（等长替换铁律）。
+  相对跳转（jmp/call）按选中地址解析 rel32。keystone 为可选依赖
+  （`pip install keystone-engine`），缺失时给出安装指引。
+- **IDA 联动**：经本机 [IDA-CLI](https://github.com/ze-mu-zhou/IDACLI)
+  （idalib，IDA Pro 9.0+，实测 9.4）驱动真实 IDA 数据库。桥进程零 import
+  依赖——按需 spawn 装有 ida_cli 的 Python 3.11+（`IDA_CLI_PYTHON` 可覆盖，
+  默认探测 `D:\python\python.exe` 等），驱动进程常驻复用 AgentSession。
+  手动 Patch 页顶栏：「检测 IDA」状态徽章、「IDA 分析」（pwn 体检：危险
+  导入/可疑符号/命中字符串/缓解提示）、「查看伪代码」（Hex-Rays 反编译）。
+  应用补丁后若 IDA 会话活跃，自动把字节同步 patch 进 IDA 数据库
+  （Keypatch 反向联动，失败不阻断）。安装：
+  `<IDA目录>\idalib\python\py-activate-idalib.py -d <IDA目录>` +
+  `pip install -e <IDACLI 仓库>`。
+
 ### 1. seccomp 沙箱注入（沙箱通防）
 
 思路与社区工具 retr0-Patcher / EvilPatcher 一致：

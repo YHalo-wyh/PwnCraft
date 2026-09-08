@@ -29,6 +29,8 @@
       catalogQuery: '', catalogData: null,
       disasmInput: '', disasmData: null, disasmError: '',
       relFrom: '', relTo: '', relResult: '',
+      idaStatus: null, idaBusy: false, idaOverview: null, idaError: '',
+      decompiled: null,
       busy: false, message: '', error: '',
     };
   }
@@ -108,6 +110,18 @@
       cache.log = result.log || cache.log;
       const backupName = result.backup ? String(result.backup).split(/[\\/]/).pop() : '';
       cache.message = `已应用 ${result.applied.length} 条补丁${backupName ? `（备份 ${backupName}）` : ''}`;
+      // Keypatch 反向联动：IDA 会话活跃时把补丁字节同步进 IDA 数据库（尽力而为）
+      if (cache.idaStatus && cache.idaStatus.available) {
+        try {
+          for (const op of result.applied) {
+            await window.pwncraft.request('ida_patch_bytes', {
+              vaddr: `0x${Number(op.vaddr).toString(16)}`, hex: op.new_bytes });
+          }
+          cache.message += ' · 已同步 IDA';
+        } catch (idaError) {
+          cache.message += ` · IDA 同步失败（${String(idaError.message || idaError).slice(0, 60)}）`;
+        }
+      }
       cache.preview = null; cache.previewRequest = null;
       await refreshAfterMutation(entry);
     } catch (error) {
@@ -206,6 +220,179 @@
     }
   }
 
+  // ------------------------------------------------------------------
+  // IDA 联动（IDA-CLI / idalib）：状态徽章 / pwn 体检 / 伪代码
+  function idaBadgeText(cache) {
+    if (cache.idaBusy) return 'IDA：检测中…';
+    const status = cache.idaStatus;
+    if (!status) return 'IDA：未检测';
+    if (status.available) return `IDA：就绪（${status.backend && status.backend.idalib ? 'idalib' : 'backend'} · ${String(status.backend && (status.backend.ida_version || status.backend.version) || 'IDA 9.x')}）`;
+    return 'IDA：不可用';
+  }
+
+  function renderIdaCards(cache) {
+    if (cache.decompiled) {
+      return `<details class="patch-decompile card" open><summary>IDA 伪代码 · ${esc(cache.decompiled.name || '')}</summary>
+        <pre class="report-pre">${esc(cache.decompiled.pseudocode || '')}</pre></details>`;
+    }
+    const overview = cache.idaOverview;
+    if (!overview) return '';
+    const row = (label, items, render) => items && items.length
+      ? `<div class="patch-ida-row"><span class="patch-ida-key">${label} (${items.length})</span>
+          <span>${items.map(render).join('')}</span></div>` : '';
+    return `
+      <div class="card patch-ida-card">
+        <div class="card-title">IDA pwn 体检
+          <span class="hint-dim">危险导入 / 可疑符号 / 命中字符串</span></div>
+        ${row('危险导入', overview.dangerous_imports, i =>
+          `<code class="chip">${esc(i.name)}</code>`)}
+        ${row('可疑符号', overview.interesting_symbols, i =>
+          `<code class="chip">${esc(i.name)}@0x${Number(i.ea).toString(16)}<span class="hint-dim"> ${esc(i.reason || '')}</span></code>`)}
+        ${row('命中字符串', overview.string_hits, i =>
+          `<code class="chip">${esc(String(i.value).slice(0, 40))}</code>`)}
+        ${overview.mitigation_hints && Object.keys(overview.mitigation_hints).length
+          ? `<div class="patch-ida-row"><span class="patch-ida-key">缓解提示</span><span class="hint-dim">${esc(Object.entries(overview.mitigation_hints).map(([k, v]) => `${k}=${v}`).join(' · '))}</span></div>` : ''}
+      </div>`;
+  }
+
+  async function idaRefresh(entry, force = false) {
+    const cache = cacheOf(entry);
+    if (cache.idaBusy || (cache.idaStatus && !force)) return;
+    cache.idaBusy = true; cache.idaError = '';
+    renderManual(entry, cache);
+    try {
+      cache.idaStatus = await window.pwncraft.request('ida_status', {});
+    } catch (error) {
+      cache.idaStatus = { available: false };
+      cache.idaError = error.message || String(error);
+    } finally {
+      cache.idaBusy = false;
+      if (entryNow() === entry && app().state.page === 'patch') render();
+    }
+  }
+
+  async function idaAnalyze(entry) {
+    const cache = cacheOf(entry);
+    cache.idaBusy = true; cache.idaError = ''; cache.idaOverview = null;
+    renderManual(entry, cache);
+    try {
+      const result = await window.pwncraft.request('ida_analyze', {});
+      cache.idaOverview = result.overview || {};
+      cache.idaStatus = { available: true, backend: {} };
+    } catch (error) {
+      cache.idaError = `IDA 分析失败：${error.message || String(error)}`;
+    } finally {
+      cache.idaBusy = false;
+      if (entryNow() === entry && app().state.page === 'patch') render();
+    }
+  }
+
+  async function idaDecompile(entry, functionName) {
+    const cache = cacheOf(entry);
+    cache.idaBusy = true; cache.idaError = ''; cache.decompiled = null;
+    renderManual(entry, cache);
+    try {
+      cache.decompiled = await window.pwncraft.request('ida_decompile', { function: functionName });
+    } catch (error) {
+      cache.idaError = `伪代码获取失败：${error.message || String(error)}`;
+    } finally {
+      cache.idaBusy = false;
+      if (entryNow() === entry && app().state.page === 'patch') render();
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Keypatch 式汇编补丁对话框：输入汇编实时编译（keystone），剩余字节 NOP
+  function openPatcherModal(entry, selected) {
+    closePatcherModal();
+    const overlay = document.createElement('div');
+    overlay.className = 'patch-modal-overlay';
+    overlay.id = 'patch-patcher-modal';
+    overlay.innerHTML = `
+      <div class="patch-modal card" role="dialog" aria-label="汇编补丁（Keypatch 式）">
+        <div class="card-title">汇编补丁 · Keypatch 式
+          <span class="flex-spacer"></span>
+          <button class="mini-btn" id="patcher-close">关闭</button></div>
+        <div class="patcher-origin mono">
+          <div><span class="hint-dim">地址</span> ${esc(selected.address)}</div>
+          <div><span class="hint-dim">原字节</span> ${esc(selected.bytes)}</div>
+          <div><span class="hint-dim">原汇编</span> ${esc(selected.text)}（objdump AT&T，输入请用 Intel 语法）</div>
+        </div>
+        <input id="patcher-input" class="input mono" placeholder="新汇编（Intel 语法），如 mov edi, 0 / xor edx, edx / jmp 0x401234"
+          aria-label="新汇编指令" autocomplete="off">
+        <div id="patcher-encode" class="patcher-encode mono"></div>
+        <label class="form-row"><input type="checkbox" id="patcher-nop-fill" checked>
+          <span>剩余字节自动填 NOP（Keypatch 行为；新指令必须 ≤ 原 ${selected.size} 字节）</span></label>
+        <div class="patcher-actions">
+          <button class="mini-btn primary" id="patcher-apply" disabled>生成补丁预览</button>
+          <span class="hint-dim">Ctrl+Enter 应用 · Esc 关闭</span>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#patcher-input');
+    const encodeBox = overlay.querySelector('#patcher-encode');
+    const applyBtn = overlay.querySelector('#patcher-apply');
+    let compiled = null;
+    let timer = null;
+    const compile = async () => {
+      const text = input.value.trim();
+      compiled = null;
+      if (!text) {
+        encodeBox.innerHTML = '<span class="hint-dim">输入汇编指令后实时显示机器码</span>';
+        applyBtn.disabled = true;
+        return;
+      }
+      try {
+        const result = await window.pwncraft.request('patch_assemble', {
+          text, vaddr: selected.address,
+        });
+        const tooLong = result.size > selected.size;
+        compiled = tooLong ? null : result;
+        applyBtn.disabled = tooLong;
+        encodeBox.innerHTML = `
+          <span class="${tooLong ? 'err-text' : 'ok-text'}">${esc(result.bytes)}</span>
+          <span class="hint-dim">· ${result.size} 字节${tooLong
+            ? `（超出原指令 ${selected.size} 字节，无法等长替换）`
+            : result.size < selected.size
+              ? `（差 ${selected.size - result.size} 字节，将按选项填充）` : '（恰好等长）'}</span>`;
+      } catch (error) {
+        compiled = null;
+        applyBtn.disabled = true;
+        encodeBox.innerHTML = `<span class="err-text">${esc(error.message || String(error))}</span>`;
+      }
+    };
+    input.addEventListener('input', () => {
+      clearTimeout(timer);
+      timer = setTimeout(compile, 250);
+    });
+    const commit = () => {
+      if (!compiled) return;
+      const fill = overlay.querySelector('#patcher-nop-fill').checked;
+      const pad = fill && compiled.size < selected.size
+        ? ' ' + '90'.repeat(selected.size - compiled.size).replace(/(..)/g, '$1 ').trim() : '';
+      const hex = compiled.bytes + pad;
+      if (hex.replace(/ /g, '').length / 2 !== selected.size) {
+        encodeBox.innerHTML = '<span class="err-text">长度不一致：请开启 NOP 填充或调整指令</span>';
+        return;
+      }
+      closePatcherModal();
+      previewPatch(entry, {
+        kind: 'custom', vaddr: selected.address, hex, expected_size: selected.size,
+      }, `汇编补丁 @${selected.address}（${input.value.trim()}）`);
+    };
+    applyBtn.addEventListener('click', commit);
+    overlay.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closePatcherModal();
+      if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) commit();
+    });
+    overlay.querySelector('#patcher-close').addEventListener('click', closePatcherModal);
+    input.focus();
+  }
+
+  function closePatcherModal() {
+    document.getElementById('patch-patcher-modal')?.remove();
+  }
+
   function renderManual(entry, cache) {
     const panel = query('#patch-panel-manual');
     const functions = cache.functions || [];
@@ -228,10 +415,20 @@
             `<div class="analysis-empty">${cache.loading ? '读取中…' : needle ? '没有匹配的函数。' : '没有可展示的函数。'}</div>`}
         </div>
       </aside><div class="analysis-function-detail">
+        <div class="patch-ida-bar">
+          <span class="chip" id="patch-ida-badge">${idaBadgeText(cache)}</span>
+          <button class="mini-btn" id="patch-ida-refresh" ${cache.idaBusy ? 'disabled' : ''}>检测 IDA</button>
+          <button class="mini-btn" id="patch-ida-analyze" ${cache.idaBusy ? 'disabled' : ''}>IDA 分析</button>
+          <button class="mini-btn" id="patch-ida-decompile" ${!fn || cache.idaBusy ? 'disabled' : ''}>查看伪代码</button>
+          <span class="hint-dim">IDA-CLI · idalib（IDA 9.x）联动</span>
+        </div>
+        ${cache.idaError ? `<div class="analysis-error">${esc(cache.idaError)}</div>` : ''}
+        ${renderIdaCards(cache)}
         ${fn ? `
           <div class="analysis-function-heading"><strong>${esc(fn.name)}</strong><code>${esc(fn.address)}</code>
             <span>${esc(fn.section)} · ${fn.instruction_count} 条指令</span></div>
           <div class="patch-actions">
+            <button class="mini-btn primary" id="patch-asm-open" ${cache.selectedInsn < 0 ? 'disabled' : ''} title="Keypatch 式：输入新汇编实时编译，剩余字节自动 NOP（Ctrl+P）">汇编补丁</button>
             <button class="mini-btn" id="patch-nop-insn" ${cache.selectedInsn < 0 ? 'disabled' : ''}>NOP 选中指令</button>
             <button class="mini-btn" id="patch-nop-tail" ${cache.selectedInsn < 0 ? 'disabled' : ''}>NOP 到函数尾</button>
             <button class="mini-btn" id="patch-jcc-invert" ${cache.selectedInsn < 0 ? 'disabled' : ''} title="jg↔jle / jl↔jge / je↔jne 等；off-by-one 边界修复的 1 字节手法">反转跳转条件</button>
@@ -258,6 +455,7 @@
       </div></div>`;
     const filter = query('#patch-filter');
     if (filter) filter.oninput = (event) => { cache.filter = event.target.value; renderManual(entry, cache); };
+    if (cache.idaStatus === null) idaRefresh(entry);
     panel.querySelectorAll('#patch-fn-list button').forEach((button) => {
       button.onclick = () => {
         cache.selectedFn = Number(button.dataset.index);
@@ -280,6 +478,10 @@
         + instructions[instructions.length - 1].size).toString(16)}`
       : '';
     const bind = (id, handler) => { const el = query(id); if (el) el.onclick = handler; };
+    bind('#patch-ida-refresh', () => idaRefresh(entry, true));
+    bind('#patch-ida-analyze', () => idaAnalyze(entry));
+    bind('#patch-ida-decompile', () => fn && idaDecompile(entry, fn.name));
+    bind('#patch-asm-open', () => selected && openPatcherModal(entry, selected));
     bind('#patch-nop-insn', () => selected && previewPatch(entry, {
       kind: 'nop_range', start: selected.address,
       end: `0x${(parseInt(selected.address, 16) + selected.size).toString(16)}`,

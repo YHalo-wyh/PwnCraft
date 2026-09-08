@@ -69,7 +69,8 @@ from pwncraft.features.patch.recipes import (
     build_nop_range, build_plt_call_redirect, build_plt_stub_redirect,
     build_read_length, build_ret_function, normalize_patch_arch)
 from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
-from pwncraft.features.patch.bytecode_catalog import catalog_entries, disasm_raw, encode_template
+from pwncraft.features.patch.bytecode_catalog import assemble, catalog_entries, disasm_raw, encode_template
+from pwncraft.features.patch.ida_link import IdaCliLink, IdaLinkError
 from pwncraft.features.patch.exporters import (
     export_diff_text, export_pwntools_script, materialize_patched)
 from pwncraft.core.pwndbg_manager import PWNDBG_MOGAI_VERSION, PwndbgManager
@@ -96,6 +97,7 @@ class ElectronBridge:
         self._triage_running: set[str] = set()
         self._triage_cache: dict[str, dict] = {}
         self._patch_labs: dict[str, PatchLab] = {}
+        self._ida_link: IdaCliLink | None = None
 
     # ------------------------------------------------------------------
     def handle(self, request: dict) -> dict:
@@ -526,6 +528,69 @@ class ElectronBridge:
     def rpc_patch_encode(self, params: dict) -> dict:
         payload = params.get("params") if isinstance(params.get("params"), dict) else {}
         return encode_template(str(params.get("kind") or ""), payload)
+
+    def _ida(self) -> IdaCliLink:
+        if self._ida_link is None:
+            self._ida_link = IdaCliLink()
+        return self._ida_link
+
+    def _ida_target(self, params: dict) -> Path:
+        target = self.workspace.target or {}
+        original = str(target.get("original_binary") or "")
+        if original and Path(original).is_file():
+            return Path(original)
+        return self._patch_lab(params).binary
+
+    def rpc_patch_assemble(self, params: dict) -> dict:
+        """Keypatch 式汇编：文本 → 机器码（keystone，vaddr 解析相对跳转）。"""
+        lab = self._patch_lab(params)
+        bits = 64 if lab.geometry()["is64"] else 32
+        vaddr = int(str(params.get("vaddr") or "0"), 0)
+        return assemble(str(params.get("text") or ""), bits=bits, vaddr=vaddr)
+
+    def rpc_ida_status(self, params: dict) -> dict:
+        link = self._ida()
+        try:
+            return link.status(self._ida_target(params))
+        except IdaLinkError as error:
+            return {"available": False, "error": str(error)}
+
+    def rpc_ida_analyze(self, params: dict) -> dict:
+        target = self._ida_target(params)
+        link = self._ida()
+        overview = link.overview(target)
+        functions = link.functions(target)
+        return {"binary": str(target), "overview": overview, "functions": functions}
+
+    def rpc_ida_disasm(self, params: dict) -> dict:
+        name = str(params.get("function") or "").strip()
+        if not name:
+            raise ValueError("未选择函数")
+        limit = int(params.get("limit") or 64)
+        return {"function": name,
+                "instructions": self._ida().disasm(self._ida_target(params), name, limit)}
+
+    def rpc_ida_decompile(self, params: dict) -> dict:
+        name = str(params.get("function") or "").strip()
+        if not name:
+            raise ValueError("未选择函数")
+        try:
+            return self._ida().decompile(self._ida_target(params), name)
+        except IdaLinkError as error:
+            if "cannot resolve IDA name" in str(error):
+                raise ValueError(
+                    f"IDA 数据库里没有函数 {name!r}（链接器生成的 _init/_fini 等 stub "
+                    "或 objdump 符号可能不在 IDA 命名表内）；请选择业务函数（如 main）"
+                    ) from error
+            raise
+
+    def rpc_ida_patch_bytes(self, params: dict) -> dict:
+        """把文件侧补丁同步进 IDA 数据库（Keypatch 反向联动）。"""
+        locator = params.get("function")
+        if locator is None:
+            locator = int(str(params.get("vaddr") or "0"), 0)
+        return self._ida().patch_bytes(self._ida_target(params), locator,
+                                       str(params.get("hex") or ""))
 
     def rpc_workspace_get(self, params: dict) -> dict:        return {
             "project": self.workspace.project,

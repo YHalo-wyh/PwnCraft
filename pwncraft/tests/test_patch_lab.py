@@ -518,6 +518,24 @@ class CatalogTests(TestCase):
         self.assertEqual(catalog_entries("e9 cd")[0]["mnemonic"], "jmp rel32")
         self.assertGreater(len(catalog_entries("")), 40)
 
+    def test_assemble_keystone(self):
+        from pwncraft.features.patch.bytecode_catalog import assemble
+        try:
+            import keystone  # noqa: F401
+        except ImportError:
+            self.skipTest("keystone-engine 未安装")
+        result = assemble("mov edi, 0", bits=64, vaddr=0x401234)
+        self.assertEqual(result["bytes"], "bf 00 00 00 00")
+        self.assertEqual(result["size"], 5)
+        jump = assemble("jmp 0x401234+0x100", bits=64, vaddr=0x401234)
+        self.assertEqual(jump["bytes"], "e9 fb 00 00 00")   # rel32 = 0xfb
+        x86 = assemble("push 0x30; mov ebx, 1", bits=32, vaddr=0x8048000)
+        self.assertEqual(x86["bytes"], "6a 30 bb 01 00 00 00")
+        with self.assertRaises(ValueError):
+            assemble("", bits=64)
+        with self.assertRaises(ValueError):
+            assemble("??????", bits=64)
+
     def test_encode_templates(self):
         self.assertEqual(encode_template("nop", {"length": 5})["bytes"], "0f 1f 44 00 00")
         self.assertEqual(encode_template("mov_reg_imm32",

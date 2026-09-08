@@ -132,6 +132,36 @@ def encode_template(kind: str, params: dict) -> dict:
 _HEX_RE = re.compile(r"^(?:[0-9a-fA-F]{2})+$")
 
 
+def assemble(text: str, *, bits: int, vaddr: int = 0) -> dict:
+    """Keypatch 式汇编：文本汇编 → 机器码（keystone 可选依赖）。
+
+    vaddr 用于解析相对跳转/调用（jmp/call 的 rel 位移随地址变化）。
+    未安装 keystone 时给出明确的安装指引，不做静默降级。
+    """
+    source = str(text or "").strip()
+    if not source:
+        raise ValueError("汇编文本为空")
+    try:
+        from keystone import KS_ARCH_X86, KS_MODE_32, KS_MODE_64, Ks
+    except ImportError as error:
+        raise ValueError(
+            "汇编需要 keystone-engine（IDA 插件 Keypatch 同款引擎）："
+            "pip install keystone-engine") from error
+    mode = KS_MODE_64 if int(bits) == 64 else KS_MODE_32
+    engine = Ks(KS_ARCH_X86, mode)
+    try:
+        encoding, count = engine.asm(source, addr=int(vaddr))
+    except UnicodeEncodeError as error:
+        raise ValueError("汇编失败：输入包含非 ASCII 字符（请使用 Intel 语法英文助记符）") from error
+    except Exception as error:   # keystone 抛 KsError 等多种类型
+        raise ValueError(f"汇编失败：{error}") from error
+    if not encoding:
+        raise ValueError(f"无法汇编：{source!r}")
+    blob = bytes(encoding)
+    return {"bytes": blob.hex(" "), "size": len(blob), "count": int(count or 1),
+            "text": source, "addr": f"0x{int(vaddr):x}"}
+
+
 def disasm_raw(hex_bytes: str, *, bits: int, runner, work_dir: Path) -> dict:
     """用已放行的 objdump 把原始字节反汇编（-b binary，Intel 语法）。"""
     cleaned = "".join(str(hex_bytes).split()).replace(",", "")

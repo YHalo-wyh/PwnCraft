@@ -107,6 +107,13 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
   if (method === 'patch_disasm_raw') return { bytes: '5548 89e5', machine: 'i386:x86-64',
     instructions: [{ offset: 0, text: '55    push rbp' }, { offset: 1, text: '48 89 e5  mov rbp,rsp' }] };
   if (method === 'patch_encode') return { bytes: 'e9 fb 0f 00 00', note: '0x1000 → 0x2000（rel32 = 0xffb）' };
+  if (method === 'patch_assemble') {
+    if (params.text === 'mov edi, 0') return { bytes: 'bf 00 00 00 00', size: 5, count: 1 };
+    if (params.text === 'xor edx, edx') return { bytes: '31 d2', size: 2, count: 1 };
+    throw new Error('fixture: 无法汇编');
+  }
+  if (method === 'ida_status') return { available: false, hint: 'fixture: 未安装 IDA-CLI' };
+  if (method === 'ida_patch_bytes') return { ok: true };
   return {};
 });
 
@@ -154,6 +161,25 @@ app.whenReady().then(async () => {
     await until('!!document.querySelector(".patch-message")');
     assert.match(await js('document.querySelector(".patch-message").innerText'), /已应用 1 条补丁/);
     assert.equal(lastCall('patch_apply').result.request.kind, 'nop_range');
+
+    // IDA 联动条：徽章渲染为不可用（fixture 环境），按钮在位
+    assert.match(await js('document.querySelector("#patch-ida-badge").textContent'), /IDA：/);
+
+    // Keypatch 式汇编补丁对话框：实时编译 + NOP 填充 + 生成预览
+    await click('#patch-asm-open');
+    await until('!!document.querySelector("#patch-patcher-modal")');
+    assert.match(await js('document.querySelector("#patch-patcher-modal .patcher-origin").textContent'), /0x1004/);
+    await js('const i = document.querySelector("#patcher-input"); i.value = "xor edx, edx"; i.dispatchEvent(new Event("input"))');
+    await until('document.querySelector("#patcher-encode").textContent.includes("31 d2")');
+    assert.match(await js('document.querySelector("#patcher-encode").textContent'), /差 3 字节/);
+    await js('document.querySelector("#patcher-apply").click()');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'custom');
+    const patchHex = lastCall('patch_preview').result.request.hex.replace(/ /g, '');
+    assert.equal(patchHex.length / 2, 5);          // 等长替换
+    assert.equal(patchHex, '31d2909090');          // 31 d2 + 3×NOP 填充（Keypatch 行为）
+    await click('#patch-preview-cancel');
+    await until('!document.querySelector(".patch-preview") && !document.querySelector("#patch-patcher-modal")');
 
     // 条件跳转反转（off-by-one 一键修复）；先等 apply 触发的指令表重拉完成
     await until('document.querySelectorAll(".patch-insn").length === 5 && !document.querySelector(".patch-preview")');
