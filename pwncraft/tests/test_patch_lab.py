@@ -7,8 +7,10 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 from unittest.mock import Mock, patch
+import json
 import struct
 import subprocess
+from zipfile import ZipFile
 
 from pwncraft.core.wsl import ToolResult, WslToolRunner
 from pwncraft.features.patch.patch_core import (
@@ -24,7 +26,8 @@ from pwncraft.features.patch.recipes import (
 from pwncraft.features.patch.bytecode_catalog import (
     catalog_entries, disasm_raw, encode_template)
 from pwncraft.features.patch.exporters import (
-    export_diff_text, export_pwntools_script, materialize_patched)
+    export_competition_bundle, export_diff_text, export_pwntools_script, materialize_patched)
+from pwncraft.features.patch.audit import audit_patch_surface
 
 BASE = 0x400000
 ENTRY_BYTES = b"\xf3\x0f\x1e\xfa\x31\xed\x5f\x5e"          # endbr64; xor ebp; pop rdi; pop rsi
@@ -335,6 +338,25 @@ class RecipeTests(FixtureCase):
         with self.assertRaises(ValueError):
             build_read_length(self.lab, fake_functions(), "main", "system", 0x30)
 
+    def test_i386_read_length_patch_uses_third_stack_argument(self):
+        assembly = insn_lines(0x8049000, [
+            (b"\x68\x2c\x01\x00\x00", "push $0x12c"),
+            (b"\x8d\x45\xb8", "lea -0x48(%ebp),%eax"),
+            (b"\x50", "push %eax"),
+            (b"\x6a\x00", "push $0x0"),
+            (b"\xe8\x00\x00\x00\x00", "call 8048100 <read@plt>"),
+        ])
+        lab = Mock()
+        lab.geometry.return_value = {"is64": False}
+        lab.read_at.return_value = b"\x68\x2c\x01\x00\x00"
+        lab.offset_of.side_effect = lambda address: address - 0x8048000
+        functions = [{"name": "vuln", "assembly": assembly}]
+        op = build_read_length(lab, functions, "vuln", "read", 0x40)["ops"][0]
+        self.assertEqual(op.vaddr, 0x8049000)
+        self.assertEqual(op.new_bytes, b"\x68\x40\x00\x00\x00")
+        audit = audit_patch_surface(lab, functions)
+        self.assertEqual(audit["findings"][0]["request"]["kind"], "readlen")
+
     def test_nop_and_ret_function(self):
         nop = build_nop_function(self.lab, fake_functions(), "main")["ops"][0]
         self.assertEqual(nop.new_bytes, b"\x90" * 15)
@@ -628,6 +650,47 @@ class ExporterTests(FixtureCase):
         with self.assertRaises(ValueError):
             materialize_patched(pristine, [patched], self.folder / "out")
 
+    def test_competition_bundle_is_replayable_and_auditable(self):
+        pristine = self.folder / "original"
+        pristine.write_bytes(build_fixture_bytes())
+        dest = self.folder / "submission.zip"
+        result = export_competition_bundle(pristine, self._two_ops(), dest, arch="amd64")
+        self.assertEqual(result["count"], 2)
+        self.assertEqual(result["files"], ["original_patched", "patch.py", "patch.diff", "manifest.json"])
+        with ZipFile(dest) as archive:
+            self.assertEqual(set(archive.namelist()), set(result["files"]))
+            manifest = json.loads(archive.read("manifest.json"))
+            patched = archive.read("original_patched")
+            self.assertEqual(manifest["operation_count"], 2)
+            self.assertEqual(manifest["patched"]["size"], len(patched))
+            self.assertEqual(patched[0xA0:0xA5], b"\x90" * 5)
+            self.assertIn(b"elf.write(0x4000a0", archive.read("patch.py"))
+            self.assertIn(b"vaddr 0x4000a0", archive.read("patch.diff"))
+
+
+class AuditTests(FixtureCase):
+    def test_scan_emits_previewable_read_and_command_mitigations(self):
+        functions = fake_functions()
+        functions.append({
+            "name": "handler", "address": "0x4000c0", "section": ".text",
+            "assembly": insn_lines(BASE + 0xC0, [
+                (b"\xe8\x00\x00\x00\x00", "callq 4000b0 <system@plt>"),
+            ]),
+        })
+        result = audit_patch_surface(self.lab, functions)
+        by_id = {item["id"]: item for item in result["findings"]}
+        self.assertEqual(by_id["length:read:main:4000a0"]["request"]["size"], "0x40")
+        self.assertEqual(by_id["import:system"]["request"],
+                         {"kind": "plt_call", "source": "system", "target": "exit"})
+        self.assertEqual(by_id["mitigation:seccomp"]["request"]["kind"], "seccomp")
+        self.assertGreaterEqual(result["summary"]["risk_score"], 30)
+
+    def test_import_without_call_site_is_not_reported(self):
+        result = audit_patch_surface(self.lab, fake_functions())
+        ids = {item["id"] for item in result["findings"]}
+        self.assertNotIn("import:system", ids)
+        self.assertIn("length:read:main:4000a0", ids)
+
 
 class WslStdinIsolationTests(TestCase):
     """WSL 查询工具不得继承桥的 stdin：wsl.exe 会把队列中的 JSON-RPC 请求行
@@ -712,6 +775,34 @@ class BridgePatchTests(FixtureCase):
         self.assertIn("out.diff", written["path"])
         with self.assertRaises(ValueError):
             bridge.rpc_patch_export({"path": str(self.binary), "kind": "nope"})
+
+    def test_audit_bundle_and_runtime_probe(self):
+        bridge = self._bridge()
+        pristine = self.folder / "original"
+        pristine.write_bytes(build_fixture_bytes())
+        bridge.workspace.target = {"working_binary": str(self.binary),
+                                   "original_binary": str(pristine)}
+        audit = bridge.rpc_patch_audit({"path": str(self.binary)})
+        self.assertTrue(any(item["id"].startswith("length:read") for item in audit["findings"]))
+        bridge.rpc_patch_apply({"path": str(self.binary), "request": {
+            "kind": "custom", "vaddr": hex(BASE + 0xA0), "hex": "31 d2 90 90 90"}})
+        bundle = bridge.rpc_patch_export({"path": str(self.binary), "kind": "bundle",
+                                          "dest": str(self.folder / "submission.zip")})
+        self.assertEqual(bundle["count"], 1)
+        self.assertTrue(Path(bundle["path"]).is_file())
+        bridge._runner.run_target_capture.return_value = (
+            ToolResult(["pwn"], 0, "READY\n", ""), False)
+        probe = bridge.rpc_patch_probe({"path": str(self.binary), "args": "--mode test",
+                                        "input": "ping\n", "timeout": 3, "compare": True})
+        self.assertTrue(probe["patched"]["ok"])
+        self.assertTrue(probe["comparison"]["same_stdout"])
+        self.assertEqual(probe["args"], ["--mode", "test"])
+        self.assertEqual(bridge._runner.run_target_capture.call_count, 2)
+        first = bridge._runner.run_target_capture.call_args_list[0]
+        self.assertEqual(first.kwargs["stdin_data"], b"ping\n")
+        self.assertEqual(first.kwargs["timeout"], 3)
+        with self.assertRaisesRegex(ValueError, "64 KiB"):
+            bridge.rpc_patch_probe({"path": str(self.binary), "input": "x" * 65537})
 
     def test_seccomp_rpc_end_to_end(self):
         bridge = self._bridge()

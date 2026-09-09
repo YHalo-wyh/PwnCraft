@@ -9797,6 +9797,15 @@ select.input { font: inherit; }
 .patch-preview .data-table { margin-top: 8px; }
 .patch-warning { font-size: 12px; color: var(--warning); padding: 4px 0; }
 .patch-recipes { display: grid; gap: 12px; overflow-y: auto; flex: 1 1 auto; min-height: 0; padding: 2px 2px 8px; }
+.patch-audit { margin-bottom: 12px; }
+.patch-audit-summary { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
+.patch-audit-list { display: grid; gap: 6px; margin-top: 8px; }
+.patch-audit-item { display: flex; gap: 12px; align-items: center; padding: 7px 9px; border-left: 3px solid var(--border); background: var(--bg-raised); }
+.patch-audit-item > div { flex: 1; min-width: 0; }
+.patch-audit-item.severity-critical { border-left-color: #f14c4c; }
+.patch-audit-item.severity-high { border-left-color: var(--warning); }
+.patch-audit-item.severity-medium { border-left-color: var(--accent); }
+.patch-audit-evidence { margin-top: 3px; font-size: 11px; color: var(--text-muted); overflow-wrap: anywhere; }
 .recipe-card .card-title { margin-bottom: 6px; }
 .recipe-fields { display: grid; gap: 6px; margin-top: 8px; }
 .recipe-fields .form-row { margin: 0; }
@@ -9809,6 +9818,18 @@ select.input { font: inherit; }
 .patch-disasm { margin-top: 12px; }
 #patch-panel-bytecode, #patch-panel-manage { overflow-y: auto; }
 .patch-manage-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.patch-probe { margin-bottom: 12px; }
+.patch-probe .card-title { gap: 8px; }
+.patch-probe-fields { display: grid; grid-template-columns: minmax(180px, 1fr) 110px auto; gap: 10px; align-items: end; }
+.patch-probe-fields label { display: grid; gap: 4px; font-size: 11px; color: var(--text-muted); }
+.patch-probe-fields label:last-child { display: flex; align-items: center; padding-bottom: 7px; }
+.patch-probe-input { width: 100%; min-height: 58px; resize: vertical; margin-top: 8px; }
+.patch-probe-results { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; margin-top: 8px; }
+.patch-probe-compare { grid-column: 1 / -1; font-size: 12px; }
+.patch-probe-result { padding: 7px; border: 1px solid var(--border); border-radius: 5px; }
+.patch-probe-result.ok { border-color: rgba(63, 185, 80, .4); }
+.patch-probe-result.bad { border-color: rgba(241, 76, 76, .4); }
+.patch-probe-result .report-pre { max-height: 120px; margin-top: 5px; }
 .patch-integrity { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; padding: 10px 12px; border: 1px solid rgba(63, 185, 80, .35); border-radius: 6px; background: rgba(63, 185, 80, .08); font-size: 12px; }
 .patch-integrity strong { color: var(--success); }
 .patch-integrity span { color: var(--text-muted); }
@@ -9820,6 +9841,7 @@ select.input { font: inherit; }
 .patch-state.conflict { color: #f4a5a5; border-color: rgba(241, 76, 76, .45); background: rgba(241, 76, 76, .08); }
 .patch-export-text summary { cursor: pointer; color: var(--accent); margin-bottom: 8px; }
 #page-patch button:focus-visible, #page-patch .input:focus-visible, #page-patch select:focus-visible { outline: 1px solid var(--accent); outline-offset: -1px; }
+#page-patch button:disabled { opacity: .45; cursor: not-allowed; }
 @media (max-width: 760px) {
   #page-patch { padding: 14px; }
   .patch-hex-wrap { min-width: 0; }

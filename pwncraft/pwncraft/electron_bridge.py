@@ -23,8 +23,8 @@ Surface map (v0.29):
   heap_learn / heap_rule_toggle / heap_save / heap_open
 - iofile: iofile_layout / iofile_validate / iofile_analyze
 - debugger: pwndbg_status / pwndbg_ensure / debug_launch
-- awdp patch (v0.33): patch_recipes / patch_preview / patch_apply / patch_list /
-  patch_undo / patch_clear / patch_reconcile / patch_export / patch_instructions / patch_disasm_raw /
+- awdp patch (v0.33): patch_recipes / patch_audit / patch_preview / patch_apply / patch_list /
+  patch_undo / patch_clear / patch_reconcile / patch_export / patch_probe / patch_instructions / patch_disasm_raw /
   patch_bytecode_lookup / patch_encode
 """
 from __future__ import annotations
@@ -33,6 +33,7 @@ import json
 import shlex
 import sys
 import threading
+import time
 import traceback
 from datetime import datetime
 from pathlib import Path
@@ -71,8 +72,9 @@ from pwncraft.features.patch.recipes import (
 from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
 from pwncraft.features.patch.bytecode_catalog import assemble, catalog_entries, disasm_raw, encode_template
 from pwncraft.features.patch.ida_link import IdaCliLink, IdaLinkError
+from pwncraft.features.patch.audit import audit_patch_surface
 from pwncraft.features.patch.exporters import (
-    export_diff_text, export_pwntools_script, materialize_patched)
+    export_competition_bundle, export_diff_text, export_pwntools_script, materialize_patched)
 from pwncraft.core.pwndbg_manager import PWNDBG_MOGAI_VERSION, PwndbgManager
 
 
@@ -423,6 +425,13 @@ class ElectronBridge:
                 "seccomp_presets": {key: {k: v for k, v in conf.items() if k != "warnings"}
                                     for key, conf in SECCOMP_PRESETS.items()}}
 
+    def rpc_patch_audit(self, params: dict) -> dict:
+        lab = self._patch_lab(params)
+        functions, error = self._disassemble_functions(lab.binary)
+        if error:
+            raise ValueError(f"风险扫描反汇编失败: {error}")
+        return audit_patch_surface(lab, functions)
+
     def rpc_patch_preview(self, params: dict) -> dict:
         ops, warnings = self._build_patch_ops(params)
         return {"ops": [op.to_dict() for op in ops], "warnings": warnings,
@@ -497,7 +506,67 @@ class ElectronBridge:
             outcome = materialize_patched(Path(original), ops, Path(path))
             self._log(f"已导出补丁后 ELF: {path}")
             return outcome
-        raise ValueError(f"未知导出类型: {kind or '(空)'}（支持 script/diff/patched）")
+        if kind == "bundle":
+            if not path:
+                raise ValueError("导出比赛提交包需要一个保存路径")
+            target = self.workspace.target or {}
+            original = str(target.get("original_binary") or "")
+            if not original or not Path(original).is_file():
+                raise ValueError("找不到只读原始副本（original_binary），无法生成比赛提交包")
+            outcome = export_competition_bundle(
+                Path(original), ops, Path(path), arch=self._patch_arch(lab.binary))
+            self._log(f"已导出 AWDP 比赛提交包: {path}")
+            return outcome
+        raise ValueError(f"未知导出类型: {kind or '(空)'}（支持 script/diff/patched/bundle）")
+
+    @staticmethod
+    def _probe_argv(value: object) -> list[str]:
+        if isinstance(value, list):
+            argv = [str(item) for item in value]
+        else:
+            argv = shlex.split(str(value or ""), posix=True)
+        if len(argv) > 16 or any(len(item) > 4096 for item in argv):
+            raise ValueError("探测参数过多或单个参数过长")
+        return argv
+
+    def rpc_patch_probe(self, params: dict) -> dict:
+        lab = self._patch_lab(params)
+        if lab.log_ops():
+            lab.assert_all_applied()
+        argv = self._probe_argv(params.get("args"))
+        stdin_data = str(params.get("input") or "").encode("utf-8")
+        if len(stdin_data) > 65536:
+            raise ValueError("探测输入不能超过 64 KiB")
+        timeout = max(1, min(15, int(params.get("timeout") or 5)))
+
+        def run(label: str, binary: Path) -> dict:
+            started = time.monotonic()
+            result, timed_out = self._runner.run_target_capture(
+                [self._runner.to_wsl_path(binary), *argv], stdin_data=stdin_data,
+                timeout=timeout)
+            stdout, stderr = result.stdout, result.stderr
+            truncated = len(stdout) > 16384 or len(stderr) > 16384
+            return {"label": label, "path": str(binary), "returncode": result.returncode,
+                    "timed_out": timed_out, "ok": result.ok and not timed_out,
+                    "stdout": stdout[:16384], "stderr": stderr[:16384],
+                    "output_truncated": truncated,
+                    "elapsed_ms": round((time.monotonic() - started) * 1000)}
+
+        working = run("patched", lab.binary)
+        original = None
+        target = self.workspace.target or {}
+        original_path = Path(str(target.get("original_binary") or ""))
+        if bool(params.get("compare", True)) and original_path.is_file():
+            original = run("original", original_path)
+        comparison = None
+        if original:
+            comparison = {
+                "same_returncode": original["returncode"] == working["returncode"],
+                "same_stdout": original["stdout"] == working["stdout"],
+                "both_healthy": original["ok"] and working["ok"],
+            }
+        return {"patched": working, "original": original, "comparison": comparison,
+                "input_size": len(stdin_data), "args": argv}
 
     def rpc_patch_instructions(self, params: dict) -> dict:
         name = str(params.get("function") or "").strip()

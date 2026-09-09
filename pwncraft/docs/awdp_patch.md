@@ -28,8 +28,8 @@
 | `features/patch/bytecode_catalog.py` | 指令↔机器码静态目录（约 60 条）、参数化编码器（nop 长度 / mov r32,imm32 / xor / rel32 计算）、objdump 原始字节反汇编 |
 | `features/patch/exporters.py` | pwntools `patch.py` 脚本、字节 diff 文本、从只读原始副本回放的干净 patched ELF |
 
-Bridge 方法（`electron_bridge.py`）：`patch_recipes / patch_preview / patch_apply /
-patch_list / patch_undo / patch_clear / patch_reconcile / patch_export / patch_instructions /
+Bridge 方法（`electron_bridge.py`）：`patch_recipes / patch_audit / patch_preview / patch_apply /
+patch_list / patch_undo / patch_clear / patch_reconcile / patch_export / patch_probe / patch_instructions /
 patch_disasm_raw / patch_bytecode_lookup / patch_encode`。
 
 ## 手法原理
@@ -109,8 +109,8 @@ RIP 相对寻址需人工复核（`_start` 开头通常没有）。
 
 在选中函数内定位**紧邻 callee 调用**（允许中间 ≤4 条指令）的
 `mov $imm32,%edx`（read）或 `mov esi`（fgets），把 imm32 换成安全长度。
-仅支持 64 位（寄存器传参）；32 位走 `push $imm` 栈传参，无稳定模式，提示用
-手动字节 patch 处理。
+32 位按 cdecl 参数位置从 call 向前回溯：read 取第 3 参数、fgets 取第 2 参数的
+`push $imm`，仅接受可证明且能等长编码的 `68 imm32` / `6a imm8`。
 
 ### 4. 函数 NOP / ret 化
 
@@ -148,8 +148,19 @@ off-by-one / 边界差一修复的 1 字节手法（V1ct0r 文中的 `jg → jge
   运行：`node node_modules/electron/cli.js tests/patch-ui.cjs`。
 - 真实模板验收：`tools/validate_awdp_templates.py` 会用 WSL gcc 临时编译一个真实 ELF，
   逐项应用 seccomp、PLT 调用点、PLT stub、read 长度、整函数 NOP、函数 ret、区间 NOP、
-  自定义字节共 8 种模板；每项均检查预览不写盘、应用生效、干净 ELF 导出、整组撤销，
+  自定义字节共 8 种模板，并分别编译 amd64/i386 ELF；每项均检查预览不写盘、应用生效、
+  比赛包导出、整组撤销，
   并对可执行模板核对真实运行行为。运行：`python tools/validate_awdp_templates.py`。
+
+## 比赛闭环增强
+
+- **自动风险扫描**：`patch_audit` 基于当前工作副本反汇编识别危险 PLT 直接调用与过大
+  `read/fgets` 长度，并把每项建议送回同一套 `patch_preview`，扫描结果不会直接改文件。
+- **补丁后存活探测**：管理页可给出固定 argv、stdin 与 1–15 秒超时，分别运行工作副本和
+  只读原始副本，对比退出码与 stdout；补丁日志存在漂移或冲突时拒绝运行。
+- **AWDP 比赛包**：导出 zip 内含补丁后 ELF、可重放的 `patch.py`、逐字节 `patch.diff`
+  和 `manifest.json`。清单记录源文件/产物 SHA-256、补丁组数及每条补丁的地址与摘要；
+  zip 先写临时文件再原子替换，避免中断留下半包。
 
 ## 来源
 

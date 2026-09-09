@@ -13,6 +13,7 @@ from .patch_core import PatchLab, PatchOp, parse_instruction_lines
 
 _CALL_PLT_RE = re.compile(r"^\s*call[qw]?\s+([0-9a-fA-F]+)\s+<([^>]+)>")
 _MOV_IMM32_RE = re.compile(r"^\s*mov[q]?\s+\$0x([0-9a-fA-F]+),%(e?(?:dx|si|di|cx|ax))\b")
+_PUSH_IMM_RE = re.compile(r"^\s*push[l]?\s+\$0x([0-9a-fA-F]+)\b")
 
 # amd64 第三参数（read 计数）与 fgets 第二参数（尺寸）的 imm32 载体寄存器
 _LENGTH_REGISTERS = {
@@ -131,41 +132,69 @@ def _calls_callee(text: str, callee: str) -> bool:
 
 def build_read_length(lab: PatchLab, functions: list[dict], function: str,
                       callee: str, new_size: int) -> dict:
-    """收紧选中函数里传给 read/fgets 的长度立即数（仅 amd64 寄存器传参）。"""
+    """收紧 read/fgets 长度立即数（amd64 寄存器 / i386 栈传参）。"""
     if callee not in _LENGTH_REGISTERS:
         raise ValueError("长度收紧目前支持 read（edx）与 fgets（esi）")
     bits = 64 if lab.geometry()["is64"] else 32
-    if bits != 64:
-        raise ValueError(
-            "32 位下 read/fgets 走栈传参（push $imm），无稳定的立即数模式；"
-            "请改用「手动 Patch」在字节码查询辅助下改写 push 立即数")
     size = int(new_size)
     if not 0 < size <= 0xFFFFFFFF:
         raise ValueError("新长度超出 u32 范围")
     fn, instructions = _function_instructions(functions, function)
-    registers = _LENGTH_REGISTERS[callee]
     ops: list[PatchOp] = []
-    for index, insn in enumerate(instructions):
-        match = _MOV_IMM32_RE.match(insn["text"] or "")
-        if not match or match[2] not in registers or insn["size"] != 5:
-            continue
-        # 立即数必须流向随后的 callee@plt 调用（允许中间隔着最多 4 条指令）
-        window = instructions[index + 1:index + 6]
-        if not any(_calls_callee(w["text"], callee) for w in window):
-            continue
-        if insn["bytes"][0] != _MOV_OPCODE[match[2]]:
-            raise ValueError(f"0x{insn['address']:x} 处寄存器编码与预期不符，请人工确认")
-        original = lab.read_at(insn["address"], 5)
-        if original != insn["bytes"]:
-            raise ValueError(f"0x{insn['address']:x} 处磁盘字节与反汇编不一致，文件已被修改")
-        ops.append(PatchOp(
-            kind="readlen", vaddr=insn["address"], file_offset=lab.offset_of(insn["address"]),
-            original_bytes=original,
-            new_bytes=bytes([_MOV_OPCODE[match[2]]]) + struct.pack("<I", size),
-            note=f"{fn['name']}: mov {match[2]},0x{int(match[1],16):x} → 0x{size:x}（{callee} 长度）"))
+    if bits == 64:
+        registers = _LENGTH_REGISTERS[callee]
+        for index, insn in enumerate(instructions):
+            match = _MOV_IMM32_RE.match(insn["text"] or "")
+            if not match or match[2] not in registers or insn["size"] != 5:
+                continue
+            window = instructions[index + 1:index + 6]
+            if not any(_calls_callee(w["text"], callee) for w in window):
+                continue
+            if insn["bytes"][0] != _MOV_OPCODE[match[2]]:
+                raise ValueError(f"0x{insn['address']:x} 处寄存器编码与预期不符，请人工确认")
+            original = lab.read_at(insn["address"], 5)
+            if original != insn["bytes"]:
+                raise ValueError(f"0x{insn['address']:x} 处磁盘字节与反汇编不一致，文件已被修改")
+            ops.append(PatchOp(
+                kind="readlen", vaddr=insn["address"], file_offset=lab.offset_of(insn["address"]),
+                original_bytes=original,
+                new_bytes=bytes([_MOV_OPCODE[match[2]]]) + struct.pack("<I", size),
+                note=f"{fn['name']}: mov {match[2]},0x{int(match[1],16):x} → 0x{size:x}（{callee} 长度）"))
+    else:
+        # cdecl：离 call 最近的 push 是第 1 参数；read 的长度是第 3 参数，fgets 是第 2 参数。
+        arg_index = 2 if callee == "read" else 1
+        for call_index, call in enumerate(instructions):
+            if not _calls_callee(call["text"], callee):
+                continue
+            pushes = []
+            for candidate in reversed(instructions[max(0, call_index - 12):call_index]):
+                text = str(candidate.get("text") or "").lstrip()
+                if text.startswith("call"):
+                    break
+                if text.startswith("push"):
+                    pushes.append(candidate)
+            if len(pushes) <= arg_index:
+                continue
+            insn = pushes[arg_index]
+            match = _PUSH_IMM_RE.match(insn["text"] or "")
+            if not match or insn["size"] not in (2, 5):
+                continue
+            original = lab.read_at(insn["address"], insn["size"])
+            if original != insn["bytes"]:
+                raise ValueError(f"0x{insn['address']:x} 处磁盘字节与反汇编不一致，文件已被修改")
+            if original[0] == 0x68 and len(original) == 5:
+                replacement = b"\x68" + struct.pack("<I", size)
+            elif original[0] == 0x6A and len(original) == 2 and size <= 0x7F:
+                replacement = bytes((0x6A, size))
+            else:
+                raise ValueError(f"0x{insn['address']:x} 处不是可安全等长改写的 push 立即数")
+            ops.append(PatchOp(
+                kind="readlen", vaddr=insn["address"], file_offset=lab.offset_of(insn["address"]),
+                original_bytes=original, new_bytes=replacement,
+                note=f"{fn['name']}: push 0x{int(match[1],16):x} → 0x{size:x}（{callee} 长度，第 {arg_index + 1} 参数）"))
     if not ops:
         raise ValueError(
-            f"{function!r} 内未找到紧邻 {callee}@plt 的 mov $imm32,%{registers[0]} 模式；"
+            f"{function!r} 内未找到可证明流向 {callee}@plt 的长度立即数；"
             "可能长度来自寄存器或常量传播，请用手动字节 Patch")
     return {"ops": ops, "warnings": ["新长度应覆盖缓冲区实际容量（对照栈帧大小），过小会截断正常输入。"]}
 
@@ -336,13 +365,13 @@ RECIPE_CATALOG: tuple[dict, ...] = (
             "`mov esi, $imm32`），把立即数替换为安全长度。栈溢出的经典通防：新长度 ≤ "
             "缓冲区实际容量（对照函数栈帧大小 sub rsp, N）。\n"
             "适用：read/fgets 读入长度超过栈缓冲导致的溢出。\n"
-            "限制：仅支持 64 位（寄存器传参）；32 位走栈传参（push $imm），请用「手动 Patch」"
-            "配合字节码查询改写。"),
+            "amd64 自动追踪 edx/esi 立即数；i386 按 cdecl 参数位置回溯 push 立即数，并保持"
+            "原指令长度等长改写。"),
         "fields": [
             {"key": "function", "label": "目标函数", "kind": "select", "dynamic": True},
             {"key": "callee", "label": "目标调用", "kind": "select",
-             "options": [{"value": "read", "label": "read（edx）"},
-                         {"value": "fgets", "label": "fgets（esi）"}]},
+             "options": [{"value": "read", "label": "read（amd64 edx / i386 第3参数）"},
+                         {"value": "fgets", "label": "fgets（amd64 esi / i386 第2参数）"}]},
             {"key": "size", "label": "新长度（十六进制 0x.. 或十进制）", "kind": "number",
              "default": "0x30"},
         ],

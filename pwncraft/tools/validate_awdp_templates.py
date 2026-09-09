@@ -10,9 +10,11 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Callable
 import hashlib
+import json
 import shutil
 import subprocess
 import sys
+from zipfile import ZipFile
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
@@ -70,12 +72,12 @@ def _require(condition: bool, message: str) -> None:
         raise AssertionError(message)
 
 
-def _compile_fixture(root: Path, runner: WslToolRunner) -> Path:
+def _compile_fixture(root: Path, runner: WslToolRunner, *, bits: int) -> Path:
     source = root / "awdp_fixture.c"
-    binary = root / "awdp_fixture"
+    binary = root / f"awdp_fixture_{bits}"
     source.write_text(FIXTURE_SOURCE, encoding="utf-8")
     command = [
-        runner.wsl_exe, "--exec", "gcc", "-O0", "-fno-stack-protector",
+        runner.wsl_exe, "--exec", "gcc", f"-m{bits}", "-O0", "-fno-stack-protector",
         "-no-pie", "-Wl,-z,lazy", "-o", runner.to_wsl_path(binary),
         runner.to_wsl_path(source),
     ]
@@ -171,11 +173,30 @@ def _validate_case(root: Path, pristine: Path, case: TemplateCase, runner: WslTo
     _require(listed["summary"]["healthy"], f"{case.name}: 应用后完整性检查失败")
     _require(listed["summary"]["applied"] == len(applied["applied"]),
              f"{case.name}: 生效补丁计数错误")
+    probe = bridge.rpc_patch_probe(
+        {"path": str(working), "args": "", "input": "", "timeout": 5, "compare": True})
+    _require(probe["patched"]["ok"], f"{case.name}: 补丁后存活探测失败")
+    _require(probe["comparison"] and probe["comparison"]["same_returncode"]
+             and probe["comparison"]["same_stdout"],
+             f"{case.name}: 无参基线行为与原始副本不一致")
 
     export = bridge.rpc_patch_export({"path": str(working), "kind": "patched", "dest": str(exported)})
     _require(exported.read_bytes() == working.read_bytes(), f"{case.name}: 导出 ELF 与工作副本不一致")
     _require(export["sha256"] == hashlib.sha256(exported.read_bytes()).hexdigest(),
              f"{case.name}: 导出 sha256 不一致")
+    bundle_path = case_root / "submission.zip"
+    bundle = bridge.rpc_patch_export(
+        {"path": str(working), "kind": "bundle", "dest": str(bundle_path)})
+    with ZipFile(bundle_path) as archive:
+        _require(set(archive.namelist()) == set(bundle["files"]),
+                 f"{case.name}: 比赛包文件清单不一致")
+        manifest = json.loads(archive.read("manifest.json"))
+        bundled_elf = archive.read(f"{pristine.name}_patched")
+        _require(bundled_elf == exported.read_bytes(), f"{case.name}: 比赛包 ELF 与导出 ELF 不一致")
+        _require(manifest["patched"]["sha256"] == export["sha256"],
+                 f"{case.name}: 比赛包 manifest 哈希不一致")
+        _require(manifest["operation_count"] == len(applied["applied"]),
+                 f"{case.name}: 比赛包补丁计数错误")
     if case.verify_runtime:
         case.verify_runtime(runner, exported)
 
@@ -191,14 +212,26 @@ def main() -> int:
     runner = WslToolRunner()
     with TemporaryDirectory(prefix="pwncraft-awdp-real-") as folder:
         root = Path(folder)
-        pristine = _compile_fixture(root, runner)
-        baseline_code, baseline_output = _run(runner, pristine)
-        _require(baseline_code == 0 and "READY" in baseline_output, "真实 ELF 基线运行失败")
-        results = [_validate_case(root, pristine, case, runner)
-                   for case in _case_catalog(pristine)]
+        results = []
+        for arch, bits in (("amd64", 64), ("i386", 32)):
+            arch_root = root / arch
+            arch_root.mkdir()
+            pristine = _compile_fixture(arch_root, runner, bits=bits)
+            baseline_code, baseline_output = _run(runner, pristine)
+            _require(baseline_code == 0 and "READY" in baseline_output,
+                     f"{arch}: 真实 ELF 基线运行失败")
+            audit_bridge = ElectronBridge()
+            audit = audit_bridge.rpc_patch_audit({"path": str(pristine)})
+            audit_ids = {item["id"] for item in audit["findings"]}
+            _require("import:system" in audit_ids, f"{arch}: 风险扫描未发现 system 调用")
+            _require(any(item.startswith("length:read:vulnerable_read") for item in audit_ids),
+                     f"{arch}: 风险扫描未发现过大 read 长度")
+            arch_results = [_validate_case(arch_root, pristine, case, runner)
+                            for case in _case_catalog(pristine)]
+            results.extend({**item, "arch": arch} for item in arch_results)
     for result in results:
-        print(f"PASS {result['template']}: {result['ops']} op(s), {result['runtime']}")
-    print(f"PASS all: {len(results)} AWDP templates applied, exported and undone on a real ELF")
+        print(f"PASS {result['arch']}/{result['template']}: {result['ops']} op(s), {result['runtime']}")
+    print(f"PASS all: audit + {len(results)} AWDP architecture/template cases applied, bundled and undone")
     return 0
 
 

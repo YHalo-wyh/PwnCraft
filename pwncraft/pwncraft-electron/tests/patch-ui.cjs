@@ -68,6 +68,13 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
     return { function: fn.name, address: fn.address, instructions: fn.name === 'main' ? MAIN_INSTRUCTIONS : [] };
   }
   if (method === 'patch_recipes') return { recipes: RECIPES, seccomp_presets: PRESETS };
+  if (method === 'patch_audit') return { summary: { critical: 1, high: 1, medium: 0, info: 0, total: 2, risk_score: 45 },
+    findings: [
+      { id: 'import:system', severity: 'critical', title: 'system@plt：命令执行入口', detail: '发现 1 处直接调用。',
+        evidence: ['handler @ 0x1030'], request: { kind: 'plt_call', source: 'system', target: 'exit' }, action: '预览 system→exit' },
+      { id: 'length:read:main:1004', severity: 'high', title: 'main 中 read 读取长度为 0x12c', detail: '读取长度较大。',
+        evidence: ['0x1004: mov $0x12c,%edx'], request: { kind: 'readlen', function: 'main', callee: 'read', size: '0x40' }, action: '预览长度收紧' },
+    ], function_count: 3, plt_imports: ['exit', 'read', 'system'], binary: 'fixture' };
   if (method === 'patch_preview') {
     const kind = (params.request || {}).kind;
     return { ops: [OP(kind || 'custom', 0x1004, `预览-${kind}`)], warnings: ['预览警示'], binary: 'fixture' };
@@ -95,8 +102,16 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
   }
   if (method === 'patch_export') {
     if (params.kind === 'patched') return { path: params.dest, count: appliedLog.length, sha256: 'abcdef0123456789', size: 12345 };
+    if (params.kind === 'bundle') return { path: params.dest, count: appliedLog.length, batch_count: appliedLog.length,
+      sha256: '1122334455667788', size: 4567, files: ['awdp-pwn_patched', 'patch.py', 'patch.diff', 'manifest.json'] };
     return { text: `# patch script fixture\nelf.write(0x1004, bytes.fromhex('90 90 90 90 90'))\n`, path: params.dest || '', count: appliedLog.length };
   }
+  if (method === 'patch_probe') return {
+    patched: { label: 'patched', path: 'C:/测试/awdp-pwn', returncode: 0, timed_out: false, ok: true,
+      stdout: 'READY patched\n', stderr: '', elapsed_ms: 18, output_truncated: false },
+    original: { label: 'original', path: 'C:/测试/original', returncode: 0, timed_out: false, ok: true,
+      stdout: 'READY original\n', stderr: '', elapsed_ms: 15, output_truncated: false },
+    comparison: { same_returncode: true, same_stdout: false, both_healthy: true }, args: ['--smoke'], input_size: 5 };
   if (method === 'patch_bytecode_lookup') {
     const needle = String(params.query || '').toLowerCase();
     const all = [
@@ -195,6 +210,12 @@ app.whenReady().then(async () => {
     // 一键通防：seccomp 卡片预览 + 应用
     await click('[data-tab="recipes"]');
     await until('document.querySelectorAll(".recipe-card").length === 2');
+    await until('document.querySelectorAll(".patch-audit-item").length === 2');
+    assert.match(await js('document.querySelector(".patch-audit-summary").innerText'), /风险分 45/);
+    await click('.patch-audit-preview');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'plt_call');
+    await click('#patch-preview-cancel');
     assert.match(await js('document.querySelector(".recipe-card").innerText'), /seccomp 沙箱注入/);
     assert.equal(await js('document.querySelector(".patch-usage")'), null, '使用说明折叠块已移除');
     const presetOptions = () => js('[...document.querySelectorAll(".recipe-card select option")].map(o => o.value)');
@@ -227,7 +248,7 @@ app.whenReady().then(async () => {
     assert.match(await js('document.querySelectorAll(".patch-disasm .report-pre")[1].innerText'), /e9 fb 0f 00 00/);
     await shot('bytecode.png');
 
-    // 补丁管理：记录表 + 撤销 + 三种导出
+    // 补丁管理：完整性、存活探测、撤销与四种导出
     await click('[data-tab="manage"]');
     await until('document.querySelectorAll(".patch-undo").length === 2');
     assert.match(await js('document.querySelector("#patch-panel-manage").innerText'), /seccomp/);
@@ -255,6 +276,17 @@ app.whenReady().then(async () => {
     for (let i = 0; i < 50 && (!lastCall('patch_export') || lastCall('patch_export').result.kind !== 'patched'); i++) await sleep(100);
     assert.equal(lastCall('patch_export').result.kind, 'patched');
     assert.match(await js('document.querySelector(".patch-message").innerText'), /已导出补丁后 ELF/);
+    await click('#patch-export-bundle');
+    for (let i = 0; i < 50 && (!lastCall('patch_export') || lastCall('patch_export').result.kind !== 'bundle'); i++) await sleep(100);
+    assert.equal(lastCall('patch_export').result.kind, 'bundle');
+    assert.match(await js('document.querySelector(".patch-message").innerText'), /已导出 AWDP 比赛包/);
+    await js('(() => { const probeArgs = document.querySelector("#patch-probe-args"); probeArgs.value = "--smoke"; probeArgs.dispatchEvent(new Event("input")); const probeInput = document.querySelector("#patch-probe-input"); probeInput.value = "ping\\n"; probeInput.dispatchEvent(new Event("input")); })()');
+    await click('#patch-probe-run');
+    await until('document.querySelectorAll(".patch-probe-result").length === 2');
+    assert.equal(lastCall('patch_probe').result.args, '--smoke');
+    assert.equal(lastCall('patch_probe').result.input, 'ping\n');
+    assert.match(await js('document.querySelector(".patch-probe-results").innerText'), /退出码一致/);
+    assert.match(await js('document.querySelector(".patch-probe-results").innerText'), /stdout 不同/);
     await shot('manage-populated.png');
     await click('.patch-undo');
     await until('document.querySelectorAll(".patch-undo").length === 1');
@@ -271,8 +303,8 @@ app.whenReady().then(async () => {
     await until('document.querySelectorAll(".analysis-function").length >= 1');
     await sleep(400);
     assert.equal(await js('!!document.querySelector(".analysis-function script")'), false);
-    console.log('PASS: patch activity icon, manual insn selection + NOP preview/apply, recipe cards with usage, '
-      + 'bytecode catalog fill-in, disasm + rel32 calculator, patch log undo, three export formats, escaping');
+    console.log('PASS: patch manual/Keypatch, risk audit preview, recipes, bytecode, integrity, runtime probe, '
+      + 'four export formats, undo and escaping');
     app.exit(0);
   } catch (error) {
     console.error(error);

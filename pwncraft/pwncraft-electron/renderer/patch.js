@@ -24,6 +24,7 @@
       functions: null, functionsError: '', loading: false,
       instructions: null, instructionsError: '', insnLoading: false,
       hex: '', recipes: null, recipesError: '', forms: {},
+      audit: null, auditError: '', auditLoading: false,
       preview: null, previewRequest: null, previewTitle: '', previewError: '',
       log: null, logSummary: null, logError: '',
       catalogQuery: '', catalogData: null,
@@ -31,6 +32,8 @@
       relFrom: '', relTo: '', relResult: '',
       idaStatus: null, idaBusy: false, idaOverview: null, idaError: '',
       decompiled: null,
+      probeArgs: '', probeInput: '', probeTimeout: '5', probeCompare: true,
+      probeResult: null, probeError: '', probeBusy: false,
       busy: false, message: '', error: '',
     };
   }
@@ -82,6 +85,7 @@
     if (cache.tab === 'manage') renderManage(entry, cache);
     if (!cache.functions && !cache.loading) ensureFunctions(entry);
     if (!cache.recipes) ensureRecipes(entry);
+    if (cache.tab === 'recipes' && cache.audit === null && !cache.auditLoading) ensureAudit(entry);
     if (cache.log === null) refreshLog(entry);
   }
 
@@ -583,6 +587,7 @@
     const presets = cache.recipes?.seccomp_presets || {};
     panel.innerHTML = `
       ${cache.recipesError ? `<div class="analysis-error">${esc(cache.recipesError)}</div>` : ''}
+      ${renderAudit(cache)}
       <div class="patch-recipes">
         ${recipes.map(recipe => {
           const options = dynamicOptionsFor(cache, recipe);
@@ -615,7 +620,53 @@
         previewPatch(entry, buildRecipeRequest(cache, recipe), recipe.name);
       };
     });
+    const auditRun = query('#patch-audit-run');
+    if (auditRun) auditRun.onclick = () => { cache.audit = null; cache.auditError = ''; ensureAudit(entry); };
+    panel.querySelectorAll('.patch-audit-preview').forEach((button) => {
+      button.onclick = () => {
+        const finding = cache.audit?.findings?.[Number(button.dataset.index)];
+        if (finding?.request) previewPatch(entry, finding.request, finding.title);
+      };
+    });
     wirePreviewBox(entry, cache);
+  }
+
+  function renderAudit(cache) {
+    const findings = cache.audit?.findings || [];
+    const summary = cache.audit?.summary;
+    return `<section class="patch-audit card">
+      <div class="card-title">自动风险扫描
+        <span class="flex-spacer"></span>
+        <button class="mini-btn" id="patch-audit-run" ${cache.auditLoading ? 'disabled' : ''}>${cache.auditLoading ? '扫描中…' : '重新扫描'}</button>
+      </div>
+      ${cache.auditError ? `<div class="analysis-error">${esc(cache.auditError)}</div>` : ''}
+      ${summary ? `<div class="patch-audit-summary">
+        <span class="chip">风险分 ${summary.risk_score}</span>
+        <span class="chip">严重 ${summary.critical}</span><span class="chip">高危 ${summary.high}</span>
+        <span class="chip">中危 ${summary.medium}</span><span class="hint-dim">基于直接调用与反汇编证据，应用前仍会做字节预览。</span>
+      </div>` : `<div class="hint-dim">${cache.auditLoading ? '正在扫描 PLT 调用与读取长度…' : '等待扫描结果。'}</div>`}
+      ${findings.length ? `<div class="patch-audit-list">${findings.map((finding, index) => `
+        <div class="patch-audit-item severity-${esc(finding.severity)}">
+          <div><strong>${esc(finding.title)}</strong><div class="hint-dim">${esc(finding.detail)}</div>
+            <div class="mono patch-audit-evidence">${(finding.evidence || []).map(esc).join(' · ')}</div></div>
+          ${finding.request ? `<button class="mini-btn primary patch-audit-preview" data-index="${index}" ${cache.busy ? 'disabled' : ''}>${esc(finding.action || '预览缓解')}</button>` : ''}
+        </div>`).join('')}</div>` : summary ? '<div class="ok-text">没有发现可直接定位的高风险调用。</div>' : ''}
+    </section>`;
+  }
+
+  async function ensureAudit(entry) {
+    const cache = cacheOf(entry);
+    if (cache.auditLoading) return;
+    cache.auditLoading = true; cache.auditError = ''; render();
+    try {
+      cache.audit = await window.pwncraft.request('patch_audit', {});
+    } catch (error) {
+      cache.auditError = error.message || String(error);
+      cache.audit = { findings: [], summary: null };
+    } finally {
+      cache.auditLoading = false;
+      if (entryNow() === entry && app().state.page === 'patch') render();
+    }
   }
 
   function dynamicOptionsFor(cache, recipe) {
@@ -764,7 +815,20 @@
         <button class="mini-btn primary" id="patch-export-script" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>生成 patch.py</button>
         <button class="mini-btn primary" id="patch-export-elf" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>导出补丁后 ELF</button>
         <button class="mini-btn" id="patch-export-diff" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>导出 diff 文本</button>
+        <button class="mini-btn primary" id="patch-export-bundle" ${(ops?.length ?? 0) === 0 || hasDrift ? 'disabled' : ''}>导出比赛包</button>
       </div>
+      <section class="patch-probe card">
+        <div class="card-title">补丁后存活探测<span class="hint-dim">同一输入运行工作副本，可选与原始副本对比</span>
+          <span class="flex-spacer"></span><button class="mini-btn primary" id="patch-probe-run" ${cache.probeBusy || hasDrift ? 'disabled' : ''}>${cache.probeBusy ? '运行中…' : '运行探测'}</button></div>
+        <div class="patch-probe-fields">
+          <label>参数 <input id="patch-probe-args" class="input mono" placeholder="如 --port 10001" value="${esc(cache.probeArgs)}"></label>
+          <label>超时(秒) <input id="patch-probe-timeout" class="input mono" type="number" min="1" max="15" value="${esc(cache.probeTimeout)}"></label>
+          <label><input id="patch-probe-compare" type="checkbox" ${cache.probeCompare ? 'checked' : ''}> 对比原始副本</label>
+        </div>
+        <textarea id="patch-probe-input" class="input mono patch-probe-input" placeholder="发送给 stdin 的固定测试输入">${esc(cache.probeInput)}</textarea>
+        ${cache.probeError ? `<div class="analysis-error">${esc(cache.probeError)}</div>` : ''}
+        ${renderProbeResult(cache.probeResult)}
+      </section>
       ${ops === null ? `<div class="analysis-empty">${cache.logError ? esc(cache.logError) : '读取补丁记录…'}</div>` : ops.length === 0
         ? '<div class="analysis-empty">当前工作副本还没有已应用的补丁。</div>' : `
       <div class="patch-insn-scroll">
@@ -789,6 +853,14 @@
         <details class="patch-export-text card"><summary>导出内容预览（${esc(item.name)}）</summary>
           <pre class="report-pre">${esc(item.text)}</pre></details>`).join('')}`;
     query('#patch-refresh-log').onclick = () => refreshLog(entry, true);
+    const probeArgs = query('#patch-probe-args'), probeTimeout = query('#patch-probe-timeout');
+    const probeInput = query('#patch-probe-input'), probeCompare = query('#patch-probe-compare');
+    if (probeArgs) probeArgs.oninput = e => { cache.probeArgs = e.target.value; };
+    if (probeTimeout) probeTimeout.oninput = e => { cache.probeTimeout = e.target.value; };
+    if (probeInput) probeInput.oninput = e => { cache.probeInput = e.target.value; };
+    if (probeCompare) probeCompare.onchange = e => { cache.probeCompare = e.target.checked; };
+    const probeRun = query('#patch-probe-run');
+    if (probeRun) probeRun.onclick = () => runProbe(entry);
     const reconcile = query('#patch-reconcile');
     if (reconcile) reconcile.onclick = async () => {
       try {
@@ -829,6 +901,35 @@
     query('#patch-export-script').onclick = () => exportArtifact(entry, 'script', `patch_${binaryName}.py`, 'py');
     query('#patch-export-diff').onclick = () => exportArtifact(entry, 'diff', `${binaryName}_patch.diff`, 'txt');
     query('#patch-export-elf').onclick = () => exportArtifact(entry, 'patched', `${binaryName}_patched`, 'bin');
+    query('#patch-export-bundle').onclick = () => exportArtifact(entry, 'bundle', `${binaryName}_awdp_bundle.zip`, 'zip');
+  }
+
+  function renderProbeResult(result) {
+    if (!result) return '';
+    const card = item => item ? `<div class="patch-probe-result ${item.ok ? 'ok' : 'bad'}">
+      <strong>${item.label === 'patched' ? '工作副本' : '原始副本'}：${item.ok ? '正常退出' : item.timed_out ? '超时' : `退出码 ${item.returncode}`}</strong>
+      <span class="hint-dim">${item.elapsed_ms} ms${item.output_truncated ? ' · 输出已截断' : ''}</span>
+      <pre class="report-pre">${esc([item.stdout, item.stderr].filter(Boolean).join('\n') || '（无输出）')}</pre></div>` : '';
+    const comparison = result.comparison;
+    return `<div class="patch-probe-results">${comparison ? `<div class="patch-probe-compare ${comparison.same_returncode && comparison.same_stdout ? 'ok-text' : 'patch-warning'}">
+      对比：退出码${comparison.same_returncode ? '一致' : '不同'} · stdout ${comparison.same_stdout ? '一致' : '不同'}</div>` : ''}
+      ${card(result.patched)}${card(result.original)}</div>`;
+  }
+
+  async function runProbe(entry) {
+    const cache = cacheOf(entry);
+    cache.probeBusy = true; cache.probeError = ''; cache.probeResult = null; render();
+    try {
+      cache.probeResult = await window.pwncraft.request('patch_probe', {
+        args: cache.probeArgs, input: cache.probeInput,
+        timeout: Number(cache.probeTimeout || 5), compare: cache.probeCompare,
+      });
+    } catch (error) {
+      cache.probeError = error.message || String(error);
+    } finally {
+      cache.probeBusy = false;
+      if (entryNow() === entry && app().state.page === 'patch') render();
+    }
   }
 
   async function exportArtifact(entry, kind, defaultName, dialogKind) {
@@ -840,7 +941,9 @@
       const result = await window.pwncraft.request('patch_export', { kind, dest: path });
       cache.message = kind === 'patched'
         ? `已导出补丁后 ELF → ${result.path}（${result.count} 条补丁，sha256 ${String(result.sha256).slice(0, 12)}…）`
-        : `已生成${kind === 'script' ? ' patch.py 脚本' : ' diff 文本'} → ${result.path}`;
+        : kind === 'bundle'
+          ? `已导出 AWDP 比赛包 → ${result.path}（${result.files.length} 个文件，sha256 ${String(result.sha256).slice(0, 12)}…）`
+          : `已生成${kind === 'script' ? ' patch.py 脚本' : ' diff 文本'} → ${result.path}`;
       if (result.text) {
         (cache.exportPreviews ||= []).push({
           name: String(path).split(/[\\/]/).pop(), text: result.text });

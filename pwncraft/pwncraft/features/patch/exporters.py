@@ -1,15 +1,22 @@
-"""Patch 文件导出：pwntools 补丁脚本、干净 patched ELF、字节 diff 文本。
+"""Patch 文件导出：pwntools 脚本、干净 ELF、diff 与比赛提交包。
 
-三种产物共用同一份 PatchOp 真值：
+四种产物共用同一份 PatchOp 真值：
 - script：比赛提交常用的 patch.py（pwnlib ELF.write 以 vaddr 定位；
   段尾填充区的 cave 无法用 vaddr_to_offset 解析，脚本内按页对齐偏移补写）；
 - patched：从只读原始副本按 vaddr 回放，避开工作副本上 patchelf 的改动；
 - diff：offset | 原字节 | 新字节 | 说明 的核对文本。
+- bundle：汇总 patched ELF、patch.py、diff 和带 SHA-256 的 manifest.json。
 """
 from __future__ import annotations
 
 import hashlib
+import json
+import os
+from datetime import datetime, timezone
 from pathlib import Path
+from tempfile import TemporaryDirectory
+from uuid import uuid4
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from pwncraft.core.workbench import elf_geometry
 from .patch_core import PatchOp, page_aware_vaddr_to_offset
@@ -125,3 +132,66 @@ def materialize_patched(source: Path, ops: list[PatchOp], dest: Path) -> dict:
     digest = hashlib.sha256(bytes(data)).hexdigest()
     return {"path": str(dest), "count": len(ops), "sha256": digest,
             "size": len(data)}
+
+
+def _zip_bytes(archive: ZipFile, name: str, data: bytes, mode: int = 0o644) -> None:
+    info = ZipInfo(name, datetime.now().timetuple()[:6])
+    info.create_system = 3
+    info.external_attr = (mode & 0xFFFF) << 16
+    info.compress_type = ZIP_DEFLATED
+    archive.writestr(info, data)
+
+
+def export_competition_bundle(source: Path, ops: list[PatchOp], dest: Path,
+                              *, arch: str) -> dict:
+    """原子生成可复核、可重放的 AWDP 比赛提交 zip。"""
+    source, dest = Path(source), Path(dest)
+    if not ops:
+        raise ValueError("比赛提交包至少需要一条补丁")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    patched_name = f"{source.name}_patched"
+    script_name = "patch.py"
+    diff_name = "patch.diff"
+    manifest_name = "manifest.json"
+    with TemporaryDirectory(prefix="pwncraft-awdp-") as temp_dir:
+        patched_path = Path(temp_dir) / patched_name
+        patched = materialize_patched(source, ops, patched_path)
+        script = export_pwntools_script(
+            ops, binary_name=source.name, arch=arch, geometry=elf_geometry(source))
+        diff = export_diff_text(ops, binary_path=source.name)
+        source_data = source.read_bytes()
+        batches = {op.batch_id or op.op_id for op in ops}
+        manifest = {
+            "schema_version": 1,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "arch": arch,
+            "source": {"name": source.name, "size": len(source_data),
+                       "sha256": hashlib.sha256(source_data).hexdigest()},
+            "patched": {"name": patched_name, "size": patched["size"],
+                        "sha256": patched["sha256"]},
+            "operation_count": len(ops),
+            "batch_count": len(batches),
+            "operations": [{
+                "op_id": op.op_id, "batch_id": op.batch_id, "kind": op.kind,
+                "vaddr": f"0x{op.vaddr:x}", "file_offset": f"0x{op.file_offset:x}",
+                "size": len(op.new_bytes), "note": op.note,
+                "original_sha256": hashlib.sha256(op.original_bytes).hexdigest(),
+                "new_sha256": hashlib.sha256(op.new_bytes).hexdigest(),
+            } for op in ops],
+            "contents": [patched_name, script_name, diff_name, manifest_name],
+        }
+        manifest_data = (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
+        temp_dest = dest.with_name(f".{dest.name}.{uuid4().hex}.tmp")
+        try:
+            with ZipFile(temp_dest, "w") as archive:
+                _zip_bytes(archive, patched_name, patched_path.read_bytes(), 0o755)
+                _zip_bytes(archive, script_name, script.encode("utf-8"), 0o755)
+                _zip_bytes(archive, diff_name, diff.encode("utf-8"))
+                _zip_bytes(archive, manifest_name, manifest_data)
+            os.replace(temp_dest, dest)
+        finally:
+            temp_dest.unlink(missing_ok=True)
+    bundle_data = dest.read_bytes()
+    return {"path": str(dest), "count": len(ops), "batch_count": len(batches),
+            "sha256": hashlib.sha256(bundle_data).hexdigest(), "size": len(bundle_data),
+            "files": manifest["contents"]}
