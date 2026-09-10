@@ -1,0 +1,43 @@
+name: parallel-analysis
+
+on:
+  pull_request:
+    paths:
+      - 'pwncraft/pwncraft-electron/parallel/**'
+      - 'pwncraft/pwncraft-electron/renderer/parallel_analysis.*'
+      - 'pwncraft/pwncraft-electron/preload.js'
+      - 'pwncraft/pwncraft-electron/renderer/index.html'
+      - 'pwncraft/pwncraft-electron/tests/parallel-analysis.test.cjs'
+      - '.github/workflows/parallel-analysis.yml'
+  push:
+    branches:
+      - feat/non-ai-parallel-file-analysis
+    paths:
+      - 'pwncraft/pwncraft-electron/parallel/**'
+      - 'pwncraft/pwncraft-electron/renderer/parallel_analysis.*'
+      - 'pwncraft/pwncraft-electron/preload.js'
+      - 'pwncraft/pwncraft-electron/renderer/index.html'
+      - 'pwncraft/pwncraft-electron/tests/parallel-analysis.test.cjs'
+      - '.github/workflows/parallel-analysis.yml'
+
+jobs:
+  node-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax
+        run: |
+          node --check pwncraft/pwncraft-electron/parallel/common.js
+          node --check pwncraft/pwncraft-electron/parallel/vehicle.js
+          node --check pwncraft/pwncraft-electron/parallel/uav.js
+          node --check pwncraft/pwncraft-electron/parallel/web3.js
+          node --check pwncraft/pwncraft-electron/parallel/forensics.js
+          node --check pwncraft/pwncraft-electron/parallel/parallel_file_analysis.js
+          node --check pwncraft/pwncraft-electron/parallel/worker.js
+          node --check pwncraft/pwncraft-electron/renderer/parallel_analysis.js
+      - name: Tests
+        run: node --test pwncraft/pwncraft-electron/tests/parallel-analysis.test.cjs
