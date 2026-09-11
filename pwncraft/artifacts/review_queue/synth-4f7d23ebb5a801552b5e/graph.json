@@ -1,0 +1,116 @@
+{
+  "nodes": [
+    {
+      "id": "mitigation:PIE",
+      "kind": "mitigation",
+      "detail": "PIE=ON",
+      "evidence": [
+        "ELF 解析：PIE=ON"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:NX",
+      "kind": "mitigation",
+      "detail": "NX=ON",
+      "evidence": [
+        "ELF 解析：NX=ON"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:CANARY",
+      "kind": "mitigation",
+      "detail": "CANARY=ON",
+      "evidence": [
+        "ELF 解析：CANARY=ON"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:RELRO",
+      "kind": "mitigation",
+      "detail": "RELRO=FULL",
+      "evidence": [
+        "ELF 解析：RELRO=FULL"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:FORTIFY",
+      "kind": "mitigation",
+      "detail": "FORTIFY=OFF",
+      "evidence": [
+        "ELF 解析：FORTIFY=OFF"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "primitive:input",
+      "kind": "input_surface",
+      "detail": "可写入通道：read",
+      "evidence": [
+        "read@plt=0x1140"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "primitive:control_flow_hijack",
+      "kind": "control_flow",
+      "detail": "控制流劫持偏移未观测到（需要崩溃/调试证据）",
+      "evidence": [
+        "stack_truth=missing"
+      ],
+      "provenance": "UNKNOWN",
+      "confidence": "unknown"
+    },
+    {
+      "id": "primitive:leak",
+      "kind": "information_leak",
+      "detail": "可泄漏 GOT 项：read, strlen, write",
+      "evidence": [
+        "write@plt=0x1110",
+        "read@got=0x3fa8",
+        "strlen@got=0x3f98",
+        "write@got=0x3f90"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "gadget:ret",
+      "kind": "gadget",
+      "detail": "裸 ret @ 0x101a（x86-64 栈对齐用）",
+      "evidence": [
+        "0x101a: ret"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "unknown:prerequisites",
+      "kind": "gap",
+      "detail": "静态事实缺口：control_flow_offset, exec_sink, syscall_site",
+      "evidence": [
+        "missing:control_flow_offset",
+        "missing:exec_sink",
+        "missing:syscall_site"
+      ],
+      "provenance": "UNKNOWN",
+      "confidence": "unknown"
+    }
+  ],
+  "edges": [
+    {
+      "source": "primitive:input",
+      "target": "import:read",
+      "kind": "provides"
+    }
+  ]
+}

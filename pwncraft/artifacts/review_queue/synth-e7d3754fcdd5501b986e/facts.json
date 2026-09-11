@@ -1,0 +1,401 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\SomeMin\\pwn",
+  "sha256": "8ba3ed4859a00c78f0d83b28a7af0e875d9420c33ee1b28ab3e76a4f4716f2f3",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4864,
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "ON",
+    "STRIPPED": "ON"
+  },
+  "plt": {
+    "raise": {
+      "name": "raise",
+      "address": 4448,
+      "size": 16
+    },
+    "seccomp_init": {
+      "name": "seccomp_init",
+      "address": 4464,
+      "size": 16
+    },
+    "funlockfile": {
+      "name": "funlockfile",
+      "address": 4480,
+      "size": 16
+    },
+    "seccomp_rule_add": {
+      "name": "seccomp_rule_add",
+      "address": 4496,
+      "size": 16
+    },
+    "seccomp_load": {
+      "name": "seccomp_load",
+      "address": 4512,
+      "size": 16
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 4528,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4544,
+      "size": 16
+    },
+    "mmap": {
+      "name": "mmap",
+      "address": 4560,
+      "size": 16
+    },
+    "memset": {
+      "name": "memset",
+      "address": 4576,
+      "size": 16
+    },
+    "flockfile": {
+      "name": "flockfile",
+      "address": 4592,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4608,
+      "size": 16
+    },
+    "signal": {
+      "name": "signal",
+      "address": 4624,
+      "size": 16
+    },
+    "__memcpy_chk": {
+      "name": "__memcpy_chk",
+      "address": 4640,
+      "size": 16
+    },
+    "memcpy": {
+      "name": "memcpy",
+      "address": 4656,
+      "size": 16
+    },
+    "fflush": {
+      "name": "fflush",
+      "address": 4672,
+      "size": 16
+    },
+    "munmap": {
+      "name": "munmap",
+      "address": 4688,
+      "size": 16
+    },
+    "exit": {
+      "name": "exit",
+      "address": 4704,
+      "size": 16
+    },
+    "fwrite": {
+      "name": "fwrite",
+      "address": 4720,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 85976,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_deregisterTMCloneTable": {
+      "name": "_ITM_deregisterTMCloneTable",
+      "address": 85984,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 85992,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_registerTMCloneTable": {
+      "name": "_ITM_registerTMCloneTable",
+      "address": 86000,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__cxa_finalize": {
+      "name": "__cxa_finalize",
+      "address": 86008,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 86048,
+      "kind": "R_X86_64_COPY"
+    },
+    "stderr": {
+      "name": "stderr",
+      "address": 86080,
+      "kind": "R_X86_64_COPY"
+    },
+    "raise": {
+      "name": "raise",
+      "address": 85832,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "seccomp_init": {
+      "name": "seccomp_init",
+      "address": 85840,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "funlockfile": {
+      "name": "funlockfile",
+      "address": 85848,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "seccomp_rule_add": {
+      "name": "seccomp_rule_add",
+      "address": 85856,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "seccomp_load": {
+      "name": "seccomp_load",
+      "address": 85864,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 85872,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 85880,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "mmap": {
+      "name": "mmap",
+      "address": 85888,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "memset": {
+      "name": "memset",
+      "address": 85896,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "flockfile": {
+      "name": "flockfile",
+      "address": 85904,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 85912,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "signal": {
+      "name": "signal",
+      "address": 85920,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__memcpy_chk": {
+      "name": "__memcpy_chk",
+      "address": 85928,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "memcpy": {
+      "name": "memcpy",
+      "address": 85936,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fflush": {
+      "name": "fflush",
+      "address": 85944,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "munmap": {
+      "name": "munmap",
+      "address": 85952,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "exit": {
+      "name": "exit",
+      "address": 85960,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fwrite": {
+      "name": "fwrite",
+      "address": 85968,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": ".init",
+      "address": 4096,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4128,
+      "size": 304,
+      "calls": []
+    },
+    {
+      "name": "__cxa_finalize@plt",
+      "address": 4432,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "raise@plt",
+      "address": 4448,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "seccomp_init@plt",
+      "address": 4464,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "funlockfile@plt",
+      "address": 4480,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "seccomp_rule_add@plt",
+      "address": 4496,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "seccomp_load@plt",
+      "address": 4512,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strlen@plt",
+      "address": 4528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4544,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "mmap@plt",
+      "address": 4560,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "memset@plt",
+      "address": 4576,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "flockfile@plt",
+      "address": 4592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4608,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "signal@plt",
+      "address": 4624,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__memcpy_chk@plt",
+      "address": 4640,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "memcpy@plt",
+      "address": 4656,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fflush@plt",
+      "address": 4672,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "munmap@plt",
+      "address": 4688,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "exit@plt",
+      "address": 4704,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fwrite@plt",
+      "address": 4720,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": ".text",
+      "address": 4736,
+      "size": 2109,
+      "calls": [
+        {
+          "function": ".text",
+          "address": 5058,
+          "callee": "__cxa_finalize"
+        },
+        {
+          "function": ".text",
+          "address": 6703,
+          "callee": "__stack_chk_fail"
+        }
+      ]
+    },
+    {
+      "name": ".fini",
+      "address": 67064,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4122,
+    4853,
+    4952,
+    5016,
+    5076,
+    5080,
+    6141,
+    67076
+  ],
+  "win_functions": [],
+  "leak_sites": [],
+  "notes": []
+}

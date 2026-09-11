@@ -1,0 +1,385 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\SomePloys\\x\\someploys",
+  "sha256": "22f7771b02e363092a2225ca3c8fe2a6f0dc9dac2b93e7f6919eb0c50e6e91fa",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4608,
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "ON"
+  },
+  "plt": {
+    "putchar": {
+      "name": "putchar",
+      "address": 4384,
+      "size": 16
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4400,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4416,
+      "size": 16
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 4432,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4448,
+      "size": 16
+    },
+    "memset": {
+      "name": "memset",
+      "address": 4464,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4480,
+      "size": 16
+    },
+    "memcpy": {
+      "name": "memcpy",
+      "address": 4496,
+      "size": 16
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 4512,
+      "size": 16
+    },
+    "time": {
+      "name": "time",
+      "address": 4528,
+      "size": 16
+    },
+    "malloc": {
+      "name": "malloc",
+      "address": 4544,
+      "size": 16
+    },
+    "perror": {
+      "name": "perror",
+      "address": 4560,
+      "size": 16
+    },
+    "__isoc99_scanf": {
+      "name": "__isoc99_scanf",
+      "address": 4576,
+      "size": 16
+    },
+    "exit": {
+      "name": "exit",
+      "address": 4592,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 24536,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_deregisterTMCloneTable": {
+      "name": "_ITM_deregisterTMCloneTable",
+      "address": 24544,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 24552,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_registerTMCloneTable": {
+      "name": "_ITM_registerTMCloneTable",
+      "address": 24560,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__cxa_finalize": {
+      "name": "__cxa_finalize",
+      "address": 24568,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 24800,
+      "kind": "R_X86_64_COPY"
+    },
+    "stdin": {
+      "name": "stdin",
+      "address": 24816,
+      "kind": "R_X86_64_COPY"
+    },
+    "stderr": {
+      "name": "stderr",
+      "address": 24832,
+      "kind": "R_X86_64_COPY"
+    },
+    "putchar": {
+      "name": "putchar",
+      "address": 24424,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 24432,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 24440,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 24448,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 24456,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "memset": {
+      "name": "memset",
+      "address": 24464,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 24472,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "memcpy": {
+      "name": "memcpy",
+      "address": 24480,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 24488,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "time": {
+      "name": "time",
+      "address": 24496,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "malloc": {
+      "name": "malloc",
+      "address": 24504,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "perror": {
+      "name": "perror",
+      "address": 24512,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__isoc99_scanf": {
+      "name": "__isoc99_scanf",
+      "address": 24520,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "exit": {
+      "name": "exit",
+      "address": 24528,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": ".init",
+      "address": 4096,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4128,
+      "size": 240,
+      "calls": []
+    },
+    {
+      "name": "__cxa_finalize@plt",
+      "address": 4368,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "putchar@plt",
+      "address": 4384,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4400,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4416,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "setbuf@plt",
+      "address": 4432,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4448,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "memset@plt",
+      "address": 4464,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4480,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "memcpy@plt",
+      "address": 4496,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "prctl@plt",
+      "address": 4512,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "time@plt",
+      "address": 4528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "malloc@plt",
+      "address": 4544,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "perror@plt",
+      "address": 4560,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__isoc99_scanf@plt",
+      "address": 4576,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "exit@plt",
+      "address": 4592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": ".text",
+      "address": 4608,
+      "size": 1827,
+      "calls": [
+        {
+          "function": ".text",
+          "address": 4802,
+          "callee": "__cxa_finalize"
+        },
+        {
+          "function": ".text",
+          "address": 4916,
+          "callee": "prctl"
+        },
+        {
+          "function": ".text",
+          "address": 4935,
+          "callee": "perror"
+        },
+        {
+          "function": ".text",
+          "address": 4945,
+          "callee": "exit"
+        },
+        {
+          "function": ".text",
+          "address": 4972,
+          "callee": "prctl"
+        },
+        {
+          "function": ".text",
+          "address": 4991,
+          "callee": "perror"
+        },
+        {
+          "function": ".text",
+          "address": 5001,
+          "callee": "exit"
+        },
+        {
+          "function": ".text",
+          "address": 5022,
+          "callee": "__stack_chk_fail"
+        },
+        {
+          "function": ".text",
+          "address": 6299,
+          "callee": "__isoc99_scanf"
+        },
+        {
+          "function": ".text",
+          "address": 6369,
+          "callee": "read"
+        }
+      ]
+    },
+    {
+      "name": ".fini",
+      "address": 9252,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4122,
+    4696,
+    4760,
+    4820,
+    4824,
+    5028,
+    5259,
+    6117,
+    6260,
+    6306,
+    9264
+  ],
+  "win_functions": [],
+  "leak_sites": [],
+  "notes": []
+}

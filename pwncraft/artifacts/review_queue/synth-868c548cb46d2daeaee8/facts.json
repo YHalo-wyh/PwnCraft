@@ -1,0 +1,292 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_pie",
+  "sha256": "9f5e8ae9f4b3df9b5098ef6f789ad1bbb4450ad52997abf4538784eb1ecb45ef",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4224,
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "puts": {
+      "name": "puts",
+      "address": 4144,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4160,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4176,
+      "size": 16
+    },
+    "execve": {
+      "name": "execve",
+      "address": 4192,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 16320,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_deregisterTMCloneTable": {
+      "name": "_ITM_deregisterTMCloneTable",
+      "address": 16328,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 16336,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_registerTMCloneTable": {
+      "name": "_ITM_registerTMCloneTable",
+      "address": 16344,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__cxa_finalize": {
+      "name": "__cxa_finalize",
+      "address": 16352,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 16384,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 16392,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 16400,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "execve": {
+      "name": "execve",
+      "address": 16408,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4096,
+      "size": 23,
+      "calls": []
+    },
+    {
+      "name": "puts@plt-0x10",
+      "address": 4128,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4144,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4160,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4176,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "execve@plt",
+      "address": 4192,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__cxa_finalize@plt",
+      "address": 4208,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4224,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4272,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4320,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4384,
+      "size": 64,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4418,
+          "callee": "__cxa_finalize"
+        },
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4423,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4448,
+      "size": 9,
+      "calls": []
+    },
+    {
+      "name": "win",
+      "address": 4457,
+      "size": 47,
+      "calls": [
+        {
+          "function": "win",
+          "address": 4471,
+          "callee": "puts"
+        },
+        {
+          "function": "win",
+          "address": 4496,
+          "callee": "execve"
+        }
+      ]
+    },
+    {
+      "name": "vulnerable",
+      "address": 4504,
+      "size": 110,
+      "calls": [
+        {
+          "function": "vulnerable",
+          "address": 4534,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4564,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4584,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4606,
+          "callee": "read"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4614,
+      "size": 16,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4618,
+          "callee": "vulnerable"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4632,
+      "size": 9,
+      "calls": []
+    }
+  ],
+  "strings": {
+    "/bin/sh": 8215
+  },
+  "syscalls": [],
+  "ret_gadgets": [
+    4118,
+    4312,
+    4376,
+    4436,
+    4440,
+    4503,
+    4613,
+    4629,
+    4640
+  ],
+  "win_functions": [
+    {
+      "function": "win",
+      "function_address": 4457,
+      "call_address": 4496,
+      "callee": "execve",
+      "argument_address": 8215,
+      "string": "/bin/sh"
+    }
+  ],
+  "leak_sites": [
+    {
+      "function": "win",
+      "function_address": 4457,
+      "call_address": 4471,
+      "callee": "puts",
+      "argument_address": 8196,
+      "got": ""
+    },
+    {
+      "function": "vulnerable",
+      "function_address": 4504,
+      "call_address": 4534,
+      "callee": "printf",
+      "argument_address": 8223,
+      "got": ""
+    },
+    {
+      "function": "vulnerable",
+      "function_address": 4504,
+      "call_address": 4564,
+      "callee": "printf",
+      "argument_address": 8238,
+      "got": ""
+    },
+    {
+      "function": "vulnerable",
+      "function_address": 4504,
+      "call_address": 4584,
+      "callee": "printf",
+      "argument_address": 8247,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

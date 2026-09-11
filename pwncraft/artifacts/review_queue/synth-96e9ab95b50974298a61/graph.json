@@ -1,0 +1,107 @@
+{
+  "nodes": [
+    {
+      "id": "mitigation:PIE",
+      "kind": "mitigation",
+      "detail": "PIE=OFF",
+      "evidence": [
+        "ELF 解析：PIE=OFF"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:NX",
+      "kind": "mitigation",
+      "detail": "NX=ON",
+      "evidence": [
+        "ELF 解析：NX=ON"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:CANARY",
+      "kind": "mitigation",
+      "detail": "CANARY=OFF",
+      "evidence": [
+        "ELF 解析：CANARY=OFF"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:RELRO",
+      "kind": "mitigation",
+      "detail": "RELRO=PARTIAL",
+      "evidence": [
+        "ELF 解析：RELRO=PARTIAL"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:FORTIFY",
+      "kind": "mitigation",
+      "detail": "FORTIFY=OFF",
+      "evidence": [
+        "ELF 解析：FORTIFY=OFF"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "primitive:control_flow_hijack",
+      "kind": "control_flow",
+      "detail": "控制流劫持偏移未观测到（需要崩溃/调试证据）",
+      "evidence": [
+        "stack_truth=missing"
+      ],
+      "provenance": "UNKNOWN",
+      "confidence": "unknown"
+    },
+    {
+      "id": "primitive:syscall",
+      "kind": "syscall",
+      "detail": "1 处 syscall 指令",
+      "evidence": [
+        "syscall @ 0x402180"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "gadget:ret",
+      "kind": "gadget",
+      "detail": "裸 ret @ 0x40101f（x86-64 栈对齐用）",
+      "evidence": [
+        "0x40101f: ret"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "gadget:rax",
+      "kind": "gadget",
+      "detail": "rax 控制 gadget 未从 gadget shelf 证明",
+      "evidence": [
+        "gadget shelf: missing"
+      ],
+      "provenance": "UNKNOWN",
+      "confidence": "unknown"
+    },
+    {
+      "id": "unknown:prerequisites",
+      "kind": "gap",
+      "detail": "静态事实缺口：control_flow_offset, exec_sink, leak_sink",
+      "evidence": [
+        "missing:control_flow_offset",
+        "missing:exec_sink",
+        "missing:leak_sink"
+      ],
+      "provenance": "UNKNOWN",
+      "confidence": "unknown"
+    }
+  ],
+  "edges": []
+}

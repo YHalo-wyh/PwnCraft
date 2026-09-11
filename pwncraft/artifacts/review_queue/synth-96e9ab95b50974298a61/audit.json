@@ -1,0 +1,27 @@
+{
+  "verdict": "ROUND_TRIP_ISSUES",
+  "error_count": 1,
+  "diagnostic_count": 1,
+  "diagnostics": [
+    {
+      "code": "EXP_PARSE_001",
+      "severity": "error",
+      "confidence": 1.0,
+      "message": "EXP 语法错误（行 16）：(unicode error) 'unicodeescape' codec can't decode bytes in position 438-439: truncated \\xXX escape",
+      "line": 16,
+      "evidence": [
+        {
+          "kind": "SYNTAX",
+          "detail": "(unicode error) 'unicodeescape' codec can't decode bytes in position 438-439: truncated \\xXX escape"
+        }
+      ],
+      "suggested_fix": "",
+      "impact": "审计在此停止；修复语法后恢复。",
+      "scope": "main",
+      "span": {},
+      "provenance": "DERIVED",
+      "fix_target": ""
+    }
+  ],
+  "note": "CLEAN = 未发现确定性结构问题；可利用性仍需运行验证（UNVERIFIED）"
+}

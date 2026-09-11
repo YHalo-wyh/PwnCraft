@@ -1,0 +1,295 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_angr_hidden",
+  "sha256": "c518da6be9a5081dd5913a65db82409135a8b96cd4bbbd46369ae5a000ac7eed",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4198544,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "_exit": {
+      "name": "_exit",
+      "address": 4198448,
+      "size": 16
+    },
+    "strcpy": {
+      "name": "strcpy",
+      "address": 4198464,
+      "size": 16
+    },
+    "write": {
+      "name": "write",
+      "address": 4198480,
+      "size": 16
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 4198496,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4198512,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4198528,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 4210648,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 4210656,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 4210752,
+      "kind": "R_X86_64_COPY"
+    },
+    "_exit": {
+      "name": "_exit",
+      "address": 4210688,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strcpy": {
+      "name": "strcpy",
+      "address": 4210696,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "write": {
+      "name": "write",
+      "address": 4210704,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 4210712,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4210720,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 4210728,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4198400,
+      "size": 23,
+      "calls": []
+    },
+    {
+      "name": "_exit@plt-0x10",
+      "address": 4198432,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_exit@plt",
+      "address": 4198448,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strcpy@plt",
+      "address": 4198464,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "write@plt",
+      "address": 4198480,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "setbuf@plt",
+      "address": 4198496,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4198512,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4198528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4198544,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 4198592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4198608,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4198656,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4198720,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4198737,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4198768,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "win",
+      "address": 4198774,
+      "size": 39,
+      "calls": [
+        {
+          "function": "win",
+          "address": 4198798,
+          "callee": "write"
+        },
+        {
+          "function": "win",
+          "address": 4198808,
+          "callee": "_exit"
+        }
+      ]
+    },
+    {
+      "name": "copy_user",
+      "address": 4198813,
+      "size": 62,
+      "calls": [
+        {
+          "function": "copy_user",
+          "address": 4198845,
+          "callee": "read"
+        },
+        {
+          "function": "copy_user",
+          "address": 4198867,
+          "callee": "strcpy"
+        }
+      ]
+    },
+    {
+      "name": "vuln",
+      "address": 4198875,
+      "size": 23,
+      "calls": [
+        {
+          "function": "vuln",
+          "address": 4198890,
+          "callee": "copy_user"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4198898,
+      "size": 66,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4198917,
+          "callee": "setbuf"
+        },
+        {
+          "function": "main",
+          "address": 4198947,
+          "callee": "printf"
+        },
+        {
+          "function": "main",
+          "address": 4198952,
+          "callee": "vuln"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4198964,
+      "size": 9,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4198422,
+    4198592,
+    4198640,
+    4198704,
+    4198750,
+    4198752,
+    4198874,
+    4198897,
+    4198963,
+    4198972
+  ],
+  "win_functions": [],
+  "leak_sites": [
+    {
+      "function": "win",
+      "function_address": 4198774,
+      "call_address": 4198798,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": "main",
+      "function_address": 4198898,
+      "call_address": 4198947,
+      "callee": "printf",
+      "argument_address": 4202507,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

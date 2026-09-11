@@ -1,0 +1,209 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_fmtstr",
+  "sha256": "f2e24de2094b956234775e5ec3e1ae09916c7adbfeab9c161d29a12a0032d8db",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4198544,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "putchar": {
+      "name": "putchar",
+      "address": 4198496,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4198512,
+      "size": 16
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 4198528,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 4210648,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 4210656,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdin": {
+      "name": "stdin",
+      "address": 4210736,
+      "kind": "R_X86_64_COPY"
+    },
+    "putchar": {
+      "name": "putchar",
+      "address": 4210688,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4210696,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 4210704,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4198400,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4198432,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "putchar@plt",
+      "address": 4198496,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4198512,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fgets@plt",
+      "address": 4198528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4198544,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 4198592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4198608,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4198656,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4198720,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4198737,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4198768,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "vulnerable",
+      "address": 4198774,
+      "size": 95,
+      "calls": [
+        {
+          "function": "vulnerable",
+          "address": 4198804,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198831,
+          "callee": "fgets"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198851,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198861,
+          "callee": "putchar"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4198869,
+      "size": 25,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4198882,
+          "callee": "vulnerable"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4198896,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4198426,
+    4198596,
+    4198640,
+    4198704,
+    4198750,
+    4198752,
+    4198868,
+    4198893,
+    4198908
+  ],
+  "win_functions": [],
+  "leak_sites": [
+    {
+      "function": "vulnerable",
+      "function_address": 4198774,
+      "call_address": 4198804,
+      "callee": "printf",
+      "argument_address": 4202500,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

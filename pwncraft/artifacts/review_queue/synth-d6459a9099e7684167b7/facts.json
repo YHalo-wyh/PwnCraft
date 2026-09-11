@@ -1,0 +1,293 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_x86_vuln",
+  "sha256": "dd0b2e4a1c25bb80ed9475ebf812c71f791889a36cc89b5248d6caf7486a33f0",
+  "architecture": "i386",
+  "bits": 32,
+  "endian": "little",
+  "entry": 134516864,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 134516784,
+      "size": 16
+    },
+    "gets": {
+      "name": "gets",
+      "address": 134516800,
+      "size": 16
+    },
+    "puts": {
+      "name": "puts",
+      "address": 134516816,
+      "size": 16
+    },
+    "system": {
+      "name": "system",
+      "address": 134516832,
+      "size": 16
+    },
+    "setvbuf": {
+      "name": "setvbuf",
+      "address": 134516848,
+      "size": 16
+    }
+  },
+  "got": {
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 134529004,
+      "kind": "R_386_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 134529008,
+      "kind": "R_386_GLOB_DAT"
+    },
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 134529024,
+      "kind": "R_386_JUMP_SLOT"
+    },
+    "gets": {
+      "name": "gets",
+      "address": 134529028,
+      "kind": "R_386_JUMP_SLOT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 134529032,
+      "kind": "R_386_JUMP_SLOT"
+    },
+    "system": {
+      "name": "system",
+      "address": 134529036,
+      "kind": "R_386_JUMP_SLOT"
+    },
+    "setvbuf": {
+      "name": "setvbuf",
+      "address": 134529040,
+      "kind": "R_386_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 134516736,
+      "size": 32,
+      "calls": [
+        {
+          "function": "_init",
+          "address": 134516740,
+          "callee": "__x86.get_pc_thunk.bx"
+        }
+      ]
+    },
+    {
+      "name": "__libc_start_main@plt-0x10",
+      "address": 134516768,
+      "size": 14,
+      "calls": []
+    },
+    {
+      "name": "__libc_start_main@plt",
+      "address": 134516784,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "gets@plt",
+      "address": 134516800,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 134516816,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "system@plt",
+      "address": 134516832,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "setvbuf@plt",
+      "address": 134516848,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 134516864,
+      "size": 45,
+      "calls": [
+        {
+          "function": "_start",
+          "address": 134516899,
+          "callee": "__libc_start_main"
+        }
+      ]
+    },
+    {
+      "name": "__wrap_main",
+      "address": 134516909,
+      "size": 19,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 134516928,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__x86.get_pc_thunk.bx",
+      "address": 134516944,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 134516960,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 134517024,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 134517088,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 134517107,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 134517136,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "win",
+      "address": 134517142,
+      "size": 43,
+      "calls": [
+        {
+          "function": "win",
+          "address": 134517149,
+          "callee": "__x86.get_pc_thunk.ax"
+        },
+        {
+          "function": "win",
+          "address": 134517171,
+          "callee": "system"
+        }
+      ]
+    },
+    {
+      "name": "vulnerable",
+      "address": 134517185,
+      "size": 40,
+      "calls": [
+        {
+          "function": "vulnerable",
+          "address": 134517192,
+          "callee": "__x86.get_pc_thunk.ax"
+        },
+        {
+          "function": "vulnerable",
+          "address": 134517211,
+          "callee": "gets"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 134517225,
+      "size": 87,
+      "calls": [
+        {
+          "function": "main",
+          "address": 134517240,
+          "callee": "__x86.get_pc_thunk.bx"
+        },
+        {
+          "function": "main",
+          "address": 134517266,
+          "callee": "setvbuf"
+        },
+        {
+          "function": "main",
+          "address": 134517284,
+          "callee": "puts"
+        },
+        {
+          "function": "main",
+          "address": 134517292,
+          "callee": "vulnerable"
+        }
+      ]
+    },
+    {
+      "name": "__x86.get_pc_thunk.ax",
+      "address": 134517312,
+      "size": 4,
+      "calls": []
+    },
+    {
+      "name": "_fini",
+      "address": 134517316,
+      "size": 20,
+      "calls": [
+        {
+          "function": "_fini",
+          "address": 134517320,
+          "callee": "__x86.get_pc_thunk.bx"
+        }
+      ]
+    }
+  ],
+  "strings": {
+    "/bin/sh": 134520840
+  },
+  "syscalls": [],
+  "ret_gadgets": [
+    134516767,
+    134516908,
+    134516928,
+    134516947,
+    134516998,
+    134517008,
+    134517075,
+    134517080,
+    134517120,
+    134517128,
+    134517184,
+    134517224,
+    134517311,
+    134517315,
+    134517335
+  ],
+  "win_functions": [],
+  "leak_sites": [],
+  "notes": []
+}

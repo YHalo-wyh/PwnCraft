@@ -1,0 +1,595 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_tcache_dup",
+  "sha256": "7b2d96cd88796be7e6c001093d6d46dcac4e4738bc2c096d28f5ae098681df10",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4198736,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "free": {
+      "name": "free",
+      "address": 4198592,
+      "size": 16
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4198608,
+      "size": 16
+    },
+    "system": {
+      "name": "system",
+      "address": 4198624,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4198640,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4198656,
+      "size": 16
+    },
+    "getchar": {
+      "name": "getchar",
+      "address": 4198672,
+      "size": 16
+    },
+    "malloc": {
+      "name": "malloc",
+      "address": 4198688,
+      "size": 16
+    },
+    "setvbuf": {
+      "name": "setvbuf",
+      "address": 4198704,
+      "size": 16
+    },
+    "__isoc99_scanf": {
+      "name": "__isoc99_scanf",
+      "address": 4198720,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 4210648,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 4210656,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 4210784,
+      "kind": "R_X86_64_COPY"
+    },
+    "free": {
+      "name": "free",
+      "address": 4210688,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4210696,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "system": {
+      "name": "system",
+      "address": 4210704,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4210712,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 4210720,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "getchar": {
+      "name": "getchar",
+      "address": 4210728,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "malloc": {
+      "name": "malloc",
+      "address": 4210736,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "setvbuf": {
+      "name": "setvbuf",
+      "address": 4210744,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__isoc99_scanf": {
+      "name": "__isoc99_scanf",
+      "address": 4210752,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4198400,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4198432,
+      "size": 160,
+      "calls": []
+    },
+    {
+      "name": "free@plt",
+      "address": 4198592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4198608,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "system@plt",
+      "address": 4198624,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4198640,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4198656,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "getchar@plt",
+      "address": 4198672,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "malloc@plt",
+      "address": 4198688,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "setvbuf@plt",
+      "address": 4198704,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__isoc99_scanf@plt",
+      "address": 4198720,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4198736,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 4198784,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4198800,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4198848,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4198912,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4198929,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4198960,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "add",
+      "address": 4198966,
+      "size": 304,
+      "calls": [
+        {
+          "function": "add",
+          "address": 4199000,
+          "callee": "puts"
+        },
+        {
+          "function": "add",
+          "address": 4199025,
+          "callee": "printf"
+        },
+        {
+          "function": "add",
+          "address": 4199052,
+          "callee": "__isoc99_scanf"
+        },
+        {
+          "function": "add",
+          "address": 4199057,
+          "callee": "getchar"
+        },
+        {
+          "function": "add",
+          "address": 4199082,
+          "callee": "puts"
+        },
+        {
+          "function": "add",
+          "address": 4199106,
+          "callee": "malloc"
+        },
+        {
+          "function": "add",
+          "address": 4199181,
+          "callee": "printf"
+        },
+        {
+          "function": "add",
+          "address": 4199229,
+          "callee": "read"
+        },
+        {
+          "function": "add",
+          "address": 4199259,
+          "callee": "puts"
+        }
+      ]
+    },
+    {
+      "name": "delete",
+      "address": 4199270,
+      "size": 124,
+      "calls": [
+        {
+          "function": "delete",
+          "address": 4199297,
+          "callee": "printf"
+        },
+        {
+          "function": "delete",
+          "address": 4199324,
+          "callee": "__isoc99_scanf"
+        },
+        {
+          "function": "delete",
+          "address": 4199329,
+          "callee": "getchar"
+        },
+        {
+          "function": "delete",
+          "address": 4199369,
+          "callee": "free"
+        },
+        {
+          "function": "delete",
+          "address": 4199384,
+          "callee": "puts"
+        }
+      ]
+    },
+    {
+      "name": "show",
+      "address": 4199394,
+      "size": 109,
+      "calls": [
+        {
+          "function": "show",
+          "address": 4199421,
+          "callee": "printf"
+        },
+        {
+          "function": "show",
+          "address": 4199448,
+          "callee": "__isoc99_scanf"
+        },
+        {
+          "function": "show",
+          "address": 4199453,
+          "callee": "getchar"
+        },
+        {
+          "function": "show",
+          "address": 4199493,
+          "callee": "puts"
+        }
+      ]
+    },
+    {
+      "name": "edit",
+      "address": 4199503,
+      "size": 177,
+      "calls": [
+        {
+          "function": "edit",
+          "address": 4199530,
+          "callee": "printf"
+        },
+        {
+          "function": "edit",
+          "address": 4199557,
+          "callee": "__isoc99_scanf"
+        },
+        {
+          "function": "edit",
+          "address": 4199562,
+          "callee": "getchar"
+        },
+        {
+          "function": "edit",
+          "address": 4199590,
+          "callee": "printf"
+        },
+        {
+          "function": "edit",
+          "address": 4199655,
+          "callee": "read"
+        },
+        {
+          "function": "edit",
+          "address": 4199670,
+          "callee": "puts"
+        }
+      ]
+    },
+    {
+      "name": "hidden_backdoor",
+      "address": 4199680,
+      "size": 26,
+      "calls": [
+        {
+          "function": "hidden_backdoor",
+          "address": 4199698,
+          "callee": "system"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4199706,
+      "size": 199,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4199743,
+          "callee": "setvbuf"
+        },
+        {
+          "function": "main",
+          "address": 4199758,
+          "callee": "puts"
+        },
+        {
+          "function": "main",
+          "address": 4199778,
+          "callee": "printf"
+        },
+        {
+          "function": "main",
+          "address": 4199805,
+          "callee": "__isoc99_scanf"
+        },
+        {
+          "function": "main",
+          "address": 4199810,
+          "callee": "getchar"
+        },
+        {
+          "function": "main",
+          "address": 4199828,
+          "callee": "add"
+        },
+        {
+          "function": "main",
+          "address": 4199848,
+          "callee": "delete"
+        },
+        {
+          "function": "main",
+          "address": 4199868,
+          "callee": "show"
+        },
+        {
+          "function": "main",
+          "address": 4199888,
+          "callee": "edit"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4199908,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4198426,
+    4198788,
+    4198832,
+    4198896,
+    4198942,
+    4198944,
+    4199269,
+    4199393,
+    4199502,
+    4199679,
+    4199705,
+    4199904,
+    4199920
+  ],
+  "win_functions": [
+    {
+      "function": "hidden_backdoor",
+      "function_address": 4199680,
+      "call_address": 4199698,
+      "callee": "system",
+      "argument_address": 4202545,
+      "string": ""
+    }
+  ],
+  "leak_sites": [
+    {
+      "function": "add",
+      "function_address": 4198966,
+      "call_address": 4199000,
+      "callee": "puts",
+      "argument_address": 4202504,
+      "got": ""
+    },
+    {
+      "function": "add",
+      "function_address": 4198966,
+      "call_address": 4199025,
+      "callee": "printf",
+      "argument_address": 4202509,
+      "got": ""
+    },
+    {
+      "function": "add",
+      "function_address": 4198966,
+      "call_address": 4199082,
+      "callee": "puts",
+      "argument_address": 4202519,
+      "got": ""
+    },
+    {
+      "function": "add",
+      "function_address": 4198966,
+      "call_address": 4199181,
+      "callee": "printf",
+      "argument_address": 4202527,
+      "got": ""
+    },
+    {
+      "function": "add",
+      "function_address": 4198966,
+      "call_address": 4199259,
+      "callee": "puts",
+      "argument_address": 4202534,
+      "got": ""
+    },
+    {
+      "function": "delete",
+      "function_address": 4199270,
+      "call_address": 4199297,
+      "callee": "printf",
+      "argument_address": 4202539,
+      "got": ""
+    },
+    {
+      "function": "delete",
+      "function_address": 4199270,
+      "call_address": 4199384,
+      "callee": "puts",
+      "argument_address": 4202534,
+      "got": ""
+    },
+    {
+      "function": "show",
+      "function_address": 4199394,
+      "call_address": 4199421,
+      "callee": "printf",
+      "argument_address": 4202539,
+      "got": ""
+    },
+    {
+      "function": "show",
+      "function_address": 4199394,
+      "call_address": 4199493,
+      "callee": "puts",
+      "argument_address": 4210816,
+      "got": ""
+    },
+    {
+      "function": "edit",
+      "function_address": 4199503,
+      "call_address": 4199530,
+      "callee": "printf",
+      "argument_address": 4202539,
+      "got": ""
+    },
+    {
+      "function": "edit",
+      "function_address": 4199503,
+      "call_address": 4199590,
+      "callee": "printf",
+      "argument_address": 4202527,
+      "got": ""
+    },
+    {
+      "function": "edit",
+      "function_address": 4199503,
+      "call_address": 4199670,
+      "callee": "puts",
+      "argument_address": 4202534,
+      "got": ""
+    },
+    {
+      "function": "main",
+      "function_address": 4199706,
+      "call_address": 4199758,
+      "callee": "puts",
+      "argument_address": 4202560,
+      "got": ""
+    },
+    {
+      "function": "main",
+      "function_address": 4199706,
+      "call_address": 4199778,
+      "callee": "printf",
+      "argument_address": 4202601,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "case_id": "synth-e7d3754fcdd5501b986e",
+  "created_at": "2026-09-11T16:19:23+0800",
+  "generator": {
+    "module": "pwncraft.features.synth",
+    "app_version": "v0.33.0"
+  },
+  "target": {
+    "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\SomeMin\\pwn",
+    "sha256": "8ba3ed4859a00c78f0d83b28a7af0e875d9420c33ee1b28ab3e76a4f4716f2f3",
+    "arch": "amd64",
+    "bits": 64,
+    "security": {
+      "PIE": "ON",
+      "NX": "ON",
+      "CANARY": "ON",
+      "RELRO": "FULL",
+      "FORTIFY": "ON",
+      "STRIPPED": "ON"
+    }
+  },
+  "strategy": {
+    "id": "none",
+    "status": "none"
+  },
+  "exp": null,
+  "audit": {
+    "verdict": "NO_STRATEGY",
+    "error_count": 0,
+    "diagnostic_count": 0
+  },
+  "verification": null,
+  "provenance": "DERIVED",
+  "training": {
+    "trainable": false,
+    "runtime_verified": false,
+    "gate": "review_queue → 人工评审 → autocorrect intake/splits 注册"
+  }
+}

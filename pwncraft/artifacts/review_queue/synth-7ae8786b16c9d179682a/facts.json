@@ -1,0 +1,606 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_tcache",
+  "sha256": "ba22f61d5868859200d595a60541fb7d9acb18f41fc0b1b4dcee4d278b27ed80",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4198800,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "free": {
+      "name": "free",
+      "address": 4198624,
+      "size": 16
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4198640,
+      "size": 16
+    },
+    "write": {
+      "name": "write",
+      "address": 4198656,
+      "size": 16
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 4198672,
+      "size": 16
+    },
+    "system": {
+      "name": "system",
+      "address": 4198688,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4198704,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4198720,
+      "size": 16
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 4198736,
+      "size": 16
+    },
+    "malloc": {
+      "name": "malloc",
+      "address": 4198752,
+      "size": 16
+    },
+    "strtoul": {
+      "name": "strtoul",
+      "address": 4198768,
+      "size": 16
+    },
+    "atoi": {
+      "name": "atoi",
+      "address": 4198784,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 4210648,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 4210656,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 4210816,
+      "kind": "R_X86_64_COPY"
+    },
+    "stdin": {
+      "name": "stdin",
+      "address": 4210832,
+      "kind": "R_X86_64_COPY"
+    },
+    "free": {
+      "name": "free",
+      "address": 4210688,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4210696,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "write": {
+      "name": "write",
+      "address": 4210704,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 4210712,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "system": {
+      "name": "system",
+      "address": 4210720,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4210728,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 4210736,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 4210744,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "malloc": {
+      "name": "malloc",
+      "address": 4210752,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strtoul": {
+      "name": "strtoul",
+      "address": 4210760,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "atoi": {
+      "name": "atoi",
+      "address": 4210768,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4198400,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4198432,
+      "size": 192,
+      "calls": []
+    },
+    {
+      "name": "free@plt",
+      "address": 4198624,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4198640,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "write@plt",
+      "address": 4198656,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "setbuf@plt",
+      "address": 4198672,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "system@plt",
+      "address": 4198688,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4198704,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4198720,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fgets@plt",
+      "address": 4198736,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "malloc@plt",
+      "address": 4198752,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strtoul@plt",
+      "address": 4198768,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "atoi@plt",
+      "address": 4198784,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4198800,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 4198848,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4198864,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4198912,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4198976,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4198993,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4199024,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "alloc",
+      "address": 4199030,
+      "size": 310,
+      "calls": [
+        {
+          "function": "alloc",
+          "address": 4199063,
+          "callee": "puts"
+        },
+        {
+          "function": "alloc",
+          "address": 4199088,
+          "callee": "printf"
+        },
+        {
+          "function": "alloc",
+          "address": 4199112,
+          "callee": "fgets"
+        },
+        {
+          "function": "alloc",
+          "address": 4199134,
+          "callee": "strtoul"
+        },
+        {
+          "function": "alloc",
+          "address": 4199168,
+          "callee": "malloc"
+        },
+        {
+          "function": "alloc",
+          "address": 4199272,
+          "callee": "printf"
+        },
+        {
+          "function": "alloc",
+          "address": 4199292,
+          "callee": "printf"
+        },
+        {
+          "function": "alloc",
+          "address": 4199333,
+          "callee": "read"
+        }
+      ]
+    },
+    {
+      "name": "free_chunk",
+      "address": 4199340,
+      "size": 168,
+      "calls": [
+        {
+          "function": "free_chunk",
+          "address": 4199367,
+          "callee": "printf"
+        },
+        {
+          "function": "free_chunk",
+          "address": 4199391,
+          "callee": "fgets"
+        },
+        {
+          "function": "free_chunk",
+          "address": 4199403,
+          "callee": "atoi"
+        },
+        {
+          "function": "free_chunk",
+          "address": 4199467,
+          "callee": "puts"
+        },
+        {
+          "function": "free_chunk",
+          "address": 4199501,
+          "callee": "free"
+        }
+      ]
+    },
+    {
+      "name": "show",
+      "address": 4199508,
+      "size": 197,
+      "calls": [
+        {
+          "function": "show",
+          "address": 4199535,
+          "callee": "printf"
+        },
+        {
+          "function": "show",
+          "address": 4199559,
+          "callee": "fgets"
+        },
+        {
+          "function": "show",
+          "address": 4199571,
+          "callee": "atoi"
+        },
+        {
+          "function": "show",
+          "address": 4199635,
+          "callee": "puts"
+        },
+        {
+          "function": "show",
+          "address": 4199698,
+          "callee": "write"
+        }
+      ]
+    },
+    {
+      "name": "edit",
+      "address": 4199705,
+      "size": 217,
+      "calls": [
+        {
+          "function": "edit",
+          "address": 4199732,
+          "callee": "printf"
+        },
+        {
+          "function": "edit",
+          "address": 4199756,
+          "callee": "fgets"
+        },
+        {
+          "function": "edit",
+          "address": 4199768,
+          "callee": "atoi"
+        },
+        {
+          "function": "edit",
+          "address": 4199832,
+          "callee": "puts"
+        },
+        {
+          "function": "edit",
+          "address": 4199854,
+          "callee": "printf"
+        },
+        {
+          "function": "edit",
+          "address": 4199915,
+          "callee": "read"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4199922,
+      "size": 169,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4199949,
+          "callee": "setbuf"
+        },
+        {
+          "function": "main",
+          "address": 4199964,
+          "callee": "system"
+        },
+        {
+          "function": "main",
+          "address": 4199984,
+          "callee": "printf"
+        },
+        {
+          "function": "main",
+          "address": 4200008,
+          "callee": "fgets"
+        },
+        {
+          "function": "main",
+          "address": 4200052,
+          "callee": "alloc"
+        },
+        {
+          "function": "main",
+          "address": 4200059,
+          "callee": "free_chunk"
+        },
+        {
+          "function": "main",
+          "address": 4200066,
+          "callee": "show"
+        },
+        {
+          "function": "main",
+          "address": 4200073,
+          "callee": "edit"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4200092,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4198426,
+    4198852,
+    4198896,
+    4198960,
+    4199006,
+    4199008,
+    4199339,
+    4199507,
+    4199704,
+    4199921,
+    4200090,
+    4200104
+  ],
+  "win_functions": [
+    {
+      "function": "main",
+      "function_address": 4199922,
+      "call_address": 4199964,
+      "callee": "system",
+      "argument_address": 4202599,
+      "string": ""
+    }
+  ],
+  "leak_sites": [
+    {
+      "function": "alloc",
+      "function_address": 4199030,
+      "call_address": 4199063,
+      "callee": "puts",
+      "argument_address": 4202504,
+      "got": ""
+    },
+    {
+      "function": "alloc",
+      "function_address": 4199030,
+      "call_address": 4199088,
+      "callee": "printf",
+      "argument_address": 4202509,
+      "got": ""
+    },
+    {
+      "function": "alloc",
+      "function_address": 4199030,
+      "call_address": 4199272,
+      "callee": "printf",
+      "argument_address": 4202520,
+      "got": ""
+    },
+    {
+      "function": "alloc",
+      "function_address": 4199030,
+      "call_address": 4199292,
+      "callee": "printf",
+      "argument_address": 4202578,
+      "got": ""
+    },
+    {
+      "function": "free_chunk",
+      "function_address": 4199340,
+      "call_address": 4199367,
+      "callee": "printf",
+      "argument_address": 4202585,
+      "got": ""
+    },
+    {
+      "function": "free_chunk",
+      "function_address": 4199340,
+      "call_address": 4199467,
+      "callee": "puts",
+      "argument_address": 4202591,
+      "got": ""
+    },
+    {
+      "function": "show",
+      "function_address": 4199508,
+      "call_address": 4199535,
+      "callee": "printf",
+      "argument_address": 4202585,
+      "got": ""
+    },
+    {
+      "function": "show",
+      "function_address": 4199508,
+      "call_address": 4199635,
+      "callee": "puts",
+      "argument_address": 4202591,
+      "got": ""
+    },
+    {
+      "function": "show",
+      "function_address": 4199508,
+      "call_address": 4199698,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": "edit",
+      "function_address": 4199705,
+      "call_address": 4199732,
+      "callee": "printf",
+      "argument_address": 4202585,
+      "got": ""
+    },
+    {
+      "function": "edit",
+      "function_address": 4199705,
+      "call_address": 4199832,
+      "callee": "puts",
+      "argument_address": 4202591,
+      "got": ""
+    },
+    {
+      "function": "edit",
+      "function_address": 4199705,
+      "call_address": 4199854,
+      "callee": "printf",
+      "argument_address": 4202578,
+      "got": ""
+    },
+    {
+      "function": "main",
+      "function_address": 4199922,
+      "call_address": 4199984,
+      "callee": "printf",
+      "argument_address": 4202608,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

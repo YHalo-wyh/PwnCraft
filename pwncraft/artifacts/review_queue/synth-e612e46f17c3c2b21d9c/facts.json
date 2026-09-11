@@ -1,0 +1,751 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\HeroEditor\\game",
+  "sha256": "eac1d39474d57d07b5dc103f64e495c3c8913568bc06b3f51e6595944cf97be3",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4448,
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "ON"
+  },
+  "plt": {
+    "__errno_location": {
+      "name": "__errno_location",
+      "address": 4144,
+      "size": 16
+    },
+    "__isoc23_strtoull": {
+      "name": "__isoc23_strtoull",
+      "address": 4160,
+      "size": 16
+    },
+    "_exit": {
+      "name": "_exit",
+      "address": 4176,
+      "size": 16
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4192,
+      "size": 16
+    },
+    "strtod": {
+      "name": "strtod",
+      "address": 4208,
+      "size": 16
+    },
+    "write": {
+      "name": "write",
+      "address": 4224,
+      "size": 16
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 4240,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4256,
+      "size": 16
+    },
+    "strchr": {
+      "name": "strchr",
+      "address": 4272,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4288,
+      "size": 16
+    },
+    "memset": {
+      "name": "memset",
+      "address": 4304,
+      "size": 16
+    },
+    "alarm": {
+      "name": "alarm",
+      "address": 4320,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4336,
+      "size": 16
+    },
+    "memcpy": {
+      "name": "memcpy",
+      "address": 4352,
+      "size": 16
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 4368,
+      "size": 16
+    },
+    "setvbuf": {
+      "name": "setvbuf",
+      "address": 4384,
+      "size": 16
+    },
+    "sprintf": {
+      "name": "sprintf",
+      "address": 4400,
+      "size": 16
+    },
+    "__ctype_b_loc": {
+      "name": "__ctype_b_loc",
+      "address": 4416,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 20440,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_deregisterTMCloneTable": {
+      "name": "_ITM_deregisterTMCloneTable",
+      "address": 20448,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 20456,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_registerTMCloneTable": {
+      "name": "_ITM_registerTMCloneTable",
+      "address": 20464,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__cxa_finalize": {
+      "name": "__cxa_finalize",
+      "address": 20472,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 20512,
+      "kind": "R_X86_64_COPY"
+    },
+    "stdin": {
+      "name": "stdin",
+      "address": 20528,
+      "kind": "R_X86_64_COPY"
+    },
+    "stderr": {
+      "name": "stderr",
+      "address": 20544,
+      "kind": "R_X86_64_COPY"
+    },
+    "__errno_location": {
+      "name": "__errno_location",
+      "address": 20296,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__isoc23_strtoull": {
+      "name": "__isoc23_strtoull",
+      "address": 20304,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "_exit": {
+      "name": "_exit",
+      "address": 20312,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 20320,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strtod": {
+      "name": "strtod",
+      "address": 20328,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "write": {
+      "name": "write",
+      "address": 20336,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 20344,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 20352,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strchr": {
+      "name": "strchr",
+      "address": 20360,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 20368,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "memset": {
+      "name": "memset",
+      "address": 20376,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "alarm": {
+      "name": "alarm",
+      "address": 20384,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 20392,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "memcpy": {
+      "name": "memcpy",
+      "address": 20400,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 20408,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "setvbuf": {
+      "name": "setvbuf",
+      "address": 20416,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "sprintf": {
+      "name": "sprintf",
+      "address": 20424,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__ctype_b_loc": {
+      "name": "__ctype_b_loc",
+      "address": 20432,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": ".init",
+      "address": 4096,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": "__errno_location@plt-0x10",
+      "address": 4128,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__errno_location@plt",
+      "address": 4144,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__isoc23_strtoull@plt",
+      "address": 4160,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_exit@plt",
+      "address": 4176,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4192,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strtod@plt",
+      "address": 4208,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "write@plt",
+      "address": 4224,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strlen@plt",
+      "address": 4240,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4256,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strchr@plt",
+      "address": 4272,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4288,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "memset@plt",
+      "address": 4304,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "alarm@plt",
+      "address": 4320,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4336,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "memcpy@plt",
+      "address": 4352,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "prctl@plt",
+      "address": 4368,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "setvbuf@plt",
+      "address": 4384,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "sprintf@plt",
+      "address": 4400,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__ctype_b_loc@plt",
+      "address": 4416,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__cxa_finalize@plt",
+      "address": 4432,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": "__cyg_profile_func_enter@@Base-0x175",
+      "address": 4448,
+      "size": 373,
+      "calls": [
+        {
+          "function": "__cyg_profile_func_enter@@Base-0x175",
+          "address": 4642,
+          "callee": "__cxa_finalize"
+        },
+        {
+          "function": "__cyg_profile_func_enter@@Base-0x175",
+          "address": 4709,
+          "callee": "write"
+        },
+        {
+          "function": "__cyg_profile_func_enter@@Base-0x175",
+          "address": 4723,
+          "callee": "_exit"
+        }
+      ]
+    },
+    {
+      "name": "__cyg_profile_func_enter@@Base",
+      "address": 4821,
+      "size": 15,
+      "calls": []
+    },
+    {
+      "name": "__cyg_profile_func_exit@@Base",
+      "address": 4836,
+      "size": 2044,
+      "calls": [
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 4926,
+          "callee": "__cyg_profile_func_enter"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5016,
+          "callee": "__cyg_profile_func_exit"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5074,
+          "callee": "__cyg_profile_func_enter"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5129,
+          "callee": "__cyg_profile_func_exit"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5151,
+          "callee": "__stack_chk_fail"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5195,
+          "callee": "__cyg_profile_func_enter"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5282,
+          "callee": "write"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5320,
+          "callee": "write"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5368,
+          "callee": "__cyg_profile_func_exit"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5434,
+          "callee": "__cyg_profile_func_enter"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5617,
+          "callee": "__cyg_profile_func_exit"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5639,
+          "callee": "__stack_chk_fail"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5699,
+          "callee": "__cyg_profile_func_enter"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5735,
+          "callee": "__ctype_b_loc"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5838,
+          "callee": "__ctype_b_loc"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5888,
+          "callee": "__errno_location"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5918,
+          "callee": "__isoc23_strtoull"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5927,
+          "callee": "__errno_location"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5973,
+          "callee": "__cyg_profile_func_exit"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 5995,
+          "callee": "__stack_chk_fail"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6063,
+          "callee": "__cyg_profile_func_enter"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6124,
+          "callee": "memset"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6149,
+          "callee": "memset"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6164,
+          "callee": "strlen"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6223,
+          "callee": "memcpy"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6243,
+          "callee": "strchr"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6272,
+          "callee": "strtod"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6402,
+          "callee": "sprintf"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6508,
+          "callee": "__cyg_profile_func_exit"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6528,
+          "callee": "__stack_chk_fail"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6554,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6564,
+          "callee": "_exit"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6583,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6598,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6613,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6628,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6643,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6665,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6680,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6695,
+          "callee": "puts"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6715,
+          "callee": "printf"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6772,
+          "callee": "__cyg_profile_func_enter"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6823,
+          "callee": "read"
+        },
+        {
+          "function": "__cyg_profile_func_exit@@Base",
+          "address": 6844,
+          "callee": "_exit"
+        }
+      ]
+    },
+    {
+      "name": ".fini",
+      "address": 8816,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4122,
+    4536,
+    4600,
+    4660,
+    4664,
+    4791,
+    4820,
+    4835,
+    4895,
+    5028,
+    5161,
+    5375,
+    5649,
+    6005,
+    6534,
+    6650,
+    6722,
+    8828
+  ],
+  "win_functions": [],
+  "leak_sites": [
+    {
+      "function": "__cyg_profile_func_enter@@Base-0x175",
+      "function_address": 4448,
+      "call_address": 4709,
+      "callee": "write",
+      "argument_address": 2,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 5282,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 5320,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6583,
+      "callee": "puts",
+      "argument_address": 12312,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6598,
+      "callee": "puts",
+      "argument_address": 12352,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6613,
+      "callee": "puts",
+      "argument_address": 12312,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6628,
+      "callee": "puts",
+      "argument_address": 12392,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6643,
+      "callee": "puts",
+      "argument_address": 12432,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6665,
+      "callee": "puts",
+      "argument_address": 12471,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6680,
+      "callee": "puts",
+      "argument_address": 12496,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6695,
+      "callee": "puts",
+      "argument_address": 12513,
+      "got": ""
+    },
+    {
+      "function": "__cyg_profile_func_exit@@Base",
+      "function_address": 4836,
+      "call_address": 6715,
+      "callee": "printf",
+      "argument_address": 12521,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

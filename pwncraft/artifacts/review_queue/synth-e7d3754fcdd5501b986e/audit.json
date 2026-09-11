@@ -1,0 +1,7 @@
+{
+  "verdict": "NO_STRATEGY",
+  "error_count": 0,
+  "diagnostic_count": 0,
+  "diagnostics": [],
+  "note": "静态事实不足，未产生候选策略；检测结果仍可作为负样本沉淀"
+}

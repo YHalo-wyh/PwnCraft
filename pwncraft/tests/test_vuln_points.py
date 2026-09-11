@@ -74,10 +74,10 @@ class VulnPointsTests(TestCase):
         bad, safe = points
         self.assertEqual(bad["verdict"], "overflow_confirmed")
         self.assertEqual(bad["length"], 0x200)
-        self.assertEqual(bad["bound"], 0x28)          # 0x30 - canary 槽 0x8
-        self.assertIn("canary", bad["reason"])
+        self.assertEqual(bad["bound"], 0x38)          # rbp-0x30 → 距保存 RIP 0x38
+        self.assertIn("覆盖返回地址", bad["reason"])
         self.assertEqual(safe["verdict"], "within_bound")
-        self.assertEqual(safe["bound"], 0x58)         # 0x60 - 0x8
+        self.assertEqual(safe["bound"], 0x58)         # 0x60 - canary 槽 0x8
 
     def test_mmap_same_size_is_within_bound(self):
         point = _one(MMAP_MAIN)

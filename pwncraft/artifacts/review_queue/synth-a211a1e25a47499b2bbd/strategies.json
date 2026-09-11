@@ -1,0 +1,28 @@
+[
+  {
+    "id": "ret2libc",
+    "name": "ret2libc（GOT 泄漏 → libc 基址 → system）",
+    "status": "blocked",
+    "requires": [
+      "primitive:leak",
+      "primitive:control_flow_hijack",
+      "primitive:libc_offsets"
+    ],
+    "missing": [
+      "控制流劫持偏移未证明（需要崩溃/调试证据）",
+      "libc 文件未提供或符号未解析（system/puts/str_bin_sh）",
+      "pop rdi 控制 gadget 未从 gadget shelf 证明"
+    ],
+    "evidence": [
+      "printf@plt=0x401050",
+      "printf@got=0x404000",
+      "read@got=0x404008"
+    ],
+    "steps": [
+      "泄漏 puts@got → libc base",
+      "再次触发溢出",
+      "ret2libc：pop rdi + binsh@libc + system@libc"
+    ],
+    "renderer": "ret2libc"
+  }
+]

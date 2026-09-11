@@ -1,0 +1,230 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_fmtstr_canary",
+  "sha256": "92699ae5bddecbf97cac42c2005545593b84917ac8ae47dbf798348fa4e39634",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4198576,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "putchar": {
+      "name": "putchar",
+      "address": 4198512,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4198528,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4198544,
+      "size": 16
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 4198560,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 4210648,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 4210656,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdin": {
+      "name": "stdin",
+      "address": 4210736,
+      "kind": "R_X86_64_COPY"
+    },
+    "putchar": {
+      "name": "putchar",
+      "address": 4210688,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4210696,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4210704,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 4210712,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4198400,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4198432,
+      "size": 80,
+      "calls": []
+    },
+    {
+      "name": "putchar@plt",
+      "address": 4198512,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4198528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4198544,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fgets@plt",
+      "address": 4198560,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4198576,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 4198624,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4198640,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4198688,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4198752,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4198769,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4198800,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "vulnerable",
+      "address": 4198806,
+      "size": 130,
+      "calls": [
+        {
+          "function": "vulnerable",
+          "address": 4198851,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198878,
+          "callee": "fgets"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198898,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198908,
+          "callee": "putchar"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198929,
+          "callee": "__stack_chk_fail"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4198936,
+      "size": 25,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4198949,
+          "callee": "vulnerable"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4198964,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4198426,
+    4198628,
+    4198672,
+    4198736,
+    4198782,
+    4198784,
+    4198935,
+    4198960,
+    4198976
+  ],
+  "win_functions": [],
+  "leak_sites": [
+    {
+      "function": "vulnerable",
+      "function_address": 4198806,
+      "call_address": 4198851,
+      "callee": "printf",
+      "argument_address": 4202500,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

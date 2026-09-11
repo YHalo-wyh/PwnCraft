@@ -1,0 +1,430 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\CreditMarket\\shop",
+  "sha256": "90b16a8a92028ca58cb69e92102727d3a0d7be5763a1e0f2ef919803c8e9a78e",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 5056,
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "ON"
+  },
+  "plt": {
+    "free": {
+      "name": "free",
+      "address": 4336,
+      "size": 16
+    },
+    "_exit": {
+      "name": "_exit",
+      "address": 4352,
+      "size": 16
+    },
+    "write": {
+      "name": "write",
+      "address": 4368,
+      "size": 16
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 4384,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4400,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4416,
+      "size": 16
+    },
+    "calloc": {
+      "name": "calloc",
+      "address": 4432,
+      "size": 16
+    },
+    "strtol": {
+      "name": "strtol",
+      "address": 4448,
+      "size": 16
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 4464,
+      "size": 16
+    },
+    "mprotect": {
+      "name": "mprotect",
+      "address": 4480,
+      "size": 16
+    },
+    "sysconf": {
+      "name": "sysconf",
+      "address": 4496,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 16344,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_deregisterTMCloneTable": {
+      "name": "_ITM_deregisterTMCloneTable",
+      "address": 16352,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 16360,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_registerTMCloneTable": {
+      "name": "_ITM_registerTMCloneTable",
+      "address": 16368,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__cxa_finalize": {
+      "name": "__cxa_finalize",
+      "address": 16376,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "free": {
+      "name": "free",
+      "address": 16256,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "_exit": {
+      "name": "_exit",
+      "address": 16264,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "write": {
+      "name": "write",
+      "address": 16272,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 16280,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 16288,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 16296,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "calloc": {
+      "name": "calloc",
+      "address": 16304,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strtol": {
+      "name": "strtol",
+      "address": 16312,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 16320,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "mprotect": {
+      "name": "mprotect",
+      "address": 16328,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "sysconf": {
+      "name": "sysconf",
+      "address": 16336,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": ".init",
+      "address": 4096,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4128,
+      "size": 192,
+      "calls": []
+    },
+    {
+      "name": "__cxa_finalize@plt",
+      "address": 4320,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "free@plt",
+      "address": 4336,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_exit@plt",
+      "address": 4352,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "write@plt",
+      "address": 4368,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strlen@plt",
+      "address": 4384,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4400,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4416,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "calloc@plt",
+      "address": 4432,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strtol@plt",
+      "address": 4448,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "prctl@plt",
+      "address": 4464,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "mprotect@plt",
+      "address": 4480,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "sysconf@plt",
+      "address": 4496,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": ".text",
+      "address": 4512,
+      "size": 1999,
+      "calls": [
+        {
+          "function": ".text",
+          "address": 4714,
+          "callee": "prctl"
+        },
+        {
+          "function": ".text",
+          "address": 4745,
+          "callee": "prctl"
+        },
+        {
+          "function": ".text",
+          "address": 4889,
+          "callee": "write"
+        },
+        {
+          "function": ".text",
+          "address": 4950,
+          "callee": "_exit"
+        },
+        {
+          "function": ".text",
+          "address": 5042,
+          "callee": "_exit"
+        },
+        {
+          "function": ".text",
+          "address": 5250,
+          "callee": "__cxa_finalize"
+        },
+        {
+          "function": ".text",
+          "address": 5378,
+          "callee": "read"
+        },
+        {
+          "function": ".text",
+          "address": 5407,
+          "callee": "strtol"
+        },
+        {
+          "function": ".text",
+          "address": 5453,
+          "callee": "__stack_chk_fail"
+        },
+        {
+          "function": ".text",
+          "address": 5516,
+          "callee": "sysconf"
+        },
+        {
+          "function": ".text",
+          "address": 5560,
+          "callee": "mprotect"
+        },
+        {
+          "function": ".text",
+          "address": 5582,
+          "callee": "sysconf"
+        },
+        {
+          "function": ".text",
+          "address": 5619,
+          "callee": "mprotect"
+        },
+        {
+          "function": ".text",
+          "address": 5653,
+          "callee": "_exit"
+        },
+        {
+          "function": ".text",
+          "address": 5687,
+          "callee": "strlen"
+        },
+        {
+          "function": ".text",
+          "address": 5735,
+          "callee": "write"
+        },
+        {
+          "function": ".text",
+          "address": 5896,
+          "callee": "write"
+        },
+        {
+          "function": ".text",
+          "address": 6008,
+          "callee": "write"
+        },
+        {
+          "function": ".text",
+          "address": 6225,
+          "callee": "write"
+        },
+        {
+          "function": ".text",
+          "address": 6343,
+          "callee": "calloc"
+        },
+        {
+          "function": ".text",
+          "address": 6380,
+          "callee": "__stack_chk_fail"
+        },
+        {
+          "function": ".text",
+          "address": 6496,
+          "callee": "write"
+        }
+      ]
+    },
+    {
+      "name": ".fini",
+      "address": 7600,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4122,
+    5144,
+    5208,
+    5268,
+    5272,
+    5445,
+    5640,
+    5910,
+    6324,
+    7612
+  ],
+  "win_functions": [],
+  "leak_sites": [
+    {
+      "function": ".text",
+      "function_address": 4512,
+      "call_address": 4889,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": ".text",
+      "function_address": 4512,
+      "call_address": 5735,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": ".text",
+      "function_address": 4512,
+      "call_address": 5896,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": ".text",
+      "function_address": 4512,
+      "call_address": 6008,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": ".text",
+      "function_address": 4512,
+      "call_address": 6225,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    },
+    {
+      "function": ".text",
+      "function_address": 4512,
+      "call_address": 6496,
+      "callee": "write",
+      "argument_address": 1,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

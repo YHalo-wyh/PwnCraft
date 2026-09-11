@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "case_id": "synth-d426eaadd601f8c4dbc1",
+  "created_at": "2026-09-11T16:19:28+0800",
+  "generator": {
+    "module": "pwncraft.features.synth",
+    "app_version": "v0.33.0"
+  },
+  "target": {
+    "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_ret2libc",
+    "sha256": "108c009dbeb19413c9d4e3beee026eff1a918624ee9556f7e99ea60bf19e49a5",
+    "arch": "amd64",
+    "bits": 64,
+    "security": {
+      "PIE": "OFF",
+      "NX": "ON",
+      "CANARY": "OFF",
+      "RELRO": "PARTIAL",
+      "FORTIFY": "OFF",
+      "STRIPPED": "OFF"
+    }
+  },
+  "strategy": {
+    "id": "ret2libc",
+    "status": "blocked"
+  },
+  "exp": {
+    "sha256": "cdd9b8ae7652ee1c147c9f7470735519abae05733b24ffde76ece67c62be8a8e",
+    "unresolved": [
+      "OFFSET（到保存返回地址的填充长度）",
+      "PUTS_LIBC（libc puts 偏移）",
+      "SYSTEM_LIBC（libc system 偏移）",
+      "BINSH_LIBC（libc /bin/sh 偏移）",
+      "POP_RDI（gadget shelf 未证明）"
+    ]
+  },
+  "audit": {
+    "verdict": "ROUND_TRIP_CLEAN",
+    "error_count": 0,
+    "diagnostic_count": 0
+  },
+  "verification": null,
+  "provenance": "DERIVED",
+  "training": {
+    "trainable": false,
+    "runtime_verified": false,
+    "gate": "review_queue → 人工评审 → autocorrect intake/splits 注册"
+  }
+}

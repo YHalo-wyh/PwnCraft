@@ -1,0 +1,50 @@
+[
+  {
+    "id": "ret2plt",
+    "name": "ret2plt（system@plt）",
+    "status": "blocked",
+    "requires": [
+      "import:system",
+      "primitive:shell_string",
+      "primitive:control_flow_hijack"
+    ],
+    "missing": [
+      "控制流劫持偏移未证明（需要崩溃/调试证据）"
+    ],
+    "evidence": [
+      "PLT stub 0x8049060",
+      "节内容扫描：/bin/sh @ 0x804a008"
+    ],
+    "steps": [
+      "填充到返回地址偏移",
+      "pop rdi; ret",
+      "参数 = 壳字符串地址",
+      "call system@plt = 0x8049060"
+    ],
+    "renderer": "ret2plt"
+  },
+  {
+    "id": "ret2libc",
+    "name": "ret2libc（GOT 泄漏 → libc 基址 → system）",
+    "status": "blocked",
+    "requires": [
+      "primitive:leak",
+      "primitive:control_flow_hijack",
+      "primitive:libc_offsets"
+    ],
+    "missing": [
+      "控制流劫持偏移未证明（需要崩溃/调试证据）",
+      "libc 文件未提供或符号未解析（system/puts/str_bin_sh）"
+    ],
+    "evidence": [
+      "puts@plt=0x8049050",
+      "puts@got=0x804c008"
+    ],
+    "steps": [
+      "泄漏 puts@got → libc base",
+      "再次触发溢出",
+      "ret2libc：pop rdi + binsh@libc + system@libc"
+    ],
+    "renderer": "ret2libc"
+  }
+]

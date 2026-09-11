@@ -1,0 +1,307 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_ret2win_canary",
+  "sha256": "e209d65a1aa3e442ada81719e93f9e4ba92a555020469ba19acfd50aeee1c33a",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4198608,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "puts": {
+      "name": "puts",
+      "address": 4198528,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4198544,
+      "size": 16
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4198560,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4198576,
+      "size": 16
+    },
+    "execve": {
+      "name": "execve",
+      "address": 4198592,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 4210648,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 4210656,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4210688,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4210696,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4210704,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 4210712,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "execve": {
+      "name": "execve",
+      "address": 4210720,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4198400,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4198432,
+      "size": 96,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4198528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4198544,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4198560,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4198576,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "execve@plt",
+      "address": 4198592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4198608,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 4198656,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4198672,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4198720,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4198784,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4198801,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4198832,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "win",
+      "address": 4198838,
+      "size": 51,
+      "calls": [
+        {
+          "function": "win",
+          "address": 4198856,
+          "callee": "puts"
+        },
+        {
+          "function": "win",
+          "address": 4198881,
+          "callee": "execve"
+        }
+      ]
+    },
+    {
+      "name": "vulnerable",
+      "address": 4198889,
+      "size": 176,
+      "calls": [
+        {
+          "function": "vulnerable",
+          "address": 4198938,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198968,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198988,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4199010,
+          "callee": "read"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4199037,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4199058,
+          "callee": "__stack_chk_fail"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4199065,
+      "size": 25,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4199078,
+          "callee": "vulnerable"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4199092,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {
+    "/bin/sh": 4202526
+  },
+  "syscalls": [],
+  "ret_gadgets": [
+    4198426,
+    4198660,
+    4198704,
+    4198768,
+    4198814,
+    4198816,
+    4198888,
+    4199064,
+    4199089,
+    4199104
+  ],
+  "win_functions": [
+    {
+      "function": "win",
+      "function_address": 4198838,
+      "call_address": 4198881,
+      "callee": "execve",
+      "argument_address": 4202526,
+      "string": "/bin/sh"
+    }
+  ],
+  "leak_sites": [
+    {
+      "function": "win",
+      "function_address": 4198838,
+      "call_address": 4198856,
+      "callee": "puts",
+      "argument_address": 4202500,
+      "got": ""
+    },
+    {
+      "function": "vulnerable",
+      "function_address": 4198889,
+      "call_address": 4198938,
+      "callee": "printf",
+      "argument_address": 4202534,
+      "got": ""
+    },
+    {
+      "function": "vulnerable",
+      "function_address": 4198889,
+      "call_address": 4198968,
+      "callee": "printf",
+      "argument_address": 4202555,
+      "got": ""
+    },
+    {
+      "function": "vulnerable",
+      "function_address": 4198889,
+      "call_address": 4198988,
+      "callee": "printf",
+      "argument_address": 4202577,
+      "got": ""
+    },
+    {
+      "function": "vulnerable",
+      "function_address": 4198889,
+      "call_address": 4199037,
+      "callee": "printf",
+      "argument_address": 4202586,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

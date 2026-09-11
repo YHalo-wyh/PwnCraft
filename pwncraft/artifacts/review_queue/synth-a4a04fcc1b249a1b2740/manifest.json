@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "case_id": "synth-a4a04fcc1b249a1b2740",
+  "created_at": "2026-09-11T16:19:31+0800",
+  "generator": {
+    "module": "pwncraft.features.synth",
+    "app_version": "v0.33.0"
+  },
+  "target": {
+    "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_ret2win_canary",
+    "sha256": "e209d65a1aa3e442ada81719e93f9e4ba92a555020469ba19acfd50aeee1c33a",
+    "arch": "amd64",
+    "bits": 64,
+    "security": {
+      "PIE": "OFF",
+      "NX": "ON",
+      "CANARY": "ON",
+      "RELRO": "PARTIAL",
+      "FORTIFY": "OFF",
+      "STRIPPED": "OFF"
+    }
+  },
+  "strategy": {
+    "id": "ret2win",
+    "status": "blocked"
+  },
+  "exp": {
+    "sha256": "46de80bf5c914c35774413c7dad3e78b05caaf226ce3562aadc4a6fc164d94e6",
+    "unresolved": [
+      "OFFSET（到保存返回地址的填充长度）"
+    ]
+  },
+  "audit": {
+    "verdict": "ROUND_TRIP_CLEAN",
+    "error_count": 0,
+    "diagnostic_count": 0
+  },
+  "verification": null,
+  "provenance": "DERIVED",
+  "training": {
+    "trainable": false,
+    "runtime_verified": false,
+    "gate": "review_queue → 人工评审 → autocorrect intake/splits 注册"
+  }
+}

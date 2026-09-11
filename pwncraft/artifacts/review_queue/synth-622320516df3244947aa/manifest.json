@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "case_id": "synth-622320516df3244947aa",
+  "created_at": "2026-09-11T16:19:35+0800",
+  "generator": {
+    "module": "pwncraft.features.synth",
+    "app_version": "v0.33.0"
+  },
+  "target": {
+    "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_static_vuln",
+    "sha256": "ce3d79c66478f3136f95ebf8e6d1cab50e96e7c380f76e3a5a7a298d6a8af7ce",
+    "arch": "amd64",
+    "bits": 64,
+    "security": {
+      "PIE": "OFF",
+      "NX": "ON",
+      "CANARY": "ON",
+      "RELRO": "PARTIAL",
+      "FORTIFY": "ON",
+      "STRIPPED": "OFF"
+    }
+  },
+  "strategy": {
+    "id": "srop",
+    "status": "blocked"
+  },
+  "exp": {
+    "sha256": "eba306b0115a22068906124020c17b3682569e63df559045cdc458c28bf0ba74",
+    "unresolved": [
+      "OFFSET（到保存返回地址的填充长度）",
+      "POP_RAX（sigreturn 号需要）"
+    ]
+  },
+  "audit": {
+    "verdict": "ROUND_TRIP_CLEAN",
+    "error_count": 0,
+    "diagnostic_count": 0
+  },
+  "verification": null,
+  "provenance": "DERIVED",
+  "training": {
+    "trainable": false,
+    "runtime_verified": false,
+    "gate": "review_queue → 人工评审 → autocorrect intake/splits 注册"
+  }
+}

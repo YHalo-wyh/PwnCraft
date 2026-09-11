@@ -1,0 +1,890 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\SomeBox2.0\\x\\pwn",
+  "sha256": "32486c8cbf3a1e203806e42d8020dafe340868955aa0bfd1236cc5935c00bbfa",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 5856,
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "seccomp_init": {
+      "name": "seccomp_init",
+      "address": 4544,
+      "size": 16
+    },
+    "__errno_location": {
+      "name": "__errno_location",
+      "address": 4560,
+      "size": 16
+    },
+    "_exit": {
+      "name": "_exit",
+      "address": 4576,
+      "size": 16
+    },
+    "seccomp_rule_add": {
+      "name": "seccomp_rule_add",
+      "address": 4592,
+      "size": 16
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4608,
+      "size": 16
+    },
+    "seccomp_load": {
+      "name": "seccomp_load",
+      "address": 4624,
+      "size": 16
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 4640,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4656,
+      "size": 16
+    },
+    "mmap": {
+      "name": "mmap",
+      "address": 4672,
+      "size": 16
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 4688,
+      "size": 16
+    },
+    "dup2": {
+      "name": "dup2",
+      "address": 4704,
+      "size": 16
+    },
+    "ioctl": {
+      "name": "ioctl",
+      "address": 4720,
+      "size": 16
+    },
+    "close": {
+      "name": "close",
+      "address": 4736,
+      "size": 16
+    },
+    "pipe": {
+      "name": "pipe",
+      "address": 4752,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4768,
+      "size": 16
+    },
+    "syscall": {
+      "name": "syscall",
+      "address": 4784,
+      "size": 16
+    },
+    "stat": {
+      "name": "stat",
+      "address": 4800,
+      "size": 16
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 4816,
+      "size": 16
+    },
+    "pthread_create": {
+      "name": "pthread_create",
+      "address": 4832,
+      "size": 16
+    },
+    "mprotect": {
+      "name": "mprotect",
+      "address": 4848,
+      "size": 16
+    },
+    "exit": {
+      "name": "exit",
+      "address": 4864,
+      "size": 16
+    },
+    "wait": {
+      "name": "wait",
+      "address": 4880,
+      "size": 16
+    },
+    "fork": {
+      "name": "fork",
+      "address": 4896,
+      "size": 16
+    },
+    "usleep": {
+      "name": "usleep",
+      "address": 4912,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 16344,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_deregisterTMCloneTable": {
+      "name": "_ITM_deregisterTMCloneTable",
+      "address": 16352,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 16360,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_ITM_registerTMCloneTable": {
+      "name": "_ITM_registerTMCloneTable",
+      "address": 16368,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__cxa_finalize": {
+      "name": "__cxa_finalize",
+      "address": 16376,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 17024,
+      "kind": "R_X86_64_COPY"
+    },
+    "stdin": {
+      "name": "stdin",
+      "address": 17040,
+      "kind": "R_X86_64_COPY"
+    },
+    "stderr": {
+      "name": "stderr",
+      "address": 17056,
+      "kind": "R_X86_64_COPY"
+    },
+    "seccomp_init": {
+      "name": "seccomp_init",
+      "address": 16152,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__errno_location": {
+      "name": "__errno_location",
+      "address": 16160,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "_exit": {
+      "name": "_exit",
+      "address": 16168,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "seccomp_rule_add": {
+      "name": "seccomp_rule_add",
+      "address": 16176,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 16184,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "seccomp_load": {
+      "name": "seccomp_load",
+      "address": 16192,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 16200,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 16208,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "mmap": {
+      "name": "mmap",
+      "address": 16216,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "setbuf": {
+      "name": "setbuf",
+      "address": 16224,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "dup2": {
+      "name": "dup2",
+      "address": 16232,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "ioctl": {
+      "name": "ioctl",
+      "address": 16240,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "close": {
+      "name": "close",
+      "address": 16248,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "pipe": {
+      "name": "pipe",
+      "address": 16256,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 16264,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "syscall": {
+      "name": "syscall",
+      "address": 16272,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "stat": {
+      "name": "stat",
+      "address": 16280,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "prctl": {
+      "name": "prctl",
+      "address": 16288,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "pthread_create": {
+      "name": "pthread_create",
+      "address": 16296,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "mprotect": {
+      "name": "mprotect",
+      "address": 16304,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "exit": {
+      "name": "exit",
+      "address": 16312,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "wait": {
+      "name": "wait",
+      "address": 16320,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fork": {
+      "name": "fork",
+      "address": 16328,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "usleep": {
+      "name": "usleep",
+      "address": 16336,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4096,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4128,
+      "size": 400,
+      "calls": []
+    },
+    {
+      "name": "__cxa_finalize@plt",
+      "address": 4528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "seccomp_init@plt",
+      "address": 4544,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__errno_location@plt",
+      "address": 4560,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_exit@plt",
+      "address": 4576,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "seccomp_rule_add@plt",
+      "address": 4592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4608,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "seccomp_load@plt",
+      "address": 4624,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "strlen@plt",
+      "address": 4640,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4656,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "mmap@plt",
+      "address": 4672,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "setbuf@plt",
+      "address": 4688,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "dup2@plt",
+      "address": 4704,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "ioctl@plt",
+      "address": 4720,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "close@plt",
+      "address": 4736,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "pipe@plt",
+      "address": 4752,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4768,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "syscall@plt",
+      "address": 4784,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "stat@plt",
+      "address": 4800,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "prctl@plt",
+      "address": 4816,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "pthread_create@plt",
+      "address": 4832,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "mprotect@plt",
+      "address": 4848,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "exit@plt",
+      "address": 4864,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "wait@plt",
+      "address": 4880,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fork@plt",
+      "address": 4896,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "usleep@plt",
+      "address": 4912,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "before_main",
+      "address": 4928,
+      "size": 416,
+      "calls": [
+        {
+          "function": "before_main",
+          "address": 4981,
+          "callee": "mprotect"
+        },
+        {
+          "function": "before_main",
+          "address": 5009,
+          "callee": "mprotect"
+        },
+        {
+          "function": "before_main",
+          "address": 5067,
+          "callee": "pipe"
+        },
+        {
+          "function": "before_main",
+          "address": 5090,
+          "callee": "dup2"
+        },
+        {
+          "function": "before_main",
+          "address": 5107,
+          "callee": "close"
+        },
+        {
+          "function": "before_main",
+          "address": 5134,
+          "callee": "dup2"
+        },
+        {
+          "function": "before_main",
+          "address": 5151,
+          "callee": "close"
+        },
+        {
+          "function": "before_main",
+          "address": 5193,
+          "callee": "prctl"
+        },
+        {
+          "function": "before_main",
+          "address": 5232,
+          "callee": "syscall"
+        },
+        {
+          "function": "before_main",
+          "address": 5265,
+          "callee": "pthread_create"
+        },
+        {
+          "function": "before_main",
+          "address": 5284,
+          "callee": "close"
+        },
+        {
+          "function": "before_main",
+          "address": 5291,
+          "callee": "__errno_location"
+        },
+        {
+          "function": "before_main",
+          "address": 5309,
+          "callee": "close"
+        },
+        {
+          "function": "before_main",
+          "address": 5326,
+          "callee": "close"
+        },
+        {
+          "function": "before_main",
+          "address": 5338,
+          "callee": "__stack_chk_fail"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 5344,
+      "size": 512,
+      "calls": [
+        {
+          "function": "main",
+          "address": 5379,
+          "callee": "setbuf"
+        },
+        {
+          "function": "main",
+          "address": 5393,
+          "callee": "setbuf"
+        },
+        {
+          "function": "main",
+          "address": 5407,
+          "callee": "setbuf"
+        },
+        {
+          "function": "main",
+          "address": 5412,
+          "callee": "fork"
+        },
+        {
+          "function": "main",
+          "address": 5436,
+          "callee": "close"
+        },
+        {
+          "function": "main",
+          "address": 5468,
+          "callee": "mmap"
+        },
+        {
+          "function": "main",
+          "address": 5503,
+          "callee": "mmap"
+        },
+        {
+          "function": "main",
+          "address": 5545,
+          "callee": "pthread_create"
+        },
+        {
+          "function": "main",
+          "address": 5591,
+          "callee": "close"
+        },
+        {
+          "function": "main",
+          "address": 5598,
+          "callee": "wait"
+        },
+        {
+          "function": "main",
+          "address": 5612,
+          "callee": "puts"
+        },
+        {
+          "function": "main",
+          "address": 5627,
+          "callee": "read"
+        },
+        {
+          "function": "main",
+          "address": 5646,
+          "callee": "strlen"
+        },
+        {
+          "function": "main",
+          "address": 5688,
+          "callee": "mprotect"
+        },
+        {
+          "function": "main",
+          "address": 5695,
+          "callee": "sandbox"
+        },
+        {
+          "function": "main",
+          "address": 5828,
+          "callee": "_exit"
+        },
+        {
+          "function": "main",
+          "address": 5838,
+          "callee": "exit"
+        },
+        {
+          "function": "main",
+          "address": 5843,
+          "callee": "__stack_chk_fail"
+        }
+      ]
+    },
+    {
+      "name": "_start",
+      "address": 5856,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 5904,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 5952,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 6016,
+      "size": 64,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 6050,
+          "callee": "__cxa_finalize"
+        },
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 6055,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 6080,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fill_thread",
+      "address": 6096,
+      "size": 48,
+      "calls": [
+        {
+          "function": "fill_thread",
+          "address": 6136,
+          "callee": "usleep"
+        }
+      ]
+    },
+    {
+      "name": "handler_thread.part.0",
+      "address": 6144,
+      "size": 736,
+      "calls": [
+        {
+          "function": "handler_thread.part.0",
+          "address": 6240,
+          "callee": "ioctl"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6253,
+          "callee": "__errno_location"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6351,
+          "callee": "ioctl"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6447,
+          "callee": "syscall"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6544,
+          "callee": "stat"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6557,
+          "callee": "__errno_location"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6596,
+          "callee": "stat"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6623,
+          "callee": "syscall"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6640,
+          "callee": "__errno_location"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6668,
+          "callee": "read"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6681,
+          "callee": "close"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6730,
+          "callee": "ioctl"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6746,
+          "callee": "_exit"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6768,
+          "callee": "stat"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6833,
+          "callee": "close"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6864,
+          "callee": "__errno_location"
+        },
+        {
+          "function": "handler_thread.part.0",
+          "address": 6875,
+          "callee": "__stack_chk_fail"
+        }
+      ]
+    },
+    {
+      "name": "handler_thread",
+      "address": 6880,
+      "size": 48,
+      "calls": [
+        {
+          "function": "handler_thread",
+          "address": 6898,
+          "callee": "handler_thread.part.0"
+        }
+      ]
+    },
+    {
+      "name": "sandbox",
+      "address": 6928,
+      "size": 185,
+      "calls": [
+        {
+          "function": "sandbox",
+          "address": 6935,
+          "callee": "close"
+        },
+        {
+          "function": "sandbox",
+          "address": 6956,
+          "callee": "syscall"
+        },
+        {
+          "function": "sandbox",
+          "address": 6966,
+          "callee": "seccomp_init"
+        },
+        {
+          "function": "sandbox",
+          "address": 6988,
+          "callee": "seccomp_rule_add"
+        },
+        {
+          "function": "sandbox",
+          "address": 7004,
+          "callee": "seccomp_rule_add"
+        },
+        {
+          "function": "sandbox",
+          "address": 7023,
+          "callee": "seccomp_rule_add"
+        },
+        {
+          "function": "sandbox",
+          "address": 7042,
+          "callee": "seccomp_rule_add"
+        },
+        {
+          "function": "sandbox",
+          "address": 7061,
+          "callee": "seccomp_rule_add"
+        },
+        {
+          "function": "sandbox",
+          "address": 7080,
+          "callee": "seccomp_rule_add"
+        },
+        {
+          "function": "sandbox",
+          "address": 7099,
+          "callee": "seccomp_rule_add"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 7116,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4122,
+    5052,
+    5585,
+    5944,
+    6008,
+    6068,
+    6072,
+    6301,
+    6909,
+    6914,
+    7128
+  ],
+  "win_functions": [],
+  "leak_sites": [
+    {
+      "function": "main",
+      "function_address": 5344,
+      "call_address": 5612,
+      "callee": "puts",
+      "argument_address": 8206,
+      "got": ""
+    }
+  ],
+  "notes": []
+}

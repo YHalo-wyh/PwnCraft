@@ -1,0 +1,83 @@
+[
+  {
+    "id": "ret2win",
+    "name": "ret2win（跳过程序内现成调用点）",
+    "status": "blocked",
+    "requires": [
+      "primitive:win_function:0",
+      "primitive:control_flow_hijack"
+    ],
+    "missing": [
+      "控制流劫持偏移未证明（需要崩溃/调试证据）"
+    ],
+    "evidence": [
+      "0x40161c: call system",
+      "参数地址 0x402067",
+      "stack_truth=missing"
+    ],
+    "steps": [
+      "填充到保存返回地址的偏移",
+      "先落一次 ret（x86-64 16 字节栈对齐）",
+      "覆盖返回地址为程序内调用点",
+      "该调用点自带命令参数，无需额外 ROP"
+    ],
+    "renderer": "ret2win"
+  },
+  {
+    "id": "ret2plt",
+    "name": "ret2plt（system@plt）",
+    "status": "blocked",
+    "requires": [
+      "import:system",
+      "primitive:shell_string",
+      "primitive:control_flow_hijack"
+    ],
+    "missing": [
+      "未找到壳字符串（/bin/sh、/bin/bash、/bin/cat）",
+      "控制流劫持偏移未证明（需要崩溃/调试证据）",
+      "pop rdi 控制 gadget 未从 gadget shelf 证明"
+    ],
+    "evidence": [
+      "PLT stub 0x401120"
+    ],
+    "steps": [
+      "填充到返回地址偏移",
+      "先落一次 ret（x86-64 16 字节栈对齐）",
+      "pop rdi; ret",
+      "参数 = 壳字符串地址",
+      "call system@plt = 0x401120"
+    ],
+    "renderer": "ret2plt"
+  },
+  {
+    "id": "ret2libc",
+    "name": "ret2libc（GOT 泄漏 → libc 基址 → system）",
+    "status": "blocked",
+    "requires": [
+      "primitive:leak",
+      "primitive:control_flow_hijack",
+      "primitive:libc_offsets"
+    ],
+    "missing": [
+      "控制流劫持偏移未证明（需要崩溃/调试证据）",
+      "libc 文件未提供或符号未解析（system/puts/str_bin_sh）",
+      "pop rdi 控制 gadget 未从 gadget shelf 证明"
+    ],
+    "evidence": [
+      "puts@plt=0x4010f0",
+      "printf@plt=0x401130",
+      "write@plt=0x401100",
+      "atoi@got=0x404050",
+      "printf@got=0x404028",
+      "puts@got=0x404008",
+      "read@got=0x404030",
+      "write@got=0x404010"
+    ],
+    "steps": [
+      "泄漏 puts@got → libc base",
+      "再次触发溢出",
+      "ret2libc：pop rdi + binsh@libc + system@libc"
+    ],
+    "renderer": "ret2libc"
+  }
+]

@@ -1,0 +1,59 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\HashArchive\\x\\pwn",
+  "sha256": "615ccfa2d5a6c99117d0265646f6f30c01888651633ca9e3a4401a7920d239fc",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4206224,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "ON"
+  },
+  "plt": {},
+  "got": {},
+  "functions": [
+    {
+      "name": ".init",
+      "address": 4198400,
+      "size": 32,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4198432,
+      "size": 464,
+      "calls": []
+    },
+    {
+      "name": ".text",
+      "address": 4202496,
+      "size": 1831,
+      "calls": []
+    },
+    {
+      "name": ".fini",
+      "address": 8132080,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [
+    4202880
+  ],
+  "ret_gadgets": [
+    4198431,
+    4202721,
+    4203297,
+    8132092
+  ],
+  "win_functions": [],
+  "leak_sites": [],
+  "notes": [
+    "重定位读取失败：/mnt/f/pwn宝/pwncraft/artifacts/greatwall/HashArchive/x/pwn:     file format elf64-x86-64\n\nDYNAMIC RELOCATION RECORDS\nobjdump: /mnt/f/pwn宝/pwncraft/artifacts/greatwall/HashArchive/x/pwn: not a dynamic object\nobjdump: failed to read relocs in: /mnt/f/pwn宝/pwncraft/artifacts/greatwall/HashArchive/x/pwn\nobjdump: error message was: invalid operation"
+  ]
+}

@@ -1,0 +1,158 @@
+{
+  "nodes": [
+    {
+      "id": "mitigation:PIE",
+      "kind": "mitigation",
+      "detail": "PIE=OFF",
+      "evidence": [
+        "ELF 解析：PIE=OFF"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:NX",
+      "kind": "mitigation",
+      "detail": "NX=ON",
+      "evidence": [
+        "ELF 解析：NX=ON"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:CANARY",
+      "kind": "mitigation",
+      "detail": "CANARY=OFF",
+      "evidence": [
+        "ELF 解析：CANARY=OFF"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:RELRO",
+      "kind": "mitigation",
+      "detail": "RELRO=PARTIAL",
+      "evidence": [
+        "ELF 解析：RELRO=PARTIAL"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "mitigation:FORTIFY",
+      "kind": "mitigation",
+      "detail": "FORTIFY=OFF",
+      "evidence": [
+        "ELF 解析：FORTIFY=OFF"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "primitive:input",
+      "kind": "input_surface",
+      "detail": "可写入通道：read, __isoc99_scanf",
+      "evidence": [
+        "read@plt=0x401100",
+        "__isoc99_scanf@plt=0x401140"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "primitive:control_flow_hijack",
+      "kind": "control_flow",
+      "detail": "控制流劫持偏移未观测到（需要崩溃/调试证据）",
+      "evidence": [
+        "stack_truth=missing"
+      ],
+      "provenance": "UNKNOWN",
+      "confidence": "unknown"
+    },
+    {
+      "id": "primitive:exec_command",
+      "kind": "command_execution",
+      "detail": "可调用命令执行函数：system",
+      "evidence": [
+        "system@plt=0x4010e0"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "import:system",
+      "kind": "import",
+      "detail": "system@plt=0x4010e0",
+      "evidence": [
+        "PLT stub 0x4010e0"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "primitive:win_function:0",
+      "kind": "callable",
+      "detail": "hidden_backdoor 调用 system（参数 0x402031）",
+      "evidence": [
+        "0x401512: call system",
+        "参数地址 0x402031"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "primitive:leak",
+      "kind": "information_leak",
+      "detail": "可泄漏 GOT 项：printf, puts, read",
+      "evidence": [
+        "puts@plt=0x4010d0",
+        "printf@plt=0x4010f0",
+        "printf@got=0x404018",
+        "puts@got=0x404008",
+        "read@got=0x404020"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "gadget:ret",
+      "kind": "gadget",
+      "detail": "裸 ret @ 0x40101a（x86-64 栈对齐用）",
+      "evidence": [
+        "0x40101a: ret"
+      ],
+      "provenance": "DERIVED",
+      "confidence": "proven"
+    },
+    {
+      "id": "unknown:prerequisites",
+      "kind": "gap",
+      "detail": "静态事实缺口：control_flow_offset, syscall_site",
+      "evidence": [
+        "missing:control_flow_offset",
+        "missing:syscall_site"
+      ],
+      "provenance": "UNKNOWN",
+      "confidence": "unknown"
+    }
+  ],
+  "edges": [
+    {
+      "source": "primitive:input",
+      "target": "import:read",
+      "kind": "provides"
+    },
+    {
+      "source": "primitive:input",
+      "target": "import:__isoc99_scanf",
+      "kind": "provides"
+    },
+    {
+      "source": "primitive:win_function:0",
+      "target": "primitive:exec_command",
+      "kind": "calls"
+    }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+ "challenge_angr_hidden": {
+  "confirmed": 0,
+  "total": 2,
+  "hit": false,
+  "detail": "写入全局缓冲（段/符号尺寸未解析，槽不匹配需人工复核）"
+ },
+ "challenge_fmtstr": {
+  "confirmed": 0,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x100 ≤ 栈缓冲 0x100"
+ },
+ "challenge_fmtstr_canary": {
+  "confirmed": 0,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x100 ≤ 栈缓冲 0x108"
+ },
+ "challenge_pie": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x100 覆盖返回地址（rbp-0x40，返回地址距 buf 0x48）"
+ },
+ "challenge_ret2dlresolve": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x200 覆盖返回地址（rbp-0x40，返回地址距 buf 0x48）"
+ },
+ "challenge_ret2libc": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x100 覆盖返回地址（rbp-0x40，返回地址距 buf 0x48）"
+ },
+ "challenge_ret2text": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "gets 无界输入写入栈缓冲（rbp-0x30）"
+ },
+ "challenge_ret2win": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x100 覆盖返回地址（rbp-0x40，返回地址距 buf 0x48）"
+ },
+ "challenge_ret2win_canary": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x100 覆盖返回地址（rbp-0x50，含 canary，返回地址距 buf 0x58）"
+ },
+ "challenge_rop": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x80 覆盖返回地址（rbp-0x10，返回地址距 buf 0x18）"
+ },
+ "challenge_shellcode": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x100 覆盖返回地址（rbp-0x80，返回地址距 buf 0x88）"
+ },
+ "challenge_srop": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "长度 0x400 覆盖返回地址（rbp-0x40，返回地址距 buf 0x48）"
+ },
+ "challenge_static_vuln": {
+  "confirmed": 1,
+  "total": 1,
+  "hit": true,
+  "detail": "gets 无界输入写入栈缓冲（rbp-0x40）"
+ },
+ "challenge_tcache": {
+  "confirmed": 0,
+  "total": 7,
+  "hit": true,
+  "detail": "长度来源非常量（寄存器/变量）"
+ },
+ "challenge_tcache_dup": {
+  "confirmed": 0,
+  "total": 7,
+  "hit": true,
+  "detail": "长度来源非常量（寄存器/变量）"
+ },
+ "challenge_x86_vuln": {
+  "confirmed": 0,
+  "total": 1,
+  "hit": true,
+  "detail": "目的缓冲不可解析"
+ }
+}

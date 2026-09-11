@@ -1,0 +1,557 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\chall\\x\\chall",
+  "sha256": "b64e23e0271c9437744dbbe4a5f8de04dbcde5e1d9a1d6ab08ea4d225bd49eb1",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4224016,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "ON"
+  },
+  "plt": {
+    "putchar": {
+      "name": "putchar",
+      "address": 4202544,
+      "size": 16
+    },
+    "puts": {
+      "name": "puts",
+      "address": 4202560,
+      "size": 16
+    },
+    "clock": {
+      "name": "clock",
+      "address": 4202576,
+      "size": 16
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 4202592,
+      "size": 16
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 4202608,
+      "size": 16
+    },
+    "__tls_get_addr": {
+      "name": "__tls_get_addr",
+      "address": 4202624,
+      "size": 16
+    },
+    "fprintf": {
+      "name": "fprintf",
+      "address": 4202640,
+      "size": 16
+    },
+    "time": {
+      "name": "time",
+      "address": 4202656,
+      "size": 16
+    },
+    "fflush": {
+      "name": "fflush",
+      "address": 4202672,
+      "size": 16
+    },
+    "perror": {
+      "name": "perror",
+      "address": 4202688,
+      "size": 16
+    },
+    "fwrite": {
+      "name": "fwrite",
+      "address": 4202704,
+      "size": 16
+    },
+    "_Unwind_DeleteException": {
+      "name": "_Unwind_DeleteException",
+      "address": 4202720,
+      "size": 16
+    },
+    "_Unwind_Resume": {
+      "name": "_Unwind_Resume",
+      "address": 4202736,
+      "size": 16
+    }
+  },
+  "got": {
+    "getenv": {
+      "name": "getenv",
+      "address": 6113576,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "dl_iterate_phdr": {
+      "name": "dl_iterate_phdr",
+      "address": 6113592,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "free": {
+      "name": "free",
+      "address": 6113624,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 6113672,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "abort": {
+      "name": "abort",
+      "address": 6113680,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_Backtrace": {
+      "name": "_Unwind_Backtrace",
+      "address": 6113696,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__errno_location": {
+      "name": "__errno_location",
+      "address": 6113704,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "writev": {
+      "name": "writev",
+      "address": 6113744,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "gettid": {
+      "name": "gettid",
+      "address": 6113752,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__cxa_thread_atexit_impl": {
+      "name": "__cxa_thread_atexit_impl",
+      "address": 6113800,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "readlink": {
+      "name": "readlink",
+      "address": 6113816,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_GetRegionStart": {
+      "name": "_Unwind_GetRegionStart",
+      "address": 6113824,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "write": {
+      "name": "write",
+      "address": 6113856,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_GetTextRelBase": {
+      "name": "_Unwind_GetTextRelBase",
+      "address": 6113896,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_RaiseException": {
+      "name": "_Unwind_RaiseException",
+      "address": 6113904,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "strlen": {
+      "name": "strlen",
+      "address": 6113976,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stat64": {
+      "name": "stat64",
+      "address": 6113992,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "pthread_key_create": {
+      "name": "pthread_key_create",
+      "address": 6114056,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "memset": {
+      "name": "memset",
+      "address": 6114064,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "getcwd": {
+      "name": "getcwd",
+      "address": 6114104,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_GetIPInfo": {
+      "name": "_Unwind_GetIPInfo",
+      "address": 6114112,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "close": {
+      "name": "close",
+      "address": 6114128,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_GetLanguageSpecificData": {
+      "name": "_Unwind_GetLanguageSpecificData",
+      "address": 6114192,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "pthread_key_delete": {
+      "name": "pthread_key_delete",
+      "address": 6114200,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "read": {
+      "name": "read",
+      "address": 6114208,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "memcmp": {
+      "name": "memcmp",
+      "address": 6114224,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "calloc": {
+      "name": "calloc",
+      "address": 6114248,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "syscall": {
+      "name": "syscall",
+      "address": 6114312,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 6114344,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "realpath": {
+      "name": "realpath",
+      "address": 6114376,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "memcpy": {
+      "name": "memcpy",
+      "address": 6114400,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_GetIP": {
+      "name": "_Unwind_GetIP",
+      "address": 6114496,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "mmap64": {
+      "name": "mmap64",
+      "address": 6114568,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "malloc": {
+      "name": "malloc",
+      "address": 6114576,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "bcmp": {
+      "name": "bcmp",
+      "address": 6114680,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "realloc": {
+      "name": "realloc",
+      "address": 6114776,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "munmap": {
+      "name": "munmap",
+      "address": 6114784,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "statx": {
+      "name": "statx",
+      "address": 6114824,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_GetDataRelBase": {
+      "name": "_Unwind_GetDataRelBase",
+      "address": 6114864,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_SetGR": {
+      "name": "_Unwind_SetGR",
+      "address": 6114888,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "open64": {
+      "name": "open64",
+      "address": 6114896,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "memmove": {
+      "name": "memmove",
+      "address": 6114928,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "lseek64": {
+      "name": "lseek64",
+      "address": 6115136,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "fstat64": {
+      "name": "fstat64",
+      "address": 6115152,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "posix_memalign": {
+      "name": "posix_memalign",
+      "address": 6115168,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "pthread_setspecific": {
+      "name": "pthread_setspecific",
+      "address": 6115264,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "_Unwind_SetIP": {
+      "name": "_Unwind_SetIP",
+      "address": 6115280,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "stdout": {
+      "name": "stdout",
+      "address": 6117984,
+      "kind": "R_X86_64_COPY"
+    },
+    "stdin": {
+      "name": "stdin",
+      "address": 6118000,
+      "kind": "R_X86_64_COPY"
+    },
+    "stderr": {
+      "name": "stderr",
+      "address": 6118016,
+      "kind": "R_X86_64_COPY"
+    },
+    "putchar": {
+      "name": "putchar",
+      "address": 6115328,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "puts": {
+      "name": "puts",
+      "address": 6115336,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "clock": {
+      "name": "clock",
+      "address": 6115344,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__stack_chk_fail": {
+      "name": "__stack_chk_fail",
+      "address": 6115352,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fgets": {
+      "name": "fgets",
+      "address": 6115360,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "__tls_get_addr": {
+      "name": "__tls_get_addr",
+      "address": 6115368,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fprintf": {
+      "name": "fprintf",
+      "address": 6115376,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "time": {
+      "name": "time",
+      "address": 6115384,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fflush": {
+      "name": "fflush",
+      "address": 6115392,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "perror": {
+      "name": "perror",
+      "address": 6115400,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "fwrite": {
+      "name": "fwrite",
+      "address": 6115408,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "_Unwind_DeleteException": {
+      "name": "_Unwind_DeleteException",
+      "address": 6115416,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "_Unwind_Resume": {
+      "name": "_Unwind_Resume",
+      "address": 6115424,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": ".init",
+      "address": 4202496,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": "putchar@plt-0x10",
+      "address": 4202528,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "putchar@plt",
+      "address": 4202544,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "puts@plt",
+      "address": 4202560,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "clock@plt",
+      "address": 4202576,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__stack_chk_fail@plt",
+      "address": 4202592,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fgets@plt",
+      "address": 4202608,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "__tls_get_addr@plt",
+      "address": 4202624,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fprintf@plt",
+      "address": 4202640,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "time@plt",
+      "address": 4202656,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fflush@plt",
+      "address": 4202672,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "perror@plt",
+      "address": 4202688,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "fwrite@plt",
+      "address": 4202704,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_Unwind_DeleteException@plt",
+      "address": 4202720,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_Unwind_Resume@plt",
+      "address": 4202736,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "getenv@plt",
+      "address": 4202752,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": "free@plt",
+      "address": 4202760,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": "abort@plt",
+      "address": 4202768,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": "_Unwind_RaiseException@plt",
+      "address": 4202776,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": "calloc@plt",
+      "address": 4202784,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": "_Unwind_SetIP@plt",
+      "address": 4202792,
+      "size": 8,
+      "calls": []
+    },
+    {
+      "name": ".text",
+      "address": 4202800,
+      "size": 2222,
+      "calls": []
+    },
+    {
+      "name": ".fini",
+      "address": 4456756,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4202522,
+    4202810,
+    4202881,
+    4202892,
+    4202967,
+    4202995,
+    4203076,
+    4203085,
+    4203558,
+    4456768
+  ],
+  "win_functions": [],
+  "leak_sites": [],
+  "notes": []
+}

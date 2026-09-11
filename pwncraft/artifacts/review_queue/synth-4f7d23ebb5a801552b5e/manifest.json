@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "case_id": "synth-4f7d23ebb5a801552b5e",
+  "created_at": "2026-09-11T16:17:06+0800",
+  "generator": {
+    "module": "pwncraft.features.synth",
+    "app_version": "v0.33.0"
+  },
+  "target": {
+    "path": "F:\\pwn宝\\pwncraft\\artifacts\\greatwall\\CreditMarket\\shop",
+    "sha256": "90b16a8a92028ca58cb69e92102727d3a0d7be5763a1e0f2ef919803c8e9a78e",
+    "arch": "amd64",
+    "bits": 64,
+    "security": {
+      "PIE": "ON",
+      "NX": "ON",
+      "CANARY": "ON",
+      "RELRO": "FULL",
+      "FORTIFY": "OFF",
+      "STRIPPED": "ON"
+    }
+  },
+  "strategy": {
+    "id": "ret2libc",
+    "status": "blocked"
+  },
+  "exp": {
+    "sha256": "b3fd325f5348aa689e1f2753ead17f45a6a076810d12f3cc2a76ee5094da9b38",
+    "unresolved": [
+      "OFFSET（到保存返回地址的填充长度）",
+      "PUTS_LIBC（libc puts 偏移）",
+      "SYSTEM_LIBC（libc system 偏移）",
+      "BINSH_LIBC（libc /bin/sh 偏移）",
+      "POP_RDI（gadget shelf 未证明）"
+    ]
+  },
+  "audit": {
+    "verdict": "ROUND_TRIP_CLEAN",
+    "error_count": 0,
+    "diagnostic_count": 0
+  },
+  "verification": null,
+  "provenance": "DERIVED",
+  "training": {
+    "trainable": false,
+    "runtime_verified": false,
+    "gate": "review_queue → 人工评审 → autocorrect intake/splits 注册"
+  }
+}

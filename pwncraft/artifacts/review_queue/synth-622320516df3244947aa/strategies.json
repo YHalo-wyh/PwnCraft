@@ -1,0 +1,54 @@
+[
+  {
+    "id": "orw",
+    "name": "ORW（open/read/write 直读）",
+    "status": "blocked",
+    "requires": [
+      "primitive:syscall",
+      "primitive:input"
+    ],
+    "missing": [
+      "控制流劫持偏移未证明（需要崩溃/调试证据）",
+      "open/read/write PLT 不齐（现有 无）",
+      "seccomp 规则需运行时确认（无法静态证明）"
+    ],
+    "evidence": [
+      "syscall @ 0x401378",
+      "syscall @ 0x401f1c",
+      "syscall @ 0x403f8a",
+      "syscall @ 0x404475"
+    ],
+    "steps": [
+      "确认 seccomp 允许 open/read/write",
+      "布置 ORW ROP 链",
+      "读取 flag 并写回 stdout"
+    ],
+    "renderer": "orw"
+  },
+  {
+    "id": "srop",
+    "name": "SROP（sigreturn 帧）",
+    "status": "blocked",
+    "requires": [
+      "primitive:syscall",
+      "gadget:rax",
+      "primitive:control_flow_hijack"
+    ],
+    "missing": [
+      "控制流劫持偏移未证明（需要崩溃/调试证据）",
+      "rax 控制 gadget 未证明（sigreturn 需要）"
+    ],
+    "evidence": [
+      "syscall @ 0x401378",
+      "syscall @ 0x401f1c",
+      "syscall @ 0x403f8a",
+      "syscall @ 0x404475"
+    ],
+    "steps": [
+      "构造 SigreturnFrame(execve) ",
+      "syscall; ret 触发 rt_sigreturn",
+      "帧内寄存器完成 execve('/bin/sh')"
+    ],
+    "renderer": "srop"
+  }
+]

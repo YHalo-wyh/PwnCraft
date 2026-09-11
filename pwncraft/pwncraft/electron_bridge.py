@@ -845,10 +845,8 @@ class ElectronBridge:
         """漏洞点确认：输入调用点的 长度 vs 缓冲区边界 静态证明。"""
         from pwncraft.features.synth.vuln_points import scan_vuln_points
         lab = self._patch_lab(params)
-        functions, error = self._disassemble_functions(lab.binary)
-        if error:
-            raise ValueError(f"反汇编失败: {error[:120]}")
-        return scan_vuln_points(lab.binary, self._runner, functions=functions)
+        # 不预取函数列表：静态链接需高上限解析，由 scan_vuln_points 自行 objdump
+        return scan_vuln_points(lab.binary, self._runner)
 
     def rpc_ida_status(self, params: dict) -> dict:
         link = self._ida()

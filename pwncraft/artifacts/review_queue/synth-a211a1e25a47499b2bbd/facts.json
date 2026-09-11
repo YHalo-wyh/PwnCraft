@@ -1,0 +1,178 @@
+{
+  "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_rop",
+  "sha256": "d7f0c67db74001dc668c3e78e7827a85db9371ce57ef162ad96290c4ef32019c",
+  "architecture": "amd64",
+  "bits": 64,
+  "endian": "little",
+  "entry": 4198512,
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "plt": {
+    "printf": {
+      "name": "printf",
+      "address": 4198480,
+      "size": 16
+    },
+    "read": {
+      "name": "read",
+      "address": 4198496,
+      "size": 16
+    }
+  },
+  "got": {
+    "__libc_start_main": {
+      "name": "__libc_start_main",
+      "address": 4210648,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "__gmon_start__": {
+      "name": "__gmon_start__",
+      "address": 4210656,
+      "kind": "R_X86_64_GLOB_DAT"
+    },
+    "printf": {
+      "name": "printf",
+      "address": 4210688,
+      "kind": "R_X86_64_JUMP_SLOT"
+    },
+    "read": {
+      "name": "read",
+      "address": 4210696,
+      "kind": "R_X86_64_JUMP_SLOT"
+    }
+  },
+  "functions": [
+    {
+      "name": "_init",
+      "address": 4198400,
+      "size": 27,
+      "calls": []
+    },
+    {
+      "name": ".plt",
+      "address": 4198432,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "printf@plt",
+      "address": 4198480,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "read@plt",
+      "address": 4198496,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "_start",
+      "address": 4198512,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "_dl_relocate_static_pie",
+      "address": 4198560,
+      "size": 16,
+      "calls": []
+    },
+    {
+      "name": "deregister_tm_clones",
+      "address": 4198576,
+      "size": 48,
+      "calls": []
+    },
+    {
+      "name": "register_tm_clones",
+      "address": 4198624,
+      "size": 64,
+      "calls": []
+    },
+    {
+      "name": "__do_global_dtors_aux",
+      "address": 4198688,
+      "size": 48,
+      "calls": [
+        {
+          "function": "__do_global_dtors_aux",
+          "address": 4198705,
+          "callee": "deregister_tm_clones"
+        }
+      ]
+    },
+    {
+      "name": "frame_dummy",
+      "address": 4198736,
+      "size": 6,
+      "calls": []
+    },
+    {
+      "name": "vulnerable",
+      "address": 4198742,
+      "size": 57,
+      "calls": [
+        {
+          "function": "vulnerable",
+          "address": 4198769,
+          "callee": "printf"
+        },
+        {
+          "function": "vulnerable",
+          "address": 4198791,
+          "callee": "read"
+        }
+      ]
+    },
+    {
+      "name": "main",
+      "address": 4198799,
+      "size": 25,
+      "calls": [
+        {
+          "function": "main",
+          "address": 4198812,
+          "callee": "vulnerable"
+        }
+      ]
+    },
+    {
+      "name": "_fini",
+      "address": 4198824,
+      "size": 13,
+      "calls": []
+    }
+  ],
+  "strings": {},
+  "syscalls": [],
+  "ret_gadgets": [
+    4198426,
+    4198564,
+    4198608,
+    4198672,
+    4198718,
+    4198720,
+    4198798,
+    4198823,
+    4198836
+  ],
+  "win_functions": [],
+  "leak_sites": [
+    {
+      "function": "vulnerable",
+      "function_address": 4198742,
+      "call_address": 4198769,
+      "callee": "printf",
+      "argument_address": 4202500,
+      "got": ""
+    }
+  ],
+  "notes": []
+}
