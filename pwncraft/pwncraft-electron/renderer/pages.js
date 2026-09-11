@@ -67,6 +67,16 @@
           : scan?.audit?.summary ? `发现 ${scan.audit.summary.total} 个复核 / 加固项：严重 ${scan.audit.summary.critical} · 高危 ${scan.audit.summary.high} · 中危 ${scan.audit.summary.medium} · 提示 ${scan.audit.summary.info || 0}`
           : '文件导入后自动开始扫描。'}</div>
         <div class="hint-dim">结果为静态规则线索，查看调用证据和扫描限制后再确定修复方式。</div>
+        <div class="binary-synth">
+          <button class="mini-btn" id="binary-synth-run" ${scan?.synthLoading ? 'disabled' : ''}>${scan?.synthLoading ? '合成中…' : '自动检测 + 生成 EXP 骨架'}</button>
+          ${scan?.synth ? `<span class="chip">策略 ${esc(scan.synth.best?.id || '无')}</span>
+            <span class="chip">状态 ${esc(scan.synth.best?.status || '-')}</span>
+            <span class="chip">往返 ${esc((scan.synth.verdict || {}).verdict || '-')}</span>
+            ${(scan.synth.unresolved || []).length ? `<span class="chip">未解析 ${scan.synth.unresolved.length}</span>` : ''}
+            <button class="mini-btn primary" id="binary-synth-apply">写入 EXP 编辑器</button>` : ''}
+        </div>
+        ${scan?.synthError ? `<div class="analysis-error">合成失败：${esc(scan.synthError)}</div>` : ''}
+        ${(scan?.synth?.best?.missing || []).length ? `<div class="hint-dim">缺口：${(scan.synth.best.missing || []).map(esc).join('；')}</div>` : ''}
       </section>
       <div class="binary-reports">
         <div class="card sec-card">
@@ -123,7 +133,29 @@
     $('#sec-refresh', host).addEventListener('click', () => fetchBinaryReports(working, true));
     $('#binary-audit-open', host).onclick = () => window.PwnPatch?.showAudit();
     $('#binary-audit-refresh', host).onclick = () => window.PwnPatch?.scan(auditEntry, true);
+    $('#binary-synth-run', host).onclick = () => runSynth(auditEntry, working);
+    const synthApply = $('#binary-synth-apply', host);
+    if (synthApply) synthApply.onclick = () => {
+      app().replaceExpText((auditEntry?.patch?.synth?.source) || '');
+    };
     if (!reportsFresh && !state.reportsInFlight) fetchBinaryReports(working, false);
+  }
+
+  /** 自动检测 + 自动构造 EXP 骨架：断言全部来自桥的确定性事实，不在渲染层计算。 */
+  async function runSynth(entry, working) {
+    if (!entry) return;
+    const cache = entry.patch ||= {};
+    cache.synthLoading = true; cache.synthError = '';
+    renderBinary();
+    try {
+      cache.synth = await window.pwncraft.request('synth_generate', { path: working, apply: false });
+    } catch (error) {
+      cache.synth = null;
+      cache.synthError = error.message || String(error);
+    } finally {
+      cache.synthLoading = false;
+      renderBinary();
+    }
   }
 
   function pre(text) {

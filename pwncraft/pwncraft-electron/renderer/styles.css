@@ -9804,6 +9804,7 @@ select.input { font: inherit; }
 .patch-audit-location { margin: 4px 6px 2px 0; }
 .patch-selection { padding: 4px 10px; }
 .binary-auto-audit { margin-bottom: 12px; }
+.binary-synth { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
 .binary-auto-audit .hint-dim { margin-top: 6px; }
 .patcher-origin { white-space: pre-wrap; max-height: 180px; overflow: auto; }
 #patcher-input { width: 100%; min-height: 90px; resize: vertical; }

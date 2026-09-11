@@ -809,6 +809,13 @@
     }
   }
 
+  async function replaceExpText(text) {
+    setExpText(text);
+    switchPage('exp');
+    log('EXP 已由自动合成骨架替换；请复核后再保存/同步到桥。');
+    syncExpToBridge();
+  }
+
   async function insertExpText(text) {
     const current = getExpText();
     const next = current && !current.endsWith('\n') ? `${current}\n${text}` : current + text;
@@ -1541,6 +1548,7 @@
     switchPage,
     getExpText,
     insertExpText,
+    replaceExpText,
     runInTerminal,
     sendToDebugTerminal,
     attachDebugTerminal,

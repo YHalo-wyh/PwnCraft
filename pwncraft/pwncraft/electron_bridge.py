@@ -26,6 +26,8 @@ Surface map (v0.29):
 - awdp patch (v0.33): patch_recipes / patch_audit / patch_preview / patch_apply / patch_list /
   patch_undo / patch_clear / patch_reconcile / patch_export / patch_probe / patch_instructions / patch_disasm_raw /
   patch_bytecode_lookup / patch_encode
+- exploit synthesis（VNext.4）: synth_analyze（检测+原语图+策略）/ synth_generate（EXP 骨架 + 往返审计）/
+  synth_deposit（沉淀 review_queue）
 """
 from __future__ import annotations
 
@@ -726,6 +728,89 @@ class ElectronBridge:
         bits = 64 if lab.geometry()["is64"] else 32
         vaddr = int(str(params.get("vaddr") or "0"), 0)
         return assemble(str(params.get("text") or ""), bits=bits, vaddr=vaddr)
+
+    # ------------------------------------------------------------------
+    # Exploit synthesis（检测 → 原语图 → 策略 → EXP 骨架 → 往返自检 → 评审区）
+
+    def _synth_binary(self, params: dict) -> Path:
+        raw = str(params.get("path") or "").strip()
+        binary = Path(raw) if raw else self._target_binary()
+        if not Path(binary).is_file():
+            raise ValueError(f"目标不存在: {binary}")
+        return Path(binary)
+
+    def _synth_evidence(self, binary: Path) -> list[dict]:
+        """复用 AWDP 风险扫描 findings 作为「输入长度 / 格式化」证据（失败不阻断）。"""
+        try:
+            functions, error = self._disassemble_functions(binary)
+            if error:
+                return []
+            facts = BinaryInspector().inspect(binary)
+            report = audit_patch_surface(self._patch_lab({"path": str(binary)}),
+                                         functions, security=facts.security)
+            return [dict(item) for item in (report.get("findings") or [])]
+        except Exception:
+            return []
+
+    def _synth_options(self, params: dict) -> dict:
+        options: dict = {}
+        if isinstance(params.get("stack_truth"), dict):
+            options["stack_truth"] = dict(params["stack_truth"])
+        if isinstance(params.get("gadgets"), dict):
+            options["gadgets"] = dict(params["gadgets"])
+        if params.get("libc"):
+            options["libc"] = str(params["libc"])
+        return options
+
+    def rpc_synth_analyze(self, params: dict) -> dict:
+        """自动检测：ELF 事实 + 原语图 + 策略（确定性，不执行目标）。"""
+        from pwncraft.features.synth import analyze_target
+        from pwncraft.features.synth.pipeline import detection_report
+
+        binary = self._synth_binary(params)
+        analysis = analyze_target(binary, runner=self._runner,
+                                  patch_findings=self._synth_evidence(binary),
+                                  **self._synth_options(params))
+        return detection_report(analysis)
+
+    def rpc_synth_generate(self, params: dict) -> dict:
+        """自动构造 EXP 骨架（诚实骨架 + 往返审计），可选写入 EXP 编辑器。"""
+        from pwncraft.features.synth import generate_exp
+        from pwncraft.features.synth.pipeline import detection_report
+
+        binary = self._synth_binary(params)
+        generated = generate_exp(binary, strategy=str(params.get("strategy") or ""),
+                                 runner=self._runner,
+                                 patch_findings=self._synth_evidence(binary),
+                                 **self._synth_options(params))
+        result = detection_report(generated)
+        result["source"] = generated["rendered"].source
+        result["unresolved"] = list(generated["rendered"].unresolved)
+        result["constants"] = dict(generated["rendered"].constants)
+        result["verdict"] = generated["verdict"]
+        result["libc_symbols"] = dict(generated["libc_symbols"])
+        if params.get("apply"):
+            self.workspace.set_exploit_source(generated["rendered"].source)
+            result["applied"] = True
+        return result
+
+    def rpc_synth_deposit(self, params: dict) -> dict:
+        """把检测 + 骨架沉淀到 review_queue（生成物默认 trainable=false）。"""
+        from pwncraft.features.synth import deposit_case as synth_deposit
+        from pwncraft.features.synth import generate_exp
+
+        dest = str(params.get("dest") or "").strip()
+        if not dest:
+            raise ValueError("请选择 review_queue 目录")
+        binary = self._synth_binary(params)
+        generated = generate_exp(binary, strategy=str(params.get("strategy") or ""),
+                                 runner=self._runner,
+                                 patch_findings=self._synth_evidence(binary),
+                                 **self._synth_options(params))
+        outcome = synth_deposit(dest, generated)
+        self._log(f"合成样本已写入评审区: {outcome['case_id']}")
+        return {**outcome, "strategy": generated["strategy"].id,
+                "verdict": generated["verdict"]["verdict"]}
 
     def rpc_ida_status(self, params: dict) -> dict:
         link = self._ida()

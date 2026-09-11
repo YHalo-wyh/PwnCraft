@@ -40,6 +40,22 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
       { name: 'helper<int>', address: '0x1020', section: '.text', instruction_count: 1, assembly: '1020: c3    ret' },
     ], diagnostics: [{ severity: 'warning', code: 'UI_FIXTURE', line: 3, message: '界面测试提示：请复核当前 EXP 的输入长度。', impact: '这是一条界面测试数据。', evidence: [{ text: '<script>must remain text</script>' }] }] };
   }
+  if (method === 'synth_generate') {
+    const strategy = {
+      id: 'ret2win', name: 'ret2win（跳过程序内现成调用点）', status: 'blocked',
+      requires: ['primitive:win_function:0'], missing: ['控制流劫持偏移未证明（需要崩溃/调试证据）'],
+      evidence: ['0x401168: call system'], steps: ['填充到偏移'], renderer: 'ret2win',
+    };
+    return {
+      target: { path: params.path, sha256: 'a'.repeat(64), arch: 'amd64', bits: 64, security: { PIE: 'OFF' } },
+      summary: { plt: 2, got: 2, functions: 3, win_functions: 1, leak_sites: 0, syscalls: 0,
+        strings: { '/bin/sh': 0x402004 }, libc_symbols: 0, notes: [] },
+      graph: { nodes: [], edges: [] }, strategies: [strategy], best: strategy,
+      source: 'from pwn import *\n# synth fixture\n', constants: {},
+      unresolved: ['OFFSET（到保存返回地址的填充长度）'], libc_symbols: {},
+      verdict: { verdict: 'ROUND_TRIP_CLEAN', error_count: 0, diagnostic_count: 0, diagnostics: [] },
+    };
+  }
   return {};
 });
 
@@ -90,6 +106,18 @@ app.whenReady().then(async () => {
       assert.doesNotMatch(await js('document.querySelector("#sec-rows").innerText'), /wsl|ERROR|\x1b/);
       assert.equal(await js('document.querySelector(".sec-source").textContent'), output.includes('NX disabled') ? 'checksec（WSL）' : '本地 ELF 解析');
     }
+    // 自动检测 + 自动构造 EXP 骨架（synth_generate → 摘要 + 写入 EXP 编辑器）
+    await click('#binary-synth-run');
+    await until('!!document.querySelector("#binary-synth-apply")');
+    const synthText = await js('document.querySelector(".binary-synth").innerText');
+    assert.match(synthText, /策略 ret2win/);
+    assert.match(synthText, /状态 blocked/);
+    assert.match(synthText, /往返 ROUND_TRIP_CLEAN/);
+    assert.match(synthText, /未解析 1/);
+    assert.match(await js('document.querySelector("#page-binary").innerText'), /缺口：控制流劫持偏移未证明/);
+    await click('#binary-synth-apply');
+    await until('PwnApp.state.page === "exp"');
+    assert.match(await js('PwnApp.getExpText()'), /synth fixture/);
     await click('[data-key="analysis"]');
     await until('document.querySelectorAll(".analysis-function").length === 2 && !PwnApp.state.workspaces.get(PwnApp.state.activePath).analysis.loading');
     assert.equal(calls.length, 1);

@@ -96,6 +96,11 @@ Layer 4  Human Intelligence     Canvas / 编辑 / 推演 / 教学    → 现有 
   （Primitive Graph + glibc 版本裁剪路径）；VNext.6 EXP Generator
   （ExploitProgram AST → Pwntools/其它 renderer；诚实骨架原则；
   往返自检：生成的 exp 重喂 analyze_heap_source 必须 ROUND_TRIP_MATCH）。
+- **首版已落地（2026-09-11）**：`features/synth/` 实现 VNext.3.1#9 原语图 +
+  VNext.4 前半（规则驱动策略：ret2win/ret2plt/ret2libc/orw/srop/fmt/heap）+
+  VNext.6 最小渲染器（诚实骨架 + `audit_exp` 往返自检）+ review_queue 沉淀与
+  批量喂题 CLI。详见 `docs/exploit_synthesis.md`；运行时执行器（VNext.4 实验执行器）
+  仍未接入，故 EXP 可利用性恒为 UNVERIFIED。
 
 ## 防自证与语料
 每道题沉淀：ELF / BinaryIR / 语义标签 / 漏洞 / 原语 / 策略 / EXP /
@@ -150,7 +155,7 @@ provenance 铁律不变）。生成物一律先进 review_queue。
 6. MANUAL_ASSUMPTION / DERIVED / OBSERVED 来源系统 ✅ 本轮
 7. helper 内联深度护栏                ✅ 本轮
 8. 扩展 deterministic EXP rules       ⬜ 部分（依赖 M2 size/参数角色证据）
-9. Exploit primitive graph            ⬜ VNext.4 前置
+9. Exploit primitive graph            ✅ 首版（`features/synth/graph.py`，见 docs/exploit_synthesis.md）
 
 ### VNext.3.1A-completion — Provenance End-to-End + Assumption Branch Identity ✅ 本轮
 
