@@ -1,0 +1,67 @@
+{
+ "chall": {
+  "best": "ret2libc=blocked",
+  "missing": [
+   "控制流劫持偏移未证明（需要崩溃/调试证据）",
+   "libc 文件未提供或符号未解析（system/puts/str_bin_sh）",
+   "pop rdi 控制 gadget 未从 gadget shelf 证明"
+  ],
+  "evidence_n": 5,
+  "all": []
+ },
+ "CreditMarket": {
+  "best": "ret2libc=blocked",
+  "missing": [
+   "控制流劫持偏移未证明（需要崩溃/调试证据）",
+   "libc 文件未提供或符号未解析（system/puts/str_bin_sh）",
+   "pop rdi 控制 gadget 未从 gadget shelf 证明"
+  ],
+  "evidence_n": 4,
+  "all": []
+ },
+ "HashArchive": {
+  "best": "srop=blocked",
+  "missing": [
+   "控制流劫持偏移未证明（需要崩溃/调试证据）",
+   "rax 控制 gadget 未证明（sigreturn 需要）"
+  ],
+  "evidence_n": 1,
+  "all": []
+ },
+ "HeroEditor": {
+  "best": "ret2libc=blocked",
+  "missing": [
+   "控制流劫持偏移未证明（需要崩溃/调试证据）",
+   "libc 文件未提供或符号未解析（system/puts/str_bin_sh）",
+   "pop rdi 控制 gadget 未从 gadget shelf 证明"
+  ],
+  "evidence_n": 8,
+  "all": []
+ },
+ "SomeBox2.0": {
+  "best": "ret2libc=blocked",
+  "missing": [
+   "控制流劫持偏移未证明（需要崩溃/调试证据）",
+   "libc 文件未提供或符号未解析（system/puts/str_bin_sh）",
+   "pop rdi 控制 gadget 未从 gadget shelf 证明"
+  ],
+  "evidence_n": 4,
+  "all": []
+ },
+ "SomeMin": {
+  "best": "None=None",
+  "missing": [],
+  "evidence_n": 0,
+  "all": []
+ },
+ "SomePloys": {
+  "best": "ret2libc=blocked",
+  "missing": [
+   "控制流劫持偏移未证明（需要崩溃/调试证据）",
+   "libc 文件未提供或符号未解析（system/puts/str_bin_sh）",
+   "pop rdi 控制 gadget 未从 gadget shelf 证明"
+  ],
+  "evidence_n": 5,
+  "all": []
+ }
+}

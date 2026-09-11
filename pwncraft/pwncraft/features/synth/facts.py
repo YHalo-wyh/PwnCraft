@@ -46,11 +46,15 @@ class LocalToolRunner:
     def run_tool(self, tool: str, args: list[str], timeout: int = 30) -> ToolResult:
         command = [tool, *args]
         try:
-            proc = subprocess.run(command, capture_output=True, text=True,
+            # 字节模式 + 手动 UTF-8 解码：text=True 会用系统 ANSI（GBK）解码，
+            # 中文路径/UTF-8 工具输出直接炸掉 reader 线程（--verify 实测踩坑）
+            proc = subprocess.run(command, capture_output=True,
                                   stdin=subprocess.DEVNULL, timeout=timeout)
         except (OSError, subprocess.SubprocessError) as error:
             return ToolResult(command, 127, "", str(error))
-        return ToolResult(command, proc.returncode, proc.stdout, proc.stderr)
+        return ToolResult(command, proc.returncode,
+                          proc.stdout.decode("utf-8", "replace"),
+                          proc.stderr.decode("utf-8", "replace"))
 
 
 @dataclass(frozen=True)

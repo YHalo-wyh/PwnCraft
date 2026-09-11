@@ -429,7 +429,17 @@
   }
 
   function applyTriageStage(payload) {
-    const entry = state.workspaces.get(state.activePath);
+    // 按二进制路径定位归属工作区：连续导入多个 ELF 时，先前的 triage 事件
+    // 会在别的 Target 激活后才到达，只查 activePath 会把它们全部丢弃。
+    let entry = null;
+    if (payload.binary) {
+      const incoming = String(payload.binary).replace(/\\/g, '/');
+      for (const workspace of state.workspaces.values()) {
+        const working = workspace.context && (workspace.context.working_binary || workspace.path);
+        if (working && String(working).replace(/\\/g, '/') === incoming) { entry = workspace; break; }
+      }
+    }
+    if (!entry) entry = state.workspaces.get(state.activePath);
     if (!entry || !entry.context) return;
     const working = entry.context.working_binary || entry.path;
     if (payload.binary && payload.binary.replace(/\\/g, '/') !== String(working).replace(/\\/g, '/')) {

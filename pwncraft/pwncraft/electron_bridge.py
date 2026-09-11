@@ -182,7 +182,9 @@ class ElectronBridge:
             patch_summary = ""
             patch_error = ""
             try:
-                outcome = auto_patch_elf(target_binary)
+                # 运行时对（ld/libc）按 CTF 惯例放在原始附件目录：
+                # 工作副本已复制进 .pwncraft/runtime，需回退原始目录发现
+                outcome = auto_patch_elf(target_binary, extra_dirs=(binary.parent,))
                 patch_summary = outcome.summary()
                 if getattr(outcome, "runtime", None):
                     context.interpreter = str(getattr(outcome.runtime, "interpreter", "") or "")

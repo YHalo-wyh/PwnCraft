@@ -56,11 +56,17 @@ def is_elf_file(path: str | Path) -> bool:
         return False
 
 
-def discover_runtime_pair(binary_path: str | Path) -> RuntimePair:
+def discover_runtime_pair(binary_path: str | Path,
+                          extra_dirs: tuple[str | Path, ...] = ()) -> RuntimePair:
+    """在二进制同目录寻找 ld + libc 运行时对；找不到时依次回退 extra_dirs。
+
+    工作副本位于 ``.pwncraft/runtime/``，而 CTF 题目的 libc/ld 惯例放在
+    原始附件目录——调用方（导入流程）必须把原始目录作为 extra_dirs 传入，
+    否则真实题目 7/7 全部报"同目录缺少 ld/libc"。
+    """
     binary = Path(binary_path)
     if not is_elf_file(binary):
         raise ValueError(f"不是有效 ELF: {binary}")
-    files = [item for item in binary.parent.iterdir() if item.is_file() and item != binary]
 
     def loader_rank(path: Path) -> tuple[int, int, str]:
         name = path.name.lower()
@@ -86,22 +92,37 @@ def discover_runtime_pair(binary_path: str | Path) -> RuntimePair:
             rank = 99
         return rank, len(name), name
 
-    loaders = sorted((item for item in files if loader_rank(item)[0] < 99), key=loader_rank)
-    libcs = sorted((item for item in files if libc_rank(item)[0] < 99), key=libc_rank)
-    if not loaders or not libcs:
-        missing = []
-        if not loaders:
-            missing.append("ld/ld-linux")
-        if not libcs:
-            missing.append("libc")
-        raise FileNotFoundError(f"ELF 同目录缺少 {' 和 '.join(missing)} 文件: {binary.parent}")
-    return RuntimePair(loaders[0], libcs[0])
+    def pair_in(directory: Path) -> RuntimePair | None:
+        if not directory.is_dir():
+            return None
+        files = [item for item in directory.iterdir()
+                 if item.is_file() and item.resolve() != binary.resolve()]
+        loaders = sorted((item for item in files if loader_rank(item)[0] < 99), key=loader_rank)
+        libcs = sorted((item for item in files if libc_rank(item)[0] < 99), key=libc_rank)
+        if loaders and libcs:
+            return RuntimePair(loaders[0], libcs[0])
+        return None
+
+    searched: list[Path] = []
+    for directory in (binary.parent, *(Path(item) for item in extra_dirs)):
+        resolved = directory.resolve()
+        if resolved in searched:
+            continue
+        searched.append(resolved)
+        pair = pair_in(resolved)
+        if pair is not None:
+            return pair
+    missing = "ld/ld-linux 和 libc"
+    raise FileNotFoundError(
+        f"ELF 同目录缺少 {missing} 文件（已搜索: "
+        f"{', '.join(str(item) for item in searched)}）")
 
 
-def auto_patch_elf(binary_path: str | Path, runner: WslToolRunner | None = None) -> ElfPatchOutcome:
+def auto_patch_elf(binary_path: str | Path, runner: WslToolRunner | None = None,
+                   extra_dirs: tuple[str | Path, ...] = ()) -> ElfPatchOutcome:
     """Patch the original same-name ELF in place, with verified rollback."""
     binary = Path(binary_path).resolve()
-    runtime = discover_runtime_pair(binary)
+    runtime = discover_runtime_pair(binary, extra_dirs)
     runner = runner or WslToolRunner()
     backup, result = runner.patchelf(binary, runtime.loader, "$ORIGIN", runtime.libc)
     if not result.ok:
