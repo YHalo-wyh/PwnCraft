@@ -805,7 +805,7 @@ class ElectronBridge:
                                 strategy=str(params.get("strategy") or ""),
                                 timeout=int(params.get("timeout") or 60),
                                 marker=str(params.get("marker") or "PWN_SYNTH_OK"),
-                                patch_findings=self._synth_evidence(binary),
+                                patch_findings=list(self._synth_evidence(binary)),
                                 **self._synth_options(params))
         report = detection_report(result)
         report["runtime"] = dict(result["runtime"])

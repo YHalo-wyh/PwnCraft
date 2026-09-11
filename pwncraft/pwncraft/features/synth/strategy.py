@@ -156,17 +156,27 @@ def plan_strategies(
                    "帧内寄存器完成 execve('/bin/sh')"),
             renderer="srop"))
 
-    # 6) 格式化字符串：审计复核项，可控性未证明
-    fmt = graph.node("hypothesis:format_string")
-    if fmt is not None:
+    # 6) 格式化字符串：探针证明（primitive:fmt_controlled）→ ready；否则假设
+    fmt_proven = graph.node("primitive:fmt_controlled")
+    if fmt_proven is not None:
         strategies.append(ExploitStrategy(
-            id="fmt_write", name="格式化字符串写入（%n）",
-            status=STATUS_UNKNOWN,
-            requires=("hypothesis:format_string", "primitive:input"),
-            missing=("格式串是否受输入控制未证明（需探针实验：%p 回显）",),
-            evidence=fmt.evidence, steps=("定位格式串偏移", "确定目标地址与写入值",
-                                          "按 %hn/%n 分解写入"),
-            renderer="fmt"))
+            id="fmt_write", name="格式化字符串写入（%n·探针已证明可控）",
+            status=STATUS_READY,
+            requires=("primitive:fmt_controlled", "primitive:input"),
+            missing=(), evidence=fmt_proven.evidence,
+            steps=("fmt 偏移定位（Format 页 / %p 序列）", "确定目标地址与写入值",
+                   "按 %hn/%n 分解写入"), renderer="fmt"))
+    else:
+        fmt = graph.node("hypothesis:format_string")
+        if fmt is not None:
+            strategies.append(ExploitStrategy(
+                id="fmt_write", name="格式化字符串写入（%n）",
+                status=STATUS_UNKNOWN,
+                requires=("hypothesis:format_string", "primitive:input"),
+                missing=("格式串是否受输入控制未证明（需探针实验：%p 回显）",),
+                evidence=fmt.evidence, steps=("定位格式串偏移", "确定目标地址与写入值",
+                                              "按 %hn/%n 分解写入"),
+                renderer="fmt"))
 
     # 7) 堆域：只有拿到生命周期证据才进入候选
     heap = graph.node("primitive:heap_lifecycle")

@@ -26,12 +26,14 @@ def analyze_target(
     gadgets: Mapping[str, object] | None = None,
     heap_behavior: Mapping[str, object] | None = None,
     libc: str | Path | None = None,
+    fmt_truth: Mapping[str, object] | None = None,
 ) -> dict:
     facts = collect_target_facts(binary, runner=runner)
     libc_symbols = collect_libc_symbols(libc, runner=runner) if libc else {}
     graph = build_primitive_graph(
         facts, patch_findings=patch_findings, stack_truth=stack_truth,
-        gadgets=gadgets, heap_behavior=heap_behavior, libc_symbols=libc_symbols)
+        gadgets=gadgets, heap_behavior=heap_behavior, libc_symbols=libc_symbols,
+        fmt_truth=fmt_truth)
     strategies = plan_strategies(facts, graph, libc_symbols=libc_symbols)
     return {"facts": facts, "graph": graph, "strategies": strategies,
             "libc_symbols": libc_symbols, "best": best_strategy(strategies)}
@@ -100,14 +102,49 @@ def verify_exploit(
 
     runtime: dict = {"offset": None, "method": "none", "confidence": "none", "evidence": [],
                      "notes": ["已由调用方提供偏移事实，跳过 gdb 测量"]}
+    menu: dict = {}
+    menu_steps = None
     if stack_truth is None:
+        from .menu import detect_menu, prelude_script
+        try:
+            result_objd = runner.run_tool("objdump", ["-d", "--", runner.to_wsl_path(binary)])
+            if result_objd.ok:
+                from pwncraft.core.code_analysis import parse_disassembly
+                fns = parse_disassembly(result_objd.stdout, max_functions=200000)["functions"]
+                menu = detect_menu(binary, fns)
+                menu_steps = prelude_script(menu) or None
+        except Exception:
+            menu = {}
         facts = BinaryInspector().inspect(binary)
-        runtime = discover_stack_offset(binary, runner=runner, bits=facts.bits, timeout=timeout)
+        runtime = discover_stack_offset(binary, runner=runner, bits=facts.bits,
+                                        timeout=timeout, menu_steps=menu_steps)
         if runtime.get("offset") is not None:
             stack_truth = {"offset": hex(int(runtime["offset"])), "method": runtime["method"],
                            "evidence": runtime["evidence"]}
+    # fmt 探针实验：存在格式串审计项时真跑目标验证可控性（修复③）
+    fmt_truth = dict(analysis_options.pop("fmt_truth") or {})         if "fmt_truth" in analysis_options else {}
+    review_items = list(analysis_options.get("patch_findings") or ())
+    if not fmt_truth and any(str(item.get("category") or "") == "format_review"
+                             for item in review_items):
+        try:
+            from .runtime import probe_fmt_control
+            fmt_truth = probe_fmt_control(binary, runner=runner)
+        except Exception as error:
+            fmt_truth = {"controlled": False, "reason": f"探针失败: {error}"}
     # 先拿到运行时证据再建图：偏移必须进入 graph/strategy，否则策略仍是 blocked
-    analysis = analyze_target(binary, stack_truth=stack_truth, **analysis_options)
+    analysis = analyze_target(binary, stack_truth=stack_truth, fmt_truth=fmt_truth or None,
+                              **analysis_options)
+    if not analysis.get("strategies"):
+        # 没有任何候选策略（如纯沙箱/纯堆行为题）：诚实报告，不抛错
+        runtime.setdefault("notes", []).append("无候选策略：缺少可证明的原语")
+        return {"facts": analysis["facts"], "graph": analysis["graph"],
+                "strategies": [], "best": None, "rendered": None,
+                "runtime": runtime, "execution": None, "menu": menu,
+                "verdict": {"verdict": "NO_STRATEGY", "error_count": 0,
+                            "diagnostic_count": 0, "diagnostics": [],
+                            "note": "无候选策略：缺少可证明原语，未生成 EXP"},
+                "verification": {"status": "NOT_RUN",
+                                 "summary": "无候选策略（缺可证明原语），未生成 EXP"}}
     generated = generate_exp(binary, strategy=strategy, runner=runner, analysis=analysis,
                              stack_truth=stack_truth, allow_missing=allow_missing,
                              **analysis_options)
@@ -122,7 +159,7 @@ def verify_exploit(
                         "summary": f"策略 {chosen.id} 非 ready，未执行 EXP；缺口："
                                    f"{'；'.join(chosen.missing) or '无'}"}
     return {**generated, "runtime": runtime, "execution": execution,
-            "verification": verification}
+            "verification": verification, "menu": menu}
 
 
 def detection_report(analysis: Mapping[str, object], *, include_facts: bool = False) -> dict:

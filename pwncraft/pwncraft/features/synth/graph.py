@@ -89,6 +89,7 @@ def build_primitive_graph(
     gadgets: Mapping[str, object] | None = None,
     heap_behavior: Mapping[str, object] | None = None,
     libc_symbols: Mapping[str, int] | None = None,
+    fmt_truth: Mapping[str, object] | None = None,
 ) -> PrimitiveGraph:
     graph = PrimitiveGraph()
 
@@ -218,7 +219,14 @@ def build_primitive_graph(
     # --- 格式化字符串（审计复核项） --------------------------------------
     format_findings = [item for item in patch_findings
                        if str(item.get("category") or "") == "format_review"]
-    if format_findings:
+    if isinstance(fmt_truth, Mapping) and fmt_truth.get("controlled"):
+        graph.add(PrimitiveNode(
+            id="primitive:fmt_controlled", kind="format_string",
+            detail="探针实验证明格式串受输入控制（%p 回显命中）",
+            evidence=tuple(str(item) for item in (fmt_truth.get("evidence") or ())),
+            provenance=PROVENANCE_OBSERVED, confidence=CONFIDENCE_PROVEN))
+        graph.link("primitive:input", "primitive:fmt_controlled", "controls")
+    elif format_findings:
         graph.add(PrimitiveNode(
             id="hypothesis:format_string", kind="format_string",
             detail="存在格式化输出调用（格式串是否可控未证明）",

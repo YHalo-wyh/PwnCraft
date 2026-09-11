@@ -53,9 +53,22 @@ def _parse_stack(text: str, word_size: int) -> list[tuple[int, int]]:
     return words
 
 
-def _gdb_args(binary_wsl: str, pattern_wsl: str, bits: int) -> list[str]:
+def _runtime_argv(binary: Path) -> list[str] | None:
+    """附件运行时拉起：同目录有 ld-linux 时用 `<ld> <binary>` 方式运行。
+
+    SomeBox2.0 类真题依赖自带 libc，系统加载器版本不匹配直接报错；这是
+    `synth_verify` 对此类题 gdb 报错的根因。返回 None 表示用默认方式。
+    """
+    binary = Path(binary)
+    loaders = [item for item in binary.parent.iterdir()
+               if item.is_file() and re.match(r"ld-linux[^/]*\.so", item.name)]
+    return [str(loaders[0]), str(binary)] if loaders else None
+
+
+def _gdb_args(binary_wsl: str, pattern_wsl: str, bits: int,
+              argv: list[str] | None = None) -> list[str]:
     word = "g" if bits == 64 else "w"
-    return [
+    args = [
         "-q", "-batch", "-nx",
         "-ex", "set pagination off",
         "-ex", "set confirm off",
@@ -63,8 +76,12 @@ def _gdb_args(binary_wsl: str, pattern_wsl: str, bits: int) -> list[str]:
         "-ex", f"run < '{pattern_wsl}'",
         "-ex", "info registers",
         "-ex", f"x/64{word}x $rsp",
-        "--args", binary_wsl,
     ]
+    if argv:
+        args += ["--args", *[str(item) for item in argv]]
+    else:
+        args += ["--args", binary_wsl]
+    return args
 
 
 def resolve_offset(registers: dict[str, int], stack: Sequence[tuple[int, int]], *,
@@ -125,6 +142,7 @@ def discover_stack_offset(
     bits: int,
     pattern_size: int = DEFAULT_PATTERN_SIZE,
     timeout: int = 30,
+    menu_steps: "list[dict] | None" = None,
 ) -> dict:
     """headless gdb：喂 cyclic → 解析寄存器/栈 → 推导保存返回地址偏移。
 
@@ -143,7 +161,17 @@ def discover_stack_offset(
                     "evidence": [], "notes": ["临时路径含引号，无法安全传给 gdb"],
                     "registers": {}, "word_size": 8 if int(bits) == 64 else 4}
         binary_wsl = str(runner.to_wsl_path(path))
-        result = runner.run_tool("gdb", _gdb_args(binary_wsl, pattern_wsl, bits), timeout=timeout)
+        argv = _runtime_argv(path)
+        if argv is not None:
+            argv = [str(runner.to_wsl_path(Path(item))) for item in argv]
+        # 菜单题：先送选项再喂 pattern（菜单预驱动），否则 cyclic 打进菜单 scanf
+        pattern_data = pattern_file.read_bytes()
+        if menu_steps:
+            prelude = "".join(str(step.get("send") or "") + "\n"
+                              for step in menu_steps)
+            pattern_file.write_bytes(prelude.encode() + pattern_data)
+        result = runner.run_tool("gdb", _gdb_args(binary_wsl, pattern_wsl, bits, argv),
+                                 timeout=timeout)
 
     stdout = result.stdout or ""
     stderr = result.stderr or ""
@@ -161,6 +189,44 @@ def discover_stack_offset(
     resolved["notes"] = notes
     resolved["stdout_tail"] = "\n".join(stdout.strip().splitlines()[-12:])
     return resolved
+
+
+_PTR_ECHO = re.compile(rb"0x[0-9a-f]{6,12}")
+
+
+def probe_fmt_control(binary, *, runner, timeout: int = 12) -> dict:
+    """fmt 探针实验：真跑目标送 %9$08x.%9$08x 样式输入，看回显是否含
+    受控十六进制（同一值出现两次 = 格式串受输入控制，intelpwn 同款判据）。
+
+    返回 {'controlled': bool, 'offset': int|None, 'evidence': [...]}；
+    识别不出（无回显/超时/不匹配）时 controlled=False 并给出原因。
+    """
+    from pwncraft.core.wsl import prepare_windows_system_process
+
+    probes = [b"%p.%p.%p.%p", b"AAAA%08x.%08x"]
+    for probe in probes:
+        try:
+            prepare_windows_system_process()
+            argv = _runtime_argv(Path(binary)) or [str(binary)]
+            argv = [str(runner.to_wsl_path(Path(item))) for item in argv]
+            proc = subprocess.run(
+                ["wsl.exe", "--exec", *argv],
+                input=probe + b"\n", capture_output=True, timeout=timeout)
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        out = proc.stdout or b""
+        marker = probe.split(b".")[0]
+        # 受控判据：回显里能找到输入字面量之外的 0x 指针形态，且数量 >= 2
+        hits = _PTR_ECHO.findall(out)
+        if len(hits) >= 2 and marker not in out:
+            return {"controlled": True, "probe": probe.decode(),
+                    "evidence": [f"echo: {out[:120]!r}", f"命中 {len(hits)} 个指针形态"],
+                    "offset": None}
+        if probe == probes[-1]:
+            return {"controlled": False,
+                    "evidence": [f"echo: {out[:120]!r}"],
+                    "reason": "回显未见受控十六进制（格式串可能不可控或无回显）"}
+    return {"controlled": False, "evidence": [], "reason": "探针未能运行目标"}
 
 
 def _executor(script: Path, runner) -> list[str]:
