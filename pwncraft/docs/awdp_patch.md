@@ -24,7 +24,7 @@
 | --- | --- |
 | `features/patch/patch_core.py` | `PatchOp` 模型、`PatchLab`（备份/应用/撤销/日志）、objdump 指令行解析、code cave 查找、`jmp rel32` 编码 |
 | `features/patch/seccomp_inject.py` | BPF 过滤器生成（arch 校验 + nr 白/黑名单）、amd64/i386 安装 shellcode、入口 trampoline 组装 |
-| `features/patch/recipes.py` | PLT 劫持（调用点 rel32 重算 / stub 整体重写）、read/fgets 长度收紧、函数 NOP / ret 化、自定义字节、`RECIPE_CATALOG` 使用说明 |
+| `features/patch/recipes.py` | PLT 劫持（调用点 rel32 重算 / stub 整体重写）、read/recv/recvfrom/fgets 长度收紧、函数 NOP / ret 化、自定义字节、`RECIPE_CATALOG` 使用说明 |
 | `features/patch/bytecode_catalog.py` | 指令↔机器码静态目录（约 60 条）、参数化编码器（nop 长度 / mov r32,imm32 / xor / rel32 计算）、objdump 原始字节反汇编 |
 | `features/patch/exporters.py` | pwntools `patch.py` 脚本、字节 diff 文本、从只读原始副本回放的干净 patched ELF |
 
@@ -105,12 +105,14 @@ RIP 相对寻址需人工复核（`_start` 开头通常没有）。
 - **PLT stub 整体重写**：源 stub 前 5 字节改 `jmp rel32 → 目标@plt`，剩余字节
   NOP；对该函数的所有调用全局生效（含正常业务）。
 
-### 3. read / fgets 长度收紧
+### 3. read / recv / fgets 长度收紧
 
-在选中函数内定位**紧邻 callee 调用**（允许中间 ≤4 条指令）的
-`mov $imm32,%edx`（read）或 `mov esi`（fgets），把 imm32 换成安全长度。
-32 位按 cdecl 参数位置从 call 向前回溯：read 取第 3 参数、fgets 取第 2 参数的
-`push $imm`，仅接受可证明且能等长编码的 `68 imm32` / `6a imm8`。
+在选中函数内定位**紧邻 callee 调用**的 `mov $imm32,%edx`（read / recv / recvfrom
+第 3 参数）或 `mov esi`（fgets 第 2 参数），把 imm32 换成安全长度。归属判定要求
+mov 之后的第一条直接调用就是目标调用（允许中间 ≤4 条指令），不会把无关调用前的
+立即数误改。32 位按 cdecl 参数位置从 call 向前回溯：read/recv/recvfrom 取第 3 参数、
+fgets 取第 2 参数的 `push $imm`，仅接受可证明且能等长编码的 `68 imm32` / `6a imm8`。
+自动扫描复用同一套规则，寄存器与调用对不上时不生成建议。
 
 ### 4. 函数 NOP / ret 化
 
@@ -139,23 +141,27 @@ off-by-one / 边界差一修复的 1 字节手法（V1ct0r 文中的 `jg → jge
 
 ## 测试
 
-- Python：`tests/test_patch_lab.py`（43 项）——手工构造最小 ELF64 fixture，
+- Python：`tests/test_patch_lab.py`（66 项）——手工构造最小 ELF64 fixture，
   覆盖地址换算、cave 查找、BPF/shellcode 的 golden 字节断言、trampoline 位移回算、
-  recipes 数学、事务应用/整组撤销/冲突拦截、三种导出、bridge RPC 层（Mock objdump）。
+  recipes 数学（含 recv/recvfrom 长度归属与首调用规则）、事务应用/整组撤销/冲突拦截、
+  组合预览合并、反汇编缓存失效、三种导出、bridge RPC 层（Mock objdump）。
   运行：`python -m unittest tests.test_patch_lab`（pwncraft 目录）。
 - Electron UI：`pwncraft-electron/tests/patch-ui.cjs`——真实 renderer + preload +
-  IPC fixture，驱动四个 tab 的选择/预览/应用/撤销/导出与 XSS 转义断言。
+  IPC fixture，驱动四个 tab 的选择/预览/应用/撤销/导出、组合通防批量预览与 XSS 转义断言。
   运行：`node node_modules/electron/cli.js tests/patch-ui.cjs`。
 - 真实模板验收：`tools/validate_awdp_templates.py` 会用 WSL gcc 临时编译一个真实 ELF，
   逐项应用 seccomp、PLT 调用点、PLT stub、read 长度、整函数 NOP、函数 ret、区间 NOP、
-  自定义字节共 8 种模板，并分别编译 amd64/i386 ELF；每项均检查预览不写盘、应用生效、
-  比赛包导出、整组撤销，
+  自定义字节、NOP 单处调用、NOP 指令区间、汇编补丁共 11 种模板，并分别编译 amd64/i386 ELF；
+  每项均检查预览不写盘、应用生效、比赛包导出、整组撤销，
   并对可执行模板核对真实运行行为。运行：`python tools/validate_awdp_templates.py`。
 
 ## 比赛闭环增强
 
 - **自动风险扫描**：`patch_audit` 基于当前工作副本反汇编识别危险 PLT 直接调用与过大
-  `read/fgets` 长度，并把每项建议送回同一套 `patch_preview`，扫描结果不会直接改文件。
+  `read/recv/recvfrom/fgets` 长度，并把每项建议送回同一套 `patch_preview`，扫描结果不会直接改文件。
+- **组合通防（一次预览 / 一次应用）**：审计项默认全选、可按需勾选，`patch_preview` 接受
+  `requests` 列表把多项缓解合并成一批补丁（同地址同字节去重，同地址不同字节明确拒绝），
+  预览通过后一次 apply 写入同一批次，可在补丁管理里整组撤销。
 - **补丁后存活探测**：管理页可给出固定 argv、stdin 与 1–15 秒超时，分别运行工作副本和
   只读原始副本，对比退出码与 stdout；补丁日志存在漂移或冲突时拒绝运行。
 - **AWDP 比赛包**：导出 zip 内含补丁后 ELF、可重放的 `patch.py`、逐字节 `patch.diff`

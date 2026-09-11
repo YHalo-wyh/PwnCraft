@@ -357,6 +357,40 @@ class RecipeTests(FixtureCase):
         audit = audit_patch_surface(lab, functions)
         self.assertEqual(audit["findings"][0]["request"]["kind"], "readlen")
 
+    def test_recv_length_patch_uses_third_argument(self):
+        # amd64：recv 的长度也是第 3 参数（edx）；esi 是 fgets 的尺寸，不能混用
+        assembly = insn_lines(BASE + 0xA0, [
+            (b"\xba\x2c\x01\x00\x00", "mov $0x12c,%edx"),
+            (b"\xe8\x00\x00\x00\x00", "call 400080 <recv@plt>"),
+        ])
+        functions = [{"name": "handler", "assembly": assembly}]
+        op = build_read_length(self.lab, functions, "handler", "recv", 0x40)["ops"][0]
+        self.assertEqual(op.vaddr, BASE + 0xA0)
+        self.assertEqual(op.new_bytes, b"\xba\x40\x00\x00\x00")
+        with self.assertRaisesRegex(ValueError, "未找到"):
+            build_read_length(self.lab, functions, "handler", "fgets", 0x40)
+        with self.assertRaisesRegex(ValueError, "长度收紧支持"):
+            build_read_length(self.lab, functions, "handler", "system", 0x40)
+
+    def test_i386_recvfrom_length_patch_uses_third_stack_argument(self):
+        assembly = insn_lines(0x8049000, [
+            (b"\x68\x2c\x01\x00\x00", "push $0x12c"),
+            (b"\x8d\x45\xb8", "lea -0x48(%ebp),%eax"),
+            (b"\x50", "push %eax"),
+            (b"\x6a\x02", "push $0x2"),
+            (b"\xe8\x00\x00\x00\x00", "call 8048100 <recvfrom@plt>"),
+        ])
+        lab = Mock()
+        lab.geometry.return_value = {"is64": False}
+        lab.read_at.return_value = b"\x68\x2c\x01\x00\x00"
+        lab.offset_of.side_effect = lambda address: address - 0x8048000
+        functions = [{"name": "vuln", "assembly": assembly}]
+        op = build_read_length(lab, functions, "vuln", "recvfrom", 0x40)["ops"][0]
+        self.assertEqual(op.vaddr, 0x8049000)
+        self.assertEqual(op.new_bytes, b"\x68\x40\x00\x00\x00")
+        audit = audit_patch_surface(lab, functions)
+        self.assertEqual(audit["findings"][0]["id"], "length:recvfrom:vuln:8049000")
+
     def test_nop_and_ret_function(self):
         nop = build_nop_function(self.lab, fake_functions(), "main")["ops"][0]
         self.assertEqual(nop.new_bytes, b"\x90" * 15)
@@ -709,6 +743,29 @@ class AuditTests(FixtureCase):
         self.assertEqual(by_id["mitigation:seccomp"]["request"]["kind"], "seccomp")
         self.assertGreaterEqual(result["summary"]["risk_score"], 30)
 
+    def test_length_flow_is_bound_to_first_call_and_argument_register(self):
+        recv_site = [{"name": "handler", "assembly": insn_lines(BASE + 0xA0, [
+            (b"\xba\x00\x04\x00\x00", "mov $0x400,%edx"),
+            (b"\xe8\x00\x00\x00\x00", "call 400080 <recv@plt>"),
+        ])}]
+        by_id = {item["id"]: item for item in audit_patch_surface(self.lab, recv_site)["findings"]}
+        self.assertEqual(by_id["length:recv:handler:4000a0"]["request"]["callee"], "recv")
+        # esi 不是 recv 的长度参数：寄存器与调用对不上就不报
+        wrong_register = [{"name": "handler", "assembly": insn_lines(BASE + 0xA0, [
+            (b"\xbe\x00\x04\x00\x00", "mov $0x400,%esi"),
+            (b"\xe8\x00\x00\x00\x00", "call 400080 <recv@plt>"),
+        ])}]
+        self.assertEqual([item for item in audit_patch_surface(self.lab, wrong_register)["findings"]
+                          if item["id"].startswith("length:")], [])
+        # mov 之后的第一条调用不是长度敏感调用：不能把后面 read 的长度算到这条 mov 上
+        shadowed = [{"name": "handler", "assembly": insn_lines(BASE + 0xA0, [
+            (b"\xba\x00\x04\x00\x00", "mov $0x400,%edx"),
+            (b"\xe8\x00\x00\x00\x00", "call 400100 <gets@plt>"),
+            (b"\xe8\x00\x00\x00\x00", "call 400080 <read@plt>"),
+        ])}]
+        self.assertEqual([item for item in audit_patch_surface(self.lab, shadowed)["findings"]
+                          if item["id"].startswith("length:")], [])
+
     def test_import_without_call_site_is_not_reported(self):
         result = audit_patch_surface(self.lab, fake_functions())
         ids = {item["id"] for item in result["findings"]}
@@ -935,6 +992,33 @@ class BridgePatchTests(FixtureCase):
         instructions = bridge.rpc_patch_instructions(
             {"path": str(self.binary), "function": "main"})["instructions"]
         self.assertEqual(instructions[0]["bytes"], "ba 2c 01 00 00")
+
+    def test_batch_preview_merges_and_rejects_conflicting_suggestions(self):
+        bridge = self._bridge()
+        params = {"path": str(self.binary)}
+        readlen = {"kind": "readlen", "function": "main", "callee": "read", "size": "0x40"}
+        stub = {"kind": "plt_stub", "source": "read", "target": "exit"}
+        before = self.binary.read_bytes()
+        merged = bridge.rpc_patch_preview({**params, "requests": [readlen, stub, dict(readlen)]})
+        self.assertEqual(sorted(op["vaddr"] for op in merged["ops"]), [BASE + 0x80, BASE + 0xA0])
+        self.assertEqual(self.binary.read_bytes(), before, "预览组合补丁不得写盘")
+        with self.assertRaisesRegex(ValueError, "请分开预览"):
+            bridge.rpc_patch_preview({**params, "requests": [
+                readlen, {"kind": "ret_function", "function": "main"}]})
+        with self.assertRaisesRegex(ValueError, "没有选中任何缓解项"):
+            bridge.rpc_patch_preview({**params, "requests": []})
+
+    def test_disassembly_is_cached_between_previews_and_dropped_on_apply(self):
+        bridge = self._bridge()
+        params = {"path": str(self.binary),
+                  "request": {"kind": "readlen", "function": "main", "callee": "read", "size": "0x40"}}
+        preview = bridge.rpc_patch_preview(params)
+        calls_after_first = bridge._runner.run_tool.call_count
+        bridge.rpc_patch_preview(params)
+        self.assertEqual(bridge._runner.run_tool.call_count, calls_after_first,
+                         "同一文件版本的第二次预览不应重跑 objdump")
+        bridge.rpc_patch_apply({"path": str(self.binary), "preview_id": preview["preview_id"]})
+        self.assertEqual(bridge._disasm_cache, {}, "补丁写入后反汇编缓存必须作废")
 
     def test_unknown_request_kind_is_rejected(self):
         bridge = self._bridge()

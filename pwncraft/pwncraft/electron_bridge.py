@@ -102,6 +102,7 @@ class ElectronBridge:
         self._patch_labs: dict[str, PatchLab] = {}
         self._patch_previews: dict[str, dict] = {}
         self._patch_targets: dict[str, dict] = {}
+        self._disasm_cache: dict[str, list[dict]] = {}
         self._ida_link: IdaCliLink | None = None
 
     # ------------------------------------------------------------------
@@ -324,12 +325,28 @@ class ElectronBridge:
         return self._patch_targets.get(str(lab.binary.resolve()), self.workspace.target or {})
 
     def _disassemble_functions(self, binary: Path) -> tuple[list[dict], str]:
+        """反汇编工作副本；按（路径+mtime+大小）缓存，补丁写入后自动失效。
+
+        通防流程会连续预览多张卡片、每个建议都重建 ops，缓存避免每次重新
+        启动 wsl objdump。缓存键含 mtime_ns 与文件大小，补丁落盘即换键。
+        """
+        try:
+            key = self._import_cache_key(binary)
+        except OSError as error:
+            return [], str(error)
+        cached = self._disasm_cache.get(key)
+        if cached is not None:
+            return cached, ""
         result = self._runner.run_tool("objdump", ["-d", "--insn-width=16", "--",
                                                    self._runner.to_wsl_path(binary)])
         if not result.ok:
             return [], result.combined_output() or f"objdump 退出码 {result.returncode}"
         from pwncraft.core.code_analysis import parse_disassembly
-        return parse_disassembly(result.stdout)["functions"], ""
+        functions = parse_disassembly(result.stdout)["functions"]
+        if len(self._disasm_cache) >= 4:
+            self._disasm_cache.clear()
+        self._disasm_cache[key] = functions
+        return functions, ""
 
     def _patch_arch(self, binary: Path) -> str:
         facts = BinaryInspector().inspect(binary)
@@ -473,8 +490,37 @@ class ElectronBridge:
         Path(dest).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return {"path": dest, "sha256": report["sha256"], "count": report["summary"]["total"]}
 
+    @staticmethod
+    def _merge_patch_ops(ops: list[PatchOp]) -> list[PatchOp]:
+        """合并多个建议产生的补丁：同地址同字节只保留一条，同地址不同字节明确报错。"""
+        merged: dict[int, PatchOp] = {}
+        for op in ops:
+            existing = merged.get(op.vaddr)
+            if existing is None:
+                merged[op.vaddr] = op
+                continue
+            if existing.new_bytes != op.new_bytes:
+                raise ValueError(
+                    f"0x{op.vaddr:x} 被 {existing.kind} 与 {op.kind} 两个建议同时改写，请分开预览")
+        return list(merged.values())
+
     def rpc_patch_preview(self, params: dict) -> dict:
-        ops, warnings = self._build_patch_ops(params)
+        """预览单个补丁请求，或把 requests 列表合并成一批「组合通防」补丁。"""
+        requests = params.get("requests")
+        if isinstance(requests, list):
+            ops: list[PatchOp] = []
+            warnings: list[str] = []
+            if not requests:
+                raise ValueError("没有选中任何缓解项")
+            for entry in requests:
+                if not isinstance(entry, dict):
+                    raise ValueError("批量预览的每一项都必须是补丁请求对象")
+                built_ops, built_warnings = self._build_patch_ops({**params, "request": entry})
+                ops.extend(built_ops)
+                warnings.extend(built_warnings)
+            ops = self._merge_patch_ops(ops)
+        else:
+            ops, warnings = self._build_patch_ops(params)
         lab = self._patch_lab(params)
         lab.validate_apply(ops)
         token = uuid.uuid4().hex
@@ -500,6 +546,7 @@ class ElectronBridge:
         else:
             ops, warnings = self._build_patch_ops(params)
         outcome = lab.apply(ops)
+        self._disasm_cache.clear()          # 工作副本已变，反汇编缓存全部作废
         if token:
             self._patch_previews.pop(token, None)
         self._log(f"AWDP 补丁已应用 {len(ops)} 条（备份: {Path(outcome['backup']).name}）")
@@ -520,12 +567,14 @@ class ElectronBridge:
     def rpc_patch_undo(self, params: dict) -> dict:
         lab = self._patch_lab(params)
         outcome = lab.undo(str(params.get("op_id") or ""))
+        self._disasm_cache.clear()
         self._log(f"已撤销补丁组 {outcome['batch_id']}（{outcome['count']} 条）")
         return {**outcome, "log": lab.inspect_ops()}
 
     def rpc_patch_clear(self, params: dict) -> dict:
         lab = self._patch_lab(params)
         outcome = lab.undo_all()
+        self._disasm_cache.clear()
         self._log(f"已撤销全部 {outcome['count']} 条补丁")
         return {**outcome, "log": []}
 

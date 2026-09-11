@@ -9809,6 +9809,7 @@ select.input { font: inherit; }
 #patcher-input { width: 100%; min-height: 90px; resize: vertical; }
 .patch-insn-table td:last-child { white-space: nowrap; }
 .patch-audit-item { display: flex; gap: 12px; align-items: center; padding: 7px 9px; border-left: 3px solid var(--border); background: var(--bg-raised); }
+.patch-audit-pick { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); white-space: nowrap; }
 .patch-audit-item > div { flex: 1; min-width: 0; }
 .patch-audit-item.severity-critical { border-left-color: #f14c4c; }
 .patch-audit-item.severity-high { border-left-color: var(--warning); }

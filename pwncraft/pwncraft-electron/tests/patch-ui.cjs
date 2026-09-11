@@ -80,15 +80,17 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
         evidence: ['0x1004: mov $0x12c,%edx'], request: { kind: 'readlen', function: 'main', callee: 'read', size: '0x40' }, action: '预览长度收紧' },
     ], function_count: 3, plt_imports: ['exit', 'read', 'system'], binary: 'fixture' };
   if (method === 'patch_preview') {
-    const kind = (params.request || {}).kind;
+    const requests = Array.isArray(params.requests) ? params.requests : [params.request || {}];
     const previewId = `preview-${previews.size + 1}`;
-    previews.set(previewId, params.request);
-    return { preview_id: previewId, ops: [OP(kind || 'custom', 0x1004, `预览-${kind}`)], warnings: ['预览警示'], binary: params.path };
+    previews.set(previewId, { request: requests[0] || {}, requests });
+    return { preview_id: previewId,
+      ops: requests.map((entry, index) => OP(entry.kind || 'custom', 0x1004 + index, `预览-${entry.kind}`)),
+      warnings: ['预览警示'], binary: params.path };
   }
   if (method === 'patch_apply') {
     const request = previews.get(params.preview_id);
     assert.ok(request, 'apply must consume a server preview');
-    const op = OP(request.kind, 0x1004, `应用-${request.kind}`);
+    const op = OP(request.request.kind, 0x1004, `应用-${request.request.kind}`);
     appliedLog = [...appliedLog, op];
     return { applied: [op], backup: 'C:/测试/.pwncraft/runtime/pwn.patchbak.123', warnings: [], binary: 'fixture', log: appliedLog };
   }
@@ -186,7 +188,7 @@ app.whenReady().then(async () => {
     await click('#patch-preview-apply');
     await until('!!document.querySelector(".patch-message")');
     assert.match(await js('document.querySelector(".patch-message").innerText'), /已应用 1 条补丁/);
-    assert.equal(previews.get(lastCall('patch_apply').result.preview_id).kind, 'nop_instructions');
+    assert.equal(previews.get(lastCall('patch_apply').result.preview_id).request.kind, 'nop_instructions');
     assert.equal(lastCall('patch_apply').result.path, 'C:/测试/awdp-pwn');
     assert.equal(calls.some(call => call.method === 'ida_status'), false, 'IDA must not block import or patch');
 
@@ -251,6 +253,14 @@ app.whenReady().then(async () => {
     await until('!!document.querySelector(".patch-preview")');
     assert.equal(lastCall('patch_preview').result.request.kind, 'plt_call');
     await click('#patch-preview-cancel');
+    // 组合通防：审计项默认全选，一次预览合并后的补丁
+    assert.equal(await js('document.querySelectorAll(".patch-audit-pick input:checked").length'), 2);
+    await click('#patch-audit-batch');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.requests.length, 2);
+    assert.match(await js('document.querySelector(".patch-preview").innerText'), /组合通防 · 2 项/);
+    await click('#patch-preview-cancel');
+    await until('!document.querySelector(".patch-preview")');
     assert.match(await js('document.querySelector(".recipe-card").innerText'), /seccomp 沙箱注入/);
     assert.equal(await js('document.querySelector(".patch-usage")'), null, '使用说明折叠块已移除');
     const presetOptions = () => js('[...document.querySelectorAll(".recipe-card select option")].map(o => o.value)');

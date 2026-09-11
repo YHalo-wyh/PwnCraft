@@ -15,11 +15,17 @@ _CALL_PLT_RE = re.compile(r"^\s*call[qw]?\s+([0-9a-fA-F]+)\s+<([^>]+)>")
 _MOV_IMM32_RE = re.compile(r"^\s*mov[q]?\s+\$0x([0-9a-fA-F]+),%(e?(?:dx|si|di|cx|ax))\b")
 _PUSH_IMM_RE = re.compile(r"^\s*push[l]?\s+\$0x([0-9a-fA-F]+)\b")
 
-# amd64 第三参数（read 计数）与 fgets 第二参数（尺寸）的 imm32 载体寄存器
-_LENGTH_REGISTERS = {
-    "read": ("edx",),
-    "fgets": ("esi",),
+# 长度收紧支持的调用。amd64 用长度参数的 imm32 载体寄存器：
+# read/recv/recvfrom 的长度是第 3 参数（edx），fgets 的尺寸是第 2 参数（esi）。
+LENGTH_REGISTERS = {
+    "read": "edx",
+    "recv": "edx",
+    "recvfrom": "edx",
+    "fgets": "esi",
 }
+# i386 cdecl 下长度参数的实参序号（0 起），用于从 call 向前回溯 push 立即数。
+LENGTH_ARG_INDEX = {"read": 2, "recv": 2, "recvfrom": 2, "fgets": 1}
+_LENGTH_CALLEES = tuple(LENGTH_REGISTERS)
 _MOV_OPCODE = {  # mov r32, imm32 的操作码（rd 编码）
     "eax": 0xB8, "ecx": 0xB9, "edx": 0xBA, "ebx": 0xBB,
     "esp": 0xBC, "ebp": 0xBD, "esi": 0xBE, "edi": 0xBF,
@@ -134,6 +140,15 @@ def _calls_callee(text: str, callee: str) -> bool:
     return bool(match) and str(match[2]).startswith(f"{callee}@")
 
 
+def _first_call_callee(instructions: list[dict]) -> str:
+    """窗口内第一条直接调用的符号名（无符号间接调用不算），用于长度立即数归属判定。"""
+    for insn in instructions:
+        match = _CALL_PLT_RE.match(str(insn.get("text") or ""))
+        if match:
+            return str(match[2]).split("@", 1)[0]
+    return ""
+
+
 def instruction_region(functions: list[dict], function: str, start: int, end: int) -> list[dict]:
     """Resolve a contiguous span bounded by complete instructions in one function."""
     _, instructions = _function_instructions(functions, function)
@@ -178,9 +193,9 @@ def build_instruction_patch(lab: PatchLab, functions: list[dict], function: str,
 
 def build_read_length(lab: PatchLab, functions: list[dict], function: str,
                       callee: str, new_size: int) -> dict:
-    """收紧 read/fgets 长度立即数（amd64 寄存器 / i386 栈传参）。"""
-    if callee not in _LENGTH_REGISTERS:
-        raise ValueError("长度收紧目前支持 read（edx）与 fgets（esi）")
+    """收紧 read/recv/recvfrom/fgets 长度立即数（amd64 寄存器 / i386 栈传参）。"""
+    if callee not in LENGTH_REGISTERS:
+        raise ValueError(f"长度收紧支持 {' / '.join(_LENGTH_CALLEES)} 的常量长度")
     bits = 64 if lab.geometry()["is64"] else 32
     size = int(new_size)
     if not 0 < size <= 0xFFFFFFFF:
@@ -188,13 +203,13 @@ def build_read_length(lab: PatchLab, functions: list[dict], function: str,
     fn, instructions = _function_instructions(functions, function)
     ops: list[PatchOp] = []
     if bits == 64:
-        registers = _LENGTH_REGISTERS[callee]
+        register = LENGTH_REGISTERS[callee]
         for index, insn in enumerate(instructions):
             match = _MOV_IMM32_RE.match(insn["text"] or "")
-            if not match or match[2] not in registers or insn["size"] != 5:
+            if not match or match[2] != register or insn["size"] != 5:
                 continue
             window = instructions[index + 1:index + 6]
-            if not any(_calls_callee(w["text"], callee) for w in window):
+            if _first_call_callee(window) != callee:
                 continue
             if insn["bytes"][0] != _MOV_OPCODE[match[2]]:
                 raise ValueError(f"0x{insn['address']:x} 处寄存器编码与预期不符，请人工确认")
@@ -207,8 +222,8 @@ def build_read_length(lab: PatchLab, functions: list[dict], function: str,
                 new_bytes=bytes([_MOV_OPCODE[match[2]]]) + struct.pack("<I", size),
                 note=f"{fn['name']}: mov {match[2]},0x{int(match[1],16):x} → 0x{size:x}（{callee} 长度）"))
     else:
-        # cdecl：离 call 最近的 push 是第 1 参数；read 的长度是第 3 参数，fgets 是第 2 参数。
-        arg_index = 2 if callee == "read" else 1
+        # cdecl：离 call 最近的 push 是第 1 参数；长度参数序号见 LENGTH_ARG_INDEX。
+        arg_index = LENGTH_ARG_INDEX[callee]
         for call_index, call in enumerate(instructions):
             if not _calls_callee(call["text"], callee):
                 continue
@@ -407,18 +422,20 @@ RECIPE_CATALOG: tuple[dict, ...] = (
     },
     {
         "id": "readlen",
-        "name": "read / fgets 长度收紧",
+        "name": "read / recv 长度收紧",
         "usage": (
-            "在选中函数里定位紧邻 `read@plt` 调用的 `mov edx, $imm32`（或 fgets 的 "
-            "`mov esi, $imm32`），把立即数替换为安全长度。栈溢出的经典通防：新长度 ≤ "
-            "缓冲区实际容量（对照函数栈帧大小 sub rsp, N）。\n"
-            "适用：read/fgets 读入长度超过栈缓冲导致的溢出。\n"
+            "在选中函数里定位紧邻 `read@plt` / `recv@plt` / `recvfrom@plt` 调用的 "
+            "`mov edx, $imm32`（或 fgets 的 `mov esi, $imm32`），把立即数替换为安全长度。"
+            "读入类漏洞的经典通防：新长度 ≤ 缓冲区实际容量（对照函数栈帧大小 sub rsp, N）。\n"
+            "适用：read/recv/recvfrom/fgets 读入长度超过栈缓冲导致的溢出，网络服务同样适用。\n"
             "amd64 自动追踪 edx/esi 立即数；i386 按 cdecl 参数位置回溯 push 立即数，并保持"
             "原指令长度等长改写。"),
         "fields": [
             {"key": "function", "label": "目标函数", "kind": "select", "dynamic": True},
             {"key": "callee", "label": "目标调用", "kind": "select",
              "options": [{"value": "read", "label": "read（amd64 edx / i386 第3参数）"},
+                         {"value": "recv", "label": "recv（amd64 edx / i386 第3参数）"},
+                         {"value": "recvfrom", "label": "recvfrom（amd64 edx / i386 第3参数）"},
                          {"value": "fgets", "label": "fgets（amd64 esi / i386 第2参数）"}]},
             {"key": "size", "label": "新长度（十六进制 0x.. 或十进制）", "kind": "number",
              "default": "0x30"},

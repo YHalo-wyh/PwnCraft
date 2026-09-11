@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 
 from .patch_core import PatchLab, parse_instruction_lines
-from .recipes import extract_plt_stubs, find_call_sites
+from .recipes import LENGTH_ARG_INDEX, LENGTH_REGISTERS, extract_plt_stubs, find_call_sites
 
 
 _RISK_IMPORTS: dict[str, tuple[str, str]] = {
@@ -70,38 +70,51 @@ def _call_target(text: str) -> str:
     return match.group(1).split("@", 1)[0] if match else ""
 
 
+def _length_candidates(instructions: list[dict], is64: bool) -> list[tuple[dict, str, int]]:
+    """常量长度站点：寄存器必须正好落在该调用长度参数的位置，且紧邻该调用。
+
+    amd64 只认 mov 之后的第一条 call（无关调用在前时不误报）；i386 按 cdecl
+    从 call 向前回溯 push，长度参数序号来自 recipes.LENGTH_ARG_INDEX。
+    """
+    candidates: list[tuple[dict, str, int]] = []
+    if is64:
+        for index, insn in enumerate(instructions):
+            match = _MOV_LENGTH_RE.match(str(insn.get("text") or ""))
+            if not match:
+                continue
+            for item in instructions[index + 1:index + 6]:
+                callee = _call_target(str(item.get("text") or ""))
+                if not callee:
+                    continue
+                if LENGTH_REGISTERS.get(callee) == match.group(2):
+                    candidates.append((insn, callee, int(match.group(1), 16)))
+                break
+        return candidates
+    for call_index, call in enumerate(instructions):
+        callee = _call_target(str(call.get("text") or ""))
+        if callee not in LENGTH_ARG_INDEX:
+            continue
+        arg_index = LENGTH_ARG_INDEX[callee]
+        pushes = []
+        for item in reversed(instructions[max(0, call_index - 12):call_index]):
+            text = str(item.get("text") or "").lstrip()
+            if text.startswith("call"):
+                break
+            if text.startswith("push"):
+                pushes.append(item)
+        if len(pushes) > arg_index:
+            match = _PUSH_LENGTH_RE.match(str(pushes[arg_index].get("text") or ""))
+            if match:
+                candidates.append((pushes[arg_index], callee, int(match.group(1), 16)))
+    return candidates
+
+
 def _length_findings(lab: PatchLab, functions: list[dict]) -> list[dict]:
     findings: list[dict] = []
     is64 = lab.geometry()["is64"]
     for function in functions:
         instructions = parse_instruction_lines(str(function.get("assembly") or ""))
-        candidates: list[tuple[dict, str, int]] = []
-        if is64:
-            for index, insn in enumerate(instructions):
-                match = _MOV_LENGTH_RE.match(str(insn.get("text") or ""))
-                if match:
-                    callee = "read" if match.group(2) == "edx" else "fgets"
-                    if any(_call_target(str(item.get("text") or "")) == callee
-                           for item in instructions[index + 1:index + 6]):
-                        candidates.append((insn, callee, int(match.group(1), 16)))
-        else:
-            for call_index, call in enumerate(instructions):
-                callee = _call_target(str(call.get("text") or ""))
-                if callee not in ("read", "fgets"):
-                    continue
-                arg_index = 2 if callee == "read" else 1
-                pushes = []
-                for item in reversed(instructions[max(0, call_index - 12):call_index]):
-                    text = str(item.get("text") or "").lstrip()
-                    if text.startswith("call"):
-                        break
-                    if text.startswith("push"):
-                        pushes.append(item)
-                if len(pushes) > arg_index:
-                    match = _PUSH_LENGTH_RE.match(str(pushes[arg_index].get("text") or ""))
-                    if match:
-                        candidates.append((pushes[arg_index], callee, int(match.group(1), 16)))
-        for insn, callee, size in candidates:
+        for insn, callee, size in _length_candidates(instructions, is64):
             if size <= 0x100:
                 continue
             name = str(function.get("name") or "(未知函数)")

@@ -28,7 +28,7 @@
       functions: null, functionsError: '', loading: false,
       instructions: null, instructionsError: '', insnLoading: false,
       hex: '', recipes: null, recipesError: '', recipesLoading: false, forms: {},
-      audit: null, auditError: '', auditLoading: false,
+      audit: null, auditError: '', auditLoading: false, auditPicks: null,
       preview: null, previewRequest: null, previewTitle: '', previewError: '',
       log: null, logSummary: null, logError: '', logLoading: false,
       catalogQuery: '', catalogData: null,
@@ -95,14 +95,17 @@
 
   // ------------------------------------------------------------------
   // 共用：预览 / 应用
-  async function previewPatch(entry, request, title) {
+  async function previewPatch(entry, payload, title) {
     const cache = cacheOf(entry);
     if (cache.busy) return;
+    const batch = Array.isArray(payload);
+    if (batch && !payload.length) return;
     cache.error = '';
     cache.previewError = ''; cache.preview = null; cache.previewTitle = title;
-    cache.previewRequest = request; cache.busy = true; cache.message = ''; render();
+    cache.previewRequest = batch ? { requests: payload } : { request: payload };
+    cache.busy = true; cache.message = ''; render();
     try {
-      cache.preview = await requestFor(entry, 'patch_preview', { request });
+      cache.preview = await requestFor(entry, 'patch_preview', cache.previewRequest);
     } catch (error) {
       cache.previewError = error.message || String(error);
     } finally {
@@ -736,6 +739,24 @@
         if (finding?.request) previewPatch(entry, finding.request, finding.title);
       };
     });
+    const picks = auditPicks(cache, cache.audit?.findings || []);
+    panel.querySelectorAll('.patch-audit-pick input').forEach((box) => {
+      box.onchange = () => {
+        const index = Number(box.dataset.index);
+        if (box.checked) picks.add(index); else picks.delete(index);
+        const button = query('#patch-audit-batch');
+        if (button) {
+          button.textContent = `组合预览选中项（${picks.size}）`;
+          button.disabled = !picks.size || cache.busy;
+        }
+      };
+    });
+    const batchPreview = query('#patch-audit-batch');
+    if (batchPreview) batchPreview.onclick = () => {
+      const requests = [...picks].sort((a, b) => a - b)
+        .map(index => cache.audit?.findings?.[index]?.request).filter(Boolean);
+      if (requests.length) previewPatch(entry, requests, `组合通防 · ${requests.length} 项`);
+    };
     query('#patch-open-manual').onclick = () => { cache.tab = 'manual'; render(); };
     panel.querySelectorAll('.patch-audit-location').forEach(button => {
       button.onclick = () => openLocation(entry,
@@ -753,12 +774,24 @@
     wirePreviewBox(entry, cache);
   }
 
+  function auditPicks(cache, findings) {
+    if (!(cache.auditPicks instanceof Set)) {
+      cache.auditPicks = new Set(findings
+        .map((finding, index) => (finding.request ? index : -1))
+        .filter(index => index >= 0));
+    }
+    return cache.auditPicks;
+  }
+
   function renderAudit(cache) {
     const findings = cache.audit?.findings || [];
     const summary = cache.audit?.summary;
+    const picks = auditPicks(cache, findings);
     return `<section class="patch-audit card">
       <div class="card-title">自动风险扫描
         <span class="flex-spacer"></span>
+        <button class="mini-btn primary" id="patch-audit-batch"
+          ${!picks.size || cache.busy ? 'disabled' : ''}>组合预览选中项（${picks.size}）</button>
         <button class="mini-btn" id="patch-audit-run" ${cache.auditLoading ? 'disabled' : ''}>${cache.auditLoading ? '扫描中…' : '重新扫描'}</button>
         <button class="mini-btn" id="patch-audit-export" ${!summary ? 'disabled' : ''}>导出扫描报告</button>
       </div>
@@ -774,6 +807,7 @@
         <p>SHA-256：${esc(cache.audit.sha256 || '')}</p></details>` : ''}
       ${findings.length ? `<div class="patch-audit-list">${findings.map((finding, index) => `
         <div class="patch-audit-item severity-${esc(finding.severity)}">
+          ${finding.request ? `<label class="patch-audit-pick"><input type="checkbox" data-index="${index}" ${picks.has(index) ? 'checked' : ''}> 组合</label>` : ''}
           <div><strong>${esc(finding.title)}</strong>
             <span class="chip">${esc(({ dangerous_api: '危险 API 用法', review: '需要复核', hardening: '加固建议' })[finding.confidence] || '需要复核')}</span>
             <div class="hint-dim">${esc(finding.detail)}</div>
@@ -792,9 +826,11 @@
     refreshScanViews(entry);
     try {
       cache.audit = await requestFor(entry, 'patch_audit', {});
+      cache.auditPicks = null;
     } catch (error) {
       cache.auditError = error.message || String(error);
       cache.audit = { findings: [], summary: null };
+      cache.auditPicks = null;
     } finally {
       cache.auditLoading = false;
       refreshScanViews(entry);
@@ -1136,7 +1172,7 @@
   window.PwnPatch = { render, openLocation,
     scan: (entry, force = false) => {
       const cache = cacheOf(entry);
-      if (force) { cache.audit = null; cache.auditError = ''; }
+      if (force) { cache.audit = null; cache.auditError = ''; cache.auditPicks = null; }
       if (cache.audit === null && !cache.auditLoading) return ensureAudit(entry);
     },
     showAudit: () => { const entry = entryNow(); if (entry) { cacheOf(entry).tab = 'recipes'; app().switchPage('patch'); } },
