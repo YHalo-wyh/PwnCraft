@@ -35,13 +35,16 @@ def synth_case_id(binary_sha256: str, strategy_id: str, exp_source: str) -> str:
 
 
 def _plan_markdown(facts: TargetFacts, strategy: ExploitStrategy, rendered: RenderedExp | None,
-                   verdict: Mapping[str, object]) -> str:
+                   verdict: Mapping[str, object],
+                   verification: Mapping[str, object] | None = None) -> str:
     lines = [f"# 合成计划 · {strategy.id}", "",
              f"- 策略：{strategy.name}（status={strategy.status}）",
              f"- 目标：`{facts.path}`  sha256=`{facts.sha256}`",
              f"- 保护：PIE={facts.security.get('PIE')} NX={facts.security.get('NX')} "
              f"CANARY={facts.security.get('CANARY')} RELRO={facts.security.get('RELRO')}",
              f"- 往返自检：{verdict.get('verdict')}（ERROR {verdict.get('error_count')} 条）",
+             f"- 运行时验证：{(verification or {}).get('status') or 'NOT_RUN'}"
+             f"（{(verification or {}).get('summary') or '未执行'}）",
              "", "## 步骤"]
     lines.extend(f"{index}. {step}" for index, step in enumerate(strategy.steps, 1))
     if strategy.missing:
@@ -67,6 +70,7 @@ def deposit_case(
     strategies: Sequence[ExploitStrategy],
     rendered: RenderedExp | None,
     verdict: Mapping[str, object],
+    verification: Mapping[str, object] | None = None,
 ) -> dict:
     root = Path(dest_root)
     source = rendered.source if rendered is not None else ""
@@ -92,8 +96,10 @@ def deposit_case(
         "audit": {"verdict": verdict.get("verdict"),
                   "error_count": verdict.get("error_count"),
                   "diagnostic_count": verdict.get("diagnostic_count")},
+        "verification": dict(verification) if verification is not None else None,
         "provenance": "DERIVED",
         "training": {"trainable": False,
+                     "runtime_verified": bool((verification or {}).get("status") == "VERIFIED_SHELL"),
                      "gate": "review_queue → 人工评审 → autocorrect intake/splits 注册"},
     }
     if rendered is None:
@@ -113,7 +119,8 @@ def deposit_case(
         "plan.md": _plan_markdown(facts, next(
             (item for item in strategies if item.id == strategy_id),
             ExploitStrategy(id=strategy_id, name=strategy_id,
-                            status="none" if rendered is None else "unknown")), rendered, verdict),
+                            status="none" if rendered is None else "unknown")), rendered, verdict,
+            verification),
     }
     written: list[str] = []
     for name, text in payloads.items():

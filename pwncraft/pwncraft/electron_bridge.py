@@ -27,7 +27,7 @@ Surface map (v0.29):
   patch_undo / patch_clear / patch_reconcile / patch_export / patch_probe / patch_instructions / patch_disasm_raw /
   patch_bytecode_lookup / patch_encode
 - exploit synthesis（VNext.4）: synth_analyze（检测+原语图+策略）/ synth_generate（EXP 骨架 + 往返审计）/
-  synth_deposit（沉淀 review_queue）
+  synth_verify（gdb 测偏移 + 真跑生成的 EXP）/ synth_deposit（沉淀 review_queue）
 """
 from __future__ import annotations
 
@@ -793,6 +793,33 @@ class ElectronBridge:
             self.workspace.set_exploit_source(generated["rendered"].source)
             result["applied"] = True
         return result
+
+    def rpc_synth_verify(self, params: dict) -> dict:
+        """运行时验证（opt-in）：gdb 测偏移 → 渲染 → 真跑一次生成的 EXP。"""
+        from pwncraft.features.synth.pipeline import detection_report, verify_exploit
+
+        binary = self._synth_binary(params)
+        result = verify_exploit(binary, runner=self._runner,
+                                strategy=str(params.get("strategy") or ""),
+                                timeout=int(params.get("timeout") or 60),
+                                marker=str(params.get("marker") or "PWN_SYNTH_OK"),
+                                patch_findings=self._synth_evidence(binary),
+                                **self._synth_options(params))
+        report = detection_report(result)
+        report["runtime"] = dict(result["runtime"])
+        report["execution"] = result["execution"]
+        report["verification"] = dict(result["verification"])
+        report["verdict"] = result["verdict"]
+        if result.get("rendered") is not None:
+            report["source"] = result["rendered"].source
+            report["unresolved"] = list(result["rendered"].unresolved)
+            report["constants"] = dict(result["rendered"].constants)
+            if params.get("apply"):
+                self.workspace.set_exploit_source(report["source"])
+                report["applied"] = True
+        verification = result["verification"]
+        self._log(f"运行时验证：{verification.get('status')} — {verification.get('summary')}")
+        return report
 
     def rpc_synth_deposit(self, params: dict) -> dict:
         """把检测 + 骨架沉淀到 review_queue（生成物默认 trainable=false）。"""

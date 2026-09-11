@@ -26,6 +26,9 @@ ALLOWED_TOOLS = {
     "ropper",
     "one_gadget",
     "seccomp-tools",
+    # Headless runtime verification (synth pipeline): batch gdb only ever runs
+    # with固定 argv（-batch/-nx/固定 -ex），不做交互式命令注入面。
+    "gdb",
 }
 _WINDOWS_ABSOLUTE_RE = re.compile(r"^[A-Za-z]:[\\/]")
 

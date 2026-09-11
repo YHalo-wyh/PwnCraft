@@ -131,10 +131,13 @@ def build_primitive_graph(
             except (TypeError, ValueError):
                 offset = None
     if offset is not None:
+        method = str(stack_truth.get("method") or "observed")
+        evidence = tuple(str(item) for item in (stack_truth.get("evidence") or ())) \
+            or (str(stack_truth),)
         graph.add(PrimitiveNode(
             id="primitive:control_flow_hijack", kind="control_flow",
-            detail=f"保存返回地址偏移 0x{offset:x}（运行时观测）",
-            evidence=(str(stack_truth),), provenance=PROVENANCE_OBSERVED,
+            detail=f"保存返回地址偏移 0x{offset:x}（{method}）",
+            evidence=evidence, provenance=PROVENANCE_OBSERVED,
             confidence=CONFIDENCE_PROVEN))
     else:
         graph.add(PrimitiveNode(

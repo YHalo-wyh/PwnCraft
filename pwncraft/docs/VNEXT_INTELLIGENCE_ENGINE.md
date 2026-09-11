@@ -99,8 +99,10 @@ Layer 4  Human Intelligence     Canvas / 编辑 / 推演 / 教学    → 现有 
 - **首版已落地（2026-09-11）**：`features/synth/` 实现 VNext.3.1#9 原语图 +
   VNext.4 前半（规则驱动策略：ret2win/ret2plt/ret2libc/orw/srop/fmt/heap）+
   VNext.6 最小渲染器（诚实骨架 + `audit_exp` 往返自检）+ review_queue 沉淀与
-  批量喂题 CLI。详见 `docs/exploit_synthesis.md`；运行时执行器（VNext.4 实验执行器）
-  仍未接入，故 EXP 可利用性恒为 UNVERIFIED。
+  批量喂题 CLI。**VNext.4 实验执行器首版同日落地**：headless gdb 测保存返回地址偏移
+  （saved_rip / saved_rbp / stack_scan 三档方法 + 置信度）+ 执行生成的 EXP 以
+  marker 判定 `VERIFIED_SHELL / UNCONFIRMED / NOT_RUN`。详见 `docs/exploit_synthesis.md`。
+  仍未做：heap 路径裁剪（需 heapviz canonical ops）与多阶段/泄漏类 EXP 的自动验证。
 
 ## 防自证与语料
 每道题沉淀：ELF / BinaryIR / 语义标签 / 漏洞 / 原语 / 策略 / EXP /

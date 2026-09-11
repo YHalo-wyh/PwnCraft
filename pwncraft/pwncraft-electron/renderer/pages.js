@@ -69,12 +69,17 @@
         <div class="hint-dim">结果为静态规则线索，查看调用证据和扫描限制后再确定修复方式。</div>
         <div class="binary-synth">
           <button class="mini-btn" id="binary-synth-run" ${scan?.synthLoading ? 'disabled' : ''}>${scan?.synthLoading ? '合成中…' : '自动检测 + 生成 EXP 骨架'}</button>
+          <button class="mini-btn" id="binary-synth-verify" ${scan?.synthVerifyLoading ? 'disabled' : ''}>${scan?.synthVerifyLoading ? '验证中…' : '运行时验证（gdb）'}</button>
           ${scan?.synth ? `<span class="chip">策略 ${esc(scan.synth.best?.id || '无')}</span>
             <span class="chip">状态 ${esc(scan.synth.best?.status || '-')}</span>
             <span class="chip">往返 ${esc((scan.synth.verdict || {}).verdict || '-')}</span>
             ${(scan.synth.unresolved || []).length ? `<span class="chip">未解析 ${scan.synth.unresolved.length}</span>` : ''}
             <button class="mini-btn primary" id="binary-synth-apply">写入 EXP 编辑器</button>` : ''}
+          ${scan?.synthVerify ? `<span class="chip">偏移 ${scan.synthVerify.runtime?.offset !== null && scan.synthVerify.runtime?.offset !== undefined ? `0x${Number(scan.synthVerify.runtime.offset).toString(16)}` : '未测出'}</span>
+            <span class="chip">验证 ${esc((scan.synthVerify.verification || {}).status || '-')}</span>` : ''}
         </div>
+        ${scan?.synthVerifyError ? `<div class="analysis-error">运行时验证失败：${esc(scan.synthVerifyError)}</div>` : ''}
+        ${scan?.synthVerify?.verification?.summary ? `<div class="hint-dim">运行时：${esc(scan.synthVerify.verification.summary)}</div>` : ''}
         ${scan?.synthError ? `<div class="analysis-error">合成失败：${esc(scan.synthError)}</div>` : ''}
         ${(scan?.synth?.best?.missing || []).length ? `<div class="hint-dim">缺口：${(scan.synth.best.missing || []).map(esc).join('；')}</div>` : ''}
       </section>
@@ -134,6 +139,7 @@
     $('#binary-audit-open', host).onclick = () => window.PwnPatch?.showAudit();
     $('#binary-audit-refresh', host).onclick = () => window.PwnPatch?.scan(auditEntry, true);
     $('#binary-synth-run', host).onclick = () => runSynth(auditEntry, working);
+    $('#binary-synth-verify', host).onclick = () => runSynthVerify(auditEntry, working);
     const synthApply = $('#binary-synth-apply', host);
     if (synthApply) synthApply.onclick = () => {
       app().replaceExpText((auditEntry?.patch?.synth?.source) || '');
@@ -154,6 +160,24 @@
       cache.synthError = error.message || String(error);
     } finally {
       cache.synthLoading = false;
+      renderBinary();
+    }
+  }
+
+  /** 运行时验证（opt-in）：gdb 测偏移 → 生成 → 真跑一次 EXP；结果含证据。 */
+  async function runSynthVerify(entry, working) {
+    if (!entry) return;
+    const cache = entry.patch ||= {};
+    cache.synthVerifyLoading = true; cache.synthVerifyError = '';
+    renderBinary();
+    try {
+      const result = await window.pwncraft.request('synth_verify', { path: working, apply: false });
+      cache.synth = result;
+      cache.synthVerify = result;
+    } catch (error) {
+      cache.synthVerifyError = error.message || String(error);
+    } finally {
+      cache.synthVerifyLoading = false;
       renderBinary();
     }
   }

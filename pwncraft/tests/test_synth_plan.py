@@ -18,9 +18,12 @@ from pwncraft.features.synth.deposit import deposit_case, synth_case_id
 from pwncraft.features.synth.facts import (PltStub, TargetFacts, _find_strings, _parse_dump_line,
                                            _parse_relocations, _parse_section_dump)
 from pwncraft.features.synth.graph import build_primitive_graph
-from pwncraft.features.synth.pipeline import analyze_target, detection_report, generate_exp
+from pwncraft.features.synth.facts import LocalToolRunner
+from pwncraft.features.synth.pipeline import analyze_target, detection_report, generate_exp, verify_exploit
 from pwncraft.features.synth.render import render_exp
 from pwncraft.features.synth.roundtrip import VERDICT_CLEAN, verify_exp
+from pwncraft.features.synth.runtime import (discover_stack_offset, resolve_offset,
+                                             run_exp_source, summarize_runtime)
 from pwncraft.features.synth.strategy import plan_strategies
 
 # objdump 行含 ASCII 列伪装成十六进制的真实踩坑样本（最后一段以 "652 i18n" 开头）
@@ -50,6 +53,109 @@ DISASM_SAMPLE = (
     "  401200:\t55                   \tpush   %rbp\n"
     "  401201:\t0f 05                \tsyscall\n"
     "  401203:\tc3                   \tret\n")
+
+
+class RuntimeResolutionTests(TestCase):
+    """偏移判定与结论措辞：全部用离线构造的寄存器/栈转储。"""
+
+    def _hit(self, offset: int, bits: int = 64) -> int:
+        """构造一个落在模式里、偏移恰为 offset 的字。"""
+        from pwncraft.core.cyclic import cyclic_pattern
+
+        word = 8 if bits == 64 else 4
+        return int.from_bytes(cyclic_pattern(offset + word)[offset:offset + word], "little")
+
+    def test_saved_rip_wins_and_reports_proven(self):
+        registers = {"rip": self._hit(0x48), "rbp": 0x7FFD0000, "rsp": 0x7FFD0000}
+        resolved = resolve_offset(registers, [], bits=64)
+        self.assertEqual((resolved["offset"], resolved["method"], resolved["confidence"]),
+                         (0x48, "saved_rip", "proven"))
+        self.assertTrue(any("offset = 0x48" in item for item in resolved["evidence"]))
+
+    def test_saved_rbp_adds_word_size(self):
+        registers = {"rip": 0x401198, "rbp": self._hit(0x40), "rsp": 0x7FFD0000}
+        resolved = resolve_offset(registers, [], bits=64)
+        self.assertEqual((resolved["offset"], resolved["method"]), (0x48, "saved_rbp"))
+
+    def test_i386_uses_four_byte_words(self):
+        registers = {"eip": 0x8049000, "ebp": self._hit(0x24, bits=32), "esp": 0xFFFFD000}
+        resolved = resolve_offset(registers, [], bits=32)
+        self.assertEqual(resolved["word_size"], 4)
+        self.assertEqual((resolved["offset"], resolved["method"]), (0x28, "saved_rbp"))
+
+    def test_stack_scan_is_partial(self):
+        # 槽位在 rbp-0x8（距保存返回地址槽 0x10），字内命中偏移 0x30 → 0x40
+        bp = 0x7FFD1000
+        registers = {"rip": 0x401198, "rbp": bp, "rsp": bp - 0x20}
+        stack = [(bp - 0x20, 0xDEADBEEF), (bp - 0x8, self._hit(0x30))]
+        resolved = resolve_offset(registers, stack, bits=64)
+        self.assertEqual((resolved["offset"], resolved["method"], resolved["confidence"]),
+                         (0x40, "stack_scan", "partial"))
+
+    def test_no_pattern_evidence_is_not_guessed(self):
+        resolved = resolve_offset({"rip": 0x401198, "rbp": 0x7FFD0000}, [], bits=64)
+        self.assertIsNone(resolved["offset"])
+        self.assertEqual(resolved["confidence"], "none")
+        self.assertTrue(any("无法证明" in item for item in resolved["notes"]))
+
+    def test_summarize_runtime_statuses(self):
+        runtime = {"evidence": ["gdb: rip=0x0"]}
+        self.assertEqual(summarize_runtime(runtime, None)["status"], "NOT_RUN")
+        self.assertEqual(summarize_runtime(runtime, {"verified": True})["status"], "VERIFIED_SHELL")
+        self.assertEqual(summarize_runtime(runtime, {"verified": False, "returncode": -11})["status"],
+                         "UNCONFIRMED")
+        self.assertEqual(summarize_runtime(runtime, {"verified": False, "error": "超时"})["status"],
+                         "UNCONFIRMED")
+
+
+@skipUnless(os.name == "posix", "执行验证需要 POSIX 宿主（Windows 经 WSL 由桥完成）")
+class ExecutionTests(TestCase):
+    def test_run_exp_source_detects_marker(self):
+        result = run_exp_source("TARGET = '/nonexistent'\nprint('PWN_SYNTH_OK')\n", timeout=30)
+        self.assertTrue(result["verified"])
+        self.assertIn("PWN_SYNTH_OK", result["stdout_tail"])
+
+    def test_run_exp_source_reports_failure_without_marker(self):
+        result = run_exp_source("raise SystemExit('boom')\n", timeout=30)
+        self.assertFalse(result["verified"])
+        self.assertNotEqual(result["returncode"], 0)
+
+
+class FakeGdbRunner:
+    """只回应 gdb 调用的假 runner（discover_stack_offset 的接线测试）。"""
+
+    def __init__(self, stdout: str) -> None:
+        self.stdout = stdout
+        self.calls: list[list[str]] = []
+
+    def to_wsl_path(self, path) -> str:
+        return str(path)
+
+    def run_tool(self, tool: str, args: list[str], timeout: int = 30):
+        from pwncraft.core.wsl import ToolResult
+
+        self.calls.append([tool, *args])
+        return ToolResult([tool, *args], 0, self.stdout, "")
+
+
+class RuntimeDiscoveryWiringTests(TestCase):
+    def test_discover_stack_offset_parses_gdb_batch_output(self):
+        from pwncraft.core.cyclic import cyclic_pattern
+
+        word = int.from_bytes(cyclic_pattern(0x48 + 8)[0x48:0x50], "little")
+        stdout = (
+            "Program received signal SIGSEGV, Segmentation fault.\n"
+            f"rip            0x{word:016x}\t0x{word:x}\n"
+            "rbp            0x7ffd0000\t0x7ffd0000\n"
+            "rsp            0x7ffe0000\t0x7ffe0000\n"
+            f"0x7ffe0000:\t0xdeadbeef\t0x{word:016x}\n")
+        runner = FakeGdbRunner(stdout)
+        result = discover_stack_offset("/tmp/fake-target", runner=runner, bits=64)
+        self.assertEqual((result["offset"], result["method"]), (0x48, "saved_rip"))
+        self.assertTrue(any("signal SIGSEGV" in item for item in result["evidence"]))
+        self.assertEqual(runner.calls[0][0], "gdb")
+        self.assertIn("--args", runner.calls[0])
+        self.assertFalse(any("\n" in arg for arg in runner.calls[0]), "argv 不得含换行注入")
 
 
 class ParserTests(TestCase):
@@ -297,6 +403,24 @@ class RealElfSynthTests(TestCase):
                                   capture_output=True, timeout=90)
             self.assertIn(b"SYNTH_OK", proc.stdout + proc.stderr,
                           f"生成的 EXP 未打通目标（stdout={proc.stdout[-200:]!r} stderr={proc.stderr[-200:]!r}）")
+
+    def test_runtime_verification_closes_the_loop(self):
+        """闭环：gdb 测偏移 → 策略 ready → EXP 实跑命中 marker（真实执行）。"""
+        if not shutil.which("gdb"):
+            self.skipTest("缺少 gdb")
+        try:
+            import pwn  # noqa: F401
+        except Exception:
+            self.skipTest("pwntools 不可用，跳过运行时闭环验证")
+        with TemporaryDirectory() as folder_str:
+            binary = self._compile(Path(folder_str))
+            result = verify_exploit(binary, runner=LocalToolRunner(), strategy="ret2win", timeout=90)
+            self.assertEqual(result["runtime"]["offset"], 0x48, result["runtime"]["evidence"])
+            self.assertIn(result["runtime"]["method"], ("saved_rip", "saved_rbp"))
+            self.assertEqual(result["strategy"].status, "ready")
+            self.assertEqual(result["rendered"].unresolved, [])
+            self.assertEqual(result["verification"]["status"], "VERIFIED_SHELL",
+                             result["verification"])
 
     def test_unknown_binary_still_produces_negative_sample(self):
         with TemporaryDirectory() as folder_str:

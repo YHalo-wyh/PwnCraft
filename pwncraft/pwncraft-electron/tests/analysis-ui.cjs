@@ -56,6 +56,27 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
       verdict: { verdict: 'ROUND_TRIP_CLEAN', error_count: 0, diagnostic_count: 0, diagnostics: [] },
     };
   }
+  if (method === 'synth_verify') {
+    const strategy = {
+      id: 'ret2win', name: 'ret2win（跳过程序内现成调用点）', status: 'ready',
+      requires: ['primitive:win_function:0'], missing: [], evidence: ['gdb: rip=0x401198'],
+      steps: ['填充到偏移', '覆盖返回地址'], renderer: 'ret2win',
+    };
+    return {
+      target: { path: params.path, sha256: 'a'.repeat(64), arch: 'amd64', bits: 64, security: { PIE: 'OFF' } },
+      summary: { plt: 2, got: 2, functions: 3, win_functions: 1, leak_sites: 0, syscalls: 0,
+        strings: { '/bin/sh': 0x402004 }, libc_symbols: 0, notes: [] },
+      graph: { nodes: [], edges: [] }, strategies: [strategy], best: strategy,
+      source: 'from pwn import *\n# synth fixture\n', constants: {}, unresolved: [], libc_symbols: {},
+      verdict: { verdict: 'ROUND_TRIP_CLEAN', error_count: 0, diagnostic_count: 0, diagnostics: [] },
+      runtime: { offset: 72, method: 'saved_rbp', confidence: 'proven', registers: {}, word_size: 8,
+        evidence: ['gdb: Program received signal SIGSEGV'] },
+      execution: { verified: true, marker: 'PWN_SYNTH_OK', returncode: 0, elapsed_ms: 120,
+        stdout_tail: 'PWN_SYNTH_OK' },
+      verification: { status: 'VERIFIED_SHELL', summary: '生成的 EXP 打通目标（marker 命中）',
+        evidence: ['gdb: Program received signal SIGSEGV'] },
+    };
+  }
   return {};
 });
 
@@ -115,6 +136,13 @@ app.whenReady().then(async () => {
     assert.match(synthText, /往返 ROUND_TRIP_CLEAN/);
     assert.match(synthText, /未解析 1/);
     assert.match(await js('document.querySelector("#page-binary").innerText'), /缺口：控制流劫持偏移未证明/);
+    // 运行时验证（gdb 测偏移 + 真跑生成的 EXP）→ 结论与证据上屏
+    await click('#binary-synth-verify');
+    await until('document.querySelector(".binary-synth").innerText.includes("VERIFIED_SHELL")');
+    const verifyText = await js('document.querySelector(".binary-synth").innerText');
+    assert.match(verifyText, /偏移 0x48/);
+    assert.match(verifyText, /验证 VERIFIED_SHELL/);
+    assert.match(await js('document.querySelector("#page-binary").innerText'), /运行时：生成的 EXP 打通目标/);
     await click('#binary-synth-apply');
     await until('PwnApp.state.page === "exp"');
     assert.match(await js('PwnApp.getExpText()'), /synth fixture/);

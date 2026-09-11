@@ -23,7 +23,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from pwncraft.features.synth import deposit_case, generate_exp
+from pwncraft.features.synth import deposit_case, generate_exp, verify_exploit
 from pwncraft.features.synth.pipeline import detection_report
 
 
@@ -50,9 +50,13 @@ def parse_gadgets(pairs: list[str] | None) -> dict[str, str]:
 
 def run_one(binary: Path, *, runner, strategy: str = "", libc: str | None = None,
             stack_truth: dict | None = None, gadgets: dict | None = None,
-            dest: str | None = None) -> tuple[dict, dict]:
-    generated = generate_exp(binary, strategy=strategy, runner=runner, libc=libc,
-                             stack_truth=stack_truth, gadgets=gadgets, allow_missing=True)
+            dest: str | None = None, verify: bool = False) -> tuple[dict, dict]:
+    if verify:
+        generated = verify_exploit(binary, strategy=strategy, runner=runner, libc=libc,
+                                   stack_truth=stack_truth, gadgets=gadgets, allow_missing=True)
+    else:
+        generated = generate_exp(binary, strategy=strategy, runner=runner, libc=libc,
+                                 stack_truth=stack_truth, gadgets=gadgets, allow_missing=True)
     report = detection_report(generated)
     rendered = generated.get("rendered")
     outcome = {
@@ -61,6 +65,10 @@ def run_one(binary: Path, *, runner, strategy: str = "", libc: str | None = None
         "verdict": generated["verdict"]["verdict"],
         "unresolved": list(rendered.unresolved) if rendered is not None else [],
     }
+    if generated.get("verification") is not None:
+        outcome["verification"] = generated["verification"]
+    if generated.get("runtime") is not None:
+        outcome["runtime"] = generated["runtime"]
     if dest:
         outcome["deposit"] = deposit_case(dest, generated)
     return outcome, generated
@@ -98,6 +106,14 @@ def _print_single(outcome: dict, source: str) -> None:
     for item in best.get("missing") or []:
         print(f"  gap: {item}")
     print(f"[verdict] {outcome['verdict']}  unresolved={len(outcome['unresolved'])}")
+    if outcome.get("runtime"):
+        runtime = outcome["runtime"]
+        offset = runtime.get("offset")
+        print(f"[runtime] offset={hex(offset) if offset else '未测出'} "
+              f"method={runtime.get('method')} confidence={runtime.get('confidence')}")
+    if outcome.get("verification"):
+        verification = outcome["verification"]
+        print(f"[verify]  {verification.get('status')} — {verification.get('summary')}")
     if outcome.get("deposit"):
         print(f"[deposit] {outcome['deposit']['dir']}")
     print("-" * 72)
@@ -118,6 +134,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--gadget", action="append", default=[],
                         help="gadget shelf 事实，可重复：rdi=0x401234 rax=0x401005")
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--verify", action="store_true",
+                        help="运行时验证：gdb 测偏移并真跑一次生成的 EXP（会执行目标）")
     parser.add_argument("--json", action="store_true", help="单题输出 JSON（含源码）")
     args = parser.parse_args(argv)
 
@@ -128,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.binary:
         outcome, generated = run_one(Path(args.binary), runner=runner, strategy=args.strategy,
                                      libc=args.libc, stack_truth=stack_truth, gadgets=gadgets,
-                                     dest=args.deposit)
+                                     dest=args.deposit, verify=args.verify)
         source = generated["rendered"].source if generated.get("rendered") is not None else ""
         if args.json:
             print(json.dumps({**outcome, "source": source, "graph": generated["graph"].to_dict()},
@@ -152,10 +170,11 @@ def main(argv: list[str] | None = None) -> int:
             outcome, _ = run_one(binary, runner=runner, strategy=args.strategy,
                                  libc=args.libc or (str(case_libc) if case_libc else None),
                                  stack_truth=stack_truth, gadgets=gadgets,
-                                 dest=args.deposit)
+                                 dest=args.deposit, verify=args.verify)
             best = outcome.get("best") or {}
             record = {"case_id": case_id, "ok": True, "strategy": best.get("id"),
                       "status": best.get("status"), "verdict": outcome["verdict"],
+                      "verification": (outcome.get("verification") or {}).get("status"),
                       "unresolved": len(outcome["unresolved"]),
                       "deposit": (outcome.get("deposit") or {}).get("case_id")}
         except Exception as error:  # 单题失败不阻断批量
@@ -163,11 +182,14 @@ def main(argv: list[str] | None = None) -> int:
         records.append(record)
         print(f"{'OK ' if record['ok'] else 'ERR'} {case_id}: "
               f"{record.get('strategy') or ''} {record.get('status') or ''} "
-              f"{record.get('verdict') or ''} {record.get('error') or ''}".rstrip())
+              f"{record.get('verdict') or ''} {record.get('verification') or ''} "
+              f"{record.get('error') or ''}".rstrip())
 
     summary = {"total": len(records),
                "ok": sum(1 for item in records if item["ok"]),
                "ready": sum(1 for item in records if item.get("status") == "ready"),
+               "verified": sum(1 for item in records
+                               if item.get("verification") == "VERIFIED_SHELL"),
                "records": records}
     if args.deposit:
         Path(args.deposit).mkdir(parents=True, exist_ok=True)
