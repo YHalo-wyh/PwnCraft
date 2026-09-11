@@ -144,6 +144,8 @@ def _case_catalog(binary: Path) -> list[TemplateCase]:
                                   "callee": "read", "size": "0x10"}, _verify_read_length),
         TemplateCase("nop_function", {"kind": "nop_function", "function": "marker"}),
         TemplateCase("ret_function", {"kind": "ret_function", "function": "marker"}, _verify_ret),
+        TemplateCase("return_constant", {"kind": "return_constant", "function": "marker",
+                                         "value": "0"}, _verify_ret),
         TemplateCase("nop_range", {"kind": "nop_range", "start": hex(start), "end": hex(end)}),
         TemplateCase("custom", {"kind": "custom", "vaddr": hex(start), "hex": custom,
                                  "expected_size": int(first["size"])}),
@@ -151,6 +153,8 @@ def _case_catalog(binary: Path) -> list[TemplateCase]:
         TemplateCase("nop_instructions", {"kind": "nop_instructions", **call_region}, _verify_ret),
         TemplateCase("assembly", {"kind": "assembly", **call_region,
                                   "text": "xor eax, eax\nnop", "pad": True}, _verify_ret),
+        TemplateCase("cave_hook", {"kind": "cave_hook", **call_region,
+                                   "text": "xor eax, eax", "mode": "replace"}, _verify_ret),
     ]
 
 

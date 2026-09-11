@@ -69,9 +69,11 @@ from pwncraft.features.heapviz.dataset import validate_case
 from pwncraft.features.heapviz.templates import HEAP_TEMPLATES
 from pwncraft.features.patch.patch_core import PatchLab, PatchOp, parse_instruction_lines
 from pwncraft.features.patch.recipes import (
-    RECIPE_CATALOG, build_custom_bytes, build_instruction_patch, build_jcc_invert, build_nop_function,
+    RECIPE_CATALOG, build_code_cave_hook, build_custom_bytes, build_instruction_patch,
+    build_jcc_mode, build_nop_function,
     build_nop_range, build_plt_call_redirect, build_plt_stub_redirect,
-    build_read_length, build_ret_function, normalize_patch_arch)
+    build_read_length, build_ret_function, build_return_constant, build_skip_call_result,
+    normalize_patch_arch)
 from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
 from pwncraft.features.patch.bytecode_catalog import assemble, catalog_entries, disasm_raw, encode_template
 from pwncraft.features.patch.ida_link import IdaCliLink, IdaLinkError
@@ -421,7 +423,9 @@ class ElectronBridge:
         if kind == "readlen":
             built = build_read_length(lab, functions(), pick_function(""),
                                       str(request.get("callee") or "read"),
-                                      int(str(request.get("size") or "0"), 0))
+                                      int(str(request.get("size") or "0"), 0),
+                                      vaddr=(int(str(request["vaddr"]), 0)
+                                             if request.get("vaddr") else None))
             return built["ops"], built["warnings"]
         if kind == "nop_function":
             built = build_nop_function(lab, functions(), pick_function(""))
@@ -429,13 +433,29 @@ class ElectronBridge:
         if kind == "ret_function":
             built = build_ret_function(lab, functions(), pick_function(""))
             return built["ops"], built["warnings"]
+        if kind == "return_constant":
+            built = build_return_constant(lab, functions(), pick_function(""),
+                                          int(str(request.get("value") or "0"), 0))
+            return built["ops"], built["warnings"]
+        if kind == "cave_hook":
+            built = build_code_cave_hook(
+                lab, functions(), pick_function(""),
+                int(str(request.get("start") or "0"), 0),
+                int(str(request.get("end") or "0"), 0),
+                str(request.get("text") or ""), str(request.get("mode") or "replace"))
+            return built["ops"], built["warnings"]
         if kind == "nop_range":
             built = build_nop_range(lab, int(str(request.get("start") or "0"), 0),
                                     int(str(request.get("end") or "0"), 0))
             return built["ops"], built["warnings"]
-        if kind in ("nop_call", "nop_instructions", "assembly"):
+        if kind in ("nop_call", "nop_instructions", "assembly", "skip_call_result"):
             start = int(str(request.get("start") or "0"), 0)
             end = int(str(request.get("end") or "0"), 0)
+            if kind == "skip_call_result":
+                built = build_skip_call_result(
+                    lab, functions(), pick_function(""), start, end,
+                    int(str(request.get("value") or "0"), 0))
+                return built["ops"], built["warnings"]
             replacement = None
             if kind == "assembly":
                 encoded = assemble(str(request.get("text") or ""),
@@ -445,8 +465,10 @@ class ElectronBridge:
                                             kind=kind, replacement=replacement,
                                             pad=bool(request.get("pad", True)))
             return built["ops"], built["warnings"]
-        if kind == "jcc_invert":
-            built = build_jcc_invert(lab, int(str(request.get("vaddr") or "0"), 0))
+        if kind in ("jcc_invert", "jcc_mode"):
+            built = build_jcc_mode(lab, int(str(request.get("vaddr") or "0"), 0),
+                                   "invert" if kind == "jcc_invert" else
+                                   str(request.get("mode") or "invert"))
             return built["ops"], built["warnings"]
         if kind == "custom":
             expected = request.get("expected_size")

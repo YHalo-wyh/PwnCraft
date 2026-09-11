@@ -24,7 +24,7 @@
 | --- | --- |
 | `features/patch/patch_core.py` | `PatchOp` 模型、`PatchLab`（备份/应用/撤销/日志）、objdump 指令行解析、code cave 查找、`jmp rel32` 编码 |
 | `features/patch/seccomp_inject.py` | BPF 过滤器生成（arch 校验 + nr 白/黑名单）、amd64/i386 安装 shellcode、入口 trampoline 组装 |
-| `features/patch/recipes.py` | PLT 劫持（调用点 rel32 重算 / stub 整体重写）、read/recv/recvfrom/fgets 长度收紧、函数 NOP / ret 化、自定义字节、`RECIPE_CATALOG` 使用说明 |
+| `features/patch/recipes.py` | PLT 劫持、单调用跳过/固定返回值、read/recv/recvfrom/fgets 单点长度收紧、函数固定返回/ret、条件分支三态控制、指令区间汇编与自定义字节 |
 | `features/patch/bytecode_catalog.py` | 指令↔机器码静态目录（约 60 条）、参数化编码器（nop 长度 / mov r32,imm32 / xor / rel32 计算）、objdump 原始字节反汇编 |
 | `features/patch/exporters.py` | pwntools `patch.py` 脚本、字节 diff 文本、从只读原始副本回放的干净 patched ELF |
 
@@ -47,8 +47,8 @@ patch_disasm_raw / patch_bytecode_lookup / patch_encode`。
   默认探测 `D:\python\python.exe` 等），驱动进程常驻复用 AgentSession。
   手动 Patch 页顶栏：「检测 IDA」状态徽章、「IDA 分析」（pwn 体检：危险
   导入/可疑符号/命中字符串/缓解提示）、「查看伪代码」（Hex-Rays 反编译）。
-  应用补丁后若 IDA 会话活跃，自动把字节同步 patch 进 IDA 数据库
-  （Keypatch 反向联动，失败不阻断）。安装：
+  已应用补丁由用户点击「同步已应用补丁到 IDA」后写入 IDA 数据库，避免后台探测阻塞导入。
+  安装：
   `<IDA目录>\idalib\python\py-activate-idalib.py -d <IDA目录>` +
   `pip install -e <IDACLI 仓库>`。
 
@@ -112,24 +112,33 @@ RIP 相对寻址需人工复核（`_start` 开头通常没有）。
 mov 之后的第一条直接调用就是目标调用（允许中间 ≤4 条指令），不会把无关调用前的
 立即数误改。32 位按 cdecl 参数位置从 call 向前回溯：read/recv/recvfrom 取第 3 参数、
 fgets 取第 2 参数的 `push $imm`，仅接受可证明且能等长编码的 `68 imm32` / `6a imm8`。
-自动扫描复用同一套规则，寄存器与调用对不上时不生成建议。
+可以填写长度立即数地址，只修同一函数内的单个调用；留空才处理全部匹配。自动扫描复用
+同一套规则，寄存器与调用对不上时不生成建议。
 
 ### 4. 函数 NOP / ret 化
 
-- 整函数 NOP：按反汇编指令边界把函数体全填 `0x90`。
+- 固定返回值：入口改为 `xor eax,eax; ret`、`or eax,-1; ret` 或
+  `mov eax,imm32; ret`，按完整指令边界扩展并用 NOP 补齐。
 - ret 化：仅首字节改 `0xC3`（1 字节最小修改），调用即返回；返回值为 eax 残留。
+- 整函数 NOP：会移除 ret/尾跳转，可能贯穿到相邻代码，仅用于明确不可达的代码区。
 
 ### 5. 手动字节 Patch
 
 选中函数 → 指令表（地址 / 原始字节 / 汇编，来自 Python 端 `patch_instructions`）
-→ 选中指令 → NOP 该指令 / NOP 到函数尾 / 输入自定义 hex 写入选中地址
+→ 选中指令 → NOP 该指令 / NOP 单个 call / 跳过 call 并令 EAX=0 / NOP 到函数尾 /
+输入多行汇编或自定义 hex 写入选中地址
 （`expected_size` 校验等长）。字节码查询面板的目录条目可一键填入。
 
-### 6. 条件跳转反转
+当新汇编超过选区时可选「code cave 跳板」：覆盖至少 5 字节完整指令，跳到可执行段内
+未被 section 占用的全零空洞，执行自定义汇编后回到选区末尾。支持替换、原指令前插入、
+原指令后插入；后两种模式拒绝搬运 RIP 相对和控制流指令，避免静默生成错误重定位。
+该模式适合 UAF 后清空槽位、补动态长度比较、增加状态检查等多指令修复。
 
-off-by-one / 边界差一修复的 1 字节手法（V1ct0r 文中的 `jg → jge` 类改写）：
-短跳转（70-7F）与近跳转（0F 84-8F）取反都是「操作码 ^ 1」，位移原样保留。
-手动 Patch 选中 jcc 指令后点「反转跳转条件」即可；非 jcc 指令会被拒绝并提示。
+### 6. 条件跳转三态控制
+
+短跳转（70-7F）与近跳转（0F 80-8F）支持取反、强制跳转和永不跳转。近跳转改成
+5 字节 `jmp rel32 + nop` 时会重算位移，保证目标地址不变；非 jcc 指令会被拒绝。
+它可用于 off-by-one、负数边界、鉴权分支和错误路径修补。
 
 ## 导出格式
 
@@ -141,9 +150,9 @@ off-by-one / 边界差一修复的 1 字节手法（V1ct0r 文中的 `jg → jge
 
 ## 测试
 
-- Python：`tests/test_patch_lab.py`（66 项）——手工构造最小 ELF64 fixture，
+- Python：`tests/test_patch_lab.py`——手工构造最小 ELF64 fixture，
   覆盖地址换算、cave 查找、BPF/shellcode 的 golden 字节断言、trampoline 位移回算、
-  recipes 数学（含 recv/recvfrom 长度归属与首调用规则）、事务应用/整组撤销/冲突拦截、
+  recipes 数学（含 recv/recvfrom 长度归属、固定返回值与分支三态）、事务应用/整组撤销/冲突拦截、
   组合预览合并、反汇编缓存失效、三种导出、bridge RPC 层（Mock objdump）。
   运行：`python -m unittest tests.test_patch_lab`（pwncraft 目录）。
 - Electron UI：`pwncraft-electron/tests/patch-ui.cjs`——真实 renderer + preload +
@@ -151,14 +160,16 @@ off-by-one / 边界差一修复的 1 字节手法（V1ct0r 文中的 `jg → jge
   运行：`node node_modules/electron/cli.js tests/patch-ui.cjs`。
 - 真实模板验收：`tools/validate_awdp_templates.py` 会用 WSL gcc 临时编译一个真实 ELF，
   逐项应用 seccomp、PLT 调用点、PLT stub、read 长度、整函数 NOP、函数 ret、区间 NOP、
-  自定义字节、NOP 单处调用、NOP 指令区间、汇编补丁共 11 种模板，并分别编译 amd64/i386 ELF；
+  自定义字节、NOP 单处调用、NOP 指令区间、汇编补丁、固定返回值等模板，并分别编译 amd64/i386 ELF；
   每项均检查预览不写盘、应用生效、比赛包导出、整组撤销，
   并对可执行模板核对真实运行行为。运行：`python tools/validate_awdp_templates.py`。
 
 ## 比赛闭环增强
 
-- **自动风险扫描**：`patch_audit` 基于当前工作副本反汇编识别危险 PLT 直接调用与过大
-  `read/recv/recvfrom/fgets` 长度，并把每项建议送回同一套 `patch_preview`，扫描结果不会直接改文件。
+- **导入即扫描**：`patch_audit` 检查危险调用、常量输入长度与 ELF 保护；`vuln_points`
+  在 amd64 用寄存器定义-使用链、在 i386 用 cdecl 参数回溯，比较
+  read/recv/recvfrom/fgets/memcpy/memmove/strncpy 长度与栈/堆缓冲容量，并识别 gets、
+  无宽度 `%s`、strcpy/strcat/sprintf。结果保留“确认/候选/未知”，不会把导入本身当作漏洞。
 - **组合通防（一次预览 / 一次应用）**：审计项默认全选、可按需勾选，`patch_preview` 接受
   `requests` 列表把多项缓解合并成一批补丁（同地址同字节去重，同地址不同字节明确拒绝），
   预览通过后一次 apply 写入同一批次，可在补丁管理里整组撤销。
@@ -174,5 +185,8 @@ off-by-one / 边界差一修复的 1 字节手法（V1ct0r 文中的 `jg → jge
   seccomp 注入通防思路与沙箱规则形态。
 - Hello CTF《AWD 技巧》：PLT/GOT 替换修复、机器码对照表、通防思路。
 - V1ct0r《AWD 中的 patch 技巧总结》：read 长度收紧、printf→puts 位移改写。
+- [AwdPwnPatcher](https://github.com/aftern00n/AwdPwnPatcher)：原位汇编、call/jmp 跳板、
+  code cave 多指令补丁与版本化管理思路；本项目额外限制完整指令边界和不安全重定位。
+- [Keypatch](https://github.com/keystone-engine/keypatch)：Keystone 实时汇编和短指令 NOP 补齐交互。
 - 蚁景《AWDPwn 漏洞加固总结》：最小修改、不改文件大小的加固原则。
 - Linux 内核文档（Seccomp BPF）：过滤器语义与 `PR_SET_SECCOMP` 常量。

@@ -20,9 +20,11 @@ from pwncraft.features.patch.seccomp_inject import (
     SECCOMP_PRESETS, build_bpf_filter, build_install_shellcode, build_seccomp_ops,
     resolve_policy_names, shellcode_length)
 from pwncraft.features.patch.recipes import (
-    build_custom_bytes, build_jcc_invert, build_nop_function, build_nop_range,
+    build_code_cave_hook, build_custom_bytes, build_jcc_invert, build_jcc_mode,
+    build_nop_function, build_nop_range,
     build_plt_call_redirect, build_plt_stub_redirect, build_read_length,
-    build_ret_function, extract_plt_stubs, find_call_sites, normalize_patch_arch)
+    build_ret_function, build_return_constant, build_skip_call_result,
+    extract_plt_stubs, find_call_sites, normalize_patch_arch)
 from pwncraft.features.patch.bytecode_catalog import (
     catalog_entries, disasm_raw, encode_template)
 from pwncraft.features.patch.exporters import (
@@ -335,6 +337,12 @@ class RecipeTests(FixtureCase):
         op = build_read_length(self.lab, fake_functions(), "main", "read", 0x30)["ops"][0]
         self.assertEqual(op.vaddr, BASE + 0xA0)
         self.assertEqual(op.new_bytes, b"\xba\x30\x00\x00\x00")
+        exact = build_read_length(
+            self.lab, fake_functions(), "main", "read", 0x20, vaddr=BASE + 0xA0)["ops"]
+        self.assertEqual([item.vaddr for item in exact], [BASE + 0xA0])
+        with self.assertRaisesRegex(ValueError, "未找到"):
+            build_read_length(
+                self.lab, fake_functions(), "main", "read", 0x20, vaddr=BASE + 0xA5)
         with self.assertRaises(ValueError):
             build_read_length(self.lab, fake_functions(), "main", "system", 0x30)
 
@@ -398,6 +406,57 @@ class RecipeTests(FixtureCase):
         ret = build_ret_function(self.lab, fake_functions(), "main")["ops"][0]
         self.assertEqual(ret.new_bytes, b"\xc3")
 
+    def test_function_constant_return_uses_complete_instruction_prefix(self):
+        zero = build_return_constant(self.lab, fake_functions(), "main", 0)["ops"][0]
+        self.assertEqual(zero.original_bytes, MAIN_BYTES[:5])
+        self.assertEqual(zero.new_bytes, b"\x31\xc0\xc3\x90\x90")
+        minus_one = build_return_constant(self.lab, fake_functions(), "main", -1)["ops"][0]
+        self.assertEqual(minus_one.new_bytes, b"\x83\xc8\xff\xc3\x90")
+        one = build_return_constant(self.lab, fake_functions(), "main", 1)["ops"][0]
+        self.assertEqual(len(one.original_bytes), 10)
+        self.assertEqual(one.new_bytes[:6], b"\xb8\x01\x00\x00\x00\xc3")
+
+    def test_function_constant_return_preserves_endbr64(self):
+        assembly = insn_lines(0x500000, [
+            (b"\xf3\x0f\x1e\xfa", "endbr64"), (b"\x55", "push %rbp"),
+            (b"\x48\x89\xe5", "mov %rsp,%rbp"), (b"\xc3", "ret")])
+        lab = Mock()
+        lab.read_at.return_value = b"\xf3\x0f\x1e\xfa\x55\x48\x89\xe5"
+        lab.offset_of.return_value = 0x1000
+        op = build_return_constant(lab, [{"name": "guard", "assembly": assembly}], "guard", 0)["ops"][0]
+        self.assertEqual(op.new_bytes[:7], b"\xf3\x0f\x1e\xfa\x31\xc0\xc3")
+
+    def test_skip_one_call_and_synthesize_result(self):
+        start = BASE + 0xAA
+        zero = build_skip_call_result(
+            self.lab, fake_functions(), "main", start, start + 5, 0)["ops"][0]
+        self.assertEqual(zero.new_bytes, b"\x31\xc0\x90\x90\x90")
+        one = build_skip_call_result(
+            self.lab, fake_functions(), "main", start, start + 5, 1)["ops"][0]
+        self.assertEqual(one.new_bytes, b"\xb8\x01\x00\x00\x00")
+        with self.assertRaisesRegex(ValueError, "一条 call"):
+            build_skip_call_result(
+                self.lab, fake_functions(), "main", BASE + 0xA0, BASE + 0xA5, 0)
+
+    def test_code_cave_hook_is_replayable_and_rejects_unsafe_relocation(self):
+        built = build_code_cave_hook(
+            self.lab, fake_functions(), "main", BASE + 0xA0, BASE + 0xAA,
+            "xor eax, eax", "replace")
+        self.assertEqual(len(built["ops"]), 2)
+        entry, cave = built["ops"]
+        self.assertEqual(entry.new_bytes[0], 0xE9)
+        self.assertEqual(len(entry.new_bytes), 10)
+        self.assertEqual(cave.new_bytes[:2], b"\x31\xc0")
+        self.assertEqual(cave.new_bytes[-1 - 4], 0xE9)
+        before = self.binary.read_bytes()
+        self.lab.apply(built["ops"])
+        self.lab.undo(self.lab.log_ops()[0].op_id)
+        self.assertEqual(self.binary.read_bytes(), before)
+        with self.assertRaisesRegex(ValueError, "不能搬运"):
+            build_code_cave_hook(
+                self.lab, fake_functions(), "main", BASE + 0xAA, BASE + 0xAF,
+                "xor eax, eax", "before")
+
     def test_nop_range_and_custom_bytes(self):
         op = build_nop_range(self.lab, BASE + 0xA0, BASE + 0xAA)["ops"][0]
         self.assertEqual(op.new_bytes, b"\x90" * 10)
@@ -426,6 +485,22 @@ class RecipeTests(FixtureCase):
         # 非跳转指令被拒绝
         with self.assertRaises(ValueError):
             build_jcc_invert(self.lab, BASE + 0x78)  # endbr64
+
+    def test_jcc_force_and_disable_preserve_target_and_size(self):
+        with self.binary.open("r+b") as stream:
+            stream.seek(0x200)
+            stream.write(b"\x75\x06")
+            stream.seek(0x210)
+            stream.write(b"\x0f\x85\x10\x00\x00\x00")
+        short_always = build_jcc_mode(self.lab, BASE + 0x200, "always")["ops"][0]
+        self.assertEqual(short_always.new_bytes, b"\xeb\x06")
+        self.assertEqual(build_jcc_mode(self.lab, BASE + 0x200, "never")["ops"][0].new_bytes,
+                         b"\x90\x90")
+        near_always = build_jcc_mode(self.lab, BASE + 0x210, "always")["ops"][0]
+        self.assertEqual(near_always.new_bytes, b"\xe9\x11\x00\x00\x00\x90")
+        self.assertEqual(len(near_always.new_bytes), 6)
+        self.assertEqual(build_jcc_mode(self.lab, BASE + 0x210, "never")["ops"][0].new_bytes,
+                         b"\x90" * 6)
 
     def test_normalize_patch_arch(self):
         self.assertEqual(normalize_patch_arch("x86-64", 64), "amd64")

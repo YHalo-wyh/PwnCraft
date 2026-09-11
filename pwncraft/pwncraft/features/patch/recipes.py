@@ -9,7 +9,7 @@ import re
 import struct
 
 from pwncraft.core.syscalls import normalize_architecture
-from .patch_core import PatchLab, PatchOp, parse_instruction_lines
+from .patch_core import PatchLab, PatchOp, find_code_cave, parse_instruction_lines, rel32_jmp
 
 _CALL_PLT_RE = re.compile(r"^\s*call[qw]?\s+([0-9a-fA-F]+)\s+<([^>]+)>")
 _MOV_IMM32_RE = re.compile(r"^\s*mov[q]?\s+\$0x([0-9a-fA-F]+),%(e?(?:dx|si|di|cx|ax))\b")
@@ -191,8 +191,82 @@ def build_instruction_patch(lab: PatchLab, functions: list[dict], function: str,
         if kind == "nop_call" else "修改限定在选中的完整指令区间；应用后请检查正常输入行为。"]}
 
 
+def build_skip_call_result(lab: PatchLab, functions: list[dict], function: str,
+                           start: int, end: int, value: int = 0) -> dict:
+    """Skip exactly one call and synthesize its integer return value in EAX."""
+    selected = instruction_region(functions, function, start, end)
+    if len(selected) != 1 or not re.match(
+            r"^(?:bnd\s+|notrack\s+)?call[qwl]?\s", selected[0]["text"]):
+        raise ValueError("跳过调用并设返回值只接受一条 call 指令")
+    raw = int(value)
+    if not -(1 << 31) <= raw <= 0xFFFFFFFF:
+        raise ValueError("调用返回值必须在 int32 / uint32 范围内")
+    encoded = raw & 0xFFFFFFFF
+    replacement = b"\x31\xc0" if encoded == 0 else b"\xb8" + struct.pack("<I", encoded)
+    if len(replacement) > selected[0]["size"]:
+        raise ValueError(
+            f"该 call 只有 {selected[0]['size']} 字节，放不下固定返回值 0x{encoded:x}；可使用返回 0")
+    built = build_instruction_patch(lab, functions, function, start, end,
+                                    kind="skip_call_result", replacement=replacement, pad=True)
+    built["warnings"] = ["调用的副作用会被跳过；EAX 固定为所选值，应用后需复核错误处理分支。"]
+    return built
+
+
+def build_code_cave_hook(lab: PatchLab, functions: list[dict], function: str,
+                         start: int, end: int, assembly: str,
+                         mode: str = "replace") -> dict:
+    """Redirect a whole-instruction span to user assembly in an executable zero cave."""
+    if mode not in {"replace", "before", "after"}:
+        raise ValueError("跳板模式只支持 replace / before / after")
+    selected = instruction_region(functions, function, start, end)
+    original = b"".join(insn["bytes"] for insn in selected)
+    if len(original) < 5:
+        raise ValueError("code cave 跳板至少需要覆盖 5 字节完整指令")
+    if lab.read_at(start, len(original)) != original:
+        raise ValueError("选中指令与磁盘字节不一致，请刷新反汇编")
+    if mode != "replace":
+        unsafe = [insn for insn in selected if re.search(
+            r"\(%rip\)|^(?:bnd\s+|notrack\s+)?(?:call|j[a-z]*|loop)[qwl]?\s",
+            str(insn.get("text") or ""))]
+        if unsafe:
+            raise ValueError(
+                f"{mode} 模式不能搬运 RIP 相对或控制流指令（首处 0x{unsafe[0]['address']:x}）；"
+                "改用 replace 并在汇编中显式恢复所需语义")
+    from .bytecode_catalog import assemble
+    bits = 64 if lab.geometry()["is64"] else 32
+    # First pass determines a conservative cave size; second pass fixes relative encodings.
+    provisional = bytes.fromhex(assemble(assembly, bits=bits, vaddr=start)["bytes"])
+    needed = len(provisional) + (len(original) if mode != "replace" else 0) + 5
+    cave = find_code_cave(lab.binary, needed, geometry=lab.geometry())
+    custom = bytes.fromhex(assemble(assembly, bits=bits, vaddr=cave["vaddr"])["bytes"])
+    if len(custom) + (len(original) if mode != "replace" else 0) + 5 > cave["size"]:
+        cave = find_code_cave(
+            lab.binary, len(custom) + (len(original) if mode != "replace" else 0) + 5,
+            geometry=lab.geometry())
+        custom = bytes.fromhex(assemble(assembly, bits=bits, vaddr=cave["vaddr"])["bytes"])
+    body = custom if mode == "replace" else (
+        custom + original if mode == "before" else original + custom)
+    jump_back_at = cave["vaddr"] + len(body)
+    payload = body + rel32_jmp(jump_back_at, end)
+    cave_original = lab.read(cave["offset"], len(payload))
+    if cave_original.strip(b"\x00"):
+        raise ValueError("code cave 不再是全零，文件已被外部修改")
+    entry = rel32_jmp(start, cave["vaddr"]) + b"\x90" * (len(original) - 5)
+    return {"ops": [
+        PatchOp(kind="cave_hook", vaddr=start, file_offset=lab.offset_of(start),
+                original_bytes=original, new_bytes=entry,
+                note=f"{function}: 跳转 code cave 0x{cave['vaddr']:x}（{mode}）"),
+        PatchOp(kind="cave_payload", vaddr=cave["vaddr"], file_offset=cave["offset"],
+                original_bytes=cave_original, new_bytes=payload,
+                note=f"自定义汇编 {len(custom)} 字节 + 回跳 0x{end:x}"),
+    ], "warnings": [
+        "自定义跳板不会自动保存寄存器、标志位或栈平衡；应用后必须运行正常业务与异常输入测试。",
+        "before/after 只搬运无 RIP 相对和无控制流的原指令；replace 会删除所选原语义。",
+    ], "cave": cave}
+
+
 def build_read_length(lab: PatchLab, functions: list[dict], function: str,
-                      callee: str, new_size: int) -> dict:
+                      callee: str, new_size: int, *, vaddr: int | None = None) -> dict:
     """收紧 read/recv/recvfrom/fgets 长度立即数（amd64 寄存器 / i386 栈传参）。"""
     if callee not in LENGTH_REGISTERS:
         raise ValueError(f"长度收紧支持 {' / '.join(_LENGTH_CALLEES)} 的常量长度")
@@ -205,6 +279,8 @@ def build_read_length(lab: PatchLab, functions: list[dict], function: str,
     if bits == 64:
         register = LENGTH_REGISTERS[callee]
         for index, insn in enumerate(instructions):
+            if vaddr is not None and insn["address"] != vaddr:
+                continue
             match = _MOV_IMM32_RE.match(insn["text"] or "")
             if not match or match[2] != register or insn["size"] != 5:
                 continue
@@ -237,6 +313,8 @@ def build_read_length(lab: PatchLab, functions: list[dict], function: str,
             if len(pushes) <= arg_index:
                 continue
             insn = pushes[arg_index]
+            if vaddr is not None and insn["address"] != vaddr:
+                continue
             match = _PUSH_IMM_RE.match(insn["text"] or "")
             if not match or insn["size"] not in (2, 5):
                 continue
@@ -283,6 +361,55 @@ def build_ret_function(lab: PatchLab, functions: list[dict], function: str) -> d
     return {"ops": ops, "warnings": ["直接 ret 的返回值不可控；调用方若依赖返回值判断，需一并检查。"]}
 
 
+def _prefix_region(instructions: list[dict], minimum: int) -> tuple[int, bytes]:
+    """Return a whole-instruction function prefix large enough for a replacement."""
+    selected: list[dict] = []
+    size = 0
+    for insn in instructions:
+        selected.append(insn)
+        size += insn["size"]
+        if size >= minimum:
+            break
+    if size < minimum:
+        raise ValueError(f"函数入口只有 {size} 字节，放不下 {minimum} 字节返回桩")
+    return selected[0]["address"], b"".join(insn["bytes"] for insn in selected)
+
+
+def build_return_constant(lab: PatchLab, functions: list[dict], function: str, value: int) -> dict:
+    """Replace a function prefix with a deterministic EAX return value and ret."""
+    fn, instructions = _function_instructions(functions, function)
+    raw = int(value)
+    if not -(1 << 31) <= raw <= 0xFFFFFFFF:
+        raise ValueError("固定返回值必须在 int32 / uint32 范围内")
+    encoded = raw & 0xFFFFFFFF
+    if encoded == 0:
+        stub = b"\x31\xc0\xc3"  # xor eax,eax; ret
+    elif encoded == 0xFFFFFFFF:
+        stub = b"\x83\xc8\xff\xc3"  # or eax,-1; ret
+    else:
+        stub = b"\xb8" + struct.pack("<I", encoded) + b"\xc3"
+    preserve = b""
+    body = instructions
+    if instructions[0]["bytes"] == b"\xf3\x0f\x1e\xfa":
+        preserve = instructions[0]["bytes"]
+        body = instructions[1:]
+        if not body:
+            raise ValueError("函数只有 endbr64，放不下固定返回值")
+    start, disassembled_body = _prefix_region(body, len(stub))
+    if preserve:
+        start = instructions[0]["address"]
+    disassembled = preserve + disassembled_body
+    original = lab.read_at(start, len(disassembled))
+    if original != disassembled:
+        raise ValueError("函数入口磁盘字节与反汇编不一致，请刷新后重试")
+    new_bytes = preserve + stub + b"\x90" * (len(original) - len(preserve) - len(stub))
+    return {"ops": [PatchOp(kind="return_constant", vaddr=start,
+                            file_offset=lab.offset_of(start), original_bytes=original,
+                            new_bytes=new_bytes,
+                            note=f"{fn['name']}: 固定返回 EAX=0x{encoded:08x}")],
+            "warnings": ["仅保证 32 位 EAX 返回语义；指针、浮点或结构体返回函数需人工编写汇编。"]}
+
+
 def build_nop_range(lab: PatchLab, vaddr_start: int, vaddr_end: int) -> dict:
     """[start, end) 区间整段 NOP。"""
     start, end = int(vaddr_start), int(vaddr_end)
@@ -324,38 +451,52 @@ _JCC_SHORT_NAMES = {
 }
 
 
-def build_jcc_invert(lab: PatchLab, vaddr: int) -> dict:
+def build_jcc_mode(lab: PatchLab, vaddr: int, mode: str = "invert") -> dict:
     """反转条件跳转（jg↔jle、jl↔jge、je↔jne…）——off-by-one 边界修复的 1 字节手法。
 
     短跳转（70-7F）与近跳转（0F 84-8F）的取反都是「操作码 ^ 1」，
     位移字节原样保留，文件布局不变。
     """
+    if mode not in {"invert", "always", "never"}:
+        raise ValueError("条件跳转模式只支持 invert / always / never")
     address = int(vaddr)
     blob = lab.read_at(address, 6)
-    if blob[0] == 0x0F and 0x84 <= blob[1] <= 0x8F:
+    if blob[0] == 0x0F and 0x80 <= blob[1] <= 0x8F:
         original = bytes(blob[:6])
-        new_bytes = bytes([0x0F, blob[1] ^ 1]) + original[2:]
+        if mode == "invert":
+            new_bytes = bytes([0x0F, blob[1] ^ 1]) + original[2:]
+        elif mode == "always":
+            displacement = struct.unpack("<i", original[2:])[0]
+            new_bytes = b"\xe9" + struct.pack("<i", displacement + 1) + b"\x90"
+        else:
+            new_bytes = b"\x90" * 6
         short_opcode = 0x70 | (blob[1] & 0x0F)
-        note = (f"反转条件跳转 @0x{address:x}"
-                f"（{_JCC_SHORT_NAMES.get(short_opcode, 'jcc')} → "
-                f"{_JCC_SHORT_NAMES.get(short_opcode ^ 1, 'jcc')}，近跳转）")
+        source_name = _JCC_SHORT_NAMES.get(short_opcode, "jcc")
+        note = f"条件跳转 @0x{address:x}: {source_name} → {mode}（近跳转）"
     elif 0x70 <= blob[0] <= 0x7F:
         original = bytes(blob[:2])
-        new_bytes = bytes([blob[0] ^ 1]) + original[1:]
-        note = (f"反转条件跳转 @0x{address:x}"
-                f"（{_JCC_SHORT_NAMES.get(blob[0], 'jcc')} → "
-                f"{_JCC_SHORT_NAMES.get(blob[0] ^ 1, 'jcc')}）")
+        if mode == "invert":
+            new_bytes = bytes([blob[0] ^ 1]) + original[1:]
+        elif mode == "always":
+            new_bytes = b"\xeb" + original[1:]
+        else:
+            new_bytes = b"\x90\x90"
+        note = f"条件跳转 @0x{address:x}: {_JCC_SHORT_NAMES.get(blob[0], 'jcc')} → {mode}"
     else:
         raise ValueError(
             f"0x{address:x} 处不是条件跳转（jcc）指令；仅支持短跳转（70-7F）与"
-            "近跳转（0F 84-8F），请先用反汇编确认选中的指令")
+            "近跳转（0F 80-8F），请先用反汇编确认选中的指令")
     if original == new_bytes:
         raise ValueError("反转前后字节相同，无需打补丁")
     return {"ops": [PatchOp(kind="jcc_invert", vaddr=address,
                             file_offset=lab.offset_of(address),
                             original_bytes=original, new_bytes=new_bytes,
-                            note=note)],
-            "warnings": ["条件反转只改变跳转方向，边界语义（多 1/少 1）需结合题意确认。"]}
+            note=note)],
+            "warnings": ["控制流修改会改变校验分支；应用后应同时测试成功、失败和边界输入。"]}
+
+
+def build_jcc_invert(lab: PatchLab, vaddr: int) -> dict:
+    return build_jcc_mode(lab, vaddr, "invert")
 
 
 def normalize_patch_arch(architecture, bits) -> str:
@@ -432,6 +573,7 @@ RECIPE_CATALOG: tuple[dict, ...] = (
             "原指令长度等长改写。"),
         "fields": [
             {"key": "function", "label": "目标函数", "kind": "select", "dynamic": True},
+            {"key": "vaddr", "label": "长度立即数地址（留空处理函数内全部匹配）", "kind": "number"},
             {"key": "callee", "label": "目标调用", "kind": "select",
              "options": [{"value": "read", "label": "read（amd64 edx / i386 第3参数）"},
                          {"value": "recv", "label": "recv（amd64 edx / i386 第3参数）"},
@@ -443,14 +585,43 @@ RECIPE_CATALOG: tuple[dict, ...] = (
         "warnings": ("过小会截断正常输入导致业务故障；先看栈帧再定值。",),
     },
     {
+        "id": "return_constant",
+        "name": "函数固定返回值",
+        "usage": (
+            "把函数入口按完整指令边界替换为 `xor eax,eax; ret`、`or eax,-1; ret` 或"
+            "`mov eax,imm32; ret`，剩余空间填 NOP。\n"
+            "适用：关闭危险功能、让鉴权或索引检查稳定失败、替代返回值不确定的单字节 ret。"),
+        "fields": [
+            {"key": "function", "label": "目标函数", "kind": "select", "dynamic": True},
+            {"key": "value", "label": "EAX 返回值（支持 -1 / 十六进制）", "kind": "number", "default": "0"},
+        ],
+        "warnings": ("仅适用于整数/布尔返回语义；指针、浮点和结构体返回需手动汇编。",),
+    },
+    {
+        "id": "jcc_mode",
+        "name": "条件分支控制",
+        "usage": (
+            "精确修改一条短/近条件跳转：取反、强制跳转，或永不跳转。保持原目标地址和区域长度。\n"
+            "适用：负数绕过、off-by-one、权限判断和错误分支修补；先从反汇编页复制指令地址。"),
+        "fields": [
+            {"key": "vaddr", "label": "条件跳转指令地址", "kind": "number"},
+            {"key": "mode", "label": "处理方式", "kind": "select", "options": [
+                {"value": "invert", "label": "取反条件"},
+                {"value": "always", "label": "强制跳转"},
+                {"value": "never", "label": "永不跳转"},
+            ]},
+        ],
+        "warnings": ("必须测试条件成立、不成立和边界值三条路径。",),
+    },
+    {
         "id": "nop_function",
         "name": "整函数 NOP",
         "usage": (
-            "按反汇编指令边界把选中函数体全部填 0x90（标准单字节 NOP）。调用方照常进入并"
-            "“空转”返回。\n"
-            "适用：废掉后门函数 / 明显的危险逻辑。"),
+            "按反汇编指令边界把选中函数体全部填 0x90。它会连 ret/尾跳转一起移除，执行可能"
+            "继续落入相邻代码。\n"
+            "仅适合明确不可达的代码区；关闭可调用函数时优先使用固定返回值或 ret 化。"),
         "fields": [{"key": "function", "label": "目标函数", "kind": "select", "dynamic": True}],
-        "warnings": ("副作用（全局状态修改、返回值）一并消失，确认无返回值/副作用依赖。",),
+        "warnings": ("可调用函数整段 NOP 可能发生控制流贯穿；不要把它当作安全返回。",),
     },
     {
         "id": "ret_function",

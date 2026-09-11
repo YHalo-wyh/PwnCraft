@@ -26,9 +26,10 @@ JS 弹簧-质量物理引擎动画；画布校正即时回放并**自动推断�
 ROP（ROPgadget 真实执行 + Shelf + Chain/ret2libc/SROP + 终端直接可用）·
 调试（**新开终端实例自动进入 pwndbg-mogai + ELF**，隔离 fork、官方 pwndbg 零改动）·
 Format（偏移/写入计划）· Syscall/ORW · Stack/Leak（cyclic + libc_base 推导）· 工具箱 ·
-**AWDP Patch**（v0.33：字节级补丁真值在 `features/patch`——入口 trampoline + code cave 的
-seccomp 沙箱注入、PLT 劫持（调用点/stub 双模式，兼容 `.plt.sec`）、read/fgets 长度收紧、
-函数 NOP/ret 化、条件跳转反转、自定义字节；字节码查询目录 + objdump 反汇编 + rel32 计算器；
+**AWDP Patch**（字节级补丁真值在 `features/patch`——ELF 导入即进行危险调用与缓冲区边界扫描；
+seccomp 沙箱注入、PLT 调用点/stub 劫持、read/recv/recvfrom/fgets 单点长度收紧、
+跳过单个调用并固定返回值、函数固定返回、条件跳转三态控制、指令区间汇编与自定义字节；
+字节码查询目录 + objdump 反汇编 + rel32 计算器；
 补丁逐条可撤销，三种导出：pwntools `patch.py` / 干净 patched ELF / 字节 diff；原始 ELF 只读，
 补丁只写工作副本并自动备份）。
 

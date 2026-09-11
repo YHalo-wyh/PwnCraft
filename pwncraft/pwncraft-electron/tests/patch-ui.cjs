@@ -22,7 +22,8 @@ const MAIN_INSTRUCTIONS = [
   { address: '0x1001', size: 3, bytes: '48 89 e5', text: 'mov %rsp,%rbp' },
   { address: '0x1004', size: 5, bytes: 'ba 2c 01 00 00', text: 'mov $0x12c,%edx' },
   { address: '0x1009', size: 5, bytes: 'e8 12 10 00 00', text: 'call 2010 <read@plt>' },
-  { address: '0x100e', size: 1, bytes: 'c3', text: 'ret' },
+  { address: '0x100e', size: 2, bytes: '75 04', text: 'jne 1014 <main+0x14>' },
+  { address: '0x1010', size: 1, bytes: 'c3', text: 'ret' },
 ];
 const FUNCTIONS = [
   { name: 'main', address: '0x1000', section: '.text', instruction_count: MAIN_INSTRUCTIONS.length,
@@ -79,6 +80,10 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
         locations: [{ function: 'main', address: '0x1004', instruction: 'mov $0x12c,%edx' }], confidence: 'review',
         evidence: ['0x1004: mov $0x12c,%edx'], request: { kind: 'readlen', function: 'main', callee: 'read', size: '0x40' }, action: '预览长度收紧' },
     ], function_count: 3, plt_imports: ['exit', 'read', 'system'], binary: 'fixture' };
+  if (method === 'vuln_points') return { binary: params.path, points: [
+    { function: 'main', vaddr: '0x1009', callee: 'read', verdict: 'overflow_confirmed',
+      reason: '长度 0x12c > 栈缓冲 0x40', length: 300, bound: 64, evidence: [] },
+  ], confirmed: 1, total: 1 };
   if (method === 'patch_preview') {
     const requests = Array.isArray(params.requests) ? params.requests : [params.request || {}];
     const previewId = `preview-${previews.size + 1}`;
@@ -135,6 +140,8 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
   if (method === 'patch_assemble') {
     if (params.text === 'mov edi, 0') return { bytes: 'bf 00 00 00 00', size: 5, count: 1 };
     if (params.text === 'xor edx, edx') return { bytes: '31 d2', size: 2, count: 1 };
+    if (params.text === 'mov rax, 0x1122334455667788') return {
+      bytes: '48 b8 88 77 66 55 44 33 22 11', size: 10, count: 1 };
     throw new Error('fixture: 无法汇编');
   }
   if (method === 'ida_status') return { available: false, hint: 'fixture: 未安装 IDA-CLI' };
@@ -166,11 +173,13 @@ app.whenReady().then(async () => {
     await js('window.__pwncraftDebug.importElf("C:/测试/awdp-pwn")');
     await until('PwnApp.state.activePath === "C:/测试/awdp-pwn"');
     await until('!!PwnApp.state.workspaces.get(PwnApp.state.activePath).patch?.audit?.summary');
+    await until('!!PwnApp.state.workspaces.get(PwnApp.state.activePath).patch?.vulnPoints');
     assert.equal(lastCall('patch_audit').result.path, 'C:/测试/awdp-pwn');
+    assert.equal(lastCall('vuln_points').result.path, 'C:/测试/awdp-pwn');
     assert.match(await js('document.querySelector(".binary-auto-audit").textContent'), /发现 2 个/);
     await click('[data-key="patch"]');
     await until('document.querySelectorAll(".analysis-function").length === 3');
-    await until('document.querySelectorAll(".patch-insn").length === 5');
+    await until('document.querySelectorAll(".patch-insn").length === 6');
     assert.match(await js('document.querySelector("#page-patch .analysis-path").innerText'), /awdp-pwn/);
     assert.match(await js('document.querySelector(".analysis-function-heading").innerText'), /main/);
     await shot('manual.png');
@@ -213,16 +222,33 @@ app.whenReady().then(async () => {
     await click('#patch-preview-cancel');
     await until('!document.querySelector(".patch-preview") && !document.querySelector("#patch-patcher-modal")');
 
-    // 条件跳转反转（off-by-one 一键修复）；先等 apply 触发的指令表重拉完成
-    await until('document.querySelectorAll(".patch-insn").length === 5 && !document.querySelector(".patch-preview")');
+    // 超长汇编通过可执行 code cave 跳板承载，再回到选区之后。
     await click('.patch-insn[data-index="2"]');
+    await click('#patch-asm-open');
+    await js('(() => { const caveInput = document.querySelector("#patcher-input"); caveInput.value = "mov rax, 0x1122334455667788"; caveInput.dispatchEvent(new Event("input")); })()');
+    await until('!document.querySelector("#patcher-cave").disabled');
+    assert.equal(await js('document.querySelector("#patcher-apply").disabled'), true);
+    await click('#patcher-cave');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'cave_hook');
+    assert.equal(lastCall('patch_preview').result.request.mode, 'replace');
+    await click('#patch-preview-cancel');
+
+    // 条件跳转反转（off-by-one 一键修复）；先等 apply 触发的指令表重拉完成
+    await until('document.querySelectorAll(".patch-insn").length === 6 && !document.querySelector(".patch-preview")');
+    await click('.patch-insn[data-index="4"]');
     await until('document.querySelector(".patch-insn.selected") !== null');
     await click('#patch-jcc-invert');
     await until('!!document.querySelector(".patch-preview")');
-    assert.equal(lastCall('patch_preview').result.request.kind, 'jcc_invert');
-    assert.equal(lastCall('patch_preview').result.request.vaddr, '0x1004');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'jcc_mode');
+    assert.equal(lastCall('patch_preview').result.request.mode, 'invert');
+    assert.equal(lastCall('patch_preview').result.request.vaddr, '0x100e');
     await click('#patch-preview-cancel');
     await until('!document.querySelector(".patch-preview")');
+    await click('#patch-jcc-always');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.mode, 'always');
+    await click('#patch-preview-cancel');
 
     // 调用筛选与单点 NOP 请求：只作用于 main 的 call，保留其余指令。
     await click('#patch-calls-only');
@@ -233,6 +259,11 @@ app.whenReady().then(async () => {
     assert.equal(lastCall('patch_preview').result.request.function, 'main');
     assert.equal(lastCall('patch_preview').result.request.start, '0x1009');
     assert.equal(lastCall('patch_preview').result.request.end, '0x100e');
+    await click('#patch-preview-cancel');
+    await click('.patch-zero-call-row');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'skip_call_result');
+    assert.equal(lastCall('patch_preview').result.request.value, 0);
     await click('#patch-preview-cancel');
     await click('#patch-calls-only');
     await click('.patch-insn[data-index="1"]');

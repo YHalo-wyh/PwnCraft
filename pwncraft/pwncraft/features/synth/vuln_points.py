@@ -6,7 +6,8 @@
 （objdump）而非 capstone Intel；结论分五档诚实输出，绝不猜测。
 
 检测面（v2）：
-- 有界读 read/fgets：回溯 len_reg 定义链求常量 / buf_reg 定义链求栈槽或
+- 有界读/写 read/recv/recvfrom/fgets/memcpy/memmove/strncpy：回溯长度寄存器定义链，
+  并将目标缓冲区解析为栈槽或已知大小的 mmap/malloc 返回值；
   mmap·malloc 返回值；栈缓冲上界 = 槽偏移（rbp-X → 距 ret X+8、距 canary
   X-8），堆 = 分配尺寸常量。
 - 无界读 gets：任何栈/堆目的即确认。
@@ -22,15 +23,22 @@ import re
 from pwncraft.features.patch.patch_core import parse_instruction_lines
 
 # amd64 SysV：read(fd,buf,len)→rdx/rsi；fgets(buf,size,f)→rsi/rdi；scanf(fmt,...)→rdi
-_LENGTH_REG = {"read": "rdx", "fgets": "rsi"}
-_DEST_REG = {"read": "rsi", "fgets": "rdi", "gets": "rdi",
+_LENGTH_REG = {"read": "rdx", "recv": "rdx", "recvfrom": "rdx", "fgets": "rsi",
+               "memcpy": "rdx", "memmove": "rdx", "strncpy": "rdx"}
+_DEST_REG = {"read": "rsi", "recv": "rsi", "recvfrom": "rsi",
+             "fgets": "rdi", "gets": "rdi",
+             "memcpy": "rdi", "memmove": "rdi", "strncpy": "rdi",
              "strcpy": "rdi", "strcat": "rdi", "sprintf": "rdi"}
 _UNBOUNDED = {"gets"}
 _UNBOUNDED_WRITE = {"strcpy", "strcat", "sprintf"}
 _ALLOC_SIZE_REG = {"mmap": "rsi", "malloc": "rdi", "calloc": "rdi"}
+_I386_LENGTH_ARG = {"read": 2, "recv": 2, "recvfrom": 2, "fgets": 1,
+                    "memcpy": 2, "memmove": 2, "strncpy": 2}
+_I386_DEST_ARG = {name: (1 if name in {"read", "recv", "recvfrom"} else 0)
+                  for name in {*_I386_LENGTH_ARG, "gets", "strcpy", "strcat", "sprintf"}}
 
 _LEA_RIP = re.compile(r"^lea\s+(?:-?0x[0-9a-fA-F]+)?\(%rip\),%(\w+)")
-_LEA_RBP = re.compile(r"^lea\s+(-0x[0-9a-fA-F]+)\(%rbp\),%(\w+)$")
+_LEA_RBP = re.compile(r"^lea\s+(-0x[0-9a-fA-F]+)\(%[er]bp\),%(\w+)$")
 _MOV_REG_REG = re.compile(r"^mov\s+%(\w+),%(\w+)$")
 _CALL_PLT = re.compile(r"^call[qw]?\s+[0-9a-fA-F]+\s+<([^>]+)>")
 _CANARY_READ = re.compile(r"^mov\s+%fs:0x28,")
@@ -181,6 +189,50 @@ def _scan_input_site(lines: list[dict], index: int, callee: str) -> dict:
             "fmt": None}
 
 
+def _cdecl_pushes(lines: list[dict], index: int) -> list[tuple[int, str]]:
+    """Return cdecl arguments nearest-first as (instruction index, operand)."""
+    pushes: list[tuple[int, str]] = []
+    for pos in range(index - 1, max(-1, index - 32), -1):
+        text = str(lines[pos].get("text") or "").strip()
+        if text.startswith(("call", "jmp", "ret")):
+            break
+        match = re.match(r"^push[l]?\s+(.+)$", text)
+        if match:
+            pushes.append((pos, match[1].strip()))
+    return pushes
+
+
+def _scan_input_site_i386(lines: list[dict], index: int, callee: str) -> dict:
+    pushes = _cdecl_pushes(lines, index)
+    length = None
+    length_evidence = "无长度参数" if callee in _UNBOUNDED else "长度参数不可解析"
+    length_index = _I386_LENGTH_ARG.get(callee)
+    if length_index is not None and len(pushes) > length_index:
+        pos, operand = pushes[length_index]
+        if re.fullmatch(r"\$-?0x[0-9a-fA-F]+", operand):
+            length = int(operand[1:], 16)
+            length_evidence = f"0x{lines[pos]['address']:x}: push {operand}"
+    dest = None
+    dest_evidence = "目的缓冲不可解析"
+    dest_index = _I386_DEST_ARG.get(callee)
+    if dest_index is not None and len(pushes) > dest_index:
+        pos, operand = pushes[dest_index]
+        if operand.startswith("%"):
+            chain = _backtrack(lines, pos, operand[1:])
+            if chain.get("kind") == "stack":
+                dest = {"kind": "stack", "offset": chain["offset"]}
+                dest_evidence = f"栈槽 ebp-{chain['offset']:#x} @ {chain['insn']}"
+            elif chain.get("kind") == "rip":
+                dest = {"kind": "global"}
+                dest_evidence = f"全局地址 @ {chain['insn']}"
+        elif re.fullmatch(r"\$0x[0-9a-fA-F]+", operand):
+            dest = {"kind": "global"}
+            dest_evidence = f"绝对全局地址 {operand}"
+    return {"length": length, "length_evidence": length_evidence,
+            "dest": dest, "dest_evidence": dest_evidence,
+            "canary_offset": None, "word_size": 4, "fmt": None}
+
+
 def _scan_sprintf_site(lines: list[dict], index: int, binary_path) -> dict:
     """sprintf(dst, fmt, ...)：目的缓冲 + 格式串是否含 %s。"""
     resolved = _scan_input_site(lines, index, "strcpy")
@@ -222,8 +274,6 @@ def _scanf_dangerous(lines: list[dict], index: int, binary_path) -> dict:
     check = _resolve_fmt_string(lines, index, "rdi", binary_path)
     if not check.get("resolved"):
         return {"danger": None, "reason": check["reason"]}
-    if fmt_chain.get("kind") != "rip":
-        return {"danger": None, "reason": "格式串不可解析"}
     fmt = check.get("fmt") or ""
     if re.search(r"%[0-9]*[lhz]*s", fmt) and not re.search(r"%[0-9]+[lhz]*s", fmt):
         return {"danger": True, "reason": f'格式串 "{fmt}" 含无宽度 %s', "fmt": fmt}
@@ -255,8 +305,9 @@ def _verdict(callee: str, resolved: dict) -> dict:
                                "（数字/短串转换，缓冲足够）"),
                     "evidence": evidence}
         if dest and dest["kind"] == "stack":
-            return {"verdict": "overflow_confirmed",
-                    "reason": f"{callee} 无界写栈缓冲（rbp-{dest['offset']:#x}）",
+            return {"verdict": "unbounded_input",
+                    "reason": (f"{callee} 向栈缓冲无界写入（rbp-{dest['offset']:#x}；"
+                               "源长度未解析，需复核可控性）"),
                     "evidence": evidence}
         if dest and dest["kind"] == "global":
             return {"verdict": "global_write_candidate",
@@ -288,7 +339,8 @@ def _verdict(callee: str, resolved: dict) -> dict:
                 "evidence": evidence}
     canary = resolved.get("canary_offset") is not None
     bound_canary = dest["offset"] - (8 if canary else 0)
-    bound_rip = dest["offset"] + 8            # buf 起点到保存 RIP 的距离
+    word_size = int(resolved.get("word_size") or 8)
+    bound_rip = dest["offset"] + word_size    # buf 起点到保存返回地址的距离
     if length > bound_rip:
         return {"verdict": "overflow_confirmed",
                 "reason": (f"长度 {length:#x} 覆盖返回地址（rbp-{dest['offset']:#x}"
@@ -304,7 +356,7 @@ def _verdict(callee: str, resolved: dict) -> dict:
             "bound": bound_canary, "evidence": evidence}
 
 
-def scan_functions(functions: list[dict], *, binary_path=None) -> list[dict]:
+def scan_functions(functions: list[dict], *, binary_path=None, bits: int = 64) -> list[dict]:
     """对已解析的函数列表扫描全部输入/无界写调用点（纯函数，便于单测）。"""
     points = []
     for fn in functions:
@@ -317,8 +369,12 @@ def scan_functions(functions: list[dict], *, binary_path=None) -> list[dict]:
                 continue
             callee = call[1].split("@")[0]
             callee = re.sub(r"^(?:_IO|__isoc99)_", "", callee)  # 静态 glibc 内部名
-            if callee in ("read", "fgets", "gets", "strcpy", "strcat", "sprintf"):
-                if callee == "sprintf":
+            if callee in ("read", "recv", "recvfrom", "fgets", "memcpy", "memmove",
+                          "strncpy", "gets",
+                          "strcpy", "strcat", "sprintf"):
+                if int(bits) == 32:
+                    resolved = _scan_input_site_i386(lines, index, callee)
+                elif callee == "sprintf":
                     resolved = _scan_sprintf_site(lines, index, binary_path)
                 else:
                     resolved = _scan_input_site(lines, index, callee)
@@ -366,14 +422,17 @@ def scan_functions(functions: list[dict], *, binary_path=None) -> list[dict]:
 def scan_vuln_points(binary, runner, *, functions: list[dict] | None = None) -> dict:
     """扫描目标 ELF 的全部输入/无界写调用点（缺 functions 时自行 objdump）。"""
     if functions is None:
-        result = runner.run_tool("objdump", ["-d", "--", runner.to_wsl_path(binary)])
+        result = runner.run_tool(
+            "objdump", ["-d", "--insn-width=16", "--", runner.to_wsl_path(binary)])
         if not result.ok:
             raise ValueError(f"objdump 失败: {result.combined_output()[:120]}")
         from pwncraft.core.code_analysis import parse_disassembly
         # 静态链接二进制函数动辄数千：默认 1000 上限会把目标函数截掉
         functions = parse_disassembly(result.stdout, max_functions=200000)["functions"]
-    points = scan_functions(functions, binary_path=Path(binary))
+    from pwncraft.core.workbench import elf_geometry
+    bits = 64 if elf_geometry(binary)["is64"] else 32
+    points = scan_functions(functions, binary_path=Path(binary), bits=bits)
     confirmed = sum(1 for p in points
                     if p["verdict"] in ("overflow_confirmed", "unbounded_input"))
-    return {"binary": str(binary), "points": points,
+    return {"binary": str(binary), "bits": bits, "points": points,
             "confirmed": confirmed, "total": len(points)}

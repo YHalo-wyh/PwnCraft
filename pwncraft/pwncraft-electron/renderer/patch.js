@@ -331,8 +331,12 @@
         <div id="patcher-encode" class="patcher-encode mono"></div>
         <label class="form-row"><input type="checkbox" id="patcher-nop-fill" checked>
           <span>剩余字节自动填 NOP（选区共 ${selected.size} 字节；可在指令表 Shift+单击扩选）</span></label>
+        <label class="form-row"><span class="k">code cave 模式</span><select id="patcher-cave-mode" class="input">
+          <option value="replace">替换选区后跳回</option><option value="before">先执行新代码，再执行原选区</option>
+          <option value="after">先执行原选区，再执行新代码</option></select></label>
         <div class="patcher-actions">
           <button class="mini-btn primary" id="patcher-apply" disabled>生成补丁预览</button>
+          <button class="mini-btn" id="patcher-cave" disabled>写入 code cave 跳板</button>
           <span class="hint-dim">Ctrl+Enter 预览 · Esc 关闭</span>
         </div>
       </div>`;
@@ -340,14 +344,18 @@
     const input = overlay.querySelector('#patcher-input');
     const encodeBox = overlay.querySelector('#patcher-encode');
     const applyBtn = overlay.querySelector('#patcher-apply');
+    const caveBtn = overlay.querySelector('#patcher-cave');
     let compiled = null;
+    let caveCompiled = null;
     let timer = null;
     let revision = 0;
     const compile = async () => {
       const current = ++revision;
       const text = input.value.trim();
       compiled = null;
+      caveCompiled = null;
       applyBtn.disabled = true;
+      caveBtn.disabled = true;
       if (!text) {
         encodeBox.innerHTML = '<span class="hint-dim">输入汇编指令后实时显示机器码</span>';
         applyBtn.disabled = true;
@@ -359,8 +367,10 @@
         });
         if (current !== revision || !overlay.isConnected) return;
         const tooLong = result.size > selected.size;
+        caveCompiled = result;
         compiled = tooLong ? null : result;
         applyBtn.disabled = tooLong;
+        caveBtn.disabled = selected.size < 5;
         encodeBox.innerHTML = `
           <span class="${tooLong ? 'err-text' : 'ok-text'}">${esc(result.bytes)}</span>
           <span class="hint-dim">· ${result.size} 字节${tooLong
@@ -370,12 +380,14 @@
       } catch (error) {
         if (current !== revision || !overlay.isConnected) return;
         compiled = null;
+        caveCompiled = null;
         applyBtn.disabled = true;
+        caveBtn.disabled = true;
         encodeBox.innerHTML = `<span class="err-text">${esc(error.message || String(error))}</span>`;
       }
     };
     input.addEventListener('input', () => {
-      ++revision; compiled = null; applyBtn.disabled = true;
+      ++revision; compiled = null; caveCompiled = null; applyBtn.disabled = true; caveBtn.disabled = true;
       clearTimeout(timer);
       timer = setTimeout(compile, 250);
     });
@@ -395,7 +407,18 @@
         end: selected.end, text: input.value.trim(), pad: fill,
       }, `汇编补丁 @${selected.address}（${input.value.trim()}）`);
     };
+    const commitCave = () => {
+      if (!caveCompiled || selected.size < 5) return;
+      const mode = overlay.querySelector('#patcher-cave-mode').value;
+      const source = input.value.trim();
+      closePatcherModal();
+      previewPatch(entry, {
+        kind: 'cave_hook', function: selected.function, start: selected.address,
+        end: selected.end, text: source, mode,
+      }, `code cave 跳板 @${selected.address}（${mode}）`);
+    };
     applyBtn.addEventListener('click', commit);
+    caveBtn.addEventListener('click', commitCave);
     overlay.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closePatcherModal();
       if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) commit();
@@ -436,6 +459,8 @@
       ? cache.instructions.instructions : null;
     const region = selectedRegion(cache, instructions, fn);
     const selectedCall = region?.count === 1 && isCall(instructions?.[cache.selectedInsn]);
+    const selectedJcc = region?.count === 1 && /^j[a-z]+\s/i.test(instructions?.[cache.selectedInsn]?.text || '')
+      && !/^jmp\s/i.test(instructions?.[cache.selectedInsn]?.text || '');
     panel.innerHTML = `
       ${cache.loading ? '<div class="analysis-hint" role="status">正在读取汇编函数…</div>' : ''}
       ${cache.functionsError ? `<div class="analysis-error">${esc(cache.functionsError)}</div>` : ''}
@@ -473,8 +498,11 @@
             <button class="mini-btn primary" id="patch-asm-open" ${cache.selectedInsn < 0 ? 'disabled' : ''} title="Keypatch 式：输入新汇编实时编译，剩余字节自动 NOP（Ctrl+P）">汇编补丁</button>
             <button class="mini-btn" id="patch-nop-insn" ${!region ? 'disabled' : ''}>NOP 选中区域</button>
             <button class="mini-btn" id="patch-nop-call" ${!selectedCall ? 'disabled' : ''}>NOP 此处调用</button>
+            <button class="mini-btn" id="patch-call-zero" ${!selectedCall ? 'disabled' : ''}>跳过调用并返回 0</button>
             <button class="mini-btn" id="patch-nop-tail" ${cache.selectedInsn < 0 ? 'disabled' : ''}>NOP 到函数尾</button>
-            <button class="mini-btn" id="patch-jcc-invert" ${cache.selectedInsn < 0 ? 'disabled' : ''} title="jg↔jle / jl↔jge / je↔jne 等；off-by-one 边界修复的 1 字节手法">反转跳转条件</button>
+            <button class="mini-btn" id="patch-jcc-invert" ${!selectedJcc ? 'disabled' : ''}>反转条件</button>
+            <button class="mini-btn" id="patch-jcc-always" ${!selectedJcc ? 'disabled' : ''}>强制跳转</button>
+            <button class="mini-btn" id="patch-jcc-never" ${!selectedJcc ? 'disabled' : ''}>永不跳转</button>
             <button class="mini-btn" id="patch-ret-fn">函数 ret 化</button>
             <button class="mini-btn" id="patch-nop-fn">整函数 NOP</button>
             <span class="patch-hex-wrap">
@@ -492,7 +520,8 @@
                   class="patch-insn ${region && parseInt(insn.address, 16) >= parseInt(region.address, 16) && parseInt(insn.address, 16) < parseInt(region.end, 16) ? 'selected' : ''}" data-index="${index}">
                   <td>${esc(insn.address)}</td><td>${esc(insn.bytes)}</td><td>${esc(insn.text)}</td>
                   <td><button class="mini-btn patch-edit-row" data-index="${index}">编辑</button>
-                  ${isCall(insn) ? `<button class="mini-btn patch-nop-call-row" data-index="${index}">NOP 调用</button>` : ''}</td></tr>` : '').join('')}
+                  ${isCall(insn) ? `<button class="mini-btn patch-nop-call-row" data-index="${index}">NOP 调用</button>
+                    <button class="mini-btn patch-zero-call-row" data-index="${index}">返回 0</button>` : ''}</td></tr>` : '').join('')}
               </tbody></table>
             </div>` : `<div class="analysis-empty">${cache.insnLoading ? '读取指令…' : cache.instructionsError ? esc(cache.instructionsError) : '选择函数以查看指令。'}</div>`}
         ` : '<div class="analysis-empty">选择函数以查看指令。</div>'}
@@ -534,12 +563,15 @@
         if (event.key === 'Enter') { event.preventDefault(); row.ondblclick(); }
       };
     });
-    panel.querySelectorAll('.patch-edit-row, .patch-nop-call-row').forEach(button => {
+    panel.querySelectorAll('.patch-edit-row, .patch-nop-call-row, .patch-zero-call-row').forEach(button => {
       button.onclick = event => {
         event.stopPropagation();
         cache.selectedInsn = Number(button.dataset.index); cache.selectionEnd = -1;
         const selection = selectedRegion(cache, instructions, fn);
         if (button.classList.contains('patch-edit-row')) openPatcherModal(entry, selection);
+        else if (button.classList.contains('patch-zero-call-row')) previewPatch(entry, {
+          kind: 'skip_call_result', function: fn.name, start: selection.address,
+          end: selection.end, value: 0 }, `跳过调用并返回 0 @${selection.address}`);
         else previewPatch(entry, { kind: 'nop_call', function: fn.name,
           start: selection.address, end: selection.end }, `NOP 单处调用 @${selection.address}`);
       };
@@ -588,12 +620,21 @@
     bind('#patch-nop-call', () => selectedCall && previewPatch(entry, {
       kind: 'nop_call', function: fn.name, start: region.address, end: region.end,
     }, `NOP 单处调用 @${region.address}`));
+    bind('#patch-call-zero', () => selectedCall && previewPatch(entry, {
+      kind: 'skip_call_result', function: fn.name, start: region.address, end: region.end, value: 0,
+    }, `跳过调用并返回 0 @${region.address}`));
     bind('#patch-nop-tail', () => selected && fnEnd && previewPatch(entry, {
       kind: 'nop_range', start: selected.address, end: fnEnd,
     }, `NOP 0x${selected.address} → 函数尾`));
     bind('#patch-jcc-invert', () => selected && previewPatch(entry, {
-      kind: 'jcc_invert', vaddr: selected.address,
+      kind: 'jcc_mode', mode: 'invert', vaddr: selected.address,
     }, `反转条件跳转 @${selected.address}`));
+    bind('#patch-jcc-always', () => selectedJcc && previewPatch(entry, {
+      kind: 'jcc_mode', mode: 'always', vaddr: selected.address,
+    }, `强制跳转 @${selected.address}`));
+    bind('#patch-jcc-never', () => selectedJcc && previewPatch(entry, {
+      kind: 'jcc_mode', mode: 'never', vaddr: selected.address,
+    }, `永不跳转 @${selected.address}`));
     bind('#patch-ret-fn', () => fn && previewPatch(entry, {
       kind: 'ret_function', function: fn.name,
     }, `${fn.name} ret 化`));
@@ -683,10 +724,14 @@
         function: form.function || '', vaddr: form.vaddr || '' };
     }
     if (recipe.id === 'readlen') {
-      return { kind: 'readlen', function: form.function || '', callee: form.callee || 'read', size: form.size || '0x30' };
+      return { kind: 'readlen', function: form.function || '', vaddr: form.vaddr || '',
+        callee: form.callee || 'read', size: form.size || '0x30' };
     }
-    if (recipe.id === 'nop_function' || recipe.id === 'ret_function') {
-      return { kind: recipe.id, function: form.function || '' };
+    if (recipe.id === 'nop_function' || recipe.id === 'ret_function' || recipe.id === 'return_constant') {
+      return { kind: recipe.id, function: form.function || '', value: form.value || '0' };
+    }
+    if (recipe.id === 'jcc_mode') {
+      return { kind: 'jcc_mode', vaddr: form.vaddr || '', mode: form.mode || 'invert' };
     }
     return null;
   }
@@ -877,7 +922,7 @@
       const fnField = recipe.fields.find(f => f.key === 'function');
       if (fnField) fnField.options = [{ value: '', label: '所有函数（也可选择单个函数）' }, ...textOptions(cache)];
     }
-    if (['readlen', 'nop_function', 'ret_function'].includes(recipe.id)) {
+    if (['readlen', 'nop_function', 'ret_function', 'return_constant'].includes(recipe.id)) {
       const field = recipe.fields.find(f => f.key === 'function');
       if (field) field.options = textOptions(cache);
     }
