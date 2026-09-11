@@ -87,7 +87,7 @@ class CodeAnalysisTests(TestCase):
             result = bridge.rpc_code_analysis({"path": str(target), "source": "def incomplete("})
             self.assertEqual(result["function_count"], 3)
             self.assertEqual(result["diagnostics"][0]["code"], "EXP_PARSE_001")
-            bridge._runner.run_tool.assert_called_once_with("objdump", ["-d", "--", "/mnt/c/中文 ELF"])
+            bridge._runner.run_tool.assert_called_once_with("objdump", ["-d", "--insn-width=16", "--", "/mnt/c/中文 ELF"])
             bridge._runner.run_tool.reset_mock()
             result = bridge.rpc_code_analysis({"path": str(target), "source": "raise RuntimeError('must not run')", "include_assembly": False})
             bridge._runner.run_tool.assert_not_called()

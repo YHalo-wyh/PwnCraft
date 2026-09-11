@@ -259,8 +259,8 @@ class PatchLab:
             shutil.copy2(backup, self.binary)
             raise
 
-    def apply(self, ops: list[PatchOp]) -> dict:
-        """Verify originals, back up, write bytes in place, persist the log."""
+    def validate_apply(self, ops: list[PatchOp]) -> None:
+        """Use the same read-only preflight for preview and commit."""
         if not ops:
             raise ValueError("没有可应用的补丁")
         self.assert_all_applied()
@@ -273,6 +273,12 @@ class PatchLab:
                     f"0x{op.vaddr:x} 处当前字节为 {_hex_dump(current)!r}，"
                     f"与预期的原字节 {_hex_dump(op.original_bytes)!r} 不符；"
                     "文件可能已被外部修改，请重新分析")
+            if op.original_bytes == op.new_bytes:
+                raise ValueError(f"0x{op.vaddr:x} 处新旧字节相同，无需应用")
+
+    def apply(self, ops: list[PatchOp]) -> dict:
+        """Verify originals, back up, write bytes in place, persist the log."""
+        self.validate_apply(ops)
         batch_id = uuid.uuid4().hex[:12]
         applied_at = int(time.time())
         prepared = [replace(op, batch_id=batch_id, applied_at=applied_at) for op in ops]

@@ -9800,6 +9800,14 @@ select.input { font: inherit; }
 .patch-audit { margin-bottom: 12px; }
 .patch-audit-summary { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin: 6px 0; }
 .patch-audit-list { display: grid; gap: 6px; margin-top: 8px; }
+.patch-audit-list { max-height: 44vh; overflow-y: auto; }
+.patch-audit-location { margin: 4px 6px 2px 0; }
+.patch-selection { padding: 4px 10px; }
+.binary-auto-audit { margin-bottom: 12px; }
+.binary-auto-audit .hint-dim { margin-top: 6px; }
+.patcher-origin { white-space: pre-wrap; max-height: 180px; overflow: auto; }
+#patcher-input { width: 100%; min-height: 90px; resize: vertical; }
+.patch-insn-table td:last-child { white-space: nowrap; }
 .patch-audit-item { display: flex; gap: 12px; align-items: center; padding: 7px 9px; border-left: 3px solid var(--border); background: var(--bg-raised); }
 .patch-audit-item > div { flex: 1; min-width: 0; }
 .patch-audit-item.severity-critical { border-left-color: #f14c4c; }

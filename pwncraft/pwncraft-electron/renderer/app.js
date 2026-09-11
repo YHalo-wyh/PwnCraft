@@ -414,6 +414,7 @@
     }
     // ELF 拖入即自动分析：ROPgadget / seccomp-tools / fmt 探测在 WSL 后台
     // 执行，triage_stage 事件逐段回填页面（有缓存则直接命中）。
+    window.PwnPatch?.scan(entry);
     startAutoTriage(entry);
   }
 

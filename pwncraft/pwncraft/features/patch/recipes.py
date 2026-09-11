@@ -67,7 +67,7 @@ def find_call_sites(functions: list[dict], target: str) -> list[dict]:
 
 
 def build_plt_call_redirect(lab: PatchLab, functions: list[dict], source: str,
-                            target: str) -> dict:
+                            target: str, *, function: str = "", vaddr: int | None = None) -> dict:
     """把所有 `call source@plt` 的 rel32 重定向到 target@plt（V1ct0r 手法）。"""
     stubs = extract_plt_stubs(functions)
     if source not in stubs:
@@ -75,6 +75,10 @@ def build_plt_call_redirect(lab: PatchLab, functions: list[dict], source: str,
     if target not in stubs:
         raise ValueError(f"PLT 里没有 {target}@plt（可用: {', '.join(sorted(stubs)) or '无'}）")
     sites = find_call_sites(functions, source)
+    if function:
+        sites = [site for site in sites if site["function"] == function]
+    if vaddr is not None:
+        sites = [site for site in sites if site["insn"]["address"] == vaddr]
     if not sites:
         raise ValueError(f"反汇编中没有发现对 {source}@plt 的调用点")
     ops: list[PatchOp] = []
@@ -128,6 +132,48 @@ def _function_instructions(functions: list[dict], name: str) -> tuple[dict, list
 def _calls_callee(text: str, callee: str) -> bool:
     match = _CALL_PLT_RE.match(text or "")
     return bool(match) and str(match[2]).startswith(f"{callee}@")
+
+
+def instruction_region(functions: list[dict], function: str, start: int, end: int) -> list[dict]:
+    """Resolve a contiguous span bounded by complete instructions in one function."""
+    _, instructions = _function_instructions(functions, function)
+    if not start < end or end - start > 0x10000:
+        raise ValueError("请选择同一函数内 1–65536 字节的连续指令区间")
+    selected = [i for i in instructions if start <= i["address"] < end]
+    cursor = start
+    for insn in selected:
+        if insn["address"] != cursor:
+            raise ValueError("选区不连续或起点不在指令边界，请刷新反汇编后重选")
+        cursor += insn["size"]
+    if not selected or cursor != end:
+        raise ValueError("选区终点不在指令边界或越过当前函数，请重选完整指令")
+    return selected
+
+
+def build_instruction_patch(lab: PatchLab, functions: list[dict], function: str,
+                            start: int, end: int, *, kind: str,
+                            replacement: bytes | None = None, pad: bool = True) -> dict:
+    selected = instruction_region(functions, function, start, end)
+    original = b"".join(i["bytes"] for i in selected)
+    if lab.read_at(start, len(original)) != original:
+        raise ValueError("选中指令与磁盘字节不一致，请刷新反汇编")
+    if kind == "nop_call":
+        if len(selected) != 1 or not re.match(r"^(?:bnd\s+|notrack\s+)?call[qwl]?\s", selected[0]["text"]):
+            raise ValueError("NOP 调用只接受一条 call 指令（直接或间接调用）")
+    if replacement is None:
+        replacement = b"\x90" * len(original)
+    if len(replacement) > len(original):
+        raise ValueError(f"新汇编需要 {len(replacement)} 字节，选区只有 {len(original)} 字节；请扩选完整指令")
+    if len(replacement) < len(original):
+        if not pad:
+            raise ValueError("新汇编短于选区，请启用 NOP 填充或调整选区")
+        replacement += b"\x90" * (len(original) - len(replacement))
+    op = PatchOp(kind=kind, vaddr=start, file_offset=lab.offset_of(start),
+                 original_bytes=original, new_bytes=replacement,
+                 note=f"{function}: {kind} @0x{start:x}，{len(selected)} 条指令 / {len(original)} 字节")
+    return {"ops": [op], "warnings": [
+        "跳过调用后返回寄存器不会自动设置，请核对后续代码是否使用返回值。"
+        if kind == "nop_call" else "修改限定在选中的完整指令区间；应用后请检查正常输入行为。"]}
 
 
 def build_read_length(lab: PatchLab, functions: list[dict], function: str,
@@ -208,7 +254,7 @@ def build_nop_function(lab: PatchLab, functions: list[dict], function: str) -> d
     ops = [PatchOp(kind="nop_function", vaddr=start, file_offset=lab.offset_of(start),
                    original_bytes=original, new_bytes=b"\x90" * (end - start),
                    note=f"{fn['name']}: 整函数 NOP（{end - start} 字节）")]
-    return {"ops": ops, "warnings": ["NOP 化后函数仍会被调用并原样返回（副作用消失），确认无返回值依赖。"]}
+    return {"ops": ops, "warnings": ["整函数 NOP 会移除 ret 和尾跳转，执行可能落入后续函数；若目的是跳过调用，请使用 NOP 单处调用或 ret 化。"]}
 
 
 def build_ret_function(lab: PatchLab, functions: list[dict], function: str) -> dict:
@@ -338,6 +384,8 @@ RECIPE_CATALOG: tuple[dict, ...] = (
             "只改调用语义。\n"
             "适用：已知危险函数（system/execve/gets 等）且想精确替换调用点的场景。"),
         "fields": [
+            {"key": "function", "label": "作用函数", "kind": "select", "dynamic": True},
+            {"key": "vaddr", "label": "单处调用地址（留空处理所选函数的全部匹配调用）", "kind": "number"},
             {"key": "source", "label": "被劫持函数（PLT）", "kind": "select", "dynamic": True},
             {"key": "target", "label": "重定向目标（PLT）", "kind": "select", "dynamic": True},
         ],

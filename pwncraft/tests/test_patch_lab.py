@@ -669,6 +669,30 @@ class ExporterTests(FixtureCase):
 
 
 class AuditTests(FixtureCase):
+    def test_symbol_call_without_plt_and_hardening_have_separate_confidence(self):
+        functions = [{"name": "main", "assembly": insn_lines(BASE + 0xA0, [
+            (b"\xe8\x00\x00\x00\x00", "call 400100 <gets>"),
+            (b"\xff\x15\x00\x00\x00\x00", "call *0x123(%rip) # 400180 <printf@GLIBC_2.2.5>"),
+        ])}]
+        result = audit_patch_surface(self.lab, functions, security={"NX": "OFF", "PIE": "UNKNOWN"})
+        by_id = {item["id"]: item for item in result["findings"]}
+        self.assertEqual(by_id["import:gets"]["confidence"], "dangerous_api")
+        self.assertEqual(by_id["format:printf"]["confidence"], "review")
+        self.assertEqual(by_id["format:printf"]["severity"], "info")
+        self.assertEqual(by_id["hardening:NX"]["confidence"], "hardening")
+        self.assertNotIn("hardening:PIE", by_id)
+        self.assertIsNone(by_id["import:gets"]["request"])
+        self.assertEqual(by_id["import:gets"]["locations"][0]["address"], hex(BASE + 0xA0))
+        self.assertEqual(result["coverage"]["call_sites"], 2)
+
+    def test_calls_named_with_offset_are_not_assumed_to_be_apis(self):
+        functions = [{"name": "main", "assembly": insn_lines(BASE, [
+            (b"\xe8\x00\x00\x00\x00", "call 401123 <gets+0x8>"),
+        ])}]
+        result = audit_patch_surface(self.lab, functions)
+        self.assertEqual(result["findings"], [])
+        self.assertTrue(result["limitations"])
+
     def test_scan_emits_previewable_read_and_command_mitigations(self):
         functions = fake_functions()
         functions.append({
@@ -741,6 +765,72 @@ class BridgePatchTests(FixtureCase):
         result = bridge.rpc_patch_preview(
             {"path": str(self.binary), "request": {"kind": "nop_function", "function": "main"}})
         self.assertEqual(result["ops"][0]["new_bytes"].replace(" ", ""), "90" * 15)
+        self.assertEqual(self.binary.read_bytes(), before)
+
+    def test_apply_uses_preview_and_rejects_reuse(self):
+        bridge = self._bridge()
+        params = {"path": str(self.binary), "request": {"kind": "nop_call", "function": "main",
+                  "start": hex(BASE + 0xAA), "end": hex(BASE + 0xAF)}}
+        preview = bridge.rpc_patch_preview(params)
+        before = self.binary.read_bytes()
+        bridge._build_patch_ops = Mock(side_effect=AssertionError("must not rebuild preview"))
+        applied = bridge.rpc_patch_apply({"path": str(self.binary), "preview_id": preview["preview_id"]})
+        self.assertEqual(applied["applied"][0]["new_bytes"], "90 90 90 90 90")
+        self.assertEqual(self.binary.read_bytes()[:0xAA], before[:0xAA])
+        with self.assertRaisesRegex(ValueError, "预览已过期"):
+            bridge.rpc_patch_apply({"path": str(self.binary), "preview_id": preview["preview_id"]})
+        bridge.rpc_patch_undo({"path": str(self.binary), "op_id": applied["applied"][0]["op_id"]})
+        self.assertEqual(self.binary.read_bytes(), before)
+
+    def test_preview_stale_target_and_overlap_are_rejected(self):
+        bridge = self._bridge()
+        params = {"path": str(self.binary), "request": {"kind": "nop_instructions", "function": "main",
+                  "start": hex(BASE + 0xA0), "end": hex(BASE + 0xAA)}}
+        preview = bridge.rpc_patch_preview(params)
+        other = self.folder / "other"
+        other.write_bytes(self.binary.read_bytes())
+        with self.assertRaisesRegex(ValueError, "另一个文件"):
+            bridge.rpc_patch_apply({"path": str(other), "preview_id": preview["preview_id"]})
+        with self.binary.open("r+b") as stream:
+            stream.seek(0xA0); stream.write(b"\xcc")
+        with self.assertRaisesRegex(ValueError, "原字节"):
+            bridge.rpc_patch_apply({"path": str(self.binary), "preview_id": preview["preview_id"]})
+        self.binary.write_bytes(other.read_bytes())
+        bridge.rpc_patch_apply({"path": str(self.binary), "preview_id": preview["preview_id"]})
+        with self.assertRaises(ValueError):
+            bridge.rpc_patch_preview(params)
+
+    def test_instruction_edit_rejects_bad_boundary_and_non_call(self):
+        bridge = self._bridge()
+        for request in (
+            {"kind": "nop_call", "function": "main", "start": hex(BASE + 0xA0), "end": hex(BASE + 0xA5)},
+            {"kind": "nop_instructions", "function": "main", "start": hex(BASE + 0xA1), "end": hex(BASE + 0xA5)},
+            {"kind": "nop_instructions", "function": "main", "start": hex(BASE + 0xA0), "end": hex(BASE + 0xA4)},
+        ):
+            with self.assertRaises(ValueError):
+                bridge.rpc_patch_preview({"path": str(self.binary), "request": request})
+
+    def test_multiline_assembly_preserves_neighbors_and_pads(self):
+        bridge = self._bridge()
+        preview = bridge.rpc_patch_preview({"path": str(self.binary), "request": {
+            "kind": "assembly", "function": "main", "start": hex(BASE + 0xA0),
+            "end": hex(BASE + 0xAA), "text": "xor edx, edx\nnop", "pad": True}})
+        before = self.binary.read_bytes()
+        applied = bridge.rpc_patch_apply({"path": str(self.binary), "preview_id": preview["preview_id"]})
+        self.assertEqual(self.binary.read_bytes()[0xA0:0xAA], b"\x31\xd2" + b"\x90" * 8)
+        self.assertEqual(self.binary.read_bytes()[0xAA:], before[0xAA:])
+        bridge.rpc_patch_undo({"path": str(self.binary), "op_id": applied["applied"][0]["op_id"]})
+        self.assertEqual(self.binary.read_bytes(), before)
+
+    def test_audit_export_preserves_binary(self):
+        bridge = self._bridge()
+        before = self.binary.read_bytes()
+        result = bridge.rpc_patch_audit_export({"path": str(self.binary), "dest": str(self.folder / "audit.json")})
+        report = json.loads(Path(result["path"]).read_text(encoding="utf-8"))
+        self.assertEqual(len(report["sha256"]), 64)
+        self.assertIn("coverage", report)
+        with self.assertRaisesRegex(ValueError, "不能覆盖"):
+            bridge.rpc_patch_audit_export({"path": str(self.binary), "dest": str(self.binary)})
         self.assertEqual(self.binary.read_bytes(), before)
 
     def test_apply_then_undo_via_rpc(self):

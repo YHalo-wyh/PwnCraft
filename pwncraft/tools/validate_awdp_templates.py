@@ -131,6 +131,9 @@ def _case_catalog(binary: Path) -> list[TemplateCase]:
     start = int(first["address"])
     end = start + int(first["size"])
     custom = " ".join("90" for _ in range(int(first["size"])))
+    marker_call = next(i for i in marker_insns if "<puts@plt>" in i["text"] and "call" in i["text"])
+    call_region = {"function": "marker", "start": hex(marker_call["address"]),
+                   "end": hex(marker_call["address"] + marker_call["size"])}
     return [
         TemplateCase("seccomp", {"kind": "seccomp", "preset": "blacklist_min"}, _verify_seccomp),
         TemplateCase("plt_call", {"kind": "plt_call", "source": "system", "target": "puts"},
@@ -144,6 +147,10 @@ def _case_catalog(binary: Path) -> list[TemplateCase]:
         TemplateCase("nop_range", {"kind": "nop_range", "start": hex(start), "end": hex(end)}),
         TemplateCase("custom", {"kind": "custom", "vaddr": hex(start), "hex": custom,
                                  "expected_size": int(first["size"])}),
+        TemplateCase("nop_call", {"kind": "nop_call", **call_region}, _verify_ret),
+        TemplateCase("nop_instructions", {"kind": "nop_instructions", **call_region}, _verify_ret),
+        TemplateCase("assembly", {"kind": "assembly", **call_region,
+                                  "text": "xor eax, eax\nnop", "pad": True}, _verify_ret),
     ]
 
 
@@ -166,7 +173,7 @@ def _validate_case(root: Path, pristine: Path, case: TemplateCase, runner: WslTo
     _require(bool(preview["ops"]), f"{case.name}: 预览没有生成补丁")
     _require(working.read_bytes() == before, f"{case.name}: 预览阶段修改了 ELF")
 
-    applied = bridge.rpc_patch_apply(params)
+    applied = bridge.rpc_patch_apply({"path": str(working), "preview_id": preview["preview_id"]})
     _require(len(applied["applied"]) == len(preview["ops"]), f"{case.name}: 应用条数与预览不一致")
     _require(working.read_bytes() != before, f"{case.name}: 应用后 ELF 没有变化")
     listed = bridge.rpc_patch_list({"path": str(working)})

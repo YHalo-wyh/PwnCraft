@@ -15,6 +15,7 @@ let terminal = 0;
 const calls = [];
 const reply = (method, result) => ({ method, result });
 let appliedLog = [];
+const previews = new Map();
 
 const MAIN_INSTRUCTIONS = [
   { address: '0x1000', size: 1, bytes: '55', text: 'push %rbp' },
@@ -33,7 +34,9 @@ const RECIPES = [
   { id: 'seccomp', name: 'seccomp 沙箱注入', usage: '入口注入 BPF 过滤器。\n应用后务必本地跑一次服务。', warnings: ['白名单过严会杀掉程序自身系统调用。'],
     fields: [{ key: 'preset', label: '预设规则', kind: 'select', dynamic: true }, { key: 'policy', label: '自定义规则', kind: 'policy' }] },
   { id: 'plt_call', name: '危险函数调用点劫持', usage: 'call rel32 位移重算。', warnings: [],
-    fields: [{ key: 'source', label: '被劫持函数（PLT）', kind: 'select', dynamic: true }, { key: 'target', label: '重定向目标（PLT）', kind: 'select', dynamic: true }] },
+    fields: [{ key: 'function', label: '作用函数', kind: 'select', dynamic: true },
+      { key: 'vaddr', label: '单处地址', kind: 'number' },
+      { key: 'source', label: '被劫持函数（PLT）', kind: 'select', dynamic: true }, { key: 'target', label: '重定向目标（PLT）', kind: 'select', dynamic: true }] },
 ];
 let functionsPayload = FUNCTIONS;
 const PRESETS = { blacklist_min: { name: '黑名单 · 仅禁 execve 系', default: 'allow' } };
@@ -73,14 +76,19 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
       { id: 'import:system', severity: 'critical', title: 'system@plt：命令执行入口', detail: '发现 1 处直接调用。',
         evidence: ['handler @ 0x1030'], request: { kind: 'plt_call', source: 'system', target: 'exit' }, action: '预览 system→exit' },
       { id: 'length:read:main:1004', severity: 'high', title: 'main 中 read 读取长度为 0x12c', detail: '读取长度较大。',
+        locations: [{ function: 'main', address: '0x1004', instruction: 'mov $0x12c,%edx' }], confidence: 'review',
         evidence: ['0x1004: mov $0x12c,%edx'], request: { kind: 'readlen', function: 'main', callee: 'read', size: '0x40' }, action: '预览长度收紧' },
     ], function_count: 3, plt_imports: ['exit', 'read', 'system'], binary: 'fixture' };
   if (method === 'patch_preview') {
     const kind = (params.request || {}).kind;
-    return { ops: [OP(kind || 'custom', 0x1004, `预览-${kind}`)], warnings: ['预览警示'], binary: 'fixture' };
+    const previewId = `preview-${previews.size + 1}`;
+    previews.set(previewId, params.request);
+    return { preview_id: previewId, ops: [OP(kind || 'custom', 0x1004, `预览-${kind}`)], warnings: ['预览警示'], binary: params.path };
   }
   if (method === 'patch_apply') {
-    const op = OP((params.request || {}).kind, 0x1004, `应用-${(params.request || {}).kind}`);
+    const request = previews.get(params.preview_id);
+    assert.ok(request, 'apply must consume a server preview');
+    const op = OP(request.kind, 0x1004, `应用-${request.kind}`);
     appliedLog = [...appliedLog, op];
     return { applied: [op], backup: 'C:/测试/.pwncraft/runtime/pwn.patchbak.123', warnings: [], binary: 'fixture', log: appliedLog };
   }
@@ -155,6 +163,9 @@ app.whenReady().then(async () => {
     assert.match(await js('document.querySelector("#page-patch").innerText'), /导入 ELF/);
     await js('window.__pwncraftDebug.importElf("C:/测试/awdp-pwn")');
     await until('PwnApp.state.activePath === "C:/测试/awdp-pwn"');
+    await until('!!PwnApp.state.workspaces.get(PwnApp.state.activePath).patch?.audit?.summary');
+    assert.equal(lastCall('patch_audit').result.path, 'C:/测试/awdp-pwn');
+    assert.match(await js('document.querySelector(".binary-auto-audit").textContent'), /发现 2 个/);
     await click('[data-key="patch"]');
     await until('document.querySelectorAll(".analysis-function").length === 3');
     await until('document.querySelectorAll(".patch-insn").length === 5');
@@ -167,20 +178,23 @@ app.whenReady().then(async () => {
     assert.equal(await js('document.querySelector(".patch-insn.selected td").innerText'), '0x1004');
     await click('#patch-nop-insn');
     await until('!!document.querySelector(".patch-preview")');
-    assert.match(await js('document.querySelector(".patch-preview").innerText'), /预览-nop_range/);
+    assert.match(await js('document.querySelector(".patch-preview").innerText'), /预览-nop_instructions/);
     assert.match(await js('document.querySelector(".patch-preview").innerText'), /90 90 90 90 90/);
-    assert.equal(lastCall('patch_preview').result.request.kind, 'nop_range');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'nop_instructions');
     assert.equal(lastCall('patch_preview').result.request.start, '0x1004');
     await shot('preview.png');
     await click('#patch-preview-apply');
     await until('!!document.querySelector(".patch-message")');
     assert.match(await js('document.querySelector(".patch-message").innerText'), /已应用 1 条补丁/);
-    assert.equal(lastCall('patch_apply').result.request.kind, 'nop_range');
+    assert.equal(previews.get(lastCall('patch_apply').result.preview_id).kind, 'nop_instructions');
+    assert.equal(lastCall('patch_apply').result.path, 'C:/测试/awdp-pwn');
+    assert.equal(calls.some(call => call.method === 'ida_status'), false, 'IDA must not block import or patch');
 
     // IDA 联动条：徽章渲染为不可用（fixture 环境），按钮在位
     assert.match(await js('document.querySelector("#patch-ida-badge").textContent'), /IDA：/);
 
     // Keypatch 式汇编补丁对话框：实时编译 + NOP 填充 + 生成预览
+    await click('.patch-insn[data-index="2"]');
     await click('#patch-asm-open');
     await until('!!document.querySelector("#patch-patcher-modal")');
     assert.match(await js('document.querySelector("#patch-patcher-modal .patcher-origin").textContent'), /0x1004/);
@@ -189,10 +203,11 @@ app.whenReady().then(async () => {
     assert.match(await js('document.querySelector("#patcher-encode").textContent'), /差 3 字节/);
     await js('document.querySelector("#patcher-apply").click()');
     await until('!!document.querySelector(".patch-preview")');
-    assert.equal(lastCall('patch_preview').result.request.kind, 'custom');
-    const patchHex = lastCall('patch_preview').result.request.hex.replace(/ /g, '');
-    assert.equal(patchHex.length / 2, 5);          // 等长替换
-    assert.equal(patchHex, '31d2909090');          // 31 d2 + 3×NOP 填充（Keypatch 行为）
+    assert.equal(lastCall('patch_preview').result.request.kind, 'assembly');
+    assert.equal(lastCall('patch_preview').result.request.text, 'xor edx, edx');
+    assert.equal(lastCall('patch_preview').result.request.start, '0x1004');
+    assert.equal(lastCall('patch_preview').result.request.end, '0x1009');
+    assert.equal(lastCall('patch_preview').result.request.pad, true);
     await click('#patch-preview-cancel');
     await until('!document.querySelector(".patch-preview") && !document.querySelector("#patch-patcher-modal")');
 
@@ -207,6 +222,26 @@ app.whenReady().then(async () => {
     await click('#patch-preview-cancel');
     await until('!document.querySelector(".patch-preview")');
 
+    // 调用筛选与单点 NOP 请求：只作用于 main 的 call，保留其余指令。
+    await click('#patch-calls-only');
+    assert.equal(await js('document.querySelectorAll(".patch-insn").length'), 1);
+    await click('.patch-nop-call-row');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'nop_call');
+    assert.equal(lastCall('patch_preview').result.request.function, 'main');
+    assert.equal(lastCall('patch_preview').result.request.start, '0x1009');
+    assert.equal(lastCall('patch_preview').result.request.end, '0x100e');
+    await click('#patch-preview-cancel');
+    await click('#patch-calls-only');
+    await click('.patch-insn[data-index="1"]');
+    await js('document.querySelector(".patch-insn[data-index=\\"2\\"]").dispatchEvent(new MouseEvent("click", { bubbles: true, shiftKey: true }))');
+    assert.match(await js('document.querySelector(".patch-selection").textContent'), /2 条指令 \/ 8 字节/);
+    await click('#patch-nop-insn');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.start, '0x1001');
+    assert.equal(lastCall('patch_preview').result.request.end, '0x1009');
+    await click('#patch-preview-cancel');
+
     // 一键通防：seccomp 卡片预览 + 应用
     await click('[data-tab="recipes"]');
     await until('document.querySelectorAll(".recipe-card").length === 2');
@@ -219,7 +254,16 @@ app.whenReady().then(async () => {
     assert.match(await js('document.querySelector(".recipe-card").innerText'), /seccomp 沙箱注入/);
     assert.equal(await js('document.querySelector(".patch-usage")'), null, '使用说明折叠块已移除');
     const presetOptions = () => js('[...document.querySelectorAll(".recipe-card select option")].map(o => o.value)');
-    assert.deepEqual(await presetOptions(), ['blacklist_min', 'custom', 'read', 'exit', 'read', 'exit']);
+    assert.deepEqual(await presetOptions(), ['blacklist_min', 'custom', '', 'main', 'read', 'exit', 'read', 'exit']);
+    await click('.patch-recipe-preview[data-recipe="plt_call"]');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.source, 'read');
+    assert.equal(lastCall('patch_preview').result.request.target, 'exit');
+    await click('#patch-preview-cancel');
+    await click('.patch-audit-location');
+    await until('document.querySelector("#patch-tab-manual").getAttribute("aria-selected") === "true"');
+    assert.equal(await js('document.querySelector(".patch-insn.selected td").textContent'), '0x1004');
+    await click('[data-tab="recipes"]');
     await click('.patch-recipe-preview[data-recipe="seccomp"]');
     await until('!!document.querySelector(".patch-preview")');
     assert.equal(lastCall('patch_preview').result.request.kind, 'seccomp');

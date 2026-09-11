@@ -49,12 +49,25 @@
     const original = context.original_binary || '';
     const reports = state.reports || {};
     const reportsFresh = state.reportsFor === working;
+    const auditEntry = state.workspaces.get(state.activePath);
+    const scan = auditEntry?.patch;
 
     host.innerHTML = `
       <div class="binary-header">
         <div class="file-name"></div>
         <div class="file-path"></div>
       </div>
+      <section class="card binary-auto-audit" aria-live="polite">
+        <div class="card-title">自动安全扫描
+          <span class="flex-spacer"></span>
+          <button class="mini-btn" id="binary-audit-refresh" ${scan?.auditLoading ? 'disabled' : ''}>重新扫描</button>
+          <button class="mini-btn primary" id="binary-audit-open">查看证据 / 定位修复</button></div>
+        <div>${scan?.auditLoading ? '正在检查危险 API、输入长度与 ELF 保护配置…'
+          : scan?.auditError ? `扫描失败：${esc(scan.auditError)}`
+          : scan?.audit?.summary ? `发现 ${scan.audit.summary.total} 个复核 / 加固项：严重 ${scan.audit.summary.critical} · 高危 ${scan.audit.summary.high} · 中危 ${scan.audit.summary.medium} · 提示 ${scan.audit.summary.info || 0}`
+          : '文件导入后自动开始扫描。'}</div>
+        <div class="hint-dim">结果为静态规则线索，查看调用证据和扫描限制后再确定修复方式。</div>
+      </section>
       <div class="binary-reports">
         <div class="card sec-card">
           <div class="card-title">checksec
@@ -108,6 +121,8 @@
     renderFileRows(reportsFresh ? reports : {});
     renderLddRows(reportsFresh ? reports : {});
     $('#sec-refresh', host).addEventListener('click', () => fetchBinaryReports(working, true));
+    $('#binary-audit-open', host).onclick = () => window.PwnPatch?.showAudit();
+    $('#binary-audit-refresh', host).onclick = () => window.PwnPatch?.scan(auditEntry, true);
     if (!reportsFresh && !state.reportsInFlight) fetchBinaryReports(working, false);
   }
 

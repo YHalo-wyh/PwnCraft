@@ -10,6 +10,9 @@
   const entryNow = () => app().state.workspaces.get(app().state.activePath);
   const host = () => document.getElementById('page-patch');
   const query = (selector) => host().querySelector(selector);
+  const requestFor = (entry, method, params = {}) => window.pwncraft.request(method, {
+    ...params, path: entry.context.working_binary,
+  });
 
   const TABS = [
     ['manual', '手动 Patch'],
@@ -20,13 +23,14 @@
 
   function cacheOf(entry) {
     return entry.patch ||= {
-      tab: 'manual', filter: '', selectedFn: -1, selectedInsn: -1,
+      tab: 'manual', filter: '', selectedFn: -1, selectedInsn: -1, selectionEnd: -1,
+      callsOnly: false, addressQuery: '',
       functions: null, functionsError: '', loading: false,
       instructions: null, instructionsError: '', insnLoading: false,
-      hex: '', recipes: null, recipesError: '', forms: {},
+      hex: '', recipes: null, recipesError: '', recipesLoading: false, forms: {},
       audit: null, auditError: '', auditLoading: false,
       preview: null, previewRequest: null, previewTitle: '', previewError: '',
-      log: null, logSummary: null, logError: '',
+      log: null, logSummary: null, logError: '', logLoading: false,
       catalogQuery: '', catalogData: null,
       disasmInput: '', disasmData: null, disasmError: '',
       relFrom: '', relTo: '', relResult: '',
@@ -93,57 +97,49 @@
   // 共用：预览 / 应用
   async function previewPatch(entry, request, title) {
     const cache = cacheOf(entry);
+    if (cache.busy) return;
+    cache.error = '';
     cache.previewError = ''; cache.preview = null; cache.previewTitle = title;
     cache.previewRequest = request; cache.busy = true; cache.message = ''; render();
     try {
-      cache.preview = await window.pwncraft.request('patch_preview', { request });
+      cache.preview = await requestFor(entry, 'patch_preview', { request });
     } catch (error) {
       cache.previewError = error.message || String(error);
     } finally {
       cache.busy = false;
-      render();
+      if (entryNow() === entry) render();
     }
   }
 
   async function applyPreview(entry) {
     const cache = cacheOf(entry);
-    if (!cache.previewRequest) return;
+    if (!cache.previewRequest || !cache.preview?.preview_id || cache.busy) return;
     cache.busy = true; cache.error = ''; cache.message = ''; render();
     try {
-      const result = await window.pwncraft.request('patch_apply', { request: cache.previewRequest });
+      const result = await requestFor(entry, 'patch_apply', { preview_id: cache.preview.preview_id });
       cache.log = result.log || cache.log;
       const backupName = result.backup ? String(result.backup).split(/[\\/]/).pop() : '';
       cache.message = `已应用 ${result.applied.length} 条补丁${backupName ? `（备份 ${backupName}）` : ''}`;
-      // Keypatch 反向联动：IDA 会话活跃时把补丁字节同步进 IDA 数据库（尽力而为）
-      if (cache.idaStatus && cache.idaStatus.available) {
-        try {
-          for (const op of result.applied) {
-            await window.pwncraft.request('ida_patch_bytes', {
-              vaddr: `0x${Number(op.vaddr).toString(16)}`, hex: op.new_bytes });
-          }
-          cache.message += ' · 已同步 IDA';
-        } catch (idaError) {
-          cache.message += ` · IDA 同步失败（${String(idaError.message || idaError).slice(0, 60)}）`;
-        }
-      }
       cache.preview = null; cache.previewRequest = null;
       await refreshAfterMutation(entry);
     } catch (error) {
       cache.error = error.message || String(error);
     } finally {
       cache.busy = false;
-      render();
+      if (entryNow() === entry) render();
     }
   }
 
   async function refreshAfterMutation(entry) {
     const cache = cacheOf(entry);
+    cache.audit = null; cache.probeResult = null; cache.exportPreviews = [];
+    cache.selectedInsn = -1; cache.selectionEnd = -1;
     cache.instructions = null;
     const functions = cache.functions || [];
     const fn = functions[cache.selectedFn];
     if (fn) await loadInstructions(entry, fn.name, false);
     try {
-      const result = await window.pwncraft.request('patch_list', {});
+      const result = await requestFor(entry, 'patch_list', {});
       cache.log = result.ops;
       cache.logSummary = result.summary || null;
     } catch { /* 日志失败不阻塞补丁视图 */ }
@@ -159,9 +155,10 @@
       <div class="patch-preview card">
         <div class="card-title">补丁预览 · ${esc(cache.previewTitle)}（${ops.length} 条等长替换）
           <span class="flex-spacer"></span>
-          <button class="mini-btn primary" id="patch-preview-apply" ${cache.busy ? 'disabled' : ''}>${cache.busy ? '应用中…' : '应用补丁'}</button>
+          <button class="mini-btn primary" id="patch-preview-apply" ${cache.busy || !cache.preview.preview_id ? 'disabled' : ''}>${cache.busy ? '应用中…' : '应用补丁'}</button>
           <button class="mini-btn" id="patch-preview-cancel" ${cache.busy ? 'disabled' : ''}>放弃</button>
         </div>
+        <div class="hint-dim">写入文件：${esc(cache.preview.binary)} · 仅应用本次预览的字节</div>
         ${(cache.preview.warnings || []).map(w => `<div class="patch-warning">${esc(w)}</div>`).join('')}
         <table class="data-table mono"><thead><tr>
           <th>vaddr</th><th>file</th><th>长度</th><th>原字节</th><th>新字节</th><th>说明</th>
@@ -191,7 +188,7 @@
     if (cache.loading || cache.functions) return;
     cache.loading = true; render();
     try {
-      const result = await window.pwncraft.request('code_analysis', {
+      const result = await requestFor(entry, 'code_analysis', {
         path: entry.context.working_binary, include_assembly: true,
       });
       cache.functions = result.functions || [];
@@ -209,17 +206,22 @@
 
   async function loadInstructions(entry, functionName, rerender = true) {
     const cache = cacheOf(entry);
+    const generation = (cache.insnGeneration || 0) + 1;
+    cache.insnGeneration = generation;
     cache.insnLoading = true; cache.instructionsError = '';
     if (rerender) render();
     try {
-      cache.instructions = await window.pwncraft.request('patch_instructions', {
+      const result = await requestFor(entry, 'patch_instructions', {
         function: functionName,
       });
+      if (cache.insnGeneration === generation) cache.instructions = result;
     } catch (error) {
-      cache.instructions = null;
-      cache.instructionsError = error.message || String(error);
+      if (cache.insnGeneration === generation) {
+        cache.instructions = null;
+        cache.instructionsError = error.message || String(error);
+      }
     } finally {
-      cache.insnLoading = false;
+      if (cache.insnGeneration === generation) cache.insnLoading = false;
       if (entryNow() === entry && app().state.page === 'patch') render();
     }
   }
@@ -264,7 +266,7 @@
     cache.idaBusy = true; cache.idaError = '';
     renderManual(entry, cache);
     try {
-      cache.idaStatus = await window.pwncraft.request('ida_status', {});
+      cache.idaStatus = await requestFor(entry, 'ida_status', {});
     } catch (error) {
       cache.idaStatus = { available: false };
       cache.idaError = error.message || String(error);
@@ -279,7 +281,7 @@
     cache.idaBusy = true; cache.idaError = ''; cache.idaOverview = null;
     renderManual(entry, cache);
     try {
-      const result = await window.pwncraft.request('ida_analyze', {});
+      const result = await requestFor(entry, 'ida_analyze', {});
       cache.idaOverview = result.overview || {};
       cache.idaStatus = { available: true, backend: {} };
     } catch (error) {
@@ -295,7 +297,7 @@
     cache.idaBusy = true; cache.idaError = ''; cache.decompiled = null;
     renderManual(entry, cache);
     try {
-      cache.decompiled = await window.pwncraft.request('ida_decompile', { function: functionName });
+      cache.decompiled = await requestFor(entry, 'ida_decompile', { function: functionName });
     } catch (error) {
       cache.idaError = `伪代码获取失败：${error.message || String(error)}`;
     } finally {
@@ -321,14 +323,14 @@
           <div><span class="hint-dim">原字节</span> ${esc(selected.bytes)}</div>
           <div><span class="hint-dim">原汇编</span> ${esc(selected.text)}（objdump AT&T，输入请用 Intel 语法）</div>
         </div>
-        <input id="patcher-input" class="input mono" placeholder="新汇编（Intel 语法），如 mov edi, 0 / xor edx, edx / jmp 0x401234"
-          aria-label="新汇编指令" autocomplete="off">
+        <textarea id="patcher-input" class="input mono" rows="4" placeholder="多行 Intel 汇编，如：&#10;xor eax, eax&#10;nop"
+          aria-label="新汇编指令" autocomplete="off"></textarea>
         <div id="patcher-encode" class="patcher-encode mono"></div>
         <label class="form-row"><input type="checkbox" id="patcher-nop-fill" checked>
-          <span>剩余字节自动填 NOP（Keypatch 行为；新指令必须 ≤ 原 ${selected.size} 字节）</span></label>
+          <span>剩余字节自动填 NOP（选区共 ${selected.size} 字节；可在指令表 Shift+单击扩选）</span></label>
         <div class="patcher-actions">
           <button class="mini-btn primary" id="patcher-apply" disabled>生成补丁预览</button>
-          <span class="hint-dim">Ctrl+Enter 应用 · Esc 关闭</span>
+          <span class="hint-dim">Ctrl+Enter 预览 · Esc 关闭</span>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -337,18 +339,22 @@
     const applyBtn = overlay.querySelector('#patcher-apply');
     let compiled = null;
     let timer = null;
+    let revision = 0;
     const compile = async () => {
+      const current = ++revision;
       const text = input.value.trim();
       compiled = null;
+      applyBtn.disabled = true;
       if (!text) {
         encodeBox.innerHTML = '<span class="hint-dim">输入汇编指令后实时显示机器码</span>';
         applyBtn.disabled = true;
         return;
       }
       try {
-        const result = await window.pwncraft.request('patch_assemble', {
+        const result = await requestFor(entry, 'patch_assemble', {
           text, vaddr: selected.address,
         });
+        if (current !== revision || !overlay.isConnected) return;
         const tooLong = result.size > selected.size;
         compiled = tooLong ? null : result;
         applyBtn.disabled = tooLong;
@@ -359,12 +365,14 @@
             : result.size < selected.size
               ? `（差 ${selected.size - result.size} 字节，将按选项填充）` : '（恰好等长）'}</span>`;
       } catch (error) {
+        if (current !== revision || !overlay.isConnected) return;
         compiled = null;
         applyBtn.disabled = true;
         encodeBox.innerHTML = `<span class="err-text">${esc(error.message || String(error))}</span>`;
       }
     };
     input.addEventListener('input', () => {
+      ++revision; compiled = null; applyBtn.disabled = true;
       clearTimeout(timer);
       timer = setTimeout(compile, 250);
     });
@@ -380,7 +388,8 @@
       }
       closePatcherModal();
       previewPatch(entry, {
-        kind: 'custom', vaddr: selected.address, hex, expected_size: selected.size,
+        kind: 'assembly', function: selected.function, start: selected.address,
+        end: selected.end, text: input.value.trim(), pad: fill,
       }, `汇编补丁 @${selected.address}（${input.value.trim()}）`);
     };
     applyBtn.addEventListener('click', commit);
@@ -396,6 +405,22 @@
     document.getElementById('patch-patcher-modal')?.remove();
   }
 
+  const isCall = insn => /^(?:(?:bnd|notrack)\s+)?call[qwl]?\s/.test(insn?.text || '');
+
+  function selectedRegion(cache, instructions, fn) {
+    if (!instructions?.[cache.selectedInsn] || !fn) return null;
+    const other = cache.selectionEnd < 0 ? cache.selectedInsn : cache.selectionEnd;
+    const lo = Math.min(cache.selectedInsn, other), hi = Math.max(cache.selectedInsn, other);
+    const chosen = instructions.slice(lo, hi + 1);
+    const first = chosen[0], last = chosen[chosen.length - 1];
+    if (!last) return null;
+    return { function: fn.name, address: first.address,
+      end: `0x${(parseInt(last.address, 16) + last.size).toString(16)}`,
+      size: chosen.reduce((sum, item) => sum + item.size, 0),
+      bytes: chosen.map(item => item.bytes).join(' '),
+      text: chosen.map(item => item.text).join('\n'), count: chosen.length };
+  }
+
   function renderManual(entry, cache) {
     const panel = query('#patch-panel-manual');
     const functions = cache.functions || [];
@@ -406,6 +431,8 @@
     const fn = functions[cache.selectedFn];
     const instructions = cache.instructions && fn && cache.instructions.function === fn.name
       ? cache.instructions.instructions : null;
+    const region = selectedRegion(cache, instructions, fn);
+    const selectedCall = region?.count === 1 && isCall(instructions?.[cache.selectedInsn]);
     panel.innerHTML = `
       ${cache.loading ? '<div class="analysis-hint" role="status">正在读取汇编函数…</div>' : ''}
       ${cache.functionsError ? `<div class="analysis-error">${esc(cache.functionsError)}</div>` : ''}
@@ -423,15 +450,26 @@
           <button class="mini-btn" id="patch-ida-refresh" ${cache.idaBusy ? 'disabled' : ''}>检测 IDA</button>
           <button class="mini-btn" id="patch-ida-analyze" ${cache.idaBusy ? 'disabled' : ''}>IDA 分析</button>
           <button class="mini-btn" id="patch-ida-decompile" ${!fn || cache.idaBusy ? 'disabled' : ''}>查看伪代码</button>
+          <button class="mini-btn" id="patch-ida-sync" ${cache.idaBusy || !cache.idaStatus?.available || !cache.log?.length ? 'disabled' : ''}>同步已应用补丁到 IDA</button>
         </div>
         ${cache.idaError ? `<div class="analysis-error">${esc(cache.idaError)}</div>` : ''}
         ${renderIdaCards(cache)}
         ${fn ? `
           <div class="analysis-function-heading"><strong>${esc(fn.name)}</strong><code>${esc(fn.address)}</code>
             <span>${esc(fn.section)} · ${fn.instruction_count} 条指令</span></div>
+          <div class="patch-query-row">
+            <label><input type="checkbox" id="patch-calls-only" ${cache.callsOnly ? 'checked' : ''}> 只看调用</label>
+            <input class="input mono" id="patch-address" placeholder="定位本函数地址，如 0x401234" value="${esc(cache.addressQuery)}" aria-label="定位指令地址">
+            <button class="mini-btn" id="patch-locate">定位</button>
+            <button class="mini-btn" id="patch-refresh-functions" ${cache.loading ? 'disabled' : ''}>刷新反汇编</button>
+          </div>
+          <div class="hint-dim patch-selection" role="status">${region
+            ? `${esc(region.address)} → ${esc(region.end)} · ${region.count} 条指令 / ${region.size} 字节`
+            : '单击选中指令，Shift+单击选择连续区域，双击打开汇编编辑。'}</div>
           <div class="patch-actions">
             <button class="mini-btn primary" id="patch-asm-open" ${cache.selectedInsn < 0 ? 'disabled' : ''} title="Keypatch 式：输入新汇编实时编译，剩余字节自动 NOP（Ctrl+P）">汇编补丁</button>
-            <button class="mini-btn" id="patch-nop-insn" ${cache.selectedInsn < 0 ? 'disabled' : ''}>NOP 选中指令</button>
+            <button class="mini-btn" id="patch-nop-insn" ${!region ? 'disabled' : ''}>NOP 选中区域</button>
+            <button class="mini-btn" id="patch-nop-call" ${!selectedCall ? 'disabled' : ''}>NOP 此处调用</button>
             <button class="mini-btn" id="patch-nop-tail" ${cache.selectedInsn < 0 ? 'disabled' : ''}>NOP 到函数尾</button>
             <button class="mini-btn" id="patch-jcc-invert" ${cache.selectedInsn < 0 ? 'disabled' : ''} title="jg↔jle / jl↔jge / je↔jne 等；off-by-one 边界修复的 1 字节手法">反转跳转条件</button>
             <button class="mini-btn" id="patch-ret-fn">函数 ret 化</button>
@@ -445,23 +483,34 @@
           ${instructions ? `
             <div class="patch-insn-scroll">
               <table class="data-table mono patch-insn-table"><thead><tr>
-                <th>地址</th><th>字节</th><th>汇编</th>
+                <th>地址</th><th>字节</th><th>汇编</th><th>操作</th>
               </tr></thead><tbody>
-                ${instructions.map((insn, index) => `<tr
-                  class="patch-insn ${cache.selectedInsn === index ? 'selected' : ''}" data-index="${index}">
-                  <td>${esc(insn.address)}</td><td>${esc(insn.bytes)}</td><td>${esc(insn.text)}</td></tr>`).join('')}
+                ${instructions.map((insn, index) => !cache.callsOnly || isCall(insn) ? `<tr tabindex="0"
+                  class="patch-insn ${region && parseInt(insn.address, 16) >= parseInt(region.address, 16) && parseInt(insn.address, 16) < parseInt(region.end, 16) ? 'selected' : ''}" data-index="${index}">
+                  <td>${esc(insn.address)}</td><td>${esc(insn.bytes)}</td><td>${esc(insn.text)}</td>
+                  <td><button class="mini-btn patch-edit-row" data-index="${index}">编辑</button>
+                  ${isCall(insn) ? `<button class="mini-btn patch-nop-call-row" data-index="${index}">NOP 调用</button>` : ''}</td></tr>` : '').join('')}
               </tbody></table>
             </div>` : `<div class="analysis-empty">${cache.insnLoading ? '读取指令…' : cache.instructionsError ? esc(cache.instructionsError) : '选择函数以查看指令。'}</div>`}
         ` : '<div class="analysis-empty">选择函数以查看指令。</div>'}
         ${renderPreviewBox(entry, cache)}
       </div></div>`;
     const filter = query('#patch-filter');
-    if (filter) filter.oninput = (event) => { cache.filter = event.target.value; renderManual(entry, cache); };
-    if (cache.idaStatus === null) idaRefresh(entry);
+    if (filter) filter.oninput = (event) => {
+      const old = cache.selectedFn;
+      cache.filter = event.target.value; renderManual(entry, cache);
+      query('#patch-filter')?.focus();
+      if (old !== cache.selectedFn) {
+        cache.selectedInsn = -1; cache.selectionEnd = -1;
+        const next = cache.functions?.[cache.selectedFn];
+        if (next) loadInstructions(entry, next.name);
+      }
+    };
     panel.querySelectorAll('#patch-fn-list button').forEach((button) => {
       button.onclick = () => {
         cache.selectedFn = Number(button.dataset.index);
         cache.selectedInsn = -1;
+        cache.selectionEnd = -1;
         cache.instructions = null;
         render();
         const f = cache.functions[cache.selectedFn];
@@ -469,9 +518,27 @@
       };
     });
     panel.querySelectorAll('.patch-insn').forEach((row) => {
-      row.onclick = () => {
-        cache.selectedInsn = Number(row.dataset.index);
+      row.onclick = (event) => {
+        if (event.shiftKey && cache.selectedInsn >= 0) cache.selectionEnd = Number(row.dataset.index);
+        else { cache.selectedInsn = Number(row.dataset.index); cache.selectionEnd = -1; }
         renderManual(entry, cache);
+      };
+      row.ondblclick = () => {
+        cache.selectedInsn = Number(row.dataset.index); cache.selectionEnd = -1;
+        openPatcherModal(entry, selectedRegion(cache, instructions, fn));
+      };
+      row.onkeydown = event => {
+        if (event.key === 'Enter') { event.preventDefault(); row.ondblclick(); }
+      };
+    });
+    panel.querySelectorAll('.patch-edit-row, .patch-nop-call-row').forEach(button => {
+      button.onclick = event => {
+        event.stopPropagation();
+        cache.selectedInsn = Number(button.dataset.index); cache.selectionEnd = -1;
+        const selection = selectedRegion(cache, instructions, fn);
+        if (button.classList.contains('patch-edit-row')) openPatcherModal(entry, selection);
+        else previewPatch(entry, { kind: 'nop_call', function: fn.name,
+          start: selection.address, end: selection.end }, `NOP 单处调用 @${selection.address}`);
       };
     });
     const selected = instructions?.[cache.selectedInsn];
@@ -480,14 +547,44 @@
         + instructions[instructions.length - 1].size).toString(16)}`
       : '';
     const bind = (id, handler) => { const el = query(id); if (el) el.onclick = handler; };
+    const callsOnly = query('#patch-calls-only');
+    if (callsOnly) callsOnly.onchange = e => { cache.callsOnly = e.target.checked; renderManual(entry, cache); };
+    const address = query('#patch-address');
+    if (address) address.oninput = e => { cache.addressQuery = e.target.value; };
+    bind('#patch-locate', () => {
+      const wanted = parseInt(cache.addressQuery.replace(/^0x/i, ''), 16);
+      const index = (instructions || []).findIndex(item => parseInt(item.address, 16) === wanted);
+      if (index < 0) { cache.error = '该地址不在当前函数的指令起点，请核对地址或切换函数。'; render(); return; }
+      cache.error = ''; cache.selectedInsn = index; cache.selectionEnd = -1; cache.callsOnly = false;
+      render(); query(`.patch-insn[data-index="${index}"]`)?.scrollIntoView({ block: 'center' });
+    });
+    bind('#patch-refresh-functions', () => {
+      cache.functions = null; cache.functionsError = ''; cache.instructions = null;
+      cache.selectedInsn = -1; cache.selectionEnd = -1; ensureFunctions(entry);
+    });
     bind('#patch-ida-refresh', () => idaRefresh(entry, true));
     bind('#patch-ida-analyze', () => idaAnalyze(entry));
     bind('#patch-ida-decompile', () => fn && idaDecompile(entry, fn.name));
-    bind('#patch-asm-open', () => selected && openPatcherModal(entry, selected));
-    bind('#patch-nop-insn', () => selected && previewPatch(entry, {
-      kind: 'nop_range', start: selected.address,
-      end: `0x${(parseInt(selected.address, 16) + selected.size).toString(16)}`,
-    }, `NOP 0x${selected.address}（${selected.size} 字节）`));
+    bind('#patch-ida-sync', async () => {
+      if (cache.idaBusy) return;
+      cache.idaBusy = true; cache.idaError = ''; renderManual(entry, cache);
+      try {
+        const current = await requestFor(entry, 'patch_list');
+        if (!current.summary?.healthy) throw new Error('补丁记录有冲突，请先处理完整性检查。');
+        for (const op of current.ops) await requestFor(entry, 'ida_patch_bytes', {
+          vaddr: `0x${Number(op.vaddr).toString(16)}`, hex: op.new_bytes,
+        });
+        cache.message = `已向 IDA 同步 ${current.ops.length} 条已应用补丁。`;
+      } catch (error) { cache.idaError = error.message || String(error); }
+      finally { cache.idaBusy = false; if (entryNow() === entry) render(); }
+    });
+    bind('#patch-asm-open', () => region && openPatcherModal(entry, region));
+    bind('#patch-nop-insn', () => region && previewPatch(entry, {
+      kind: 'nop_instructions', function: fn.name, start: region.address, end: region.end,
+    }, `NOP ${region.address}（${region.size} 字节）`));
+    bind('#patch-nop-call', () => selectedCall && previewPatch(entry, {
+      kind: 'nop_call', function: fn.name, start: region.address, end: region.end,
+    }, `NOP 单处调用 @${region.address}`));
     bind('#patch-nop-tail', () => selected && fnEnd && previewPatch(entry, {
       kind: 'nop_range', start: selected.address, end: fnEnd,
     }, `NOP 0x${selected.address} → 函数尾`));
@@ -512,12 +609,14 @@
   // Tab 2: 一键通防
   async function ensureRecipes(entry) {
     const cache = cacheOf(entry);
-    if (cache.recipes) return;
+    if (cache.recipes || cache.recipesLoading || cache.recipesError) return;
+    cache.recipesLoading = true;
     try {
-      cache.recipes = await window.pwncraft.request('patch_recipes', {});
+      cache.recipes = await requestFor(entry, 'patch_recipes', {});
     } catch (error) {
       cache.recipesError = error.message || String(error);
     } finally {
+      cache.recipesLoading = false;
       if (entryNow() === entry && app().state.page === 'patch' && cache.tab === 'recipes') render();
     }
   }
@@ -539,17 +638,24 @@
   }
 
   function fieldControl(cache, recipe, field) {
+    const form = cache.forms[recipe.id] ||= {};
+    if (field.kind === 'select' && field.options?.length) {
+      if (!field.options.some(option => option.value === form[field.key])) {
+        form[field.key] = field.options.some(option => option.value === field.default)
+          ? field.default : field.options[0].value;
+      }
+    } else if (form[field.key] === undefined && field.default !== undefined) form[field.key] = field.default;
     const value = esc(formValue(cache, recipe.id, field.key, field.default || ''));
     if (field.kind === 'select' && field.dynamic) {
       return `<select class="input" data-field="${esc(field.key)}" aria-label="${esc(field.label)}">
         ${field.options?.length
-          ? field.options.map(o => `<option value="${esc(o.value)}" ${formValue(cache, recipe.id, field.key, field.default || o.value) === o.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('')
+          ? field.options.map(o => `<option value="${esc(o.value)}" ${form[field.key] === o.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('')
           : `<option value="">（先等待函数列表）</option>`}
       </select>`;
     }
     if (field.kind === 'select') {
       return `<select class="input" data-field="${esc(field.key)}" aria-label="${esc(field.label)}">
-        ${field.options.map(o => `<option value="${esc(o.value)}" ${formValue(cache, recipe.id, field.key, field.default || o.value) === o.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}
+        ${field.options.map(o => `<option value="${esc(o.value)}" ${form[field.key] === o.value ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}
       </select>`;
     }
     if (field.kind === 'policy') {
@@ -570,7 +676,8 @@
       return request;
     }
     if (recipe.id === 'plt_call' || recipe.id === 'plt_stub') {
-      return { kind: recipe.id, source: form.source || '', target: form.target || '' };
+      return { kind: recipe.id, source: form.source || '', target: form.target || '',
+        function: form.function || '', vaddr: form.vaddr || '' };
     }
     if (recipe.id === 'readlen') {
       return { kind: 'readlen', function: form.function || '', callee: form.callee || 'read', size: form.size || '0x30' };
@@ -587,6 +694,7 @@
     const presets = cache.recipes?.seccomp_presets || {};
     panel.innerHTML = `
       ${cache.recipesError ? `<div class="analysis-error">${esc(cache.recipesError)}</div>` : ''}
+      <div class="patch-manage-bar"><button class="mini-btn primary" id="patch-open-manual">选择函数 / 编辑汇编 / NOP 单处调用</button></div>
       ${renderAudit(cache)}
       <div class="patch-recipes">
         ${recipes.map(recipe => {
@@ -628,6 +736,20 @@
         if (finding?.request) previewPatch(entry, finding.request, finding.title);
       };
     });
+    query('#patch-open-manual').onclick = () => { cache.tab = 'manual'; render(); };
+    panel.querySelectorAll('.patch-audit-location').forEach(button => {
+      button.onclick = () => openLocation(entry,
+        cache.audit.findings[Number(button.dataset.finding)].locations[Number(button.dataset.location)]);
+    });
+    query('#patch-audit-export').onclick = async () => {
+      const path = await window.pwncraft.pickSavePath('static-audit.json', 'json');
+      if (!path) return;
+      try {
+        await requestFor(entry, 'patch_audit_export', { dest: path });
+        cache.message = `扫描报告已保存：${path}`;
+      } catch (error) { cache.error = error.message || String(error); }
+      render();
+    };
     wirePreviewBox(entry, cache);
   }
 
@@ -638,35 +760,67 @@
       <div class="card-title">自动风险扫描
         <span class="flex-spacer"></span>
         <button class="mini-btn" id="patch-audit-run" ${cache.auditLoading ? 'disabled' : ''}>${cache.auditLoading ? '扫描中…' : '重新扫描'}</button>
+        <button class="mini-btn" id="patch-audit-export" ${!summary ? 'disabled' : ''}>导出扫描报告</button>
       </div>
       ${cache.auditError ? `<div class="analysis-error">${esc(cache.auditError)}</div>` : ''}
       ${summary ? `<div class="patch-audit-summary">
         <span class="chip">风险分 ${summary.risk_score}</span>
         <span class="chip">严重 ${summary.critical}</span><span class="chip">高危 ${summary.high}</span>
-        <span class="chip">中危 ${summary.medium}</span><span class="hint-dim">基于直接调用与反汇编证据，应用前仍会做字节预览。</span>
+        <span class="chip">中危 ${summary.medium}</span><span class="chip">复核 / 加固 ${summary.info || 0}</span>
+        <span class="hint-dim">${cache.audit.coverage ? `${cache.audit.coverage.functions} 个函数 · ${cache.audit.coverage.call_sites} 个已识别调用点` : ''}</span>
       </div>` : `<div class="hint-dim">${cache.auditLoading ? '正在扫描 PLT 调用与读取长度…' : '等待扫描结果。'}</div>`}
+      ${(cache.audit?.limitations || []).length ? `<details class="hint-dim"><summary>扫描覆盖与限制 · ${esc(cache.audit.scanned_at || '')}</summary>
+        ${(cache.audit.limitations || []).map(item => `<p>${esc(item)}</p>`).join('')}
+        <p>SHA-256：${esc(cache.audit.sha256 || '')}</p></details>` : ''}
       ${findings.length ? `<div class="patch-audit-list">${findings.map((finding, index) => `
         <div class="patch-audit-item severity-${esc(finding.severity)}">
-          <div><strong>${esc(finding.title)}</strong><div class="hint-dim">${esc(finding.detail)}</div>
-            <div class="mono patch-audit-evidence">${(finding.evidence || []).map(esc).join(' · ')}</div></div>
+          <div><strong>${esc(finding.title)}</strong>
+            <span class="chip">${esc(({ dangerous_api: '危险 API 用法', review: '需要复核', hardening: '加固建议' })[finding.confidence] || '需要复核')}</span>
+            <div class="hint-dim">${esc(finding.detail)}</div>
+            <div class="mono patch-audit-evidence">${(finding.evidence || []).map(esc).join(' · ')}</div>
+            ${(finding.locations || []).map((location, li) => `<button class="mini-btn patch-audit-location" data-finding="${index}" data-location="${li}">${esc(location.function)} @ ${esc(location.address)}</button>`).join('')}
+            ${finding.remediation ? `<div class="hint-dim">建议：${esc(finding.remediation)}</div>` : ''}</div>
           ${finding.request ? `<button class="mini-btn primary patch-audit-preview" data-index="${index}" ${cache.busy ? 'disabled' : ''}>${esc(finding.action || '预览缓解')}</button>` : ''}
-        </div>`).join('')}</div>` : summary ? '<div class="ok-text">没有发现可直接定位的高风险调用。</div>' : ''}
+        </div>`).join('')}</div>` : summary ? '<div class="hint-dim">本次规则未发现风险项；请结合扫描覆盖范围继续复核。</div>' : ''}
     </section>`;
   }
 
   async function ensureAudit(entry) {
     const cache = cacheOf(entry);
     if (cache.auditLoading) return;
-    cache.auditLoading = true; cache.auditError = ''; render();
+    cache.auditLoading = true; cache.auditError = '';
+    refreshScanViews(entry);
     try {
-      cache.audit = await window.pwncraft.request('patch_audit', {});
+      cache.audit = await requestFor(entry, 'patch_audit', {});
     } catch (error) {
       cache.auditError = error.message || String(error);
       cache.audit = { findings: [], summary: null };
     } finally {
       cache.auditLoading = false;
-      if (entryNow() === entry && app().state.page === 'patch') render();
+      refreshScanViews(entry);
     }
+  }
+
+  function refreshScanViews(entry) {
+    if (entryNow() !== entry) return;
+    if (app().state.page === 'patch') render();
+    if (app().state.page === 'binary') window.PwnPages?.renderBinary();
+  }
+
+  async function openLocation(entry, location) {
+    const cache = cacheOf(entry);
+    cache.tab = 'manual'; cache.filter = ''; cache.callsOnly = false;
+    if (!cache.functions) await ensureFunctions(entry);
+    if (entryNow() !== entry) return;
+    const index = (cache.functions || []).findIndex(fn => fn.name === location.function);
+    if (index < 0) { cache.error = '当前函数列表未包含该位置，请刷新反汇编。'; app().switchPage('patch'); return; }
+    cache.selectedFn = index;
+    await loadInstructions(entry, location.function, false);
+    cache.selectedInsn = (cache.instructions?.instructions || []).findIndex(i => parseInt(i.address, 16) === parseInt(location.address, 16));
+    cache.selectionEnd = -1;
+    if (entryNow() !== entry) return;
+    app().switchPage('patch');
+    query('.patch-insn.selected')?.scrollIntoView({ block: 'center' });
   }
 
   function dynamicOptionsFor(cache, recipe) {
@@ -680,7 +834,12 @@
     if (recipe.id === 'plt_call' || recipe.id === 'plt_stub') {
       const options = pltOptions(cache);
       recipe.fields.find(f => f.key === 'source').options = options;
-      recipe.fields.find(f => f.key === 'target').options = options;
+      const targetField = recipe.fields.find(f => f.key === 'target');
+      targetField.options = options;
+      targetField.default = options.find(option => ['_exit', 'exit', 'abort'].includes(option.value))?.value
+        || options[1]?.value || options[0]?.value || '';
+      const fnField = recipe.fields.find(f => f.key === 'function');
+      if (fnField) fnField.options = [{ value: '', label: '所有函数（也可选择单个函数）' }, ...textOptions(cache)];
     }
     if (['readlen', 'nop_function', 'ret_function'].includes(recipe.id)) {
       const field = recipe.fields.find(f => f.key === 'function');
@@ -729,7 +888,7 @@
       </div>`;
     const search = query('#patch-catalog-query');
     const runSearch = async () => {
-      cache.catalogData = await window.pwncraft.request('patch_bytecode_lookup', { query: cache.catalogQuery });
+      cache.catalogData = await requestFor(entry, 'patch_bytecode_lookup', { query: cache.catalogQuery });
       renderBytecode(entry, cache);
     };
     if (search) {
@@ -752,7 +911,7 @@
     if (disasmRun) disasmRun.onclick = async () => {
       cache.disasmError = ''; cache.disasmData = null; renderBytecode(entry, cache);
       try {
-        cache.disasmData = await window.pwncraft.request('patch_disasm_raw', { hex: cache.disasmInput });
+        cache.disasmData = await requestFor(entry, 'patch_disasm_raw', { hex: cache.disasmInput });
       } catch (error) {
         cache.disasmError = error.message || String(error);
       }
@@ -763,7 +922,7 @@
     if (relTo) relTo.oninput = (e) => { cache.relTo = e.target.value; };
     const runRel = async (kind) => {
       try {
-        const result = await window.pwncraft.request('patch_encode', {
+        const result = await requestFor(entry, 'patch_encode', {
           kind, params: { origin: cache.relFrom, target: cache.relTo },
         });
         cache.relResult = `${result.note}\n${result.bytes}`;
@@ -864,7 +1023,7 @@
     const reconcile = query('#patch-reconcile');
     if (reconcile) reconcile.onclick = async () => {
       try {
-        const result = await window.pwncraft.request('patch_reconcile', {});
+        const result = await requestFor(entry, 'patch_reconcile', {});
         cache.message = result.pending
           ? `已清理 ${result.count} 条记录；另有 ${result.pending} 条属于尚未完整恢复的补丁组，已保留。`
           : `已清理 ${result.count} 条已由外部恢复的补丁记录。`;
@@ -877,7 +1036,7 @@
     const undoAll = query('#patch-undo-all');
     if (undoAll) undoAll.onclick = async () => {
       try {
-        const result = await window.pwncraft.request('patch_clear', {});
+        const result = await requestFor(entry, 'patch_clear', {});
         cache.message = `已安全撤销全部 ${result.count} 条补丁。`;
         await refreshAfterMutation(entry);
       } catch (error) {
@@ -888,7 +1047,7 @@
     panel.querySelectorAll('.patch-undo').forEach((button) => {
       button.onclick = async () => {
         try {
-          const result = await window.pwncraft.request('patch_undo', { op_id: button.dataset.op });
+          const result = await requestFor(entry, 'patch_undo', { op_id: button.dataset.op });
           cache.message = result.count > 1 ? `已安全撤销整组 ${result.count} 条补丁。` : '已安全撤销一条补丁。';
           await refreshAfterMutation(entry);
         } catch (error) {
@@ -920,7 +1079,7 @@
     const cache = cacheOf(entry);
     cache.probeBusy = true; cache.probeError = ''; cache.probeResult = null; render();
     try {
-      cache.probeResult = await window.pwncraft.request('patch_probe', {
+      cache.probeResult = await requestFor(entry, 'patch_probe', {
         args: cache.probeArgs, input: cache.probeInput,
         timeout: Number(cache.probeTimeout || 5), compare: cache.probeCompare,
       });
@@ -938,7 +1097,7 @@
     if (!path) return;
     cache.busy = true; cache.error = ''; cache.message = ''; render();
     try {
-      const result = await window.pwncraft.request('patch_export', { kind, dest: path });
+      const result = await requestFor(entry, 'patch_export', { kind, dest: path });
       cache.message = kind === 'patched'
         ? `已导出补丁后 ELF → ${result.path}（${result.count} 条补丁，sha256 ${String(result.sha256).slice(0, 12)}…）`
         : kind === 'bundle'
@@ -958,16 +1117,28 @@
 
   async function refreshLog(entry, rerender = false) {
     const cache = cacheOf(entry);
+    if (cache.logLoading || (!rerender && cache.logError)) return;
+    cache.logLoading = true;
     try {
-      const result = await window.pwncraft.request('patch_list', {});
+      const result = await requestFor(entry, 'patch_list', {});
       cache.log = result.ops;
       cache.logSummary = result.summary || null;
       cache.logError = '';
     } catch (error) {
+      cache.log = null; cache.logSummary = null;
       cache.logError = error.message || String(error);
+    } finally {
+      cache.logLoading = false;
     }
     if (rerender && entryNow() === entry && app().state.page === 'patch') render();
   }
 
-  window.PwnPatch = { render };
+  window.PwnPatch = { render, openLocation,
+    scan: (entry, force = false) => {
+      const cache = cacheOf(entry);
+      if (force) { cache.audit = null; cache.auditError = ''; }
+      if (cache.audit === null && !cache.auditLoading) return ensureAudit(entry);
+    },
+    showAudit: () => { const entry = entryNow(); if (entry) { cacheOf(entry).tab = 'recipes'; app().switchPage('patch'); } },
+  };
 })();

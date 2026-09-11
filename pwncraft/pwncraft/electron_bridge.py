@@ -35,6 +35,7 @@ import sys
 import threading
 import time
 import traceback
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -66,7 +67,7 @@ from pwncraft.features.heapviz.dataset import validate_case
 from pwncraft.features.heapviz.templates import HEAP_TEMPLATES
 from pwncraft.features.patch.patch_core import PatchLab, PatchOp, parse_instruction_lines
 from pwncraft.features.patch.recipes import (
-    RECIPE_CATALOG, build_custom_bytes, build_jcc_invert, build_nop_function,
+    RECIPE_CATALOG, build_custom_bytes, build_instruction_patch, build_jcc_invert, build_nop_function,
     build_nop_range, build_plt_call_redirect, build_plt_stub_redirect,
     build_read_length, build_ret_function, normalize_patch_arch)
 from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
@@ -99,6 +100,8 @@ class ElectronBridge:
         self._triage_running: set[str] = set()
         self._triage_cache: dict[str, dict] = {}
         self._patch_labs: dict[str, PatchLab] = {}
+        self._patch_previews: dict[str, dict] = {}
+        self._patch_targets: dict[str, dict] = {}
         self._ida_link: IdaCliLink | None = None
 
     # ------------------------------------------------------------------
@@ -219,6 +222,7 @@ class ElectronBridge:
         self.workspace.project["project_name"] = binary.stem
         self.workspace.project["project_path"] = str(binary.parent)
         self.workspace.set_target(TargetContext.from_dict(context.to_dict()))
+        self._patch_targets[str(target_binary.resolve())] = context.to_dict()
         self.workspace.update_section(
             "binary",
             {
@@ -291,7 +295,7 @@ class ElectronBridge:
                                             pie=facts.security.get("PIE") == "ON")
         if params.get("include_assembly", True):
             try:
-                result = self._runner.run_tool("objdump", ["-d", "--",
+                result = self._runner.run_tool("objdump", ["-d", "--insn-width=16", "--",
                                                           self._runner.to_wsl_path(binary)])
                 if result.ok:
                     response.update(parse_disassembly(result.stdout))
@@ -310,14 +314,17 @@ class ElectronBridge:
         key = str(binary)
         lab = self._patch_labs.get(key)
         if lab is None:
-            target = self.workspace.target or {}
+            target = self._patch_targets.get(str(binary.resolve()), self.workspace.target or {})
             project = str(target.get("project_root") or binary.parent)
             lab = PatchLab(binary, project_root=Path(project))
             self._patch_labs[key] = lab
         return lab
 
+    def _patch_target(self, lab: PatchLab) -> dict:
+        return self._patch_targets.get(str(lab.binary.resolve()), self.workspace.target or {})
+
     def _disassemble_functions(self, binary: Path) -> tuple[list[dict], str]:
-        result = self._runner.run_tool("objdump", ["-d", "--",
+        result = self._runner.run_tool("objdump", ["-d", "--insn-width=16", "--",
                                                    self._runner.to_wsl_path(binary)])
         if not result.ok:
             return [], result.combined_output() or f"objdump 退出码 {result.returncode}"
@@ -380,7 +387,10 @@ class ElectronBridge:
         if kind == "plt_call":
             built = build_plt_call_redirect(lab, functions(),
                                             str(request.get("source") or ""),
-                                            str(request.get("target") or ""))
+                                            str(request.get("target") or ""),
+                                            function=str(request.get("function") or ""),
+                                            vaddr=(int(str(request["vaddr"]), 0)
+                                                   if request.get("vaddr") else None))
             return built["ops"], built["warnings"]
         if kind == "plt_stub":
             built = build_plt_stub_redirect(lab, functions(),
@@ -401,6 +411,18 @@ class ElectronBridge:
         if kind == "nop_range":
             built = build_nop_range(lab, int(str(request.get("start") or "0"), 0),
                                     int(str(request.get("end") or "0"), 0))
+            return built["ops"], built["warnings"]
+        if kind in ("nop_call", "nop_instructions", "assembly"):
+            start = int(str(request.get("start") or "0"), 0)
+            end = int(str(request.get("end") or "0"), 0)
+            replacement = None
+            if kind == "assembly":
+                encoded = assemble(str(request.get("text") or ""),
+                                   bits=64 if lab.geometry()["is64"] else 32, vaddr=start)
+                replacement = bytes.fromhex(encoded["bytes"])
+            built = build_instruction_patch(lab, functions(), pick_function(""), start, end,
+                                            kind=kind, replacement=replacement,
+                                            pad=bool(request.get("pad", True)))
             return built["ops"], built["warnings"]
         if kind == "jcc_invert":
             built = build_jcc_invert(lab, int(str(request.get("vaddr") or "0"), 0))
@@ -427,20 +449,59 @@ class ElectronBridge:
 
     def rpc_patch_audit(self, params: dict) -> dict:
         lab = self._patch_lab(params)
+        before = lab.binary.stat()
+        facts = BinaryInspector().inspect(lab.binary)
         functions, error = self._disassemble_functions(lab.binary)
         if error:
             raise ValueError(f"风险扫描反汇编失败: {error}")
-        return audit_patch_surface(lab, functions)
+        after = lab.binary.stat()
+        if (before.st_mtime_ns, before.st_size) != (after.st_mtime_ns, after.st_size):
+            raise ValueError("扫描期间文件发生变化，请重新扫描")
+        return {**audit_patch_surface(lab, functions, security=facts.security),
+                "sha256": facts.sha256, "scanned_at": datetime.now().isoformat(timespec="seconds")}
+
+    def rpc_patch_audit_export(self, params: dict) -> dict:
+        dest = str(params.get("dest") or "").strip()
+        if not dest:
+            raise ValueError("请选择扫描报告保存路径")
+        lab = self._patch_lab(params)
+        target = self._patch_target(lab)
+        protected = [lab.binary, Path(str(target.get("original_binary") or lab.binary))]
+        if any(Path(dest).resolve() == path.resolve() for path in protected):
+            raise ValueError("报告不能覆盖目标 ELF 或原始副本，请另选 .json 文件")
+        report = self.rpc_patch_audit(params)
+        Path(dest).write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return {"path": dest, "sha256": report["sha256"], "count": report["summary"]["total"]}
 
     def rpc_patch_preview(self, params: dict) -> dict:
         ops, warnings = self._build_patch_ops(params)
+        lab = self._patch_lab(params)
+        lab.validate_apply(ops)
+        token = uuid.uuid4().hex
+        self._patch_previews = {key: value for key, value in self._patch_previews.items()
+                                if time.monotonic() - value["created"] < 1800}
+        if len(self._patch_previews) >= 32:
+            self._patch_previews.pop(next(iter(self._patch_previews)))
+        self._patch_previews[token] = {"binary": lab.binary.resolve(), "ops": ops,
+                                       "warnings": warnings, "created": time.monotonic()}
         return {"ops": [op.to_dict() for op in ops], "warnings": warnings,
-                "binary": str(self._patch_lab(params).binary)}
+                "binary": str(lab.binary), "preview_id": token}
 
     def rpc_patch_apply(self, params: dict) -> dict:
-        ops, warnings = self._build_patch_ops(params)
         lab = self._patch_lab(params)
+        token = str(params.get("preview_id") or "")
+        if token:
+            saved = self._patch_previews.get(token)
+            if saved is None or time.monotonic() - saved["created"] >= 1800:
+                raise ValueError("补丁预览已过期或桥已重启，请重新预览")
+            if saved["binary"] != lab.binary.resolve():
+                raise ValueError("预览属于另一个文件，请切回对应工作区或重新预览")
+            ops, warnings = saved["ops"], saved["warnings"]
+        else:
+            ops, warnings = self._build_patch_ops(params)
         outcome = lab.apply(ops)
+        if token:
+            self._patch_previews.pop(token, None)
         self._log(f"AWDP 补丁已应用 {len(ops)} 条（备份: {Path(outcome['backup']).name}）")
         return {"applied": outcome["applied"], "backup": outcome["backup"],
                 "warnings": warnings, "binary": str(lab.binary),
@@ -499,7 +560,7 @@ class ElectronBridge:
         if kind == "patched":
             if not path:
                 raise ValueError("导出补丁后 ELF 需要一个保存路径")
-            target = self.workspace.target or {}
+            target = self._patch_target(lab)
             original = str(target.get("original_binary") or "")
             if not original or not Path(original).is_file():
                 raise ValueError("找不到只读原始副本（original_binary），无法回放生成干净 ELF")
@@ -509,7 +570,7 @@ class ElectronBridge:
         if kind == "bundle":
             if not path:
                 raise ValueError("导出比赛提交包需要一个保存路径")
-            target = self.workspace.target or {}
+            target = self._patch_target(lab)
             original = str(target.get("original_binary") or "")
             if not original or not Path(original).is_file():
                 raise ValueError("找不到只读原始副本（original_binary），无法生成比赛提交包")
@@ -554,7 +615,7 @@ class ElectronBridge:
 
         working = run("patched", lab.binary)
         original = None
-        target = self.workspace.target or {}
+        target = self._patch_target(lab)
         original_path = Path(str(target.get("original_binary") or ""))
         if bool(params.get("compare", True)) and original_path.is_file():
             original = run("original", original_path)
@@ -604,7 +665,7 @@ class ElectronBridge:
         return self._ida_link
 
     def _ida_target(self, params: dict) -> Path:
-        target = self.workspace.target or {}
+        target = self._patch_target(self._patch_lab(params))
         original = str(target.get("original_binary") or "")
         if original and Path(original).is_file():
             return Path(original)
