@@ -68,6 +68,7 @@
           : '文件导入后自动开始扫描。'}</div>
         <div class="hint-dim">结果为静态规则线索，查看调用证据和扫描限制后再确定修复方式。</div>
         <div class="binary-synth">
+          <button class="mini-btn" id="binary-vulnpoints-run" ${scan?.vulnPointsLoading ? 'disabled' : ''}>${scan?.vulnPointsLoading ? '扫描中…' : '漏洞点扫描（长度 vs 缓冲区）'}</button>
           <button class="mini-btn" id="binary-synth-run" ${scan?.synthLoading ? 'disabled' : ''}>${scan?.synthLoading ? '合成中…' : '自动检测 + 生成 EXP 骨架'}</button>
           <button class="mini-btn" id="binary-synth-verify" ${scan?.synthVerifyLoading ? 'disabled' : ''}>${scan?.synthVerifyLoading ? '验证中…' : '运行时验证（gdb）'}</button>
           ${scan?.synth ? `<span class="chip">策略 ${esc(scan.synth.best?.id || '无')}</span>
@@ -80,6 +81,16 @@
         </div>
         ${scan?.synthVerifyError ? `<div class="analysis-error">运行时验证失败：${esc(scan.synthVerifyError)}</div>` : ''}
         ${scan?.synthVerify?.verification?.summary ? `<div class="hint-dim">运行时：${esc(scan.synthVerify.verification.summary)}</div>` : ''}
+        ${scan?.vulnPoints ? (() => {
+          const vp = scan.vulnPoints;
+          const icon = { overflow_confirmed: '🔴', unbounded_input: '🔴', within_bound: '✓' };
+          const rows = vp.points.filter(p => p.verdict in icon).map(p =>
+            `<div class="vp-row"><span>${icon[p.verdict]}</span><span class="mono">${esc(p.callee)}@${esc(p.vaddr)}</span>
+             <span>${esc(p.function)}</span><span>${esc(p.reason)}</span></div>`);
+          if (!rows.length) return '<div class="hint-dim">漏洞点扫描：没有常量长度/无界输入调用点（全部非常量长度或不可解析）。</div>';
+          return `<div class="vp-block">${rows.join('')}</div>`;
+        })() : ''}
+        ${scan?.vulnPointsError ? `<div class="analysis-error">漏洞点扫描失败：${esc(scan.vulnPointsError)}</div>` : ''}
         ${scan?.synthError ? `<div class="analysis-error">合成失败：${esc(scan.synthError)}</div>` : ''}
         ${(scan?.synth?.best?.missing || []).length ? `<div class="hint-dim">缺口：${(scan.synth.best.missing || []).map(esc).join('；')}</div>` : ''}
       </section>
@@ -138,6 +149,7 @@
     $('#sec-refresh', host).addEventListener('click', () => fetchBinaryReports(working, true));
     $('#binary-audit-open', host).onclick = () => window.PwnPatch?.showAudit();
     $('#binary-audit-refresh', host).onclick = () => window.PwnPatch?.scan(auditEntry, true);
+    $('#binary-vulnpoints-run', host).onclick = () => runVulnPoints(auditEntry, working);
     $('#binary-synth-run', host).onclick = () => runSynth(auditEntry, working);
     $('#binary-synth-verify', host).onclick = () => runSynthVerify(auditEntry, working);
     const synthApply = $('#binary-synth-apply', host);
@@ -145,6 +157,23 @@
       app().replaceExpText((auditEntry?.patch?.synth?.source) || '');
     };
     if (!reportsFresh && !state.reportsInFlight) fetchBinaryReports(working, false);
+  }
+
+  /** 漏洞点确认：长度 vs 缓冲区边界，结论全部来自桥的静态证明。 */
+  async function runVulnPoints(entry, working) {
+    if (!entry) return;
+    const cache = entry.patch ||= {};
+    cache.vulnPointsLoading = true; cache.vulnPointsError = '';
+    renderBinary();
+    try {
+      cache.vulnPoints = await window.pwncraft.request('vuln_points', { path: working });
+    } catch (error) {
+      cache.vulnPoints = null;
+      cache.vulnPointsError = error.message || String(error);
+    } finally {
+      cache.vulnPointsLoading = false;
+      renderBinary();
+    }
   }
 
   /** 自动检测 + 自动构造 EXP 骨架：断言全部来自桥的确定性事实，不在渲染层计算。 */

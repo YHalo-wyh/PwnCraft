@@ -841,6 +841,15 @@ class ElectronBridge:
         return {**outcome, "strategy": generated["strategy"].id,
                 "verdict": generated["verdict"]["verdict"]}
 
+    def rpc_vuln_points(self, params: dict) -> dict:
+        """漏洞点确认：输入调用点的 长度 vs 缓冲区边界 静态证明。"""
+        from pwncraft.features.synth.vuln_points import scan_vuln_points
+        lab = self._patch_lab(params)
+        functions, error = self._disassemble_functions(lab.binary)
+        if error:
+            raise ValueError(f"反汇编失败: {error[:120]}")
+        return scan_vuln_points(lab.binary, self._runner, functions=functions)
+
     def rpc_ida_status(self, params: dict) -> dict:
         link = self._ida()
         try:
