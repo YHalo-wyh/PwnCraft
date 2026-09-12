@@ -92,10 +92,48 @@ def normalize_role_slots(roles: Any) -> list[str | None]:
     return result if any(item is not None for item in result) else []
 
 
-def serialize_snapshot(snapshot: Any) -> dict[str, Any]:
+def serialize_snapshot(snapshot: Any, semantic_index: Mapping[str, Any] | None = None) -> dict[str, Any]:
     """One replay step as the JSON payload the renderer animates."""
+    semantic_index = semantic_index or {}
+    step_semantic = dict(semantic_index.get(str(snapshot.operation_id)) or {})
+    risk_by_chunk: dict[str, list[dict[str, Any]]] = {}
+    step_risks: list[dict[str, Any]] = []
+    risk_codes = {
+        "double_free": "DOUBLE_FREE", "uaf_edit": "UAF",
+        "fd_poison": "TcachePoison", "poison_unknown": "TcachePoison",
+        "freelist_poison_inferred": "TcachePoison",
+        "tcache_double_free_abort": "DOUBLE_FREE", "fastbin_double_free_abort": "DOUBLE_FREE",
+        "malloc_to_target": "TARGET_MALLOC", "malloc_to_target_verified": "TARGET_MALLOC",
+        "unlink_prepare": "UNLINK",
+    }
+    for warning in snapshot.warnings:
+        label = risk_codes.get(str(warning.code or ""))
+        if not label:
+            continue
+        item = {"kind": label, "code": warning.code, "severity": warning.severity,
+                "title": warning.title, "message": warning.message,
+                "operation_id": warning.operation_id, "chunks": list(warning.related_chunks),
+                "evidence": "warning"}
+        step_risks.append(item)
+        for chunk_id in warning.related_chunks:
+            risk_by_chunk.setdefault(str(chunk_id), []).append(dict(item))
+    for edge in snapshot.overwrite_edges:
+        edge_kind = str(edge.kind or "")
+        if edge_kind not in {"PHYSICAL_OVERLAP", "CROSS_WRITE"}:
+            continue
+        label = "OVERLAP" if edge_kind == "PHYSICAL_OVERLAP" else "CROSS_WRITE"
+        item = {"kind": label, "code": edge_kind, "severity": "EXPLOIT",
+                "title": label, "message": f"{edge.source_chunk} → {edge.target_chunk}.{edge.target_field}",
+                "operation_id": edge.writer_operation,
+                "chunks": [edge.source_chunk, edge.target_chunk], "evidence": "overwrite_edge"}
+        step_risks.append(item)
+        for chunk_id in item["chunks"]:
+            risk_by_chunk.setdefault(str(chunk_id), []).append(dict(item))
     chunks = []
     for chunk in snapshot.chunks.values():
+        chunk_semantic = dict(semantic_index.get(f"chunk:{chunk.chunk_id}") or {})
+        if chunk_semantic:
+            chunk_semantic["lifecycle_status"] = str(chunk.lifecycle or "unknown")
         chunks.append({
             "chunk_id": chunk.chunk_id,
             "physical_id": chunk.physical_id,
@@ -122,6 +160,8 @@ def serialize_snapshot(snapshot: Any) -> dict[str, Any]:
             "view_kind": chunk.view_kind,
             "evidence_level": chunk.evidence_level,
             "provenance": chunk.provenance,
+            "semantic": chunk_semantic,
+            "risk_signals": list(risk_by_chunk.get(str(chunk.chunk_id), ())),
             "fields": [
                 {
                     "offset": field.offset,
@@ -195,6 +235,10 @@ def serialize_snapshot(snapshot: Any) -> dict[str, Any]:
             str(view.get("chunk_id") or "") for view in views
             if str(view.get("chunk_id") or "") != str(representative.get("chunk_id") or "")
         ]))
+        # 物理卡片继承当前代表 view 的语义引用；同一 physical_id 的历史
+        # generation 仍通过 allocation_instances 保留，不把历史证据伪装成当前事实。
+        physical["semantic"] = dict(representative.get("semantic") or {})
+        physical["risk_signals"] = list(representative.get("risk_signals") or ())
         physical_chunks.append(physical)
 
     bins = {
@@ -209,6 +253,9 @@ def serialize_snapshot(snapshot: Any) -> dict[str, Any]:
     return {
         "step": snapshot.step,
         "op_id": snapshot.operation_id,
+        # 语义证据由后端签发；前端不得根据颜色或 chunk 名称反推漏洞结论。
+        "semantic": step_semantic,
+        "risk_signals": step_risks,
         "title": snapshot.event_title,
         "explanation": list(snapshot.explanation),
         "warnings": [
@@ -1818,7 +1865,44 @@ class HeapSession:
         return {"chunk": chunk_id, "history": history}
 
     def state(self) -> dict[str, Any]:
-        steps = [serialize_snapshot(snapshot) for snapshot in self.snapshots]
+        canonical = self.canonical_ops()
+        report = getattr(self.analysis, "recognition_report", None) or {}
+        candidates = list(report.get("candidates") or [])
+        by_line = {int(item.get("line") or 0): item for item in candidates}
+        semantic_index: dict[str, dict[str, Any]] = {}
+        for item in canonical:
+            op_id = str(item.get("op_id") or "")
+            if not op_id:
+                continue
+            line = int(item.get("source_line") or 0)
+            candidate = by_line.get(line) or {}
+            kind = str(item.get("kind") or "unknown")
+            verdict = str(candidate.get("verdict") or ("recognized" if line else "unknown"))
+            confidence = candidate.get("confidence")
+            if confidence is None:
+                confidence = item.get("confidence")
+            stage = {
+                "alloc": "lifecycle.allocate", "free": "lifecycle.free",
+                "edit": "primitive.write", "show": "primitive.leak",
+                "copy": "primitive.copy",
+            }.get(kind, "unknown")
+            evidence = [x for x in (item.get("source_call"), candidate.get("reason")) if x]
+            semantic = {
+                "semantic_kind": kind,
+                "semantic_confidence": confidence,
+                "semantic_evidence": evidence,
+                "source_line": line,
+                "source_call": item.get("source_call") or "",
+                "recognition_verdict": verdict,
+                "chain_stage": stage,
+                "lifecycle_status": "unknown",
+            }
+            semantic_index[op_id] = semantic
+            for effect in item.get("effects") or []:
+                chunk_id = str(effect.get("chunk") or "")
+                if chunk_id:
+                    semantic_index[f"chunk:{chunk_id}"] = dict(semantic)
+        steps = [serialize_snapshot(snapshot, semantic_index) for snapshot in self.snapshots]
         analysis = None
         if self.analysis is not None:
             analysis = {
@@ -1826,7 +1910,7 @@ class HeapSession:
                 # RecognitionReport：识别能力自身的可观测数据。候选数 /
                 # recognized / ambiguous / ignored 是一等结果，前端直接展示
                 # 「识别 12/15，⚠ 2 个语义不确定，○ 1 个已忽略」。
-                "recognition": dict(getattr(self.analysis, "recognition_report", None) or {}),
+                "recognition": dict(report),
                 "diagnostics": [
                     {
                         "severity": item.severity,
@@ -1863,7 +1947,7 @@ class HeapSession:
             "allocator": self.scenario.to_dict()["allocator"],
             "allocator_label": self.config().label,
             "operations": [operation.to_dict() for operation in self.scenario.operations],
-            "canonical_ops": self.canonical_ops(),
+            "canonical_ops": canonical,
             "variables": dict(self.variables()),
             "heap_base_specified": self.heap_base_specified(),
             "steps": steps,

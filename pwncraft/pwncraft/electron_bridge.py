@@ -818,6 +818,56 @@ class ElectronBridge:
             result["applied"] = True
         return result
 
+    def rpc_exploit_chain_plan(self, params: dict) -> dict:
+        """把自动识别到的组合链转换为可编辑 EXP 草稿。
+
+        链规划只复用 synth_generate 的事实与渲染器，不在 RPC/前端拼接地址；
+        blocked 链也可以输出带 TODO 的诚实骨架，明确列出未满足前置条件。
+        """
+        from pwncraft.features.synth import generate_exp
+        binary = self._synth_binary(params)
+        chain_id = str(params.get("chain_id") or "").strip()
+        strategy_map = {
+            "stack-leak-ret2libc": "ret2libc",
+            "stack-ret2syscall": "orw",
+            "stack-ret2dlresolve": "ret2libc",
+            "stack-pivot-rop": "ret2libc",
+            "format-got-overwrite": "fmt_write",
+            "format-got-direct": "fmt_write",
+        }
+        strategy = str(params.get("strategy") or strategy_map.get(chain_id) or "")
+        generated = generate_exp(binary, strategy=strategy, runner=self._runner,
+                                 allow_missing=True, patch_findings=self._synth_evidence(binary),
+                                 **self._synth_options(params))
+        chains = []
+        try:
+            from pwncraft.core.exploit_chain import compose_chains
+            report = self.rpc_auto_vuln_scan({"path": str(binary)})
+            chains = list(report.get("exploit_chains") or [])
+        except Exception:
+            chains = []
+        chain = next((item for item in chains if item.get("id") == chain_id), None)
+        if chain is None:
+            raise ValueError(f"未找到利用链 {chain_id!r}")
+        rendered = generated.get("rendered")
+        missing_items = list(chain.get("missing") or ())
+        if not missing_items:
+            note = generated.get("verdict", {}).get("note", "unknown")
+            missing_items = [str(note)]
+        source = rendered.source if (rendered is not None and chain.get("status") == "candidate") else (
+            "# AUTO_CHAIN_BLOCKED: 仅生成审计骨架，禁止把 TODO 当成可利用事实\n"
+            f"# chain={chain_id}\n"
+            + "# missing: " + "; ".join(missing_items) + "\n"
+            + "from pwn import *\n\n"
+            + "# TODO: 补齐上面的缺口后，再填入 payload 与运行时验证\n")
+        return {
+            "chain": chain, "strategy": strategy, "source": source,
+            "unresolved": list(getattr(rendered, "unresolved", ()) if (rendered is not None and chain.get("status") == "candidate") else missing_items),
+            "safe_to_insert": bool(rendered is not None and chain.get("status") == "candidate"),
+            "provenance": {"binary": str(binary), "chain_id": chain_id,
+                            "strategy": strategy, "status": chain.get("status")},
+        }
+
     def rpc_synth_verify(self, params: dict) -> dict:
         """运行时验证（opt-in）：gdb 测偏移 → 渲染 → 真跑一次生成的 EXP。"""
         from pwncraft.features.synth.pipeline import detection_report, verify_exploit
@@ -869,6 +919,294 @@ class ElectronBridge:
         lab = self._patch_lab(params)
         # 不预取函数列表：静态链接需高上限解析，由 scan_vuln_points 自行 objdump
         return scan_vuln_points(lab.binary, self._runner)
+
+    def rpc_auto_vuln_scan(self, params: dict) -> dict:
+        """统一自动漏洞识别：合并规则审计、数据流证明与利用面事实。
+
+        该入口只做静态分析，不把危险 API 或缺少保护误报成已确认漏洞；
+        每条 finding 保留来源、置信度和原始证据，便于 UI 去重和人工复核。
+        """
+        from pwncraft.features.patch.audit import audit_patch_surface
+        from pwncraft.features.synth.vuln_points import scan_vuln_points
+        from pwncraft.core.semantic_behavior import classify_functions, summarize_labels
+
+        lab = self._patch_lab(params)
+        binary = lab.binary
+        facts = BinaryInspector().inspect(binary)
+        functions, error = self._disassemble_functions(binary)
+        if error:
+            raise ValueError(f"自动漏洞识别反汇编失败: {error}")
+        patch = audit_patch_surface(lab, functions, security=facts.security)
+        semantic_functions = classify_functions(functions)
+        strategy_summary = []
+        chain_summary = []
+        libc_symbols = {}
+        fsop_profile = {"status": "unknown", "reason": "未提供 libc 文件"}
+        gadget_facts = {}
+        gadget_catalog = []
+        gadget_error = ""
+        try:
+            from pwncraft.core.gadgets import parse_ropgadget_output
+            bits = int(getattr(facts, "bits", 64) or 64)
+            gadget_args = ["--binary", self._runner.to_wsl_path(binary),
+                           "--only", "pop|ret|syscall", "--depth", "10"]
+            gadget_result = self._runner.run_tool("ropgadget", gadget_args, timeout=300)
+            gadget_text = gadget_result.stdout or gadget_result.stderr
+            gadgets = parse_ropgadget_output(gadget_text, source="auto_vuln_scan", bits=bits)
+            for gadget in gadgets:
+                gadget_catalog.append({"address": hex(gadget.address), "text": gadget.text,
+                                       "controls": list(gadget.controls), "score": gadget.score,
+                                       "stack_delta": gadget.stack_delta,
+                                       "highlight": gadget.score >= 3})
+                ins = " ; ".join(item.lower().replace(" ", "") for item in gadget.instructions)
+                if "poprdi" in ins and ins.endswith("ret"):
+                    gadget_facts.setdefault("rdi", hex(gadget.address))
+                if "poprsi" in ins and ins.endswith("ret"):
+                    gadget_facts.setdefault("rsi", hex(gadget.address))
+                if "poprdx" in ins and ins.endswith("ret"):
+                    gadget_facts.setdefault("rdx", hex(gadget.address))
+                if "poprax" in ins and ins.endswith("ret"):
+                    gadget_facts.setdefault("rax", hex(gadget.address))
+                if "syscall" in ins:
+                    gadget_facts.setdefault("syscall", hex(gadget.address))
+                if ins == "ret":
+                    gadget_facts.setdefault("ret", hex(gadget.address))
+                if gadget.controls and ins.endswith("ret"):
+                    for register in gadget.controls:
+                        gadget_facts.setdefault(f"pop_{register}", hex(gadget.address))
+            if not gadgets and not gadget_result.ok:
+                gadget_error = gadget_result.stderr.strip() or f"ROPgadget 返回码 {gadget_result.returncode}"
+        except Exception as error:
+            gadget_error = str(error)
+        if not gadget_facts:
+            # Offline fallback: objdump facts are already available and avoid
+            # making the strategy planner depend on ROPgadget installation.
+            from pwncraft.features.patch.patch_core import parse_instruction_lines
+            for function in functions:
+                instructions = parse_instruction_lines(function.get("assembly") or "")
+                for index, instruction in enumerate(instructions):
+                    text = str(instruction.get("text") or "").strip().lower()
+                    address = hex(int(instruction["address"]))
+                    next_text = (str(instructions[index + 1].get("text") or "").strip().lower()
+                                 if index + 1 < len(instructions) else "")
+                    if text in {"pop %rdi", "pop rdi"} and next_text in {"ret", "retq"}:
+                        gadget_facts.setdefault("rdi", address)
+                    if text in {"pop %rax", "pop rax"} and next_text in {"ret", "retq"}:
+                        gadget_facts.setdefault("rax", address)
+                    if text in {"pop %rsi", "pop rsi"} and next_text in {"ret", "retq"}:
+                        gadget_facts.setdefault("rsi", address)
+                    if text in {"pop %rdx", "pop rdx"} and next_text in {"ret", "retq"}:
+                        gadget_facts.setdefault("rdx", address)
+                    if text in {"ret", "retq"}:
+                        gadget_facts.setdefault("ret", address)
+                    if text.startswith("syscall"):
+                        gadget_facts.setdefault("syscall", address)
+                    if text in {"ret", "retq"}:
+                        gadget_catalog.append({"address": address, "text": text,
+                                               "controls": [], "score": 5, "stack_delta": bits // 8,
+                                               "highlight": True})
+            if gadget_facts:
+                gadget_error = "ROPgadget 不可用，已使用 objdump 相邻指令 fallback"
+        try:
+            from pwncraft.features.synth.pipeline import analyze_target
+            libc = params.get("libc")
+            if not libc:
+                candidates = sorted(binary.parent.glob("libc*.so*"))
+                libc = str(candidates[0]) if candidates else None
+            if libc:
+                import re
+                version_match = re.search(r"(?:libc[-_.]?|glibc[-_.]?)(2\.\d+)", Path(str(libc)).name)
+                if version_match:
+                    version = tuple(int(item) for item in version_match.group(1).split("."))
+                    from pwncraft.features.iofile.layouts import GlibcFileLayoutDatabase
+                    layout = GlibcFileLayoutDatabase.get(version, bits=int(facts.bits))
+                    fsop_profile = {
+                        "status": "candidate",
+                        "glibc": f"{version[0]}.{version[1]}",
+                        "layout": layout.to_dict() if hasattr(layout, "to_dict") else {
+                            "file_size": layout.file_size, "plus_size": layout.plus_size,
+                            "wide_size": layout.wide_size,
+                            "fields": [{"name": field.name, "offset": field.offset, "width": field.width}
+                                       for field in layout.fields],
+                            "wide_fields": [{"name": field.name, "offset": field.offset, "width": field.width}
+                                             for field in layout.wide_fields],
+                        },
+                        "routes": (["stdout_leak", "House_of_Apple2"] if version >= (2, 24)
+                                   else ["stdout_leak", "_IO_list_all_historical"]),
+                        "requirements": ["libc 基址", "可控 FILE/stdio 字段写入原语", "运行时验证"],
+                        "confidence": "version_layout_only",
+                    }
+                else:
+                    fsop_profile = {"status": "unknown", "reason": "libc 文件名未解析出 glibc 版本"}
+            synthesis = analyze_target(binary, runner=self._runner,
+                                       patch_findings=patch.get("findings") or [],
+                                       libc=libc, gadgets=gadget_facts)
+            strategy_summary = [item.to_dict() for item in synthesis.get("strategies") or []]
+            libc_symbols = dict(synthesis.get("libc_symbols") or {})
+        except Exception as error:
+            strategy_summary = [{"id": "analysis_error", "status": "blocked",
+                                 "missing": [f"策略分析失败: {error}"]}]
+        # 普通目标复用同一批函数，避免重复启动 objdump；静态链接大目标若触及
+        # UI 反汇编的 1000 函数上限，则让扫描器自行以 200000 上限恢复完整函数集。
+        scan_functions = None if len(functions) >= 1000 else functions
+        points = scan_vuln_points(binary, self._runner, functions=scan_functions)
+        # 可选的本地运行时实证回灌：只接受结构化 finding，不执行其中任何命令。
+        # 这样 staged WSL 探针（例如 fastbin 重用残留读取）可以与静态
+        # 证据合并，并由同一套去重/利用链状态机处理。
+        runtime_findings = []
+        for raw in (params.get("runtime_findings") or []):
+            if not isinstance(raw, dict) or not raw.get("verdict"):
+                continue
+            item = dict(raw)
+            item.setdefault("source", "runtime")
+            item.setdefault("confidence", "runtime_dataflow")
+            item.setdefault("severity", "medium")
+            item.setdefault("category", "runtime_observation")
+            item.setdefault("title", str(item.get("verdict")))
+            item.setdefault("detail", str(item.get("reason") or item.get("verdict")))
+            item.setdefault("evidence", [])
+            item.setdefault("locations", [])
+            item.setdefault("id", f"runtime:{len(runtime_findings)}")
+            item["origin_id"] = item["id"]
+            runtime_findings.append(item)
+        findings = []
+        for item in patch.get("findings") or []:
+            findings.append({**dict(item), "source": "surface", "origin_id": item.get("id")})
+        for index, item in enumerate(points.get("points") or []):
+            point = dict(item)
+            point.setdefault("id", f"dataflow:{index}")
+            point.setdefault("title", point.get("reason") or point.get("verdict") or "数据流风险")
+            point.setdefault("detail", point.get("reason") or "数据流扫描发现需要复核的调用点")
+            point.setdefault("evidence", [])
+            point["source"] = "dataflow"
+            point["origin_id"] = point["id"]
+            point["locations"] = point.get("locations") or ([{
+                "function": point.get("function", ""),
+                "address": point.get("vaddr", ""),
+            }] if point.get("vaddr") else [])
+            findings.append(point)
+        findings.extend(runtime_findings)
+        runtime_confirmed = sum(1 for item in runtime_findings
+                                if str(item.get("confidence") or "").lower() in
+                                {"runtime_proven", "runtime_confirmed", "proven", "confirmed"}
+                                or str(item.get("verdict") or "").endswith("_confirmed"))
+        semantic_chain_findings = []
+        for semantic in semantic_functions:
+            if "GLOBAL_POINTER_FREE_NO_CLEAR_CANDIDATE" in (semantic.get("labels") or []):
+                semantic_finding = {
+                    "id": f"semantic:uaf-no-clear:{semantic.get('address', '0x0')}",
+                    "function": semantic.get("function", ""),
+                    "vaddr": semantic.get("address", "0x0"),
+                    "verdict": "use_after_free_candidate",
+                    "category": "heap_lifetime", "severity": "high",
+                    "confidence": "dataflow_candidate",
+                    "reason": "free 使用全局/表项指针后未观察到同函数清零，存在跨函数 UAF 候选",
+                    "evidence": ["semantic:GLOBAL_POINTER_FREE_NO_CLEAR_CANDIDATE"],
+                    "title": "全局指针 free 后未清零候选",
+                    "detail": "需要结合后续 edit/read 使用点和运行时复现确认",
+                    "locations": [{"function": semantic.get("function", ""),
+                                    "address": semantic.get("address", "0x0")}],
+                    "source": "semantic",
+                    "origin_id": f"semantic:uaf-no-clear:{semantic.get('address', '0x0')}",
+                }
+                findings.append(semantic_finding)
+                semantic_chain_findings.append(semantic_finding)
+
+        # 语义 finding 在上面才注入；此处再编排，确保跨函数 UAF 等
+        # 语义证据能够真正驱动利用链状态机，而不是只显示在漏洞列表里。
+        from pwncraft.core.exploit_chain import compose_chains
+        chain_summary = compose_chains(
+            findings=[dict(item) for item in points.get("points") or []] +
+                     runtime_findings + semantic_chain_findings,
+            facts=facts, semantic_functions=semantic_functions,
+            gadgets=gadget_facts, libc_symbols=libc_symbols)
+
+        severity_order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+        # 同一调用点可能同时命中 surface 和 dataflow；保留证据更强的一条。
+        confidence_order = {"proven": 0, "dataflow": 1, "lifecycle": 1,
+                            "dangerous_api": 2, "review": 3, "hardening": 4, "info": 5}
+        dedup = {}
+        for item in findings:
+            locations = item.get("locations") or []
+            loc = locations[0] if locations else {}
+            key = (str(item.get("category") or "unknown"),
+                   str(loc.get("function") or ""), str(loc.get("address") or ""),
+                   str(item.get("callee") or item.get("title") or ""))
+            current = dedup.get(key)
+            if current is None or confidence_order.get(str(item.get("confidence")), 9) < confidence_order.get(str(current.get("confidence")), 9):
+                dedup[key] = item
+        findings = sorted(dedup.values(), key=lambda item: (
+            severity_order.get(str(item.get("severity")), 9),
+            confidence_order.get(str(item.get("confidence")), 9),
+            str(item.get("title") or item.get("id") or "")))
+        counts = {name: sum(1 for item in findings if item.get("severity") == name)
+                  for name in ("critical", "high", "medium", "low", "info")}
+        categories = {}
+        confidences = {}
+        for item in findings:
+            category = str(item.get("category") or "unknown")
+            confidence = str(item.get("confidence") or "unknown")
+            categories[category] = categories.get(category, 0) + 1
+            confidences[confidence] = confidences.get(confidence, 0) + 1
+        score = min(100, counts["critical"] * 35 + counts["high"] * 18 + counts["medium"] * 7 + counts["low"] * 2)
+        # Pwn 题型画像：只使用 BinaryInspector 已经从 ELF 字节和反汇编中证明的事实。
+        categories_seen = set(categories)
+        pwn_routes = []
+        if "memory_corruption" in categories_seen and getattr(facts, "win_functions", ()):
+            pwn_routes.append({"id": "ret2win", "reason": "存在内存破坏证据与可调用 win 函数", "confidence": "conditional"})
+        if "memory_corruption" in categories_seen and getattr(facts, "leak_sites", ()):
+            pwn_routes.append({"id": "ret2libc", "reason": "存在内存破坏证据与可观测泄漏点", "confidence": "conditional"})
+        if "format_string" in categories_seen:
+            pwn_routes.append({"id": "format-string", "reason": "格式化参数存在可控性或可写候选", "confidence": "conditional"})
+        if getattr(facts, "syscalls", ()) and ("memory_corruption" in categories_seen or getattr(facts, "strings", {}).get("/bin/sh")):
+            pwn_routes.append({"id": "syscall-orw", "reason": "发现 syscall 指令且存在输入或敏感字符串事实", "confidence": "conditional"})
+        if "heap_lifetime" in categories_seen:
+            pwn_routes.append({"id": "heap-lifetime", "reason": "发现 double-free/UAF/invalid-free 生命周期证据", "confidence": "dataflow"})
+        recommendations = []
+        if counts["critical"] or counts["high"]:
+            recommendations.append("优先复核 critical/high 项，再进行运行时偏移和可控性验证")
+        if facts.security.get("CANARY") == "ON":
+            recommendations.append("CANARY 已开启：栈路线需要先寻找泄漏或改走堆/格式化字符串原语")
+        if facts.security.get("NX") == "ON":
+            recommendations.append("NX 已开启：优先考虑 ROP、ret2libc 或 syscall/ORW")
+        if facts.security.get("PIE") == "ON":
+            recommendations.append("PIE 已开启：地址依赖路线需要先获取代码基址")
+        if not pwn_routes:
+            recommendations.append("暂未形成稳定利用路线，先补充输入可控性或运行时崩溃证据")
+        return {
+            "binary": str(binary), "sha256": facts.sha256,
+            "findings": findings,
+            "summary": {**counts, "total": len(findings), "risk_score": score,
+                         # 数据流扫描的 confirmed 与运行时回灌证据都纳入总数。
+                         "confirmed": points.get("confirmed", 0) + runtime_confirmed},
+            "categories": categories, "confidences": confidences,
+            "semantic_functions": semantic_functions,
+            "semantic_summary": summarize_labels(semantic_functions),
+            "strategies": strategy_summary,
+            "exploit_chains": chain_summary,
+            "gadgets": gadget_facts,
+            "gadget_catalog": gadget_catalog[:200],
+            "gadget_error": gadget_error,
+            "fsop_profile": fsop_profile,
+            "pwn_profile": {
+                "routes": pwn_routes,
+                "syscalls": [hex(int(address)) for address in getattr(facts, "syscalls", ())],
+                "ret_gadgets": [hex(int(address)) for address in getattr(facts, "ret_gadgets", ())[:32]],
+                "win_functions": [dict(item) for item in getattr(facts, "win_functions", ())],
+                "leak_sites": [dict(item) for item in getattr(facts, "leak_sites", ())],
+                "shell_strings": {name: hex(int(address)) for name, address in getattr(facts, "strings", {}).items()
+                                  if name in {"/bin/sh", "/bin/bash", "/bin/cat", "/flag"}},
+                "input_imports": [name for name in ("read", "recv", "recvfrom", "gets", "fgets", "scanf", "__isoc99_scanf") if name in getattr(facts, "plt", {})],
+                "recommendations": recommendations,
+            },
+            "coverage": {"functions": len(functions),
+                         "call_sites": (patch.get("coverage") or {}).get("call_sites", 0),
+                         "dataflow_points": points.get("total", 0),
+                         "rules": (patch.get("coverage") or {}).get("rules", 0),
+                         "global_objects": (points.get("coverage") or {}).get("global_objects", 0)},
+            "limitations": list(dict.fromkeys((patch.get("limitations") or []) + (points.get("limitations") or []))),
+            "security": dict(facts.security),
+        }
 
     def rpc_ida_status(self, params: dict) -> dict:
         link = self._ida()

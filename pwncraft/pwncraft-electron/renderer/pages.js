@@ -51,6 +51,7 @@
     const reportsFresh = state.reportsFor === working;
     const auditEntry = state.workspaces.get(state.activePath);
     const scan = auditEntry?.patch;
+    const auto = auditEntry?.autoVuln;
 
     host.innerHTML = `
       <div class="binary-header">
@@ -68,6 +69,25 @@
           : '文件导入后自动开始扫描。'}</div>
         <div class="hint-dim">结果为静态规则线索，查看调用证据和扫描限制后再确定修复方式。</div>
         <div class="binary-synth">
+          <button class="mini-btn primary" id="binary-auto-vuln" ${auto?.loading ? 'disabled' : ''}>${auto?.loading ? '自动识别中…' : '一键全量漏洞识别'}</button>
+          ${auto?.report?.summary ? `<span class="chip">风险分 ${Number(auto.report.summary.risk_score || 0)}</span>
+            <span class="chip">确认 ${Number(auto.report.summary.confirmed || 0)}</span>
+            <span class="chip">合并 ${Number(auto.report.summary.total || 0)} 项</span>` : ''}
+        </div>
+        ${auto?.error ? `<div class="analysis-error">自动识别失败：${esc(auto.error)}</div>` : ''}
+        ${auto?.report?.summary ? `<div class="hint-dim">全量识别：严重 ${auto.report.summary.critical || 0} · 高危 ${auto.report.summary.high || 0} · 中危 ${auto.report.summary.medium || 0} · 提示 ${auto.report.summary.info || 0}；覆盖 ${auto.report.coverage?.functions || 0} 个函数、${auto.report.coverage?.call_sites || 0} 个调用点。</div>
+          ${(auto.report.pwn_profile?.routes || []).length ? `<div class="hint-dim">Pwn 路线候选：${auto.report.pwn_profile.routes.map((route) => esc(route.id)).join(' · ')}</div>` : ''}
+          ${(auto.report.pwn_profile?.recommendations || []).length ? `<div class="hint-dim">建议：${auto.report.pwn_profile.recommendations.map(esc).join('；')}</div>` : ''}
+          ${Object.keys(auto.report.semantic_summary || {}).length ? `<div class="hint-dim">语义行为：${Object.entries(auto.report.semantic_summary).map(([label, count]) => `${esc(label)} ${Number(count)}`).join(' · ')}</div>` : ''}
+          ${(auto.report.strategies || []).length ? `<div class="hint-dim">利用策略：${auto.report.strategies.map((strategy) => `${esc(strategy.id || 'unknown')}=${esc(strategy.status || 'unknown')}`).join(' · ')}</div>` : ''}
+          ${Object.keys(auto.report.gadgets || {}).length ? `<div class="hint-dim">关键 Gadget：${Object.entries(auto.report.gadgets).map(([role, address]) => `<span class="chip gadget-chip gadget-${esc(role)}">${esc(role)} ${esc(address)}</span>`).join(' ')}</div>` : ''}
+          ${auto.report.gadget_error ? `<div class="hint-dim">Gadget 检测缺口：${esc(auto.report.gadget_error)}</div>` : ''}
+          ${auto.report.fsop_profile?.status === 'candidate' ? `<div class="hint-dim">FSOP 画像：glibc ${esc(auto.report.fsop_profile.glibc)} · ${auto.report.fsop_profile.routes.map(esc).join(' / ')} · 仅为版本布局候选，需证明 FILE 写原语。</div>` : ''}
+          ${(auto.report.exploit_chains || []).length ? `<details class="analysis-notice"><summary>组合利用链（${auto.report.exploit_chains.length}）</summary>${auto.report.exploit_chains.map((chain) => `<div class="vp-row chain-row"><span>${esc(chain.status || 'candidate')}</span><span>${esc(chain.title || chain.id)}</span><span>${esc((chain.stages || []).join(' → '))}</span><span>${chain.missing?.length ? `缺口：${esc(chain.missing.join('；'))}` : '前置条件已满足'}</span><button class="mini-btn chain-plan" data-chain="${esc(chain.id)}">生成 EXP 草稿</button></div>`).join('')}</details>` : ''}
+          <details class="analysis-notice"><summary>查看统一风险清单（${auto.report.findings?.length || 0}）</summary>
+            <div class="vp-block">${(auto.report.findings || []).slice(0, 80).map((item) => `<div class="vp-row"><span>${esc(String(item.severity || 'info').toUpperCase())}</span><span>${esc(item.title || item.reason || item.id || '风险')}</span><span>${esc(item.confidence || 'unknown')}</span><span>${esc(item.detail || item.reason || '')}</span></div>`).join('') || '<div class="hint-dim">没有发现需要复核的项目。</div>'}</div>
+          </details>` : ''}
+        <div class="binary-synth">
           <button class="mini-btn" id="binary-vulnpoints-run" ${scan?.vulnPointsLoading ? 'disabled' : ''}>${scan?.vulnPointsLoading ? '扫描中…' : '漏洞点扫描（数据流证明）'}</button>
           <button class="mini-btn" id="binary-synth-run" ${scan?.synthLoading ? 'disabled' : ''}>${scan?.synthLoading ? '合成中…' : '自动检测 + 生成 EXP 骨架'}</button>
           <button class="mini-btn" id="binary-synth-verify" ${scan?.synthVerifyLoading ? 'disabled' : ''}>${scan?.synthVerifyLoading ? '验证中…' : '运行时验证（gdb）'}</button>
@@ -83,13 +103,20 @@
         ${scan?.synthVerify?.verification?.summary ? `<div class="hint-dim">运行时：${esc(scan.synthVerify.verification.summary)}</div>` : ''}
         ${scan?.vulnPoints ? (() => {
           const vp = scan.vulnPoints;
-          const icon = { overflow_confirmed: '🔴', unbounded_input: '🔴',
-            global_write_candidate: '🟠', unknown_length: '?', unknown_buffer: '?', within_bound: '✓' };
-          const rows = (vp.points || []).filter(p => p.verdict in icon).map(p =>
-            `<div class="vp-row"><span>${icon[p.verdict]}</span><span class="mono">${esc(p.callee)}@${esc(p.vaddr)}</span>
-             <span>${esc(p.function)}</span><span>${esc(p.reason)}</span></div>`);
-          if (!rows.length) return '<div class="hint-dim">漏洞点扫描：没有识别到受支持的输入/复制调用点。</div>';
-          return `<div class="hint-dim">数据流扫描 ${vp.total || rows.length} 处，确认风险 ${vp.confirmed || 0} 处；? 表示证据不足，仍需人工复核。</div><div class="vp-block">${rows.join('')}</div>`;
+          const marker = { critical: '🔴', high: '🟠', medium: '🟡', info: '✓' };
+          const rows = (vp.points || []).map((p, index) =>
+            `<div class="vp-row" title="${esc((p.evidence || []).join(' · '))}">
+              <span>${marker[p.severity] || '?'}</span>
+              <span class="mono">${esc(p.callee)}${p.via ? ` via ${esc(p.via)}` : ''}@${esc(p.vaddr)}</span>
+              <span>${esc(p.function)} · ${esc(p.category || 'review')}</span>
+              <span>${esc(p.reason)}</span>
+              ${p.request ? `<button class="mini-btn vp-fix" data-vp="${index}">预览修复</button>` : ''}</div>`);
+          if (!rows.length) return '<div class="hint-dim">漏洞点扫描：没有识别到受支持的调用点或生命周期证据。</div>';
+          const sev = vp.severity || {};
+          const coverage = vp.coverage || {};
+          return `<div class="hint-dim">发现风险 ${vp.risk_total ?? vp.total ?? rows.length} 处：严重 ${sev.critical || 0} · 高危 ${sev.high || 0} · 中危 ${sev.medium || 0}；
+            已分析 ${coverage.functions || 0} 个函数、${coverage.call_sites || 0} 个调用点、${coverage.global_objects || 0} 个全局对象，启用 ${coverage.rules || 0} 条规则。</div>
+            <div class="vp-block">${rows.join('')}</div>`;
         })() : ''}
         ${scan?.vulnPointsError ? `<div class="analysis-error">漏洞点扫描失败：${esc(scan.vulnPointsError)}</div>` : ''}
         ${scan?.synthError ? `<div class="analysis-error">合成失败：${esc(scan.synthError)}</div>` : ''}
@@ -150,14 +177,53 @@
     $('#sec-refresh', host).addEventListener('click', () => fetchBinaryReports(working, true));
     $('#binary-audit-open', host).onclick = () => window.PwnPatch?.showAudit();
     $('#binary-audit-refresh', host).onclick = () => window.PwnPatch?.scan(auditEntry, true);
+    $('#binary-auto-vuln', host).onclick = () => runAutoVuln(auditEntry, working, true);
     $('#binary-vulnpoints-run', host).onclick = () => runVulnPoints(auditEntry, working);
+    $$('.vp-fix', host).forEach(button => {
+      button.onclick = () => {
+        const finding = scan?.vulnPoints?.points?.[Number(button.dataset.vp)];
+        if (finding?.request) window.PwnPatch?.previewFinding(
+          auditEntry, finding.request, `${finding.callee}@${finding.vaddr} 自动修复建议`);
+      };
+    });
     $('#binary-synth-run', host).onclick = () => runSynth(auditEntry, working);
+    $$('.chain-plan', host).forEach((button) => {
+      button.onclick = async () => {
+        button.disabled = true;
+        try {
+          const plan = await window.pwncraft.request('exploit_chain_plan', { path: working, chain_id: button.dataset.chain });
+          const source = String(plan.source || '');
+          if (source) {
+            app().replaceExpText(source);
+            log(`已生成 ${button.dataset.chain} EXP 草稿${plan.safe_to_insert ? '' : '（含 TODO/未满足前置条件）'}`);
+          }
+        } catch (error) { log(`利用链草稿失败：${error.message || error}`, 'error'); }
+        finally { button.disabled = false; }
+      };
+    });
     $('#binary-synth-verify', host).onclick = () => runSynthVerify(auditEntry, working);
     const synthApply = $('#binary-synth-apply', host);
     if (synthApply) synthApply.onclick = () => {
       app().replaceExpText((auditEntry?.patch?.synth?.source) || '');
     };
     if (!reportsFresh && !state.reportsInFlight) fetchBinaryReports(working, false);
+    if (auditEntry && !auto?.report && !auto?.loading && !auto?.attempted) runAutoVuln(auditEntry, working, false);
+  }
+
+  async function runAutoVuln(entry, working, force) {
+    if (!entry) return;
+    const cache = entry.autoVuln ||= { loading: false, attempted: false, report: null, error: '' };
+    if (cache.loading || (!force && cache.attempted)) return;
+    cache.loading = true; cache.attempted = true; cache.error = '';
+    renderBinary();
+    try {
+      cache.report = await window.pwncraft.request('auto_vuln_scan', { path: working });
+    } catch (error) {
+      cache.report = null; cache.error = error.message || String(error);
+    } finally {
+      cache.loading = false;
+      if (app().state.activePath === entry.path && app().state.page === 'binary') renderBinary();
+    }
   }
 
   /** 漏洞点确认：长度 vs 缓冲区边界，结论全部来自桥的静态证明。 */

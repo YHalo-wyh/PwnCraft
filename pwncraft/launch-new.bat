@@ -3,6 +3,13 @@ setlocal EnableExtensions
 chcp 65001 >nul 2>nul
 
 title PwnCraft Launcher
+set "MODE=start"
+set "SKIP_INSTALL=0"
+if /I "%~1"=="--smoke" set "MODE=smoke"
+if /I "%~1"=="--shot" set "MODE=shot"
+if /I "%~1"=="--check" set "MODE=smoke"
+if /I "%~1"=="--no-install" set "SKIP_INSTALL=1"
+if /I "%~2"=="--no-install" set "SKIP_INSTALL=1"
 set "LAUNCH_DIR=%~dp0"
 set "LOG=%LAUNCH_DIR%pwncraft-launch.log"
 >"%LOG%" echo [%date% %time%] launcher start
@@ -53,7 +60,7 @@ cd /d "%ROOT%\pwncraft-electron" || goto fail
 echo [PwnCraft] 当前目录: %CD%
 echo electron_dir=%CD%>>"%LOG%"
 
-if not exist "node_modules\electron" (
+if "%SKIP_INSTALL%"=="0" if not exist "node_modules\electron" (
   echo [首次启动] 缺少 Electron 依赖，正在 npm install...
   echo npm install start>>"%LOG%"
   call npm install --registry=https://registry.npmmirror.com >>"%LOG%" 2>&1
@@ -65,10 +72,14 @@ if not exist "node_modules\electron" (
 
 set "PYTHONPATH=%ROOT%"
 set "PYTHONIOENCODING=utf-8"
-if /I "%~1"=="--smoke" (
+if /I "%MODE%"=="smoke" (
   echo [PwnCraft] 运行启动冒烟测试...
   echo npm run smoke>>"%LOG%"
   call npm run smoke >>"%LOG%" 2>&1
+) else if /I "%MODE%"=="shot" (
+  echo [PwnCraft] 启动截图审计模式...
+  echo npm start -- --shot>>"%LOG%"
+  call npm start -- --shot >>"%LOG%" 2>&1
 ) else (
   echo [PwnCraft] 启动新版 Electron Workbench...
   echo npm start>>"%LOG%"

@@ -1,0 +1,13 @@
+{
+  "target": "qinglong/Pwn-4",
+  "status": "manual_patch_plan",
+  "static_surface_count": 0,
+  "note": "二进制无可直接套用的等长补丁；以下为 AWDP 竞赛修复要求。",
+  "required_changes": [
+    {"id": "clear-pointer-after-free", "location": "Delete@0x167a", "action": "free 后清零 pointer_table[idx] 与 size_table[idx]"},
+    {"id": "validate-live-handle", "location": "Edit/Read", "action": "增加 in-use 状态/generation 校验，拒绝悬空句柄"},
+    {"id": "zero-new-buffer", "location": "Save", "action": "malloc 后初始化缓冲区，避免 allocator 残留泄漏"},
+    {"id": "bound-length", "location": "Save/Edit/Read", "action": "统一长度上限并拒绝截断/符号转换"}
+  ],
+  "verification": ["delete→edit 不得改变新对象", "delete→read 应安全失败", "重复 delete 不崩溃"]
+}

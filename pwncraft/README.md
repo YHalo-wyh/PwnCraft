@@ -26,7 +26,8 @@ JS 弹簧-质量物理引擎动画；画布校正即时回放并**自动推断�
 ROP（ROPgadget 真实执行 + Shelf + Chain/ret2libc/SROP + 终端直接可用）·
 调试（**新开终端实例自动进入 pwndbg-mogai + ELF**，隔离 fork、官方 pwndbg 零改动）·
 Format（偏移/写入计划）· Syscall/ORW · Stack/Leak（cyclic + libc_base 推导）· 工具箱 ·
-**AWDP Patch**（字节级补丁真值在 `features/patch`——ELF 导入即进行危险调用与缓冲区边界扫描；
+**AWDP Patch**（字节级补丁真值在 `features/patch`——ELF 导入即运行多阶段漏洞扫描：
+栈/堆/全局对象越界、格式串、命令参数来源、包装函数传播、double-free/UAF 与栈地址返回；
 seccomp 沙箱注入、PLT 调用点/stub 劫持、read/recv/recvfrom/fgets 单点长度收紧、
 跳过单个调用并固定返回值、函数固定返回、条件跳转三态控制、指令区间汇编与自定义字节；
 字节码查询目录 + objdump 反汇编 + rel32 计算器；

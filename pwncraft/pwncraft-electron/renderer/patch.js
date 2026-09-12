@@ -1221,5 +1221,11 @@
       if (cache.audit === null && !cache.auditLoading) return ensureAudit(entry);
     },
     showAudit: () => { const entry = entryNow(); if (entry) { cacheOf(entry).tab = 'recipes'; app().switchPage('patch'); } },
+    previewFinding: (entry, request, label) => {
+      if (!entry || !request) return;
+      cacheOf(entry).tab = 'recipes';
+      app().switchPage('patch');
+      return previewPatch(entry, request, label || '自动扫描修复建议');
+    },
   };
 })();

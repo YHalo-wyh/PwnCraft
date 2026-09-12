@@ -9755,6 +9755,9 @@ select.input { font: inherit; }
 .analysis-notice summary { cursor: pointer; }
 .analysis-notice pre { font: 12px/1.7 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; padding: 10px; background: var(--bg-deep); border-radius: 4px; }
 .analysis-error { color: #f4a5a5; padding: 12px; background: #f14c4c12; border: 1px solid #f14c4c44; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.gadget-chip { margin-right: 5px; border: 1px solid #4da3ff66; color: #b9ddff; }
+.gadget-rdi, .gadget-rax { border-color: #e7c76a99; color: #ffe49a; }
+.gadget-syscall { border-color: #d88cff99; color: #efc8ff; }
 .analysis-diagnostic { margin: 12px 0; border: 1px solid var(--border-strong); border-radius: 6px; padding: 16px 18px; }
 .analysis-diagnostic p { font-size: 13px; line-height: 1.7; margin: 10px 0 0; overflow-wrap: anywhere; }
 .analysis-diagnostic-meta { display: flex; gap: 12px; align-items: center; color: var(--text-muted); font-size: 12px; }

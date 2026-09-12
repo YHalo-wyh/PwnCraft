@@ -763,6 +763,14 @@
     return before ? before.step : 0;
   }
 
+  function chunkForSourceLine(line) {
+    const rows = (state.canonicalOps || []).filter((op) => Number(op.source_line) === Number(line));
+    const row = rows[rows.length - 1];
+    if (!row) return '';
+    const effect = (row.effects || []).find((item) => item.chunk) || {};
+    return effect.chunk || row.chunk || '';
+  }
+
   function handleExpCursorLine(line) {
     const target = stepForSourceLine(line);
     syncExpLineDecorations(line);
@@ -1523,11 +1531,15 @@
       return parts.length ? ` · 语义评分 ${parts.join(' / ')}` : '';
     };
     const unbound = (report.candidates || []).filter((candidate) => candidate.verdict !== 'recognized');
+    const currentStep = state.steps[state.current] || {};
+    const risks = Array.isArray(currentStep.risk_signals) ? currentStep.risk_signals : [];
+    const riskRows = risks.map((risk, index) => `<button class="canonical-row risk-row" data-risk-index="${index}" data-chunk="${esc((risk.chunks || [])[0] || '')}"><span class="cl-kind">⚠ ${esc(risk.kind || 'RISK')}</span><span class="cl-title">${esc(risk.title || risk.message || '')}</span><span class="hint-dim">${esc(risk.message || '')}</span></button>`).join('');
     // 参数位数量来自识别报告的 argument_count（真实调用实参数），不再固定 3。
     const argCountFor = (candidate) => Math.min(6, Math.max(1, Number(candidate.argument_count) || 3));
     host.innerHTML = `
       <div class="sidebar-mini-title">识别质量</div>
       <div class="hint-dim">识别 ${recognized}/${total}${ambiguous ? ` · ⚠ ${ambiguous} ambiguous` : ''}${unknown ? ` · ? ${unknown} unknown` : ''}${ignored ? ` · ○ ${ignored} ignored` : ''}</div>
+      ${risks.length ? `<details class="heap-mapping-details" open><summary>当前步风险信号（${risks.length}）</summary><div class="risk-list">${riskRows}</div></details>` : ''}
       ${unbound.length ? `
         <details class="heap-mapping-details" open>
           <summary>${unbound.length} 个调用未绑定语义（直接标注 → RecognitionCorrection）</summary>
@@ -1556,7 +1568,18 @@
         const line = Number(row.dataset.line) || 0;
         syncExpLineDecorations(line);
         const target = stepForSourceLine(line);
-        if (target !== null) stepTo(target);
+        if (target !== null) {
+          stepTo(target);
+          const chunkId = chunkForSourceLine(line);
+          if (chunkId) { selectChunkById(chunkId); locateChunk(chunkId); }
+        }
+        needsDraw = true;
+      });
+    });
+    host.querySelectorAll('.risk-row').forEach((row) => {
+      row.addEventListener('click', () => {
+        const chunkId = row.dataset.chunk || '';
+        if (chunkId) { selectChunkById(chunkId); locateChunk(chunkId); }
         needsDraw = true;
       });
     });
@@ -2212,6 +2235,13 @@
     const titleBaseline = y + Math.min(13, GRID.titleH - 5);
     const titleText = `${chunk.chunk_id}${menuInline}`;
     ctx.fillText(titleText, x + 8, titleBaseline);
+    const semantic = chunk.semantic || {};
+    const semanticLabel = semantic.semantic_kind && semantic.semantic_kind !== 'unknown'
+      ? `${semantic.semantic_kind} · ${semantic.recognition_verdict || 'UNKNOWN'}` : 'UNKNOWN';
+    ctx.font = '9px "Cascadia Mono", Consolas, monospace';
+    ctx.fillStyle = semantic.recognition_verdict === 'recognized' ? '#d7ffd7'
+      : (semantic.recognition_verdict === 'ambiguous' ? '#ffe7a8' : '#c5c5cc');
+    ctx.fillText(fitText(semanticLabel, 150, '9px "Cascadia Mono", Consolas, monospace'), x + w - 158, titleBaseline);
     // 复用解释标签：O [14] ← reuse B（同一物理块的曾用名，纯展示）
     const reuseLabel = reuseSourceLabel(chunk);
     if (reuseLabel) {
@@ -2312,6 +2342,17 @@
       ctx.fillStyle = COLORS.fake;
       ctx.font = '9px "Cascadia Mono", Consolas, monospace';
       ctx.fillText(`证据: ${chunk.evidence_level}`, x + w + 10, y + 48);
+    }
+    ctx.fillStyle = semantic.recognition_verdict === 'ambiguous' ? '#e7b84b' : COLORS.dim;
+    ctx.font = '9px "Cascadia Mono", Consolas, monospace';
+    const stage = semantic.chain_stage || 'unknown';
+    const source = semantic.source_line ? `L${semantic.source_line}` : '无源码行';
+    ctx.fillText(`${stage} · ${source}`.slice(0, 64), x + w + 10, y + 60);
+    const riskLabels = [...new Set((chunk.risk_signals || []).map((item) => String(item.kind || 'RISK')))].slice(0, 5);
+    if (riskLabels.length) {
+      ctx.fillStyle = '#ff8a65';
+      ctx.font = 'bold 9px "Cascadia Mono", Consolas, monospace';
+      ctx.fillText(`⚠ ${riskLabels.join(' · ')}`.slice(0, 64), x + w + 10, y + 72);
     }
     // 顶/底边中央圆形 resize handle（编辑模式）：拖动改变真实物理边界
     drawResizeHandles(body, chunk, step);

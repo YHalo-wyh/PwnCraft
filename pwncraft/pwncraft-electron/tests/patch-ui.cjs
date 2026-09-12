@@ -82,8 +82,12 @@ ipcMain.handle('bridge:request', async (_event, method, params = {}) => {
     ], function_count: 3, plt_imports: ['exit', 'read', 'system'], binary: 'fixture' };
   if (method === 'vuln_points') return { binary: params.path, points: [
     { function: 'main', vaddr: '0x1009', callee: 'read', verdict: 'overflow_confirmed',
-      reason: '长度 0x12c > 栈缓冲 0x40', length: 300, bound: 64, evidence: [] },
-  ], confirmed: 1, total: 1 };
+      severity: 'critical', category: 'memory_corruption', confidence: 'proven',
+      reason: '长度 0x12c > 栈缓冲 0x40', length: 300, bound: 64, evidence: ['0x1004: mov $0x12c,%edx'],
+      request: { kind: 'readlen', function: 'main', callee: 'read', size: '0x40', vaddr: '0x1004' } },
+  ], confirmed: 1, risk_total: 1, total: 1,
+    severity: { critical: 1, high: 0, medium: 0, info: 0 },
+    coverage: { functions: 3, call_sites: 4, global_objects: 2, rules: 51 } };
   if (method === 'patch_preview') {
     const requests = Array.isArray(params.requests) ? params.requests : [params.request || {}];
     const previewId = `preview-${previews.size + 1}`;
@@ -177,6 +181,12 @@ app.whenReady().then(async () => {
     assert.equal(lastCall('patch_audit').result.path, 'C:/测试/awdp-pwn');
     assert.equal(lastCall('vuln_points').result.path, 'C:/测试/awdp-pwn');
     assert.match(await js('document.querySelector(".binary-auto-audit").textContent'), /发现 2 个/);
+    assert.match(await js('document.querySelector(".binary-auto-audit").textContent'), /启用 51 条规则/);
+    await click('.vp-fix');
+    await until('!!document.querySelector(".patch-preview")');
+    assert.equal(lastCall('patch_preview').result.request.kind, 'readlen');
+    assert.equal(lastCall('patch_preview').result.request.vaddr, '0x1004');
+    await click('#patch-preview-cancel');
     await click('[data-key="patch"]');
     await until('document.querySelectorAll(".analysis-function").length === 3');
     await until('document.querySelectorAll(".patch-insn").length === 6');

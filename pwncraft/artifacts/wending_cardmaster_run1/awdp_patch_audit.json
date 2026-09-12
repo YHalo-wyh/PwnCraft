@@ -1,0 +1,11 @@
+{
+  "target": "Semis/cardmaster",
+  "status": "manual_patch_plan",
+  "confirmed_runtime": ["suit_count=0 -> SIGFPE"],
+  "changes": [
+    {"id": "reject-zero-count", "action": "set info 中拒绝 suit_count<=0"},
+    {"id": "cap-card-count", "action": "将牌数限制在 1..52 并在 show cards 再次校验"},
+    {"id": "safe-input", "action": "替换无约束 scanf，检查返回值和整数范围"}
+  ],
+  "verification": ["suit_count=0 不崩溃", "suit_count=53 安全拒绝", "正常牌局行为保持"]
+}

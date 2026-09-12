@@ -237,6 +237,14 @@ def main() -> int:
             _require("import:system" in audit_ids, f"{arch}: 风险扫描未发现 system 调用")
             _require(any(item.startswith("length:read:vulnerable_read") for item in audit_ids),
                      f"{arch}: 风险扫描未发现过大 read 长度")
+            vuln_scan = audit_bridge.rpc_vuln_points({"path": str(pristine)})
+            _require(any(point["callee"] == "read" and
+                         point["verdict"] == "overflow_confirmed"
+                         for point in vuln_scan["points"]),
+                     f"{arch}: 数据流扫描未证明 vulnerable_read 栈溢出")
+            _require(vuln_scan["coverage"]["functions"] > 0 and
+                     vuln_scan["coverage"]["call_sites"] > 0,
+                     f"{arch}: 数据流扫描覆盖统计为空")
             arch_results = [_validate_case(arch_root, pristine, case, runner)
                             for case in _case_catalog(pristine)]
             results.extend({**item, "arch": arch} for item in arch_results)

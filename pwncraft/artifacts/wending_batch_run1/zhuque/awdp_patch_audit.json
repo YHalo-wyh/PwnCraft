@@ -1,0 +1,11 @@
+{
+  "target": "zhuque/Pwn2/xyzcrypt",
+  "status": "manual_patch_plan",
+  "changes": [
+    {"id": "replace-strcat", "action": "使用带剩余容量的 strncat 或显式长度检查"},
+    {"id": "validate-filename", "action": "规范化路径、限制文件名长度和字符集"},
+    {"id": "lifetime-check", "action": "realloc/free 后更新句柄并拒绝 stale pointer"},
+    {"id": "preserve-hardening", "action": "保留 Full RELRO、Canary、PIE、NX、CET"}
+  ],
+  "verification": ["超长文件名安全失败", "realloc 后旧句柄不可读写", "加密状态切换不崩溃"]
+}

@@ -1,6 +1,11 @@
 # PwnCraft Electron Workbench 一键启动（新版）
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$mode = 'start'
+$skipInstall = $false
+if ($args -contains '--smoke' -or $args -contains '--check') { $mode = 'smoke' }
+elseif ($args -contains '--shot') { $mode = 'shot' }
+if ($args -contains '--no-install') { $skipInstall = $true }
 
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $here
@@ -19,7 +24,7 @@ if (-not (Get-Command python -ErrorAction SilentlyContinue) -and -not (Get-Comma
 
 $electronDir = Join-Path $root 'pwncraft-electron'
 Set-Location $electronDir
-if (-not (Test-Path 'node_modules/electron')) {
+if (-not $skipInstall -and -not (Test-Path 'node_modules/electron')) {
   Write-Host '[首次启动] 正在安装 Electron 依赖...'
   npm install --registry=https://registry.npmmirror.com
 }
@@ -27,4 +32,10 @@ if (-not (Test-Path 'node_modules/electron')) {
 $env:PYTHONPATH = $root
 $env:PYTHONIOENCODING = 'utf-8'
 Write-Host '[启动] PwnCraft Electron Workbench'
-npm start
+if ($mode -eq 'smoke') {
+  npm run smoke
+} elseif ($mode -eq 'shot') {
+  npm start -- --shot
+} else {
+  npm start
+}

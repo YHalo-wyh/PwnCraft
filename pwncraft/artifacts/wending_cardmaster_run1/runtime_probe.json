@@ -1,0 +1,20 @@
+{
+  "target": "cardmaster",
+  "tests": [
+    {
+      "name": "shuffle_divide_by_zero",
+      "input_repr": "2\\n0\\n1\\n1\\n4\\n",
+      "observed": "Floating point exception (core dumped)",
+      "exit_code": 136,
+      "signal": "SIGFPE",
+      "verdict": "runtime_confirmed_dos"
+    },
+    {
+      "name": "show_suit_count_over_52",
+      "suit_count": 55,
+      "observed": "input reached menu/show path; stable control-flow crash not reproduced",
+      "verdict": "static_candidate"
+    }
+  ],
+  "scope": "local WSL fixture; original binary preserved"
+}

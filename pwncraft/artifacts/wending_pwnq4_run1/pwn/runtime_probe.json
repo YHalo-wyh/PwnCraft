@@ -1,0 +1,10 @@
+{
+  "target": "qinglong/Pwn-4",
+  "fixture": {"username_file_bytes": "admin", "password_file_bytes": "s4cur1ty_p4ssw0rd", "newline": false},
+  "login": {"status": "confirmed", "evidence": "Username correct! / Password correct! / Welcome admin!"},
+  "uaf": {"status": "confirmed_runtime", "sequence": ["save(0,8,ABCDEFGH)", "delete(0)", "save(1,8,IJKLMNOP)", "edit(0,WXYZ1234)", "read(1)", "read(0)"], "observed": ["[key,value] = [1,WXYZ1234]", "[key,value] = [0,WXYZ1234]"], "interpretation": "delete leaves dangling pointer; reallocation aliases chunk; edit(0) writes object 1"},
+  "stale_read": {"status": "confirmed_runtime", "sequence": ["save(0,8,ABCDEFGH)", "delete(0)", "read(0)"], "interpretation": "freed chunk bytes are decrypted/printed through stale pointer; output contains allocator residue"},
+  "division_candidate": {"status": "not_reachable_from_input", "reason": "f98 divisor is strlen(.data:0x203010)=17 hardcoded key"},
+  "libc": {"version": "2.27", "safe_linking": false, "free_hook": "0x3ed8e8", "system": "0x4f420"},
+  "artifacts": ["probe.py", "probe_read_freed.py", "probe.out", "probe_read_freed.out"]
+}

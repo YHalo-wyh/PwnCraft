@@ -166,10 +166,104 @@ fgets 取第 2 参数的 `push $imm`，仅接受可证明且能等长编码的 `
 
 ## 比赛闭环增强
 
-- **导入即扫描**：`patch_audit` 检查危险调用、常量输入长度与 ELF 保护；`vuln_points`
-  在 amd64 用寄存器定义-使用链、在 i386 用 cdecl 参数回溯，比较
-  read/recv/recvfrom/fgets/memcpy/memmove/strncpy 长度与栈/堆缓冲容量，并识别 gets、
-  无宽度 `%s`、strcpy/strcat/sprintf。结果保留“确认/候选/未知”，不会把导入本身当作漏洞。
+- **导入即多阶段扫描**：`patch_audit` 检查危险调用、常量输入长度与 ELF 保护；
+  `vuln_points` 在 amd64 用寄存器定义-使用链、在 i386 用 cdecl 参数回溯，覆盖
+  read/recv/recvfrom/pread/readlink/fgets/fread、memcpy/memmove/mempcpy/strncpy/bcopy、
+  snprintf/getcwd 等有界写入。长度支持 add/sub/imul/shl/shr/and 常量传播，calloc 使用
+  `count × size`，readelf 对象符号与**段表容量**为 `.bss/.data` 提供真实边界。
+- **跨函数与非溢出漏洞**：自动传播一层包装函数的缓冲区和长度参数；分析 printf/scanf 族
+  固定/非固定格式串与 `%n`，追踪 system/popen/exec 族命令参数；在同一函数内识别可证明的
+  非法 free、同槽位 double-free、释放后传给危险调用以及返回当前栈帧地址。
+
+### 2023 春秋杯实测驱动的四项增强
+
+用 `datasets/vuln_corpus/chunqiu2023.json`（3 题真值，独立动态验证）对照，修掉四类盲区：
+
+- **函数边界恢复（`.eh_frame` FDE）**：符号被 `strip` 时 `objdump -d` 只输出一个 `<.text>`，
+  于是跨函数分析全部退化成单函数、发现全归到 `.text`。现在从 `readelf --debug-dump=frames`
+  的 `pc=begin..end` 切分（不手写 DWARF 解码——FDE 指针宽度由 CIE 的 augmentation `R` 决定，
+  x86-64 默认是 `pcrel|sdata4` 的 4 字节而非 8）。实测 easy_LzhiFTP 恢复出 8 个函数、
+  babyaul 恢复出 564 个。`coverage.functions_recovered` 报告恢复数量。
+- **可写段 ≠ 固定字面量**：`.bss/.data` 里的地址只是地址固定，内容仍可被运行时写入。
+  旧实现把这类地址当作「格式串不在文件映像」降级为 medium，**漏掉了真漏洞**。
+  现在按段 flags 判定：可写段 + 本函数写入过该地址 → `format_string_candidate`(critical) /
+  `command_injection_candidate`；仅落在可写段 → `mutable_format_slot` / `mutable_command_slot`(high)；
+  只读段才判 `within_bound`。实测 easy_LzhiFTP `fgets(.bss 0x4968,8)` → `printf(同一缓冲)` 被判 critical。
+- **i386 PIC 与 fortify 变体**：`lea -X(%ebx),%eax` 经 `__x86.get_pc_thunk.*` + `add $imm,%ebx`
+  还原 GOT 基址后再定位目标；`__printf_chk/__fprintf_chk/__*sprintf_chk` 的格式串参数因前置
+  flag 参数而后移。不处理这两点，32 位题的格式化字符串/命令面会整体退化。实测 p2048 的
+  `system("/bin/sh")`（`.rodata` 固定串）不再是 high 级误报。
+- **无长度参数的写循环**：新增两类不经过任何 libc 输入函数的越界写。
+  `pointer_step_overflow`：`inc REG` 后写 `-K(REG)` 且循环内无 `cmp/test` 上界（p2048 的
+  game 主循环）；`off_by_one_null_write`：读入长度与写入下标同源，`buf[长度]=0` 越界一字节
+  （babyaul 的 `add_chunk` 0x6528，正是该题的利用点）。注意编译器会生成
+  `push x; addq $8,(%rsp); ret` 跳板，它落在写入点之前，**不能**在中间 `ret` 处中断回溯。
+
+### 第二轮：数组索引与堆可用区
+
+- **全局数组索引越界**：`lea (,%REG,S)` + `lea BASE(%rip)` 识别带步长的数组访问，再回溯
+  找到保护它的常量上界比较，产出两类结论。
+  - `array_index_off_by_one`：上界立即数 ≥ 推断容量。easy_LzhiFTP 的 touch 用
+    `cmp $0x10,%eax; jg` 放行 `idx==16`，而数组只有 16 个元素（0..15）→ 越界写到相邻数组。
+  - `array_index_signed_bypass`：上界用**有符号**比较（`jg/jge/jl/jle`）、下标可追溯到
+    `atoi/strtol/scanf` 等输入解析、且同函数内无下界检查 → 负下标绕过。
+    easy_LzhiFTP 的 edit 即 `cmp $0xf; jg` + `atoi` → 负 idx 越界取指针后 `read` 写入。
+  - 容量推断优先 `readelf` OBJECT 符号；无符号时用**相邻数组基址**（easy_LzhiFTP：
+    0x4a80 之上最近的数组基址 0x4b00 → 0x80/8 = 16 个元素，与人工逆向一致）；
+    最后退到段末尾。只用「数组基址」做边界 —— 数组中间的标量引用（`mov 0x4a98(%rip)`）
+    不是边界，拿它推断会把容量算小并误报（实测曾算出 3 个元素）。
+- **glibc 可用区精化**：`malloc(n)` 的可用区是 `align16(n+8)-8`，只有 `n % 16 == 8` 时
+  `usable == n`，`buf[n] = 0` 才真的越界。同函数内若存在尺寸来源等同于读入长度的 `malloc`，
+  常量尺寸直接按公式判定（偏小则**不报**），运行时尺寸则在结论里写明
+  「当且仅当 size%16==8 时越界」。这避免了把 babyaul 的 `malloc(0x100)`（落在 usable
+  0x108 内）当成漏洞。
+- **objdump 注释剥离**：行尾注释（`... # 4c00 <stderr@GLIBC_2.2.5+0xb00>`）会被并进操作数，
+  让 `dst_reg` 匹配失败、定义链断裂。所有操作数解析前先剥注释，注释单独保留给地址提取。
+
+### 第三轮：三个静默失效的判据
+
+修的都是「代码看起来对、但对真实二进制不生效」的判据错误：
+
+- **blob 触发不能看函数名**。原判据要求最大函数的**名字以 `.` 开头**。objdump 在缺本地
+  符号时会拿最近的动态符号拼出合成名 —— 2025 长城杯 minidb 得到的是
+  `err@@Base-0xb6f`（占 78% 指令），不以 `.` 开头 → 整题跳过恢复，两个函数名塌成一个。
+  改为按**地址跨度**判定：某个「函数」跨越 `.text` ≥50% 的空间即为 blob。
+  修复后 minidb 20 → 33 个函数。
+- **护栏必须引用被步进的寄存器**。「循环内无 cmp」不足以判定无界：p2048 的 `game` 主循环
+  约 120 条指令，其中大量 `cmpb $0x72,-0x41d(%ebp)` 只做按键分发，与 `edi` 完全无关。
+  原判据取 `inc` 前 24 条做窗口，把这些无关比较当成护栏 → 真漏洞静默消失。
+  改为：循环体（回跳目标 .. 回跳点）内，只把**引用了该寄存器**（任意宽度别名）的比较
+  当作护栏。修复后 p2048 报出 `pointer_step_overflow @ 0x10e3`。
+- **恢复后要移除被取代的 blob**。`keep` 过滤原先只按「名字不以 `.` 开头」保留，而合成名
+  `err@@Base-0xb6f` 不带 `.` 前缀 → 与原 blob 同时留下，同一个发现报两遍（minidb 每个
+  `strncpy` 出现两次）。改为按**地址在 `.text` 之外**保留（.plt/.init/.fini 等桩）。
+  修复后 minidb 发现数 20 → 10，无重复。
+
+### 能力矩阵（实测）
+
+| 题目 | 恢复函数 | critical | high | 命中的 verdict |
+|---|---|---|---|---|
+| 春秋杯2023 easy_LzhiFTP | 8 | 4 | 5 | `format_string_candidate`×2、`array_index_off_by_one`×2、`array_index_signed_bypass`×5 |
+| 春秋杯2023 babyaul | 564 | 1 | 2 | `off_by_one_null_write`×1（带 usable 条件） |
+| 春秋杯2023 p2048 | 0（无需） | 1 | 0 | `pointer_step_overflow`×1（game 主循环无界指针写） |
+| 2024CISCN CHR | 12 | 0 | 3 | `use_after_free_candidate`×2、`double_free_candidate`×1 |
+| 2025长城杯 minidb | 16 | 0 | 0 | 恢复生效（原 0）；该题 UAF 需堆生命周期跨函数建模 |
+| 网鼎杯2024 short | 0（无需） | 1 | 1 | `overflow_confirmed`×1 |
+
+> 「恢复函数 = 0」有两种含义：**无需恢复**（符号完整，如 p2048/short）与
+> **恢复失效**（minidb 修复前）。`coverage.functions_recovered` 只报实际重建的数量，
+> 调用方需结合 `coverage.functions` 判断。
+
+评测：
+
+```bash
+python tools/vuln_corpus.py --corpus datasets/vuln_corpus/chunqiu2023.json
+# 命中 7/7  漏报 0  误报 0
+```
+
+- **分级证据与修复入口**：每项返回 severity、category、confidence、调用地址、证据与修复建议。
+  能证明对象容量且能由现有模板安全处理的 read/recv/recvfrom/fgets 越界，会直接显示
+  「预览修复」并进入正常的预览令牌、应用、撤销流程。候选和 unknown 不会伪装成已证明漏洞。
 - **组合通防（一次预览 / 一次应用）**：审计项默认全选、可按需勾选，`patch_preview` 接受
   `requests` 列表把多项缓解合并成一批补丁（同地址同字节去重，同地址不同字节明确拒绝），
   预览通过后一次 apply 写入同一批次，可在补丁管理里整组撤销。
