@@ -884,6 +884,11 @@ class ElectronBridge:
         report["execution"] = result["execution"]
         report["verification"] = dict(result["verification"])
         report["verdict"] = result["verdict"]
+        from pwncraft.features.semantic_runtime import observations_from_synth
+        from pwncraft.features.semantic_vuln import from_vuln_report
+        report["semantic_runtime_observations"] = observations_from_synth(result)
+        report["semantic_vulnerabilities"] = from_vuln_report(
+            {"points": []}, runtime_observations=report["semantic_runtime_observations"])
         if result.get("rendered") is not None:
             report["source"] = result["rendered"].source
             report["unresolved"] = list(result["rendered"].unresolved)
