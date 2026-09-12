@@ -1,0 +1,10 @@
+{
+  "target": "short",
+  "environment": "WSL Ubuntu-24.04",
+  "precondition": "login admin/admin123",
+  "offset": 88,
+  "chain": ["vuln read(0, ebp-0x50, 0x58)", "gift@0x80485e6", "system@plt", "/bin/sh"],
+  "result": "VERIFIED_SHELL: echo PWN_OK -> PWN_OK",
+  "exit": 0,
+  "confidence": "runtime_verified"
+}

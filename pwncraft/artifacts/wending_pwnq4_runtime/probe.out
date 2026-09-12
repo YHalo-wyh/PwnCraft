@@ -1,0 +1,6 @@
+[x] Starting local process '././pwn'
+[+] Starting local process '././pwn': pid 769
+READ-before b'\nDecrypt and read value...\nThe result is:\n\t[key,value] = [0,ABCDEFGH]\nEncrypt and save value...\nSuccess!'
+READ-alias-1 b'\nDecrypt and read value...\nThe result is:\n\t[key,value] = [1,WXYZ1234]\nEncrypt and save value...\nSuccess!'
+READ-after b'\nDecrypt and read value...\nThe result is:\n\t[key,value] = [0,WXYZ1234]\nEncrypt and save value...\nSuccess!'
+[*] Stopped process '././pwn' (pid 769)

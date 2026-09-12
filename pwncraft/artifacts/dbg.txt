@@ -1,0 +1,4 @@
+
+Error: Timed out: document.querySelectorAll(".analysis-function").length === 3
+    at until (F:\pwn宝\pwncraft\pwncraft-electron\tests\patch-ui.cjs:163:11)
+    at async F:\pwn宝\pwncraft\pwncraft-electron\tests\patch-ui.cjs:191:5

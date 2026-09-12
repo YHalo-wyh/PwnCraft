@@ -1,0 +1,84 @@
+{
+  "summary": {
+    "critical": 0,
+    "high": 1,
+    "medium": 0,
+    "info": 0,
+    "total": 1,
+    "risk_score": 15
+  },
+  "findings": [
+    {
+      "id": "import:__isoc99_scanf",
+      "severity": "high",
+      "title": "__isoc99_scanf@plt：格式化输入入口",
+      "detail": "发现 3 处直接调用。导入本身不等于漏洞，应结合参数可控性与正常业务复核。",
+      "evidence": [
+        "show_chunk @ 0x1283",
+        "delete_chunk @ 0x15e6",
+        "main @ 0x1680"
+      ],
+      "request": {
+        "kind": "plt_call",
+        "source": "__isoc99_scanf",
+        "target": "exit"
+      },
+      "action": "预览 __isoc99_scanf→exit",
+      "locations": [
+        {
+          "function": "show_chunk",
+          "address": "0x1283",
+          "instruction": "call 1140 <__isoc99_scanf@plt>"
+        },
+        {
+          "function": "delete_chunk",
+          "address": "0x15e6",
+          "instruction": "call 1140 <__isoc99_scanf@plt>"
+        },
+        {
+          "function": "main",
+          "address": "0x1680",
+          "instruction": "call 1140 <__isoc99_scanf@plt>"
+        }
+      ],
+      "location_count": 3,
+      "confidence": "review",
+      "category": "unsafe_api",
+      "remediation": "核对目标缓冲区容量、长度参数和终止符；优先使用有明确边界的接口。"
+    }
+  ],
+  "function_count": 27,
+  "plt_imports": [
+    "__isoc99_scanf",
+    "__stack_chk_fail",
+    "atoi",
+    "exit",
+    "free",
+    "malloc",
+    "puts",
+    "read",
+    "setvbuf"
+  ],
+  "binary": "F:\\pwn宝\\pwncraft\\artifacts\\wending_pwn01_run1\\pwn",
+  "coverage": {
+    "functions": 27,
+    "call_sites": 47,
+    "truncated_functions": 0,
+    "rules": 36
+  },
+  "limitations": [
+    "静态规则检查，不证明漏洞可利用；保护缺失和格式化调用单独列为复核项。",
+    "无符号、间接调用、优化后的参数传递和动态加载可能导致漏报；未发现风险不代表没有漏洞。",
+    "本扫描不覆盖堆对象生命周期、线程竞争及跨函数的数据流。"
+  ],
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  },
+  "sha256": "b5fff4461506cf6c25fe3fbfed053c7873c465e0f4c362a980d2ba060fda6e2b",
+  "scanned_at": "2026-09-12T04:07:15"
+}

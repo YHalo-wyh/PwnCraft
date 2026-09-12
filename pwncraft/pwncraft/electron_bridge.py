@@ -41,6 +41,14 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
+# JSON-RPC 输出可能包含中文题目路径、诊断和运行时回显。Windows 下
+# Python 默认 code page 会把这些字节写成 GBK，调用方按 UTF-8 读取时整条
+# 流被截断；桥协议固定使用 UTF-8，且不应受宿主区域设置影响。
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
+
 from pwncraft import APP_NAME, APP_VERSION
 from pwncraft.core.elf_runtime import auto_patch_elf, is_elf_file
 from pwncraft.core.workspace import PwnWorkspace, AddressKind, TypedAddress, WorkspaceVariable
@@ -575,10 +583,31 @@ class ElectronBridge:
         self._disasm_cache.clear()          # 工作副本已变，反汇编缓存全部作废
         if token:
             self._patch_previews.pop(token, None)
+        # AWDP 比赛顺手性：应用成功后从只读原始副本回放一份 <原名>_patched
+        # 到原题目目录（=拖入目录，CTF 惯例 libc/ld 也在那里），提交即用。
+        # 原始副本缺失/回放失败不阻断应用本身，附提示说明。
+        patched_path = ""
+        patched_error = ""
+        target = self._patch_target(lab)
+        original = str(target.get("original_binary") or "")
+        project_root = Path(str(target.get("project_root") or "") or lab.binary.parent)
+        if original and Path(original).is_file():
+            dest = project_root / f"{lab.binary.name}_patched"
+            try:
+                materialize_patched(Path(original), lab.log_ops(), dest)
+                patched_path = str(dest)
+                self._log(f"已生成补丁后 ELF → {patched_path}")
+            except Exception as error:
+                patched_error = str(error)
+                self._log(f"补丁后 ELF 生成失败：{patched_error}")
+        else:
+            patched_error = "原始副本不可用（original_binary 缺失）"
+            self._log(f"未生成补丁后 ELF：{patched_error}")
         self._log(f"AWDP 补丁已应用 {len(ops)} 条（备份: {Path(outcome['backup']).name}）")
         return {"applied": outcome["applied"], "backup": outcome["backup"],
                 "warnings": warnings, "binary": str(lab.binary),
-                "batch_id": outcome["batch_id"], "log": lab.inspect_ops()}
+                "batch_id": outcome["batch_id"], "log": lab.inspect_ops(),
+                "patched_path": patched_path, "patched_error": patched_error}
 
     def rpc_patch_list(self, params: dict) -> dict:
         lab = self._patch_lab(params)

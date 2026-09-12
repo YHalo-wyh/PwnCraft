@@ -1,0 +1,7 @@
+{
+  "target": "safenote",
+  "environment": "WSL Ubuntu-24.04 + LD_LIBRARY_PATH=artifacts/wending_pwn02_run1",
+  "protocol": ["tester", "create idx=0 size=16 enc=1", "write idx=0 size=16 content=ABCDEFGHIJKLMNOP", "read idx=0 key=key salt=1"],
+  "result": "进程 exit=0，read 输出乱码而非原文；未崩溃、未执行外部命令",
+  "interpretation": "与 create/read bit31、write bit27 的静态掩码不一致相互印证；这是逻辑/状态机缺陷，不是已证实内存破坏"
+}

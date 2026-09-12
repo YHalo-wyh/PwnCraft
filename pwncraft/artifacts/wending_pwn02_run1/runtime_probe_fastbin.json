@@ -1,0 +1,12 @@
+{
+  "target": "safenote",
+  "flow": ["create idx=0 size=32 enc=0", "write 32 bytes", "delete idx=0", "create idx=1 size=32 enc=0", "read idx=1"],
+  "observed": {
+    "stale_payload": true,
+    "prefix": "safe-linking encoded fd bytes may remain",
+    "tail": "previous payload bytes remain when only a short write follows"
+  },
+  "classification": "uninitialized_reallocated_chunk_read",
+  "confidence": "runtime_dataflow",
+  "next_missing": ["stable heap-address decoding", "follow-up controlled write primitive"]
+}

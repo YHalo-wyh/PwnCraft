@@ -1,0 +1,7 @@
+{
+  "verdict": "ROUND_TRIP_CLEAN",
+  "error_count": 0,
+  "diagnostic_count": 0,
+  "diagnostics": [],
+  "note": "CLEAN = 未发现确定性结构问题；可利用性仍需运行验证（UNVERIFIED）"
+}

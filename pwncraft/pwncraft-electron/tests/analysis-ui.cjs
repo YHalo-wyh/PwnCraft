@@ -130,7 +130,8 @@ app.whenReady().then(async () => {
     // 自动检测 + 自动构造 EXP 骨架（synth_generate → 摘要 + 写入 EXP 编辑器）
     await click('#binary-synth-run');
     await until('!!document.querySelector("#binary-synth-apply")');
-    const synthText = await js('document.querySelector(".binary-synth").innerText');
+    // 「一键全量漏洞识别」行也用了 .binary-synth class 且在 synth 行之前，需精确定位 synth 行。
+    const synthText = await js('document.querySelector("#binary-synth-run").closest(".binary-synth").innerText');
     assert.match(synthText, /策略 ret2win/);
     assert.match(synthText, /状态 blocked/);
     assert.match(synthText, /往返 ROUND_TRIP_CLEAN/);
@@ -138,8 +139,8 @@ app.whenReady().then(async () => {
     assert.match(await js('document.querySelector("#page-binary").innerText'), /缺口：控制流劫持偏移未证明/);
     // 运行时验证（gdb 测偏移 + 真跑生成的 EXP）→ 结论与证据上屏
     await click('#binary-synth-verify');
-    await until('document.querySelector(".binary-synth").innerText.includes("VERIFIED_SHELL")');
-    const verifyText = await js('document.querySelector(".binary-synth").innerText');
+    await until('document.querySelector("#binary-synth-run").closest(".binary-synth").innerText.includes("VERIFIED_SHELL")');
+    const verifyText = await js('document.querySelector("#binary-synth-run").closest(".binary-synth").innerText');
     assert.match(verifyText, /偏移 0x48/);
     assert.match(verifyText, /验证 VERIFIED_SHELL/);
     assert.match(await js('document.querySelector("#page-binary").innerText'), /运行时：生成的 EXP 打通目标/);

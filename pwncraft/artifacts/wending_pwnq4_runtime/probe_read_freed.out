@@ -1,0 +1,4 @@
+[x] Starting local process '././pwn'
+[+] Starting local process '././pwn': pid 772
+READ-FREED b'\nDecrypt and read value...\nThe result is:\n\t[key,value] = [0,\xa8c,\x83\xf8\xf9P.\x90R\xc1\x98\xca\xe5\x13e\x01]\nEncrypt and save value...\nSuccess!\n******************************'
+[*] Stopped process '././pwn' (pid 772)

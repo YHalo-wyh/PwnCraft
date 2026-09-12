@@ -1,0 +1,1729 @@
+{
+  "binary": "F:\\pwn宝\\pwncraft\\artifacts\\wending_pwn01_run1\\pwn",
+  "sha256": "b5fff4461506cf6c25fe3fbfed053c7873c465e0f4c362a980d2ba060fda6e2b",
+  "findings": [
+    {
+      "id": "import:__isoc99_scanf",
+      "severity": "high",
+      "title": "__isoc99_scanf@plt：格式化输入入口",
+      "detail": "发现 3 处直接调用。导入本身不等于漏洞，应结合参数可控性与正常业务复核。",
+      "evidence": [
+        "show_chunk @ 0x1283",
+        "delete_chunk @ 0x15e6",
+        "main @ 0x1680"
+      ],
+      "request": {
+        "kind": "plt_call",
+        "source": "__isoc99_scanf",
+        "target": "exit"
+      },
+      "action": "预览 __isoc99_scanf→exit",
+      "locations": [
+        {
+          "function": "show_chunk",
+          "address": "0x1283",
+          "instruction": "call 1140 <__isoc99_scanf@plt>"
+        },
+        {
+          "function": "delete_chunk",
+          "address": "0x15e6",
+          "instruction": "call 1140 <__isoc99_scanf@plt>"
+        },
+        {
+          "function": "main",
+          "address": "0x1680",
+          "instruction": "call 1140 <__isoc99_scanf@plt>"
+        }
+      ],
+      "location_count": 3,
+      "confidence": "review",
+      "category": "unsafe_api",
+      "remediation": "核对目标缓冲区容量、长度参数和终止符；优先使用有明确边界的接口。",
+      "source": "surface",
+      "origin_id": "import:__isoc99_scanf"
+    },
+    {
+      "function": "add_chunk",
+      "vaddr": "0x14c5",
+      "callee": "read",
+      "verdict": "unknown_length",
+      "reason": "长度来源非常量（寄存器/变量）",
+      "evidence": [
+        "lea 污染",
+        "全局对象 ptr 剩余容量 0x190 @ 0x14ad"
+      ],
+      "severity": "medium",
+      "confidence": "review",
+      "category": "memory_corruption",
+      "remediation": "按证据中的真实对象容量收紧长度，或在完整指令边界增加显式边界检查。",
+      "length": null,
+      "buffer": {
+        "kind": "global",
+        "size": 400,
+        "symbol": "ptr"
+      },
+      "id": "dataflow:0",
+      "title": "长度来源非常量（寄存器/变量）",
+      "detail": "长度来源非常量（寄存器/变量）",
+      "source": "dataflow",
+      "origin_id": "dataflow:0",
+      "locations": [
+        {
+          "function": "add_chunk",
+          "address": "0x14c5"
+        }
+      ]
+    },
+    {
+      "function": "show_chunk",
+      "vaddr": "0x1283",
+      "callee": "scanf",
+      "verdict": "within_bound",
+      "reason": "scanf: 固定格式串未发现无宽度 %s",
+      "evidence": [],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:1",
+      "title": "scanf: 固定格式串未发现无宽度 %s",
+      "detail": "scanf: 固定格式串未发现无宽度 %s",
+      "source": "dataflow",
+      "origin_id": "dataflow:1",
+      "locations": [
+        {
+          "function": "show_chunk",
+          "address": "0x1283"
+        }
+      ]
+    },
+    {
+      "function": "delete_chunk",
+      "vaddr": "0x15e6",
+      "callee": "scanf",
+      "verdict": "within_bound",
+      "reason": "scanf: 固定格式串未发现无宽度 %s",
+      "evidence": [],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:4",
+      "title": "scanf: 固定格式串未发现无宽度 %s",
+      "detail": "scanf: 固定格式串未发现无宽度 %s",
+      "source": "dataflow",
+      "origin_id": "dataflow:4",
+      "locations": [
+        {
+          "function": "delete_chunk",
+          "address": "0x15e6"
+        }
+      ]
+    },
+    {
+      "function": "main",
+      "vaddr": "0x1680",
+      "callee": "scanf",
+      "verdict": "within_bound",
+      "reason": "scanf: 固定格式串未发现无宽度 %s",
+      "evidence": [],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:5",
+      "title": "scanf: 固定格式串未发现无宽度 %s",
+      "detail": "scanf: 固定格式串未发现无宽度 %s",
+      "source": "dataflow",
+      "origin_id": "dataflow:5",
+      "locations": [
+        {
+          "function": "main",
+          "address": "0x1680"
+        }
+      ]
+    },
+    {
+      "function": "add_chunk",
+      "vaddr": "0x13cc",
+      "callee": "read",
+      "verdict": "within_bound",
+      "reason": "长度 0x8 ≤ 栈缓冲 0x28",
+      "bound": 40,
+      "evidence": [
+        "0x13ba",
+        "栈槽 rbp-0x30 @ 0x13b6"
+      ],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": 8,
+      "buffer": {
+        "kind": "stack",
+        "offset": 48
+      },
+      "id": "dataflow:2",
+      "title": "长度 0x8 ≤ 栈缓冲 0x28",
+      "detail": "长度 0x8 ≤ 栈缓冲 0x28",
+      "source": "dataflow",
+      "origin_id": "dataflow:2",
+      "locations": [
+        {
+          "function": "add_chunk",
+          "address": "0x13cc"
+        }
+      ]
+    },
+    {
+      "function": "edit_chunk",
+      "vaddr": "0x156b",
+      "callee": "read",
+      "verdict": "within_bound",
+      "reason": "长度 0x8 ≤ 栈缓冲 0x8",
+      "bound": 8,
+      "evidence": [
+        "0x1559",
+        "栈槽 rbp-0x10 @ 0x1555"
+      ],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": 8,
+      "buffer": {
+        "kind": "stack",
+        "offset": 16
+      },
+      "id": "dataflow:3",
+      "title": "长度 0x8 ≤ 栈缓冲 0x8",
+      "detail": "长度 0x8 ≤ 栈缓冲 0x8",
+      "source": "dataflow",
+      "origin_id": "dataflow:3",
+      "locations": [
+        {
+          "function": "edit_chunk",
+          "address": "0x156b"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "high": 1,
+    "medium": 1,
+    "low": 0,
+    "info": 5,
+    "total": 7,
+    "risk_score": 25,
+    "confirmed": 0
+  },
+  "categories": {
+    "unsafe_api": 1,
+    "memory_corruption": 1,
+    "reviewed_site": 5
+  },
+  "confidences": {
+    "review": 2,
+    "proven_safe_site": 5
+  },
+  "semantic_functions": [
+    {
+      "function": "_init",
+      "address": "0x1000",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x100f",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x1014",
+          "statement": "call *%rax"
+        }
+      ],
+      "coverage": {
+        "instructions": 8,
+        "complete": true
+      }
+    },
+    {
+      "function": ".plt",
+      "address": "0x1020",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 39,
+        "complete": true
+      }
+    },
+    {
+      "function": "__cxa_finalize@plt",
+      "address": "0x10c0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "free@plt",
+      "address": "0x10d0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "puts@plt",
+      "address": "0x10e0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "__stack_chk_fail@plt",
+      "address": "0x10f0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "read@plt",
+      "address": "0x1100",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "malloc@plt",
+      "address": "0x1110",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "setvbuf@plt",
+      "address": "0x1120",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "atoi@plt",
+      "address": "0x1130",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "__isoc99_scanf@plt",
+      "address": "0x1140",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "exit@plt",
+      "address": "0x1150",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "_start",
+      "address": "0x1160",
+      "labels": [
+        "CALL_INDIRECT"
+      ],
+      "calls": [
+        "__libc_start_main"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x1188",
+          "symbol": "__libc_start_main"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x1188",
+          "statement": "call *0x2e52(%rip) # 3fe0 <__libc_start_main@GLIBC_2.2.5>"
+        }
+      ],
+      "coverage": {
+        "instructions": 14,
+        "complete": true
+      }
+    },
+    {
+      "function": "deregister_tm_clones",
+      "address": "0x1190",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x119e",
+          "statement": "cmp %rdi,%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x11aa",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x11af",
+          "statement": "jmp *%rax"
+        }
+      ],
+      "coverage": {
+        "instructions": 11,
+        "complete": true
+      }
+    },
+    {
+      "function": "register_tm_clones",
+      "address": "0x11c0",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x11eb",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x11f0",
+          "statement": "jmp *%rax"
+        }
+      ],
+      "coverage": {
+        "instructions": 16,
+        "complete": true
+      }
+    },
+    {
+      "function": "__do_global_dtors_aux",
+      "address": "0x1200",
+      "labels": [
+        "CHECK_SIZE",
+        "NARROWING_CONVERSION",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "__cxa_finalize",
+        "deregister_tm_clones"
+      ],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x1204",
+          "statement": "cmpb $0x0,0x2e2d(%rip) # 4038 <completed.8061>"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x120e",
+          "statement": "cmpq $0x0,0x2de2(%rip) # 3ff8 <__cxa_finalize@GLIBC_2.2.5>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1222",
+          "symbol": "__cxa_finalize"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1227",
+          "symbol": "deregister_tm_clones"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x122c",
+          "statement": "movb $0x1,0x2e05(%rip) # 4038 <completed.8061>"
+        }
+      ],
+      "coverage": {
+        "instructions": 16,
+        "complete": true
+      }
+    },
+    {
+      "function": "frame_dummy",
+      "address": "0x1240",
+      "labels": [
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        "register_tm_clones"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x1244",
+          "symbol": "register_tm_clones"
+        }
+      ],
+      "coverage": {
+        "instructions": 2,
+        "complete": true
+      }
+    },
+    {
+      "function": "show_chunk",
+      "address": "0x1249",
+      "labels": [
+        "INDEXED_OBJECT_ACCESS",
+        "INPUT_INDEXED_OBJECT_ACCESS_CANDIDATE",
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "puts",
+        "__isoc99_scanf",
+        "puts",
+        "__stack_chk_fail"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x126b",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1283",
+          "symbol": "__isoc99_scanf"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x128d",
+          "statement": "lea 0x0(,%rax,8),%rdx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12a3",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12b8",
+          "symbol": "__stack_chk_fail"
+        }
+      ],
+      "coverage": {
+        "instructions": 28,
+        "complete": true
+      }
+    },
+    {
+      "function": "menu",
+      "address": "0x12bf",
+      "labels": [
+        "WRITE_EXTERNAL_OUTPUT"
+      ],
+      "calls": [
+        "puts",
+        "puts",
+        "puts",
+        "puts",
+        "puts"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x12ce",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12da",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12e6",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12f2",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12fe",
+          "symbol": "puts"
+        }
+      ],
+      "coverage": {
+        "instructions": 16,
+        "complete": true
+      }
+    },
+    {
+      "function": "init",
+      "address": "0x1306",
+      "labels": [
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "setvbuf",
+        "setvbuf"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x1327",
+          "symbol": "setvbuf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1345",
+          "symbol": "setvbuf"
+        }
+      ],
+      "coverage": {
+        "instructions": 18,
+        "complete": true
+      }
+    },
+    {
+      "function": "add_chunk",
+      "address": "0x134d",
+      "labels": [
+        "ALLOCATE_OBJECT",
+        "CHECK_SIZE",
+        "INDEXED_OBJECT_ACCESS",
+        "INPUT_INDEXED_OBJECT_ACCESS_CANDIDATE",
+        "NARROWING_CONVERSION",
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "SIGNED_BOUNDS_CHECK",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "puts",
+        "read",
+        "atoi",
+        "atoi",
+        "puts",
+        "exit",
+        "atoi",
+        "malloc",
+        "puts",
+        "read",
+        "add_chunk+0x1bf",
+        "puts",
+        "exit",
+        "exit",
+        "__stack_chk_fail"
+      ],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x136f",
+          "statement": "cmp $0x20,%eax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x1372",
+          "statement": "jg 1502 <add_chunk+0x1b5>"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x137e",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x1380",
+          "statement": "js 1502 <add_chunk+0x1b5>"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x138e",
+          "statement": "lea 0x0(,%rax,8),%rdx"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x13a1",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x13b1",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x13cc",
+          "symbol": "read"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x13d8",
+          "symbol": "atoi"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x13dd",
+          "statement": "cmp $0x1000,%eax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x13e2",
+          "statement": "jg 13f7 <add_chunk+0xaa>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x13eb",
+          "symbol": "atoi"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x13f0",
+          "statement": "cmp $0x90,%eax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x13f5",
+          "statement": "jg 140d <add_chunk+0xc0>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x13fe",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1408",
+          "symbol": "exit"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x141a",
+          "symbol": "atoi"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x141f",
+          "statement": "movslq %ebx,%rdx"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x1422",
+          "statement": "lea 0x0(,%rdx,4),%rcx"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x143c",
+          "statement": "lea 0x0(,%rax,4),%rdx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1459",
+          "symbol": "malloc"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x1461",
+          "statement": "movslq %ebx,%rax"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x1464",
+          "statement": "lea 0x0(,%rax,8),%rdx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x147e",
+          "symbol": "puts"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x148b",
+          "statement": "lea 0x0(,%rax,4),%rdx"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x14a5",
+          "statement": "lea 0x0(,%rax,8),%rcx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x14c5",
+          "symbol": "read"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x14ea",
+          "symbol": "add_chunk+0x1bf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x14f3",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x14fd",
+          "symbol": "exit"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1507",
+          "symbol": "exit"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x150c",
+          "symbol": "__stack_chk_fail"
+        }
+      ],
+      "coverage": {
+        "instructions": 101,
+        "complete": true
+      }
+    },
+    {
+      "function": "edit_chunk",
+      "address": "0x1518",
+      "labels": [
+        "CHECK_SIZE",
+        "FIXED_VALUE_POINTER_WRITE",
+        "INPUT_TO_POINTER_WRITE_CANDIDATE",
+        "NARROWING_CONVERSION",
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "puts",
+        "puts",
+        "read",
+        "edit_chunk+0x8d",
+        "exit",
+        "__stack_chk_fail"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x153a",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1545",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1550",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x156b",
+          "symbol": "read"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x1574",
+          "statement": "movl $0xa2c2a,(%rax)"
+        },
+        {
+          "kind": "FIXED_VALUE_POINTER_WRITE",
+          "address": "0x1574",
+          "statement": "movl $0xa2c2a,(%rax)"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1599",
+          "symbol": "edit_chunk+0x8d"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x15a0",
+          "symbol": "exit"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x15a5",
+          "symbol": "__stack_chk_fail"
+        }
+      ],
+      "coverage": {
+        "instructions": 35,
+        "complete": true
+      }
+    },
+    {
+      "function": "delete_chunk",
+      "address": "0x15ac",
+      "labels": [
+        "FREE_OBJECT",
+        "INDEXED_OBJECT_ACCESS",
+        "INPUT_INDEXED_OBJECT_ACCESS_CANDIDATE",
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "puts",
+        "__isoc99_scanf",
+        "free",
+        "__stack_chk_fail"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x15ce",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x15e6",
+          "symbol": "__isoc99_scanf"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x15f0",
+          "statement": "lea 0x0(,%rax,8),%rdx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1606",
+          "symbol": "free"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x1610",
+          "statement": "lea 0x0(,%rax,8),%rdx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1637",
+          "symbol": "__stack_chk_fail"
+        }
+      ],
+      "coverage": {
+        "instructions": 33,
+        "complete": true
+      }
+    },
+    {
+      "function": "main",
+      "address": "0x163e",
+      "labels": [
+        "CHECK_SIZE",
+        "INDEXED_OBJECT_ACCESS",
+        "INPUT_INDEXED_OBJECT_ACCESS_CANDIDATE",
+        "LOOP_PRESENT",
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "init",
+        "menu",
+        "__isoc99_scanf",
+        "add_chunk",
+        "main+0xb8",
+        "delete_chunk",
+        "main+0xb8",
+        "edit_chunk",
+        "main+0xb8",
+        "show_chunk",
+        "main+0xb8",
+        "puts",
+        "exit",
+        "main+0x25"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x165e",
+          "symbol": "init"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1668",
+          "symbol": "menu"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1680",
+          "symbol": "__isoc99_scanf"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1688",
+          "statement": "cmp $0x5,%eax"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x168f",
+          "statement": "lea 0x0(,%rax,4),%rdx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16b5",
+          "symbol": "add_chunk"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16ba",
+          "symbol": "main+0xb8"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16c1",
+          "symbol": "delete_chunk"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16c6",
+          "symbol": "main+0xb8"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16cd",
+          "symbol": "edit_chunk"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16d2",
+          "symbol": "main+0xb8"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16d9",
+          "symbol": "show_chunk"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16de",
+          "symbol": "main+0xb8"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16e7",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16f1",
+          "symbol": "exit"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x16f6",
+          "symbol": "main+0x25"
+        }
+      ],
+      "coverage": {
+        "instructions": 45,
+        "complete": true
+      }
+    },
+    {
+      "function": "__libc_csu_init",
+      "address": "0x1700",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE",
+        "INDEXED_OBJECT_ACCESS",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        "_init"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x172c",
+          "symbol": "_init"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x1749",
+          "statement": "call *(%r15,%rbx,8)"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x1749",
+          "statement": "call *(%r15,%rbx,8)"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1751",
+          "statement": "cmp %rbx,%rbp"
+        }
+      ],
+      "coverage": {
+        "instructions": 35,
+        "complete": true
+      }
+    },
+    {
+      "function": "__libc_csu_fini",
+      "address": "0x1770",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 2,
+        "complete": true
+      }
+    },
+    {
+      "function": "_fini",
+      "address": "0x1778",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 4,
+        "complete": true
+      }
+    }
+  ],
+  "semantic_summary": {
+    "ALLOCATE_OBJECT": 1,
+    "CALL_INDIRECT": 5,
+    "CHECK_SIZE": 8,
+    "FIXED_VALUE_POINTER_WRITE": 1,
+    "FREE_OBJECT": 1,
+    "INDEXED_OBJECT_ACCESS": 5,
+    "INDEX_CHECK_NOT_OBSERVED": 1,
+    "INPUT_INDEXED_OBJECT_ACCESS_CANDIDATE": 4,
+    "INPUT_TO_POINTER_WRITE_CANDIDATE": 1,
+    "LOOP_PRESENT": 3,
+    "NARROWING_CONVERSION": 3,
+    "READ_EXTERNAL_INPUT": 5,
+    "READ_OBJECT": 10,
+    "SIGNED_BOUNDS_CHECK": 1,
+    "WRITE_EXTERNAL_OUTPUT": 6,
+    "WRITE_OBJECT": 10
+  },
+  "strategies": [
+    {
+      "id": "ret2libc",
+      "name": "ret2libc（GOT 泄漏 → libc 基址 → system）",
+      "status": "blocked",
+      "requires": [
+        "primitive:leak",
+        "primitive:control_flow_hijack",
+        "primitive:libc_offsets"
+      ],
+      "missing": [
+        "控制流劫持偏移未证明（需要崩溃/调试证据）"
+      ],
+      "evidence": [
+        "puts@plt=0x10e0",
+        "atoi@got=0x3fc0",
+        "puts@got=0x3f98",
+        "read@got=0x3fa8"
+      ],
+      "steps": [
+        "泄漏 puts@got → libc base",
+        "再次触发溢出",
+        "ret2libc：pop rdi + binsh@libc + system@libc"
+      ],
+      "renderer": "ret2libc"
+    }
+  ],
+  "exploit_chains": [
+    {
+      "id": "integer-boundary-bypass",
+      "title": "整数截断 → 有符号边界判断 → 越界访问",
+      "stages": [
+        "用户整数",
+        "宽度/符号转换",
+        "有符号比较",
+        "数组或长度访问"
+      ],
+      "evidence": [
+        "semantic:NARROWING_CONVERSION",
+        "semantic:SIGNED_BOUNDS_CHECK"
+      ],
+      "missing": [
+        "索引/长度到内存访问的跨块数据流"
+      ],
+      "confidence": "conditional",
+      "status": "blocked"
+    },
+    {
+      "id": "input-indexed-object-access",
+      "title": "外部索引 → 指针表/数组访问 → 越界待验证",
+      "stages": [
+        "读取外部索引",
+        "符号/宽度转换",
+        "按比例寻址对象表",
+        "验证边界与对象状态"
+      ],
+      "evidence": [
+        "semantic:INPUT_INDEXED_OBJECT_ACCESS_CANDIDATE"
+      ],
+      "missing": [
+        "索引边界检查覆盖该访问",
+        "负值/超界输入本地运行时验证"
+      ],
+      "confidence": "review",
+      "status": "blocked"
+    },
+    {
+      "id": "fixed-value-pointer-write",
+      "title": "固定值指针写 → 目标选择 → 控制/堆元数据影响",
+      "stages": [
+        "外部输入或已有指针",
+        "向指针目标写固定值",
+        "选择兼容目标",
+        "触发使用点"
+      ],
+      "evidence": [
+        "semantic:FIXED_VALUE_POINTER_WRITE",
+        "semantic:INPUT_TO_POINTER_WRITE_CANDIDATE"
+      ],
+      "missing": [
+        "跨指令数据流确认写入目标来自外部输入",
+        "固定值可影响的控制数据/元数据目标",
+        "目标地址随机化或泄漏前置条件",
+        "本地运行时写入验证"
+      ],
+      "confidence": "dataflow_candidate",
+      "status": "blocked"
+    },
+    {
+      "id": "custom-input-loop",
+      "title": "自定义输入循环 → 内存写入 → 边界待确认",
+      "stages": [
+        "外部输入",
+        "循环处理",
+        "逐字节/逐槽写入",
+        "边界条件复核"
+      ],
+      "evidence": [
+        "semantic:LOOP_PRESENT",
+        "semantic:WRITE_OBJECT",
+        "长度来源非常量（寄存器/变量）"
+      ],
+      "missing": [
+        "输入终止条件与目标对象容量"
+      ],
+      "confidence": "review",
+      "status": "blocked"
+    },
+    {
+      "id": "input-to-output-leak",
+      "title": "外部输入/状态 → 输出泄漏面",
+      "stages": [
+        "读取输入或状态",
+        "指针/内容输出",
+        "泄漏可控性验证"
+      ],
+      "evidence": [
+        "semantic:READ_EXTERNAL_INPUT",
+        "semantic:WRITE_EXTERNAL_OUTPUT"
+      ],
+      "missing": [
+        "输出参数是否包含地址或敏感内容"
+      ],
+      "confidence": "review",
+      "status": "blocked"
+    }
+  ],
+  "gadgets": {
+    "pop_r12": "0x175c",
+    "pop_r13": "0x175c",
+    "pop_r14": "0x175c",
+    "pop_r15": "0x175c",
+    "pop_rbp": "0x175b",
+    "pop_rbx": "0x1515",
+    "rdi": "0x1763",
+    "pop_rdi": "0x1763",
+    "rsi": "0x1761",
+    "pop_rsi": "0x1761",
+    "pop_rsp": "0x175d",
+    "ret": "0x101a"
+  },
+  "gadget_catalog": [
+    {
+      "address": "0x175c",
+      "text": "pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "r12",
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 40,
+      "highlight": false
+    },
+    {
+      "address": "0x175e",
+      "text": "pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 32,
+      "highlight": false
+    },
+    {
+      "address": "0x1760",
+      "text": "pop r14 ; pop r15 ; ret",
+      "controls": [
+        "r14",
+        "r15"
+      ],
+      "score": 4,
+      "stack_delta": 24,
+      "highlight": true
+    },
+    {
+      "address": "0x1762",
+      "text": "pop r15 ; ret",
+      "controls": [
+        "r15"
+      ],
+      "score": 5,
+      "stack_delta": 16,
+      "highlight": true
+    },
+    {
+      "address": "0x175b",
+      "text": "pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "rbp",
+        "r12",
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 48,
+      "highlight": false
+    },
+    {
+      "address": "0x175f",
+      "text": "pop rbp ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "rbp",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 32,
+      "highlight": false
+    },
+    {
+      "address": "0x1233",
+      "text": "pop rbp ; ret",
+      "controls": [
+        "rbp"
+      ],
+      "score": 5,
+      "stack_delta": 16,
+      "highlight": true
+    },
+    {
+      "address": "0x1515",
+      "text": "pop rbx ; pop rbp ; ret",
+      "controls": [
+        "rbx",
+        "rbp"
+      ],
+      "score": 4,
+      "stack_delta": 24,
+      "highlight": true
+    },
+    {
+      "address": "0x1763",
+      "text": "pop rdi ; ret",
+      "controls": [
+        "rdi"
+      ],
+      "score": 5,
+      "stack_delta": 16,
+      "highlight": true
+    },
+    {
+      "address": "0x1761",
+      "text": "pop rsi ; pop r15 ; ret",
+      "controls": [
+        "rsi",
+        "r15"
+      ],
+      "score": 4,
+      "stack_delta": 24,
+      "highlight": true
+    },
+    {
+      "address": "0x175d",
+      "text": "pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "rsp",
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 40,
+      "highlight": false
+    },
+    {
+      "address": "0x101a",
+      "text": "ret",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 8,
+      "highlight": true
+    }
+  ],
+  "gadget_error": "",
+  "fsop_profile": {
+    "status": "candidate",
+    "glibc": "2.31",
+    "layout": {
+      "file_size": 216,
+      "plus_size": 224,
+      "wide_size": 232,
+      "fields": [
+        {
+          "name": "_flags",
+          "offset": 0,
+          "width": 4
+        },
+        {
+          "name": "_IO_read_ptr",
+          "offset": 8,
+          "width": 8
+        },
+        {
+          "name": "_IO_read_end",
+          "offset": 16,
+          "width": 8
+        },
+        {
+          "name": "_IO_read_base",
+          "offset": 24,
+          "width": 8
+        },
+        {
+          "name": "_IO_write_base",
+          "offset": 32,
+          "width": 8
+        },
+        {
+          "name": "_IO_write_ptr",
+          "offset": 40,
+          "width": 8
+        },
+        {
+          "name": "_IO_write_end",
+          "offset": 48,
+          "width": 8
+        },
+        {
+          "name": "_IO_buf_base",
+          "offset": 56,
+          "width": 8
+        },
+        {
+          "name": "_IO_buf_end",
+          "offset": 64,
+          "width": 8
+        },
+        {
+          "name": "_IO_save_base",
+          "offset": 72,
+          "width": 8
+        },
+        {
+          "name": "_IO_backup_base",
+          "offset": 80,
+          "width": 8
+        },
+        {
+          "name": "_IO_save_end",
+          "offset": 88,
+          "width": 8
+        },
+        {
+          "name": "_markers",
+          "offset": 96,
+          "width": 8
+        },
+        {
+          "name": "_chain",
+          "offset": 104,
+          "width": 8
+        },
+        {
+          "name": "_fileno",
+          "offset": 112,
+          "width": 4
+        },
+        {
+          "name": "_flags2",
+          "offset": 116,
+          "width": 4
+        },
+        {
+          "name": "_old_offset",
+          "offset": 120,
+          "width": 8
+        },
+        {
+          "name": "_cur_column",
+          "offset": 128,
+          "width": 2
+        },
+        {
+          "name": "_vtable_offset",
+          "offset": 130,
+          "width": 1
+        },
+        {
+          "name": "_shortbuf",
+          "offset": 131,
+          "width": 1
+        },
+        {
+          "name": "_lock",
+          "offset": 136,
+          "width": 8
+        },
+        {
+          "name": "_offset",
+          "offset": 144,
+          "width": 8
+        },
+        {
+          "name": "_codecvt",
+          "offset": 152,
+          "width": 8
+        },
+        {
+          "name": "_wide_data",
+          "offset": 160,
+          "width": 8
+        },
+        {
+          "name": "_freeres_list",
+          "offset": 168,
+          "width": 8
+        },
+        {
+          "name": "_freeres_buf",
+          "offset": 176,
+          "width": 8
+        },
+        {
+          "name": "__pad5",
+          "offset": 184,
+          "width": 8
+        },
+        {
+          "name": "_mode",
+          "offset": 192,
+          "width": 4
+        },
+        {
+          "name": "vtable",
+          "offset": 216,
+          "width": 8
+        }
+      ],
+      "wide_fields": [
+        {
+          "name": "wide._IO_read_ptr",
+          "offset": 0,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_read_end",
+          "offset": 8,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_read_base",
+          "offset": 16,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_write_base",
+          "offset": 24,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_write_ptr",
+          "offset": 32,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_write_end",
+          "offset": 40,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_buf_base",
+          "offset": 48,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_buf_end",
+          "offset": 56,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_save_base",
+          "offset": 64,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_backup_base",
+          "offset": 72,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_save_end",
+          "offset": 80,
+          "width": 8
+        },
+        {
+          "name": "wide._wide_vtable",
+          "offset": 224,
+          "width": 8
+        }
+      ]
+    },
+    "routes": [
+      "stdout_leak",
+      "House_of_Apple2"
+    ],
+    "requirements": [
+      "libc 基址",
+      "可控 FILE/stdio 字段写入原语",
+      "运行时验证"
+    ],
+    "confidence": "version_layout_only"
+  },
+  "pwn_profile": {
+    "routes": [],
+    "syscalls": [],
+    "ret_gadgets": [],
+    "win_functions": [],
+    "leak_sites": [],
+    "shell_strings": {},
+    "input_imports": [],
+    "recommendations": [
+      "优先复核 critical/high 项，再进行运行时偏移和可控性验证",
+      "CANARY 已开启：栈路线需要先寻找泄漏或改走堆/格式化字符串原语",
+      "NX 已开启：优先考虑 ROP、ret2libc 或 syscall/ORW",
+      "PIE 已开启：地址依赖路线需要先获取代码基址",
+      "暂未形成稳定利用路线，先补充输入可控性或运行时崩溃证据"
+    ]
+  },
+  "coverage": {
+    "functions": 27,
+    "call_sites": 47,
+    "dataflow_points": 6,
+    "rules": 36,
+    "global_objects": 8
+  },
+  "limitations": [
+    "静态规则检查，不证明漏洞可利用；保护缺失和格式化调用单独列为复核项。",
+    "无符号、间接调用、优化后的参数传递和动态加载可能导致漏报；未发现风险不代表没有漏洞。",
+    "本扫描不覆盖堆对象生命周期、线程竞争及跨函数的数据流。",
+    "静态分析不会执行目标；间接调用、自修改代码和深层跨函数数据流可能漏报。",
+    "生命周期分析只报告同一函数、同一可追踪槽位的调用型证据。",
+    "unknown 表示当前证据不足，不表示对应调用安全。",
+    "可写段（.bss/.data）中的地址只是地址固定，内容仍可被运行时改写，这类槽位以 mutable_* 单独列出，需人工确认写入路径。"
+  ],
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  }
+}

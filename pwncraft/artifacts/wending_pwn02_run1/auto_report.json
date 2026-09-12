@@ -1,0 +1,1569 @@
+{
+  "binary": "F:\\pwn宝\\pwncraft\\artifacts\\wending_pwn02_run1\\safenote",
+  "sha256": "8b1ab303924c1413d9e6a9674b37dc941fe50c9f44db32530824cb887bffb840",
+  "findings": [
+    {
+      "id": "format:printf",
+      "severity": "info",
+      "confidence": "review",
+      "category": "format_review",
+      "title": "printf：格式字符串待复核",
+      "detail": "检测到格式化输出调用；尚未证明格式字符串受外部输入控制，不能据此认定格式化字符串漏洞。",
+      "evidence": [
+        ".text @ 0x172c",
+        ".text @ 0x179f",
+        ".text @ 0x183d",
+        ".text @ 0x18bd",
+        ".text @ 0x194f",
+        ".text @ 0x1980"
+      ],
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x172c",
+          "instruction": "call 1170 <printf@plt>"
+        },
+        {
+          "function": ".text",
+          "address": "0x179f",
+          "instruction": "call 1170 <printf@plt>"
+        },
+        {
+          "function": ".text",
+          "address": "0x183d",
+          "instruction": "call 1170 <printf@plt>"
+        },
+        {
+          "function": ".text",
+          "address": "0x18bd",
+          "instruction": "call 1170 <printf@plt>"
+        },
+        {
+          "function": ".text",
+          "address": "0x194f",
+          "instruction": "call 1170 <printf@plt>"
+        },
+        {
+          "function": ".text",
+          "address": "0x1980",
+          "instruction": "call 1170 <printf@plt>"
+        }
+      ],
+      "location_count": 6,
+      "request": null,
+      "remediation": "确认格式参数来自固定字符串；输出外部文本时使用固定的 %s 格式。",
+      "source": "surface",
+      "origin_id": "format:printf"
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x1980",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"content: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:8",
+      "title": "printf 使用固定格式串：\"content: \"",
+      "detail": "printf 使用固定格式串：\"content: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:8",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x1980"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x183d",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"enc?: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:5",
+      "title": "printf 使用固定格式串：\"enc?: \"",
+      "detail": "printf 使用固定格式串：\"enc?: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:5",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x183d"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x172c",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"idx: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:3",
+      "title": "printf 使用固定格式串：\"idx: \"",
+      "detail": "printf 使用固定格式串：\"idx: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:3",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x172c"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x18bd",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"idx: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:6",
+      "title": "printf 使用固定格式串：\"idx: \"",
+      "detail": "printf 使用固定格式串：\"idx: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:6",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x18bd"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x179f",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"size: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:4",
+      "title": "printf 使用固定格式串：\"size: \"",
+      "detail": "printf 使用固定格式串：\"size: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:4",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x179f"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x194f",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"size: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:7",
+      "title": "printf 使用固定格式串：\"size: \"",
+      "detail": "printf 使用固定格式串：\"size: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:7",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x194f"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x1404",
+      "callee": "read",
+      "verdict": "within_bound",
+      "reason": "长度 0x1 ≤ 栈缓冲 0x9",
+      "bound": 9,
+      "evidence": [
+        "0x13f2",
+        "栈槽 rbp-0x11 @ 0x13ee"
+      ],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": 1,
+      "buffer": {
+        "kind": "stack",
+        "offset": 17
+      },
+      "id": "dataflow:0",
+      "title": "长度 0x1 ≤ 栈缓冲 0x9",
+      "detail": "长度 0x1 ≤ 栈缓冲 0x9",
+      "source": "dataflow",
+      "origin_id": "dataflow:0",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x1404"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x1491",
+      "callee": "read",
+      "verdict": "within_bound",
+      "reason": "长度 0x1 ≤ 栈缓冲 0x9",
+      "bound": 9,
+      "evidence": [
+        "0x147f",
+        "栈槽 rbp-0x11 @ 0x147b"
+      ],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": 1,
+      "buffer": {
+        "kind": "stack",
+        "offset": 17
+      },
+      "id": "dataflow:1",
+      "title": "长度 0x1 ≤ 栈缓冲 0x9",
+      "detail": "长度 0x1 ≤ 栈缓冲 0x9",
+      "source": "dataflow",
+      "origin_id": "dataflow:1",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x1491"
+        }
+      ]
+    },
+    {
+      "function": ".text",
+      "vaddr": "0x1522",
+      "callee": "memset",
+      "verdict": "within_bound",
+      "reason": "长度 0x20 ≤ 栈缓冲 0x28",
+      "bound": 40,
+      "evidence": [
+        "0x1515",
+        "栈槽 rbp-0x30 @ 0x1511"
+      ],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": 32,
+      "buffer": {
+        "kind": "stack",
+        "offset": 48
+      },
+      "id": "dataflow:2",
+      "title": "长度 0x20 ≤ 栈缓冲 0x28",
+      "detail": "长度 0x20 ≤ 栈缓冲 0x28",
+      "source": "dataflow",
+      "origin_id": "dataflow:2",
+      "locations": [
+        {
+          "function": ".text",
+          "address": "0x1522"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0,
+    "info": 10,
+    "total": 10,
+    "risk_score": 0,
+    "confirmed": 0
+  },
+  "categories": {
+    "format_review": 1,
+    "format_string": 6,
+    "reviewed_site": 3
+  },
+  "confidences": {
+    "review": 1,
+    "proven_literal": 6,
+    "proven_safe_site": 3
+  },
+  "semantic_functions": [
+    {
+      "function": ".init",
+      "address": "0x1000",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x100f",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x1014",
+          "statement": "call *%rax"
+        }
+      ],
+      "coverage": {
+        "instructions": 8,
+        "complete": true
+      }
+    },
+    {
+      "function": ".plt",
+      "address": "0x1020",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 59,
+        "complete": true
+      }
+    },
+    {
+      "function": "__cxa_finalize@plt",
+      "address": "0x1110",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "putchar@plt",
+      "address": "0x1120",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "puts@plt",
+      "address": "0x1130",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "write@plt",
+      "address": "0x1140",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "pMalloc@plt",
+      "address": "0x1150",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "__stack_chk_fail@plt",
+      "address": "0x1160",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "printf@plt",
+      "address": "0x1170",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "pInit@plt",
+      "address": "0x1180",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "memset@plt",
+      "address": "0x1190",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "alarm@plt",
+      "address": "0x11a0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "read@plt",
+      "address": "0x11b0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "atoll@plt",
+      "address": "0x11c0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "setvbuf@plt",
+      "address": "0x11d0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "exit@plt",
+      "address": "0x11e0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "pFree@plt",
+      "address": "0x11f0",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": ".text",
+      "address": "0x1200",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE",
+        "LOOP_PRESENT",
+        "NARROWING_CONVERSION",
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "SIGNED_BOUNDS_CHECK",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "pFree",
+        "__cxa_finalize",
+        "pFree",
+        "pFree",
+        "setvbuf",
+        "setvbuf",
+        "setvbuf",
+        "pInit",
+        "alarm",
+        "pFree",
+        "pFree",
+        "read",
+        "exit",
+        "__stack_chk_fail",
+        "pFree",
+        "read",
+        "exit",
+        "pFree",
+        "__stack_chk_fail",
+        "memset",
+        "pFree",
+        "atoll",
+        "__stack_chk_fail",
+        "pFree",
+        "pFree",
+        "printf",
+        "pFree",
+        "printf",
+        "pFree",
+        "pMalloc",
+        "pFree",
+        "printf",
+        "pFree",
+        "pFree",
+        "pFree",
+        "printf",
+        "pFree",
+        "printf",
+        "pFree",
+        "printf",
+        "pFree"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x1228",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x1228",
+          "statement": "call *0x2db2(%rip) # 3fe0 <pFree@plt+0x2df0>"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x123e",
+          "statement": "cmp %rdi,%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x124a",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x124f",
+          "statement": "jmp *%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x128b",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x1290",
+          "statement": "jmp *%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x12a4",
+          "statement": "cmpb $0x0,0x2d9d(%rip) # 4048 <stderr@GLIBC_2.2.5+0x8>"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x12ae",
+          "statement": "cmpq $0x0,0x2d42(%rip) # 3ff8 <pFree@plt+0x2e08>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12c2",
+          "symbol": "__cxa_finalize"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12c7",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x12cc",
+          "statement": "movb $0x1,0x2d75(%rip) # 4048 <stderr@GLIBC_2.2.5+0x8>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x12e4",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x130a",
+          "symbol": "setvbuf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1328",
+          "symbol": "setvbuf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1346",
+          "symbol": "setvbuf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x135f",
+          "symbol": "pInit"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x136e",
+          "symbol": "alarm"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x137b",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x13b6",
+          "statement": "cmpq $0x1f,-0x8(%rbp)"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x13bb",
+          "statement": "jle 137d <pFree@plt+0x18d>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x13ec",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1404",
+          "symbol": "read"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1409",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x140b",
+          "statement": "jg 1417 <pFree@plt+0x227>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1412",
+          "symbol": "exit"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x1422",
+          "statement": "movzbl -0x11(%rbp),%eax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1431",
+          "statement": "cmp -0x30(%rbp),%rax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x1435",
+          "statement": "jl 13ee <pFree@plt+0x1fe>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1447",
+          "symbol": "__stack_chk_fail"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1479",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1491",
+          "symbol": "read"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1496",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x1498",
+          "statement": "jg 14a4 <pFree@plt+0x2b4>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x149f",
+          "symbol": "exit"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x14a4",
+          "statement": "movzbl -0x11(%rbp),%eax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x14a8",
+          "statement": "cmp $0xa,%al"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x14b7",
+          "statement": "movb $0x0,(%rax)"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x14ba",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x14c7",
+          "statement": "movzbl -0x11(%rbp),%eax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x14d6",
+          "statement": "cmp -0x30(%rbp),%rax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x14da",
+          "statement": "jl 147b <pFree@plt+0x28b>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x14ef",
+          "symbol": "__stack_chk_fail"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1522",
+          "symbol": "memset"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1533",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x153f",
+          "symbol": "atoll"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x155b",
+          "symbol": "__stack_chk_fail"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x158e",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x159e",
+          "statement": "movzbl (%rax),%ecx"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x15ac",
+          "statement": "movzbl (%rax),%eax"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x15c9",
+          "statement": "movzbl (%rax),%edx"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x15e6",
+          "statement": "movslq %eax,%rcx"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x15f5",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1614",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x162a",
+          "statement": "cmp -0x20(%rbp),%rax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x162e",
+          "statement": "jl 1593 <pFree@plt+0x3a3>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1664",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x1674",
+          "statement": "movzbl (%rax),%edx"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x1685",
+          "statement": "movzbl (%rax),%eax"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x1699",
+          "statement": "movzbl (%rax),%eax"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x16c2",
+          "statement": "movslq %eax,%rcx"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x16d1",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x16f0",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1706",
+          "statement": "cmp -0x20(%rbp),%rax"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x170a",
+          "statement": "jl 1669 <pFree@plt+0x479>"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x172c",
+          "symbol": "printf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1736",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x173f",
+          "statement": "cmpq $0x0,-0x10(%rbp)"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x1744",
+          "statement": "js 1890 <pFree@plt+0x6a0>"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x174a",
+          "statement": "cmpq $0x1f,-0x10(%rbp)"
+        },
+        {
+          "kind": "SIGNED_BRANCH",
+          "address": "0x174f",
+          "statement": "jg 1890 <pFree@plt+0x6a0>"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x176b",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x178a",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x179f",
+          "symbol": "printf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x17a9",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x17df",
+          "symbol": "pMalloc"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x1810",
+          "statement": "test %rax,%rax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x182f",
+          "symbol": "pFree"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x183d",
+          "symbol": "printf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x1847",
+          "symbol": "pFree"
+        }
+      ],
+      "coverage": {
+        "instructions": 500,
+        "complete": false
+      }
+    },
+    {
+      "function": ".fini",
+      "address": "0x1f48",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 4,
+        "complete": true
+      }
+    }
+  ],
+  "semantic_summary": {
+    "CALL_INDIRECT": 2,
+    "CHECK_SIZE": 2,
+    "LOOP_PRESENT": 1,
+    "NARROWING_CONVERSION": 1,
+    "READ_EXTERNAL_INPUT": 1,
+    "READ_OBJECT": 2,
+    "SIGNED_BOUNDS_CHECK": 1,
+    "WRITE_EXTERNAL_OUTPUT": 1,
+    "WRITE_OBJECT": 2
+  },
+  "strategies": [
+    {
+      "id": "fmt_write",
+      "name": "格式化字符串写入（%n）",
+      "status": "unknown",
+      "requires": [
+        "hypothesis:format_string",
+        "primitive:input"
+      ],
+      "missing": [
+        "格式串是否受输入控制未证明（需探针实验：%p 回显）"
+      ],
+      "evidence": [
+        "format:printf"
+      ],
+      "steps": [
+        "定位格式串偏移",
+        "确定目标地址与写入值",
+        "按 %hn/%n 分解写入"
+      ],
+      "renderer": "fmt"
+    },
+    {
+      "id": "ret2libc",
+      "name": "ret2libc（GOT 泄漏 → libc 基址 → system）",
+      "status": "blocked",
+      "requires": [
+        "primitive:leak",
+        "primitive:control_flow_hijack",
+        "primitive:libc_offsets"
+      ],
+      "missing": [
+        "控制流劫持偏移未证明（需要崩溃/调试证据）"
+      ],
+      "evidence": [
+        "puts@plt=0x1130",
+        "printf@plt=0x1170",
+        "write@plt=0x1140",
+        "printf@got=0x3f90",
+        "puts@got=0x3f70",
+        "read@got=0x3fb0",
+        "write@got=0x3f78"
+      ],
+      "steps": [
+        "泄漏 puts@got → libc base",
+        "再次触发溢出",
+        "ret2libc：pop rdi + binsh@libc + system@libc"
+      ],
+      "renderer": "ret2libc"
+    }
+  ],
+  "exploit_chains": [
+    {
+      "id": "integer-boundary-bypass",
+      "title": "整数截断 → 有符号边界判断 → 越界访问",
+      "stages": [
+        "用户整数",
+        "宽度/符号转换",
+        "有符号比较",
+        "数组或长度访问"
+      ],
+      "evidence": [
+        "semantic:NARROWING_CONVERSION",
+        "semantic:SIGNED_BOUNDS_CHECK"
+      ],
+      "missing": [
+        "索引/长度到内存访问的跨块数据流"
+      ],
+      "confidence": "conditional",
+      "status": "blocked"
+    },
+    {
+      "id": "custom-input-loop",
+      "title": "自定义输入循环 → 内存写入 → 边界待确认",
+      "stages": [
+        "外部输入",
+        "循环处理",
+        "逐字节/逐槽写入",
+        "边界条件复核"
+      ],
+      "evidence": [
+        "semantic:LOOP_PRESENT",
+        "semantic:WRITE_OBJECT"
+      ],
+      "missing": [
+        "输入终止条件与目标对象容量"
+      ],
+      "confidence": "review",
+      "status": "blocked"
+    },
+    {
+      "id": "input-to-output-leak",
+      "title": "外部输入/状态 → 输出泄漏面",
+      "stages": [
+        "读取输入或状态",
+        "指针/内容输出",
+        "泄漏可控性验证"
+      ],
+      "evidence": [
+        "semantic:READ_EXTERNAL_INPUT",
+        "semantic:WRITE_EXTERNAL_OUTPUT"
+      ],
+      "missing": [
+        "输出参数是否包含地址或敏感内容"
+      ],
+      "confidence": "review",
+      "status": "blocked"
+    }
+  ],
+  "gadgets": {
+    "pop_r12": "0x1f2c",
+    "pop_r13": "0x1f2c",
+    "pop_r14": "0x1f2c",
+    "pop_r15": "0x1f2c",
+    "pop_rbp": "0x1f2b",
+    "rdi": "0x1f33",
+    "pop_rdi": "0x1f33",
+    "rsi": "0x1f31",
+    "pop_rsi": "0x1f31",
+    "pop_rsp": "0x1f2d",
+    "ret": "0x101a"
+  },
+  "gadget_catalog": [
+    {
+      "address": "0x1f2c",
+      "text": "pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "r12",
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 40,
+      "highlight": false
+    },
+    {
+      "address": "0x1f2e",
+      "text": "pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 32,
+      "highlight": false
+    },
+    {
+      "address": "0x1f30",
+      "text": "pop r14 ; pop r15 ; ret",
+      "controls": [
+        "r14",
+        "r15"
+      ],
+      "score": 4,
+      "stack_delta": 24,
+      "highlight": true
+    },
+    {
+      "address": "0x1f32",
+      "text": "pop r15 ; ret",
+      "controls": [
+        "r15"
+      ],
+      "score": 5,
+      "stack_delta": 16,
+      "highlight": true
+    },
+    {
+      "address": "0x1f2b",
+      "text": "pop rbp ; pop r12 ; pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "rbp",
+        "r12",
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 48,
+      "highlight": false
+    },
+    {
+      "address": "0x1f2f",
+      "text": "pop rbp ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "rbp",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 32,
+      "highlight": false
+    },
+    {
+      "address": "0x12d3",
+      "text": "pop rbp ; ret",
+      "controls": [
+        "rbp"
+      ],
+      "score": 5,
+      "stack_delta": 16,
+      "highlight": true
+    },
+    {
+      "address": "0x1f33",
+      "text": "pop rdi ; ret",
+      "controls": [
+        "rdi"
+      ],
+      "score": 5,
+      "stack_delta": 16,
+      "highlight": true
+    },
+    {
+      "address": "0x1f31",
+      "text": "pop rsi ; pop r15 ; ret",
+      "controls": [
+        "rsi",
+        "r15"
+      ],
+      "score": 4,
+      "stack_delta": 24,
+      "highlight": true
+    },
+    {
+      "address": "0x1f2d",
+      "text": "pop rsp ; pop r13 ; pop r14 ; pop r15 ; ret",
+      "controls": [
+        "rsp",
+        "r13",
+        "r14",
+        "r15"
+      ],
+      "score": 2,
+      "stack_delta": 40,
+      "highlight": false
+    },
+    {
+      "address": "0x101a",
+      "text": "ret",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 8,
+      "highlight": true
+    },
+    {
+      "address": "0x15b2",
+      "text": "ret 0x8b48",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 8,
+      "highlight": true
+    },
+    {
+      "address": "0x1387",
+      "text": "ret 0x8d48",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 8,
+      "highlight": true
+    },
+    {
+      "address": "0x1421",
+      "text": "ret 0xb60f",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 8,
+      "highlight": true
+    },
+    {
+      "address": "0x1689",
+      "text": "ret 0xd089",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 8,
+      "highlight": true
+    }
+  ],
+  "gadget_error": "",
+  "fsop_profile": {
+    "status": "candidate",
+    "glibc": "2.31",
+    "layout": {
+      "file_size": 216,
+      "plus_size": 224,
+      "wide_size": 232,
+      "fields": [
+        {
+          "name": "_flags",
+          "offset": 0,
+          "width": 4
+        },
+        {
+          "name": "_IO_read_ptr",
+          "offset": 8,
+          "width": 8
+        },
+        {
+          "name": "_IO_read_end",
+          "offset": 16,
+          "width": 8
+        },
+        {
+          "name": "_IO_read_base",
+          "offset": 24,
+          "width": 8
+        },
+        {
+          "name": "_IO_write_base",
+          "offset": 32,
+          "width": 8
+        },
+        {
+          "name": "_IO_write_ptr",
+          "offset": 40,
+          "width": 8
+        },
+        {
+          "name": "_IO_write_end",
+          "offset": 48,
+          "width": 8
+        },
+        {
+          "name": "_IO_buf_base",
+          "offset": 56,
+          "width": 8
+        },
+        {
+          "name": "_IO_buf_end",
+          "offset": 64,
+          "width": 8
+        },
+        {
+          "name": "_IO_save_base",
+          "offset": 72,
+          "width": 8
+        },
+        {
+          "name": "_IO_backup_base",
+          "offset": 80,
+          "width": 8
+        },
+        {
+          "name": "_IO_save_end",
+          "offset": 88,
+          "width": 8
+        },
+        {
+          "name": "_markers",
+          "offset": 96,
+          "width": 8
+        },
+        {
+          "name": "_chain",
+          "offset": 104,
+          "width": 8
+        },
+        {
+          "name": "_fileno",
+          "offset": 112,
+          "width": 4
+        },
+        {
+          "name": "_flags2",
+          "offset": 116,
+          "width": 4
+        },
+        {
+          "name": "_old_offset",
+          "offset": 120,
+          "width": 8
+        },
+        {
+          "name": "_cur_column",
+          "offset": 128,
+          "width": 2
+        },
+        {
+          "name": "_vtable_offset",
+          "offset": 130,
+          "width": 1
+        },
+        {
+          "name": "_shortbuf",
+          "offset": 131,
+          "width": 1
+        },
+        {
+          "name": "_lock",
+          "offset": 136,
+          "width": 8
+        },
+        {
+          "name": "_offset",
+          "offset": 144,
+          "width": 8
+        },
+        {
+          "name": "_codecvt",
+          "offset": 152,
+          "width": 8
+        },
+        {
+          "name": "_wide_data",
+          "offset": 160,
+          "width": 8
+        },
+        {
+          "name": "_freeres_list",
+          "offset": 168,
+          "width": 8
+        },
+        {
+          "name": "_freeres_buf",
+          "offset": 176,
+          "width": 8
+        },
+        {
+          "name": "__pad5",
+          "offset": 184,
+          "width": 8
+        },
+        {
+          "name": "_mode",
+          "offset": 192,
+          "width": 4
+        },
+        {
+          "name": "vtable",
+          "offset": 216,
+          "width": 8
+        }
+      ],
+      "wide_fields": [
+        {
+          "name": "wide._IO_read_ptr",
+          "offset": 0,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_read_end",
+          "offset": 8,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_read_base",
+          "offset": 16,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_write_base",
+          "offset": 24,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_write_ptr",
+          "offset": 32,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_write_end",
+          "offset": 40,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_buf_base",
+          "offset": 48,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_buf_end",
+          "offset": 56,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_save_base",
+          "offset": 64,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_backup_base",
+          "offset": 72,
+          "width": 8
+        },
+        {
+          "name": "wide._IO_save_end",
+          "offset": 80,
+          "width": 8
+        },
+        {
+          "name": "wide._wide_vtable",
+          "offset": 224,
+          "width": 8
+        }
+      ]
+    },
+    "routes": [
+      "stdout_leak",
+      "House_of_Apple2"
+    ],
+    "requirements": [
+      "libc 基址",
+      "可控 FILE/stdio 字段写入原语",
+      "运行时验证"
+    ],
+    "confidence": "version_layout_only"
+  },
+  "pwn_profile": {
+    "routes": [
+      {
+        "id": "format-string",
+        "reason": "格式化参数存在可控性或可写候选",
+        "confidence": "conditional"
+      }
+    ],
+    "syscalls": [],
+    "ret_gadgets": [],
+    "win_functions": [],
+    "leak_sites": [],
+    "shell_strings": {},
+    "input_imports": [],
+    "recommendations": [
+      "CANARY 已开启：栈路线需要先寻找泄漏或改走堆/格式化字符串原语",
+      "NX 已开启：优先考虑 ROP、ret2libc 或 syscall/ORW",
+      "PIE 已开启：地址依赖路线需要先获取代码基址"
+    ]
+  },
+  "coverage": {
+    "functions": 19,
+    "call_sites": 22,
+    "dataflow_points": 9,
+    "rules": 36,
+    "global_objects": 5
+  },
+  "limitations": [
+    "静态规则检查，不证明漏洞可利用；保护缺失和格式化调用单独列为复核项。",
+    "无符号、间接调用、优化后的参数传递和动态加载可能导致漏报；未发现风险不代表没有漏洞。",
+    "本扫描不覆盖堆对象生命周期、线程竞争及跨函数的数据流。",
+    "静态分析不会执行目标；间接调用、自修改代码和深层跨函数数据流可能漏报。",
+    "生命周期分析只报告同一函数、同一可追踪槽位的调用型证据。",
+    "unknown 表示当前证据不足，不表示对应调用安全。",
+    "可写段（.bss/.data）中的地址只是地址固定，内容仍可被运行时改写，这类槽位以 mutable_* 单独列出，需人工确认写入路径。"
+  ],
+  "security": {
+    "PIE": "ON",
+    "NX": "ON",
+    "CANARY": "ON",
+    "RELRO": "FULL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "ON"
+  }
+}

@@ -188,6 +188,8 @@ app.whenReady().then(async () => {
     assert.equal(lastCall('patch_preview').result.request.vaddr, '0x1004');
     await click('#patch-preview-cancel');
     await click('[data-key="patch"]');
+    // .vp-fix 的修复建议会把 patch 页停在「一键通防」tab；手动 Patch 面板需显式切回。
+    await click('#patch-tab-manual');
     await until('document.querySelectorAll(".analysis-function").length === 3');
     await until('document.querySelectorAll(".patch-insn").length === 6');
     assert.match(await js('document.querySelector("#page-patch .analysis-path").innerText'), /awdp-pwn/);

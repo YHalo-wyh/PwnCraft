@@ -122,7 +122,13 @@
       const result = await requestFor(entry, 'patch_apply', { preview_id: cache.preview.preview_id });
       cache.log = result.log || cache.log;
       const backupName = result.backup ? String(result.backup).split(/[\\/]/).pop() : '';
-      cache.message = `已应用 ${result.applied.length} 条补丁${backupName ? `（备份 ${backupName}）` : ''}`;
+      let message = `已应用 ${result.applied.length} 条补丁${backupName ? `（备份 ${backupName}）` : ''}`;
+      if (result.patched_path) {
+        message += ` · 补丁后文件 → ${result.patched_path}（原题目目录，提交即用）`;
+      } else if (result.patched_error) {
+        message += ` · 未生成补丁后文件（${result.patched_error}）`;
+      }
+      cache.message = message;
       cache.preview = null; cache.previewRequest = null;
       await refreshAfterMutation(entry);
     } catch (error) {

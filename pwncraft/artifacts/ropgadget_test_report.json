@@ -1,0 +1,56 @@
+{
+ "challenge_ret2win": {
+  "gadgets": 72
+ },
+ "challenge_ret2libc": {
+  "gadgets": 73
+ },
+ "challenge_rop": {
+  "gadgets": 59
+ },
+ "challenge_srop": {
+  "gadgets": 84,
+  "rdi": true,
+  "rdx": true,
+  "rsi": true
+ },
+ "challenge_shellcode": {
+  "gadgets": 61
+ },
+ "challenge_ret2dlresolve": {
+  "gadgets": 81,
+  "rdi": true,
+  "rdx": true,
+  "rsi": true
+ },
+ "challenge_static_vuln": {
+  "gadgets": 36990,
+  "rdx": true,
+  "rax": true,
+  "rdi": true,
+  "rsi": true
+ },
+ "challenge_pie": {
+  "gadgets": 71
+ },
+ "challenge_tcache": {
+  "gadgets": 115
+ },
+ "challenge_x86_vuln": {
+  "gadgets": 133
+ },
+ "SomeBox2.0": {
+  "gadgets": 236,
+  "rsi": true
+ },
+ "CreditMarket": {
+  "gadgets": 296,
+  "rsi": true
+ },
+ "HeroEditor": {
+  "gadgets": 317
+ },
+ "SomePloys": {
+  "gadgets": 333
+ }
+}

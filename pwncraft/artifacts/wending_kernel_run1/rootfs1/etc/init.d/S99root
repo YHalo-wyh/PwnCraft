@@ -1,0 +1,14 @@
+#!/bin/sh
+
+adduser -h /home/ctf -D ctf
+
+chmod 700 /flag
+
+insmod /memory.ko
+
+poweroff -d 60 -f &
+
+setsid cttyhack setuidgid 1000 /main
+#setsid cttyhack su root
+
+poweroff -d 0 -f

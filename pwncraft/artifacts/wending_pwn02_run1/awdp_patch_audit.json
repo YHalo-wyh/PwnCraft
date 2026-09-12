@@ -1,0 +1,35 @@
+{
+  "summary": {"critical": 0, "high": 0, "medium": 1, "info": 0, "total": 1, "risk_score": 8},
+  "findings": [{
+    "id": "logic:encryption-flag-mask",
+    "severity": "medium",
+    "title": "加密标志位掩码不一致",
+    "detail": "create/read 使用 size 的 bit31 (0x80000000)，write 分支却检查 bit27 (0x08000000)，导致加密对象写入与读取路径语义不一致。",
+    "evidence": ["safenote: create 0x1872 OR 0x80000000", "safenote: write 0x19c0 AND 0x08000000", "safenote: read 0x1b00 AND 0x80000000"],
+    "action": "将 write 的掩码统一为 0x80000000，并为加密/明文对象分别增加回归测试。",
+    "confidence": "proven_static_plus_runtime",
+    "category": "logic",
+    "remediation": "统一标志位常量；写入前后校验对象状态，避免同一对象在不同 API 中进入不同编码路径。"
+  }, {
+    "id": "allocator:signed-size",
+    "severity": "medium",
+    "title": "自定义 allocator 尺寸符号扩展不一致（DoS 候选）",
+    "detail": "pMalloc 先按无符号上限接受 0x80000000..0xffffffdf，后续 cdqe 参与有符号运算。",
+    "evidence": ["libsafelib.so!pMalloc size upper-bound", "runtime size=2147483648 -> exit=0"],
+    "confidence": "runtime_candidate",
+    "category": "integer",
+    "remediation": "入口拒绝高位标志与尺寸混用，使用 size_t 全程检查加法/对齐溢出。"
+  }, {
+    "id": "logic:salt-zero-divide",
+    "severity": "medium",
+    "title": "加密 salt=0 除零候选",
+    "detail": "加/解密变换对用户 salt 长度执行 idiv，静态未见零值检查。",
+    "evidence": ["libsafelib.so transform 0x1562/0x1638", "idiv [rbp-0x30]"],
+    "confidence": "static_candidate",
+    "category": "denial_of_service",
+    "remediation": "拒绝 salt 长度 0，并对所有除法分母做显式范围校验。"
+  }],
+  "binary": "F:\\pwn宝\\pwncraft\\artifacts\\wending_pwn02_run1\\safenote",
+  "limitations": ["自定义 allocator 的 free-list 完整性尚未通过调试器逐字段验证。", "未发现可达 double-free/UAF 或代码执行；索引 0..31 有显式边界检查。"],
+  "security": {"PIE": "ON", "NX": "ON", "CANARY": "ON", "RELRO": "FULL", "FORTIFY": "OFF", "STRIPPED": "ON"}
+}

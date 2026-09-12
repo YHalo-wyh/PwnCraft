@@ -1,0 +1,1444 @@
+{
+  "binary": "F:\\pwn宝\\pwncraft\\artifacts\\wending_pwnq2_run2\\short",
+  "sha256": "e16abb4aef7e902ed6ee06e96535a07077419281c1715a73c39177ef57ae701d",
+  "findings": [
+    {
+      "function": "vuln",
+      "vaddr": "0x8048668",
+      "callee": "read",
+      "verdict": "overflow_confirmed",
+      "reason": "长度 0x58 覆盖返回地址（rbp-0x50，返回地址距 buf 0x54）",
+      "bound": 84,
+      "evidence": [
+        "0x8048660",
+        "栈槽 ebp-0x50 @ 0x8048662"
+      ],
+      "severity": "critical",
+      "confidence": "proven",
+      "category": "memory_corruption",
+      "remediation": "按证据中的真实对象容量收紧长度，或在完整指令边界增加显式边界检查。",
+      "length": 88,
+      "buffer": {
+        "kind": "stack",
+        "offset": 80
+      },
+      "request": {
+        "kind": "readlen",
+        "function": "vuln",
+        "callee": "read",
+        "size": "0x54",
+        "vaddr": "0x8048660"
+      },
+      "id": "dataflow:0",
+      "title": "长度 0x58 覆盖返回地址（rbp-0x50，返回地址距 buf 0x54）",
+      "detail": "长度 0x58 覆盖返回地址（rbp-0x50，返回地址距 buf 0x54）",
+      "source": "dataflow",
+      "origin_id": "dataflow:0",
+      "locations": [
+        {
+          "function": "vuln",
+          "address": "0x8048668"
+        }
+      ]
+    },
+    {
+      "id": "import:system",
+      "severity": "critical",
+      "title": "system@plt：命令执行入口",
+      "detail": "发现 1 处直接调用。导入本身不等于漏洞，应结合参数可控性与正常业务复核。",
+      "evidence": [
+        "gift @ 0x80485ff"
+      ],
+      "request": null,
+      "action": "",
+      "locations": [
+        {
+          "function": "gift",
+          "address": "0x80485ff",
+          "instruction": "call 80484a0 <system@plt>"
+        }
+      ],
+      "location_count": 1,
+      "confidence": "review",
+      "category": "command_execution",
+      "remediation": "复核命令字符串的来源与正常业务需求；优先限制输入或移除不需要的调用。",
+      "source": "surface",
+      "origin_id": "import:system"
+    },
+    {
+      "function": "gift",
+      "vaddr": "0x80485ff",
+      "callee": "system",
+      "verdict": "command_execution_candidate",
+      "category": "command_execution",
+      "severity": "high",
+      "confidence": "dangerous_api",
+      "reason": "system 可启动进程，参数来源未能证明为固定值",
+      "evidence": [
+        "cdecl 参数来源 0x8(%ebp)"
+      ],
+      "remediation": "移除不必要的命令执行；必要时使用固定程序和参数白名单。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:1",
+      "title": "system 可启动进程，参数来源未能证明为固定值",
+      "detail": "system 可启动进程，参数来源未能证明为固定值",
+      "source": "dataflow",
+      "origin_id": "dataflow:1",
+      "locations": [
+        {
+          "function": "gift",
+          "address": "0x80485ff"
+        }
+      ]
+    },
+    {
+      "id": "mitigation:seccomp",
+      "severity": "high",
+      "title": "存在命令或进程执行面，可增加 seccomp 兜底",
+      "detail": "黑名单预设会拦截 execve/execveat；仍需防范 open/read/write 型读文件攻击。",
+      "evidence": [
+        "命令执行相关 PLT 调用已在上方列出"
+      ],
+      "request": {
+        "kind": "seccomp",
+        "preset": "blacklist_min"
+      },
+      "action": "预览 seccomp",
+      "confidence": "hardening",
+      "category": "hardening",
+      "locations": [],
+      "source": "surface",
+      "origin_id": "mitigation:seccomp"
+    },
+    {
+      "id": "format:printf",
+      "severity": "info",
+      "confidence": "review",
+      "category": "format_review",
+      "title": "printf：格式字符串待复核",
+      "detail": "检测到格式化输出调用；尚未证明格式字符串受外部输入控制，不能据此认定格式化字符串漏洞。",
+      "evidence": [
+        "vuln @ 0x8048643",
+        "login @ 0x8048695",
+        "login @ 0x80486dc"
+      ],
+      "locations": [
+        {
+          "function": "vuln",
+          "address": "0x8048643",
+          "instruction": "call 8048460 <printf@plt>"
+        },
+        {
+          "function": "login",
+          "address": "0x8048695",
+          "instruction": "call 8048460 <printf@plt>"
+        },
+        {
+          "function": "login",
+          "address": "0x80486dc",
+          "instruction": "call 8048460 <printf@plt>"
+        }
+      ],
+      "location_count": 3,
+      "request": null,
+      "remediation": "确认格式参数来自固定字符串；输出外部文本时使用固定的 %s 格式。",
+      "source": "surface",
+      "origin_id": "format:printf"
+    },
+    {
+      "id": "hardening:CANARY",
+      "severity": "info",
+      "confidence": "hardening",
+      "category": "hardening",
+      "title": "CANARY = OFF：加固建议",
+      "detail": "未检测到栈保护导入，不能据此认定栈溢出；有源码时启用栈保护并确认覆盖范围。",
+      "evidence": [
+        "本地 ELF 解析：CANARY=OFF"
+      ],
+      "locations": [],
+      "request": null,
+      "remediation": "未检测到栈保护导入，不能据此认定栈溢出；有源码时启用栈保护并确认覆盖范围。",
+      "source": "surface",
+      "origin_id": "hardening:CANARY"
+    },
+    {
+      "id": "hardening:PIE",
+      "severity": "info",
+      "confidence": "hardening",
+      "category": "hardening",
+      "title": "PIE = OFF：加固建议",
+      "detail": "位置无关可执行文件未开启，有源码时启用 PIE。",
+      "evidence": [
+        "本地 ELF 解析：PIE=OFF"
+      ],
+      "locations": [],
+      "request": null,
+      "remediation": "位置无关可执行文件未开启，有源码时启用 PIE。",
+      "source": "surface",
+      "origin_id": "hardening:PIE"
+    },
+    {
+      "id": "hardening:RELRO",
+      "severity": "info",
+      "confidence": "hardening",
+      "category": "hardening",
+      "title": "RELRO = PARTIAL：加固建议",
+      "detail": "重定位表保护不完整，有源码时启用 Full RELRO。",
+      "evidence": [
+        "本地 ELF 解析：RELRO=PARTIAL"
+      ],
+      "locations": [],
+      "request": null,
+      "remediation": "重定位表保护不完整，有源码时启用 Full RELRO。",
+      "source": "surface",
+      "origin_id": "hardening:RELRO"
+    },
+    {
+      "function": "login",
+      "vaddr": "0x80486dc",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"Enter your password: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:5",
+      "title": "printf 使用固定格式串：\"Enter your password: \"",
+      "detail": "printf 使用固定格式串：\"Enter your password: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:5",
+      "locations": [
+        {
+          "function": "login",
+          "address": "0x80486dc"
+        }
+      ]
+    },
+    {
+      "function": "login",
+      "vaddr": "0x8048695",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"Enter your username: \"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:3",
+      "title": "printf 使用固定格式串：\"Enter your username: \"",
+      "detail": "printf 使用固定格式串：\"Enter your username: \"",
+      "source": "dataflow",
+      "origin_id": "dataflow:3",
+      "locations": [
+        {
+          "function": "login",
+          "address": "0x8048695"
+        }
+      ]
+    },
+    {
+      "function": "vuln",
+      "vaddr": "0x8048643",
+      "callee": "printf",
+      "verdict": "within_bound",
+      "category": "format_string",
+      "severity": "info",
+      "confidence": "proven_literal",
+      "reason": "printf 使用固定格式串：\"You will input this: %p\"",
+      "evidence": [],
+      "remediation": "把格式参数改为固定字符串；输出外部数据时使用固定的 %s。",
+      "length": null,
+      "buffer": null,
+      "id": "dataflow:2",
+      "title": "printf 使用固定格式串：\"You will input this: %p\"",
+      "detail": "printf 使用固定格式串：\"You will input this: %p\"",
+      "source": "dataflow",
+      "origin_id": "dataflow:2",
+      "locations": [
+        {
+          "function": "vuln",
+          "address": "0x8048643"
+        }
+      ]
+    },
+    {
+      "function": "login",
+      "vaddr": "0x80486af",
+      "callee": "fgets",
+      "verdict": "within_bound",
+      "reason": "长度 0x40 ≤ 栈缓冲 0x48",
+      "bound": 72,
+      "evidence": [
+        "0x80486a9",
+        "栈槽 ebp-0x48 @ 0x80486ab"
+      ],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": 64,
+      "buffer": {
+        "kind": "stack",
+        "offset": 72
+      },
+      "id": "dataflow:4",
+      "title": "长度 0x40 ≤ 栈缓冲 0x48",
+      "detail": "长度 0x40 ≤ 栈缓冲 0x48",
+      "source": "dataflow",
+      "origin_id": "dataflow:4",
+      "locations": [
+        {
+          "function": "login",
+          "address": "0x80486af"
+        }
+      ]
+    },
+    {
+      "function": "login",
+      "vaddr": "0x80486f9",
+      "callee": "fgets",
+      "verdict": "within_bound",
+      "reason": "长度 0x40 ≤ 栈缓冲 0x88",
+      "bound": 136,
+      "evidence": [
+        "0x80486f0",
+        "栈槽 ebp-0x88 @ 0x80486f2"
+      ],
+      "severity": "info",
+      "confidence": "proven_safe_site",
+      "category": "reviewed_site",
+      "remediation": "结合调用路径和运行时输入继续复核。",
+      "length": 64,
+      "buffer": {
+        "kind": "stack",
+        "offset": 136
+      },
+      "id": "dataflow:6",
+      "title": "长度 0x40 ≤ 栈缓冲 0x88",
+      "detail": "长度 0x40 ≤ 栈缓冲 0x88",
+      "source": "dataflow",
+      "origin_id": "dataflow:6",
+      "locations": [
+        {
+          "function": "login",
+          "address": "0x80486f9"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "critical": 2,
+    "high": 2,
+    "medium": 0,
+    "low": 0,
+    "info": 9,
+    "total": 13,
+    "risk_score": 100,
+    "confirmed": 1
+  },
+  "categories": {
+    "memory_corruption": 1,
+    "command_execution": 2,
+    "hardening": 4,
+    "format_review": 1,
+    "format_string": 3,
+    "reviewed_site": 2
+  },
+  "confidences": {
+    "proven": 1,
+    "review": 2,
+    "dangerous_api": 1,
+    "hardening": 4,
+    "proven_literal": 3,
+    "proven_safe_site": 2
+  },
+  "semantic_functions": [
+    {
+      "function": "_init",
+      "address": "0x80483f0",
+      "labels": [
+        "CHECK_SIZE",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "__x86.get_pc_thunk.bx",
+        "__gmon_start__"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x80483f4",
+          "symbol": "__x86.get_pc_thunk.bx"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x8048405",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048409",
+          "symbol": "__gmon_start__"
+        }
+      ],
+      "coverage": {
+        "instructions": 11,
+        "complete": true
+      }
+    },
+    {
+      "function": ".plt",
+      "address": "0x8048420",
+      "labels": [
+        "CALL_INDIRECT"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048426",
+          "statement": "jmp *0x804a008"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "setbuf@plt",
+      "address": "0x8048430",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048430",
+          "statement": "jmp *0x804a00c"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804843b",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "strcmp@plt",
+      "address": "0x8048440",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048440",
+          "statement": "jmp *0x804a010"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804844b",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "read@plt",
+      "address": "0x8048450",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048450",
+          "statement": "jmp *0x804a014"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804845b",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "printf@plt",
+      "address": "0x8048460",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048460",
+          "statement": "jmp *0x804a018"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804846b",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "strcspn@plt",
+      "address": "0x8048470",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048470",
+          "statement": "jmp *0x804a01c"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804847b",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "fgets@plt",
+      "address": "0x8048480",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048480",
+          "statement": "jmp *0x804a020"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804848b",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "puts@plt",
+      "address": "0x8048490",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048490",
+          "statement": "jmp *0x804a024"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804849b",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "system@plt",
+      "address": "0x80484a0",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x80484a0",
+          "statement": "jmp *0x804a028"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80484ab",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "__libc_start_main@plt",
+      "address": "0x80484b0",
+      "labels": [
+        "CALL_INDIRECT",
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        ".plt"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x80484b0",
+          "statement": "jmp *0x804a02c"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80484bb",
+          "symbol": ".plt"
+        }
+      ],
+      "coverage": {
+        "instructions": 3,
+        "complete": true
+      }
+    },
+    {
+      "function": "__gmon_start__@plt",
+      "address": "0x80484c0",
+      "labels": [
+        "CALL_INDIRECT"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x80484c0",
+          "statement": "jmp *0x8049ff4"
+        }
+      ],
+      "coverage": {
+        "instructions": 2,
+        "complete": true
+      }
+    },
+    {
+      "function": "_start",
+      "address": "0x80484d0",
+      "labels": [
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "_start+0x33",
+        "__libc_start_main"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x80484db",
+          "symbol": "_start+0x33"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80484fd",
+          "symbol": "__libc_start_main"
+        }
+      ],
+      "coverage": {
+        "instructions": 26,
+        "complete": true
+      }
+    },
+    {
+      "function": "_dl_relocate_static_pie",
+      "address": "0x8048510",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 8,
+        "complete": true
+      }
+    },
+    {
+      "function": "__x86.get_pc_thunk.bx",
+      "address": "0x8048520",
+      "labels": [
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 8,
+        "complete": true
+      }
+    },
+    {
+      "function": "deregister_tm_clones",
+      "address": "0x8048530",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x8048535",
+          "statement": "cmp $0x804a040,%eax"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x8048541",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048550",
+          "statement": "call *%eax"
+        }
+      ],
+      "coverage": {
+        "instructions": 19,
+        "complete": true
+      }
+    },
+    {
+      "function": "register_tm_clones",
+      "address": "0x8048570",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE"
+      ],
+      "calls": [],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x804858d",
+          "statement": "test %edx,%edx"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x804859d",
+          "statement": "call *%edx"
+        }
+      ],
+      "coverage": {
+        "instructions": 23,
+        "complete": true
+      }
+    },
+    {
+      "function": "__do_global_dtors_aux",
+      "address": "0x80485b0",
+      "labels": [
+        "CHECK_SIZE",
+        "NARROWING_CONVERSION"
+      ],
+      "calls": [
+        "deregister_tm_clones"
+      ],
+      "evidence": [
+        {
+          "kind": "CMP",
+          "address": "0x80485b0",
+          "statement": "cmpb $0x0,0x804a040"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80485bf",
+          "symbol": "deregister_tm_clones"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x80485c4",
+          "statement": "movb $0x1,0x804a040"
+        }
+      ],
+      "coverage": {
+        "instructions": 13,
+        "complete": true
+      }
+    },
+    {
+      "function": "frame_dummy",
+      "address": "0x80485e0",
+      "labels": [
+        "INDEX_CHECK_NOT_OBSERVED",
+        "LOOP_PRESENT"
+      ],
+      "calls": [
+        "register_tm_clones"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x80485e4",
+          "symbol": "register_tm_clones"
+        }
+      ],
+      "coverage": {
+        "instructions": 4,
+        "complete": true
+      }
+    },
+    {
+      "function": "gift",
+      "address": "0x80485e6",
+      "labels": [
+        "EXECUTION_SINK",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "__x86.get_pc_thunk.ax",
+        "system"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x80485ed",
+          "symbol": "__x86.get_pc_thunk.ax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80485ff",
+          "symbol": "system"
+        }
+      ],
+      "coverage": {
+        "instructions": 15,
+        "complete": true
+      }
+    },
+    {
+      "function": "vuln",
+      "address": "0x8048611",
+      "labels": [
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "__x86.get_pc_thunk.bx",
+        "puts",
+        "printf",
+        "puts",
+        "read"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x8048618",
+          "symbol": "__x86.get_pc_thunk.bx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804862d",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048643",
+          "symbol": "printf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048655",
+          "symbol": "puts"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048668",
+          "symbol": "read"
+        }
+      ],
+      "coverage": {
+        "instructions": 34,
+        "complete": true
+      }
+    },
+    {
+      "function": "login",
+      "address": "0x8048676",
+      "labels": [
+        "CHECK_SIZE",
+        "NARROWING_CONVERSION",
+        "READ_EXTERNAL_INPUT",
+        "READ_OBJECT",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "__x86.get_pc_thunk.bx",
+        "printf",
+        "fgets",
+        "strcspn",
+        "printf",
+        "fgets",
+        "strcspn",
+        "strcmp",
+        "strcmp",
+        "login+0xef"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x8048680",
+          "symbol": "__x86.get_pc_thunk.bx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048695",
+          "symbol": "printf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80486af",
+          "symbol": "fgets"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80486c5",
+          "symbol": "strcspn"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x80486cd",
+          "statement": "movb $0x0,-0x48(%ebp,%eax,1)"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80486dc",
+          "symbol": "printf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80486f9",
+          "symbol": "fgets"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048712",
+          "symbol": "strcspn"
+        },
+        {
+          "kind": "NARROWING",
+          "address": "0x804871a",
+          "statement": "movb $0x0,-0x88(%ebp,%eax,1)"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048730",
+          "symbol": "strcmp"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x8048738",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804874d",
+          "symbol": "strcmp"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x8048755",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804875e",
+          "symbol": "login+0xef"
+        }
+      ],
+      "coverage": {
+        "instructions": 74,
+        "complete": true
+      }
+    },
+    {
+      "function": "main",
+      "address": "0x804876a",
+      "labels": [
+        "CHECK_SIZE",
+        "READ_OBJECT",
+        "WRITE_EXTERNAL_OUTPUT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "__x86.get_pc_thunk.bx",
+        "setbuf",
+        "setbuf",
+        "login",
+        "vuln",
+        "main+0x68",
+        "puts"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x8048779",
+          "symbol": "__x86.get_pc_thunk.bx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x8048792",
+          "symbol": "setbuf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80487a8",
+          "symbol": "setbuf"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80487b0",
+          "symbol": "login"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x80487b5",
+          "statement": "test %eax,%eax"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80487b9",
+          "symbol": "vuln"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80487be",
+          "symbol": "main+0x68"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x80487ca",
+          "symbol": "puts"
+        }
+      ],
+      "coverage": {
+        "instructions": 40,
+        "complete": true
+      }
+    },
+    {
+      "function": "__x86.get_pc_thunk.ax",
+      "address": "0x80487e1",
+      "labels": [
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 8,
+        "complete": true
+      }
+    },
+    {
+      "function": "__libc_csu_init",
+      "address": "0x80487f0",
+      "labels": [
+        "CALL_INDIRECT",
+        "CHECK_SIZE",
+        "INDEXED_OBJECT_ACCESS",
+        "LOOP_PRESENT",
+        "READ_OBJECT",
+        "WRITE_OBJECT"
+      ],
+      "calls": [
+        "__x86.get_pc_thunk.bx",
+        "_init"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x80487f4",
+          "symbol": "__x86.get_pc_thunk.bx"
+        },
+        {
+          "kind": "CALL",
+          "address": "0x804880c",
+          "symbol": "_init"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x804881c",
+          "statement": "test %esi,%esi"
+        },
+        {
+          "kind": "INDEXED_OBJECT_ACCESS",
+          "address": "0x8048834",
+          "statement": "call *-0x100(%ebx,%edi,4)"
+        },
+        {
+          "kind": "CALL_INDIRECT",
+          "address": "0x8048834",
+          "statement": "call *-0x100(%ebx,%edi,4)"
+        },
+        {
+          "kind": "CMP",
+          "address": "0x8048841",
+          "statement": "cmp %edi,%esi"
+        }
+      ],
+      "coverage": {
+        "instructions": 33,
+        "complete": true
+      }
+    },
+    {
+      "function": "__libc_csu_fini",
+      "address": "0x8048850",
+      "labels": [],
+      "calls": [],
+      "evidence": [],
+      "coverage": {
+        "instructions": 1,
+        "complete": true
+      }
+    },
+    {
+      "function": "_fini",
+      "address": "0x8048854",
+      "labels": [],
+      "calls": [
+        "__x86.get_pc_thunk.bx"
+      ],
+      "evidence": [
+        {
+          "kind": "CALL",
+          "address": "0x8048858",
+          "symbol": "__x86.get_pc_thunk.bx"
+        }
+      ],
+      "coverage": {
+        "instructions": 7,
+        "complete": true
+      }
+    }
+  ],
+  "semantic_summary": {
+    "CALL_INDIRECT": 14,
+    "CHECK_SIZE": 7,
+    "EXECUTION_SINK": 1,
+    "INDEXED_OBJECT_ACCESS": 1,
+    "INDEX_CHECK_NOT_OBSERVED": 10,
+    "LOOP_PRESENT": 11,
+    "NARROWING_CONVERSION": 2,
+    "READ_EXTERNAL_INPUT": 2,
+    "READ_OBJECT": 9,
+    "WRITE_EXTERNAL_OUTPUT": 3,
+    "WRITE_OBJECT": 9
+  },
+  "strategies": [
+    {
+      "id": "fmt_write",
+      "name": "格式化字符串写入（%n）",
+      "status": "unknown",
+      "requires": [
+        "hypothesis:format_string",
+        "primitive:input"
+      ],
+      "missing": [
+        "格式串是否受输入控制未证明（需探针实验：%p 回显）"
+      ],
+      "evidence": [
+        "format:printf"
+      ],
+      "steps": [
+        "定位格式串偏移",
+        "确定目标地址与写入值",
+        "按 %hn/%n 分解写入"
+      ],
+      "renderer": "fmt"
+    },
+    {
+      "id": "ret2plt",
+      "name": "ret2plt（system@plt）",
+      "status": "blocked",
+      "requires": [
+        "import:system",
+        "primitive:shell_string",
+        "primitive:control_flow_hijack"
+      ],
+      "missing": [
+        "控制流劫持偏移未证明（需要崩溃/调试证据）"
+      ],
+      "evidence": [
+        "PLT stub 0x80484a0",
+        "节内容扫描：/bin/sh @ 0x804a038"
+      ],
+      "steps": [
+        "填充到返回地址偏移",
+        "pop rdi; ret",
+        "参数 = 壳字符串地址",
+        "call system@plt = 0x80484a0"
+      ],
+      "renderer": "ret2plt"
+    },
+    {
+      "id": "ret2libc",
+      "name": "ret2libc（GOT 泄漏 → libc 基址 → system）",
+      "status": "blocked",
+      "requires": [
+        "primitive:leak",
+        "primitive:control_flow_hijack",
+        "primitive:libc_offsets"
+      ],
+      "missing": [
+        "控制流劫持偏移未证明（需要崩溃/调试证据）",
+        "libc 文件未提供或符号未解析（system/puts/str_bin_sh）"
+      ],
+      "evidence": [
+        "puts@plt=0x8048490",
+        "printf@plt=0x8048460",
+        "printf@got=0x804a018",
+        "puts@got=0x804a024",
+        "read@got=0x804a014"
+      ],
+      "steps": [
+        "泄漏 puts@got → libc base",
+        "再次触发溢出",
+        "ret2libc：pop rdi + binsh@libc + system@libc"
+      ],
+      "renderer": "ret2libc"
+    }
+  ],
+  "exploit_chains": [
+    {
+      "id": "custom-input-loop",
+      "title": "自定义输入循环 → 内存写入 → 边界待确认",
+      "stages": [
+        "外部输入",
+        "循环处理",
+        "逐字节/逐槽写入",
+        "边界条件复核"
+      ],
+      "evidence": [
+        "semantic:LOOP_PRESENT",
+        "semantic:WRITE_OBJECT"
+      ],
+      "missing": [
+        "输入终止条件与目标对象容量"
+      ],
+      "confidence": "review",
+      "status": "blocked"
+    },
+    {
+      "id": "input-to-command-sink",
+      "title": "外部输入 → 命令执行汇点",
+      "stages": [
+        "读取外部输入",
+        "参数传播/拼接",
+        "system/exec/popen"
+      ],
+      "evidence": [
+        "semantic:READ_EXTERNAL_INPUT",
+        "semantic:EXECUTION_SINK"
+      ],
+      "missing": [
+        "输入参数到执行调用的跨函数传播"
+      ],
+      "confidence": "review",
+      "status": "blocked"
+    }
+  ],
+  "gadgets": {
+    "pop_ebp": "0x804884b",
+    "pop_ebx": "0x8048848",
+    "pop_esi": "0x8048848",
+    "pop_edi": "0x8048848",
+    "ret": "0x80483fa"
+  },
+  "gadget_catalog": [
+    {
+      "address": "0x804884b",
+      "text": "pop ebp ; ret",
+      "controls": [
+        "ebp"
+      ],
+      "score": 5,
+      "stack_delta": 8,
+      "highlight": true
+    },
+    {
+      "address": "0x8048848",
+      "text": "pop ebx ; pop esi ; pop edi ; pop ebp ; ret",
+      "controls": [
+        "ebx",
+        "esi",
+        "edi",
+        "ebp"
+      ],
+      "score": 2,
+      "stack_delta": 20,
+      "highlight": false
+    },
+    {
+      "address": "0x8048411",
+      "text": "pop ebx ; ret",
+      "controls": [
+        "ebx"
+      ],
+      "score": 5,
+      "stack_delta": 8,
+      "highlight": true
+    },
+    {
+      "address": "0x804884a",
+      "text": "pop edi ; pop ebp ; ret",
+      "controls": [
+        "edi",
+        "ebp"
+      ],
+      "score": 4,
+      "stack_delta": 12,
+      "highlight": true
+    },
+    {
+      "address": "0x8048849",
+      "text": "pop esi ; pop edi ; pop ebp ; ret",
+      "controls": [
+        "esi",
+        "edi",
+        "ebp"
+      ],
+      "score": 2,
+      "stack_delta": 16,
+      "highlight": false
+    },
+    {
+      "address": "0x80483fa",
+      "text": "ret",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 4,
+      "highlight": true
+    },
+    {
+      "address": "0x804857e",
+      "text": "ret 0xeac1",
+      "controls": [],
+      "score": 4,
+      "stack_delta": 4,
+      "highlight": true
+    }
+  ],
+  "gadget_error": "",
+  "fsop_profile": {
+    "status": "unknown",
+    "reason": "未提供 libc 文件"
+  },
+  "pwn_profile": {
+    "routes": [
+      {
+        "id": "format-string",
+        "reason": "格式化参数存在可控性或可写候选",
+        "confidence": "conditional"
+      }
+    ],
+    "syscalls": [],
+    "ret_gadgets": [],
+    "win_functions": [],
+    "leak_sites": [],
+    "shell_strings": {},
+    "input_imports": [],
+    "recommendations": [
+      "优先复核 critical/high 项，再进行运行时偏移和可控性验证",
+      "NX 已开启：优先考虑 ROP、ret2libc 或 syscall/ORW"
+    ]
+  },
+  "coverage": {
+    "functions": 27,
+    "call_sites": 29,
+    "dataflow_points": 7,
+    "rules": 36,
+    "global_objects": 4
+  },
+  "limitations": [
+    "静态规则检查，不证明漏洞可利用；保护缺失和格式化调用单独列为复核项。",
+    "无符号、间接调用、优化后的参数传递和动态加载可能导致漏报；未发现风险不代表没有漏洞。",
+    "本扫描不覆盖堆对象生命周期、线程竞争及跨函数的数据流。",
+    "静态分析不会执行目标；间接调用、自修改代码和深层跨函数数据流可能漏报。",
+    "生命周期分析只报告同一函数、同一可追踪槽位的调用型证据。",
+    "unknown 表示当前证据不足，不表示对应调用安全。",
+    "可写段（.bss/.data）中的地址只是地址固定，内容仍可被运行时改写，这类槽位以 mutable_* 单独列出，需人工确认写入路径。"
+  ],
+  "security": {
+    "PIE": "OFF",
+    "NX": "ON",
+    "CANARY": "OFF",
+    "RELRO": "PARTIAL",
+    "FORTIFY": "OFF",
+    "STRIPPED": "OFF"
+  }
+}

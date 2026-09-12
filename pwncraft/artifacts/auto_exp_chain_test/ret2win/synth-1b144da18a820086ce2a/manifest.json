@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "case_id": "synth-1b144da18a820086ce2a",
+  "created_at": "2026-09-12T16:17:42+0800",
+  "generator": {
+    "module": "pwncraft.features.synth",
+    "app_version": "v0.33.0"
+  },
+  "target": {
+    "path": "F:\\pwn宝\\pwncraft\\artifacts\\gw-training\\intelpwn\\challenge_ret2win",
+    "sha256": "242167adf3d91baeaf01dc6c6bb0a156fa743842c6a5dbb48127c33908f606cf",
+    "arch": "amd64",
+    "bits": 64,
+    "security": {
+      "PIE": "OFF",
+      "NX": "ON",
+      "CANARY": "OFF",
+      "RELRO": "PARTIAL",
+      "FORTIFY": "OFF",
+      "STRIPPED": "OFF"
+    }
+  },
+  "strategy": {
+    "id": "ret2win",
+    "status": "ready"
+  },
+  "exp": {
+    "sha256": "73bd7907bd4512e6ff920694674d6c33418bba583c869154fcb2aedb152d97a8",
+    "unresolved": []
+  },
+  "audit": {
+    "verdict": "ROUND_TRIP_CLEAN",
+    "error_count": 0,
+    "diagnostic_count": 0
+  },
+  "verification": {
+    "status": "VERIFIED_SHELL",
+    "summary": "生成的 EXP 打通目标（marker 命中）",
+    "evidence": [
+      "gdb: Program received signal SIGSEGV",
+      "gdb: rip=0x40123a",
+      "gdb: rbp=0x6161617261616171",
+      "gdb: rsp=0x7fffffffdde8",
+      "cyclic: offset = 0x48（方法 saved_rbp）",
+      "EXP stdout: [*] Switching to interactive mode\n缓冲区地址: 0x7fff8a1982b0\nwin 函数地址: 0x401196\n输入: 🎉 You win! Shell incoming...\nPWN_SYNTH_OK\n[*] Process '/mnt/f/pwn宝/pwncraft/artifacts/gw-training/intelpwn/challenge_ret2win' stopped with exit code 0 (pid 8172)"
+    ]
+  },
+  "provenance": "DERIVED",
+  "training": {
+    "trainable": false,
+    "runtime_verified": true,
+    "gate": "review_queue → 人工评审 → autocorrect intake/splits 注册"
+  }
+}
