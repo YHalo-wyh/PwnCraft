@@ -91,6 +91,7 @@
           <button class="mini-btn" id="binary-vulnpoints-run" ${scan?.vulnPointsLoading ? 'disabled' : ''}>${scan?.vulnPointsLoading ? '扫描中…' : '漏洞点扫描（数据流证明）'}</button>
           <button class="mini-btn" id="binary-synth-run" ${scan?.synthLoading ? 'disabled' : ''}>${scan?.synthLoading ? '合成中…' : '自动检测 + 生成 EXP 骨架'}</button>
           <button class="mini-btn" id="binary-synth-verify" ${scan?.synthVerifyLoading ? 'disabled' : ''}>${scan?.synthVerifyLoading ? '验证中…' : '运行时验证（gdb）'}</button>
+          <button class="mini-btn primary" id="binary-synth-verify-all" ${scan?.synthVerifyAllLoading ? 'disabled' : ''}>${scan?.synthVerifyAllLoading ? '逐候选实测中…' : '一键生成并实测全部 EXP'}</button>
           ${scan?.synth ? `<span class="chip">策略 ${esc(scan.synth.best?.id || '无')}</span>
             <span class="chip">状态 ${esc(scan.synth.best?.status || '-')}</span>
             <span class="chip">往返 ${esc((scan.synth.verdict || {}).verdict || '-')}</span>
@@ -101,6 +102,8 @@
         </div>
         ${scan?.synthVerifyError ? `<div class="analysis-error">运行时验证失败：${esc(scan.synthVerifyError)}</div>` : ''}
         ${scan?.synthVerify?.verification?.summary ? `<div class="hint-dim">运行时：${esc(scan.synthVerify.verification.summary)}</div>` : ''}
+        ${scan?.synthVerifyAll ? `<div class="analysis-notice">${scan.synthVerifyAll.winner ? `已打通候选 <b>${esc(scan.synthVerifyAll.winner.strategy)}</b>，已自动替换当前 EXP。` : `全部候选实测完成，暂无命中 marker 的 EXP。`}（成功 ${Number(scan.synthVerifyAll.verified_count || 0)} / ${Number((scan.synthVerifyAll.candidates || []).length)}）</div>` : ''}
+        ${scan?.synthVerifyAllError ? `<div class="analysis-error">全部候选实测失败：${esc(scan.synthVerifyAllError)}</div>` : ''}
         ${scan?.vulnPoints ? (() => {
           const vp = scan.vulnPoints;
           const marker = { critical: '🔴', high: '🟠', medium: '🟡', info: '✓' };
@@ -202,6 +205,7 @@
       };
     });
     $('#binary-synth-verify', host).onclick = () => runSynthVerify(auditEntry, working);
+    $('#binary-synth-verify-all', host).onclick = () => runSynthVerifyAll(auditEntry, working);
     const synthApply = $('#binary-synth-apply', host);
     if (synthApply) synthApply.onclick = () => {
       app().replaceExpText((auditEntry?.patch?.synth?.source) || '');
@@ -285,6 +289,26 @@
       cache.synthVerifyError = error.message || String(error);
     } finally {
       cache.synthVerifyLoading = false;
+      renderBinary();
+    }
+  }
+
+  /** 逐一实测全部 ready 候选；只有 marker 命中者才自动替换编辑器内容。 */
+  async function runSynthVerifyAll(entry, working) {
+    if (!entry) return;
+    const cache = entry.patch ||= {};
+    cache.synthVerifyAllLoading = true; cache.synthVerifyAllError = '';
+    renderBinary();
+    try {
+      const result = await window.pwncraft.request('synth_verify_all', { path: working, apply: true });
+      cache.synthVerifyAll = result;
+      if (result.winner?.source) app().replaceExpText(result.winner.source);
+      if (result.winner) log(`已实测打通并替换 EXP：${result.winner.strategy}`, 'success');
+      else log('全部 EXP 候选均未打通，保留当前 EXP。', 'warn');
+    } catch (error) {
+      cache.synthVerifyAll = null; cache.synthVerifyAllError = error.message || String(error);
+    } finally {
+      cache.synthVerifyAllLoading = false;
       renderBinary();
     }
   }

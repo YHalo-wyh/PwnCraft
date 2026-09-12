@@ -895,6 +895,25 @@ class ElectronBridge:
         self._log(f"运行时验证：{verification.get('status')} — {verification.get('summary')}")
         return report
 
+    def rpc_synth_verify_all(self, params: dict) -> dict:
+        """一键生成并逐个本地验证全部 EXP 候选；仅成功候选可自动替换。"""
+        from pwncraft.features.synth.pipeline import verify_all_exploits
+
+        binary = self._synth_binary(params)
+        result = verify_all_exploits(
+            binary, runner=self._runner,
+            timeout=int(params.get("timeout") or 60),
+            marker=str(params.get("marker") or "PWN_SYNTH_OK"),
+            patch_findings=list(self._synth_evidence(binary)),
+            **self._synth_options(params),
+        )
+        winner = result.get("winner") or {}
+        if winner.get("verified") and params.get("apply"):
+            self.workspace.set_exploit_source(str(winner.get("source") or ""))
+            result["applied"] = True
+            self._log(f"候选 EXP 已打通并替换：{winner.get('strategy')}")
+        return result
+
     def rpc_synth_deposit(self, params: dict) -> dict:
         """把检测 + 骨架沉淀到 review_queue（生成物默认 trainable=false）。"""
         from pwncraft.features.synth import deposit_case as synth_deposit

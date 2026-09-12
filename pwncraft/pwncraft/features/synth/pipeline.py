@@ -162,6 +162,43 @@ def verify_exploit(
             "verification": verification, "menu": menu}
 
 
+def verify_all_exploits(
+    binary: str | Path,
+    *,
+    runner,
+    timeout: int = 60,
+    marker: str = "PWN_SYNTH_OK",
+    patch_findings: Sequence[Mapping[str, object]] = (),
+    **analysis_options,
+) -> dict:
+    """生成并逐一实跑所有 ready 策略，成功者自动晋级。
+
+    每个候选都独立执行，只有运行结果明确命中 marker 才算 VERIFIED；
+    调用方可据此安全替换当前 EXP，失败候选不会被误标为可用。
+    """
+    analysis = analyze_target(binary, runner=runner, patch_findings=patch_findings,
+                              **analysis_options)
+    results: list[dict] = []
+    for item in analysis.get("strategies", ()):
+        result = verify_exploit(binary, runner=runner, strategy=item.id,
+                                timeout=timeout, marker=marker,
+                                patch_findings=patch_findings,
+                                **analysis_options)
+        verification = dict(result.get("verification") or {})
+        results.append({
+            "strategy": item.id,
+            "status": verification.get("status", "NOT_RUN"),
+            "summary": verification.get("summary", ""),
+            "verified": verification.get("status") == "VERIFIED_SHELL",
+            "source": (result.get("rendered").source
+                        if result.get("rendered") is not None else ""),
+            "report": detection_report(result),
+        })
+    winner = next((item for item in results if item["verified"]), None)
+    return {"analysis": detection_report(analysis), "candidates": results,
+            "winner": winner, "verified_count": sum(1 for item in results if item["verified"])}
+
+
 def detection_report(analysis: Mapping[str, object], *, include_facts: bool = False) -> dict:
     """JSON-safe 检测报告（RPC / CLI 共用）。"""
     facts: TargetFacts = analysis["facts"]        # type: ignore[assignment]
