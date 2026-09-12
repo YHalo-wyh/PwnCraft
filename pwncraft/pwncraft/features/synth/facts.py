@@ -222,12 +222,19 @@ def _rip_target(insn: dict) -> int | None:
 
 
 def _argument_address(insn: dict) -> int | None:
-    """指令加载到第一个参数寄存器（rdi/edi）的绝对地址。"""
+    """指令加载到第一个参数位置的绝对地址（64 位 rdi/32 位栈槽）。"""
     text = str(insn.get("text") or "")
     match = _COMMENT_ADDR_RE.search(text)
     if match:
         return int(match[1], 16)
-    return _rip_target(insn)
+    rip = _rip_target(insn)
+    if rip is not None:
+        return rip
+    # 32 位 cdecl：`push $0x804a008` 压入参数立即数地址
+    m_push = re.match(r"^push\s+\$0x([0-9a-fA-F]{6,8})$", text)
+    if m_push:
+        return int(m_push.group(1), 16)
+    return None
 
 
 def _collect_annotations(functions: list[dict]) -> tuple[list[dict], list[dict], tuple[int, ...], tuple[int, ...]]:
@@ -260,7 +267,8 @@ def _collect_annotations(functions: list[dict]) -> tuple[list[dict], list[dict],
                 if target is not None:
                     setup_address = int(candidate["address"])
                     break
-            if target is None:
+            if target is None and not (
+                    callee in EXEC_IMPORTS and len(instructions) <= 24):
                 continue
             # 前置输入守卫语义：函数体内 system 之前存在 gets/read + 常量比较，
             # 说明跳到函数入口还需先满足输入守卫（跳到参数装载点则可绕过）。

@@ -103,9 +103,9 @@ def main():
             repos += http_json(f"{API}/orgs/CTF-Archives/repos?per_page=100&page={page}")
         except Exception as error:
             print(f"repo list page {page} fail: {error}")
-    pwn_repos = sorted({r["name"] for r in repos
-                        if "pwn" in r["name"].lower() or "wdb" in r["name"].lower()})
-    print(f"pwn repos: {len(pwn_repos)}")
+    # 全仓库枚举：非 pwn 名仓库的 Release 里同样藏有 pwn 附件（如 wdb 各组）
+    pwn_repos = sorted({r["name"] for r in repos})
+    print(f"all repos: {len(pwn_repos)}")
 
     # ---- 2) 逐仓库拉附件 → 解包 → 逐 ELF 闭环 ----
     attempted = len(state["attempted"])

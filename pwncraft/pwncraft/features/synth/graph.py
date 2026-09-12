@@ -170,13 +170,17 @@ def build_primitive_graph(
             evidence=(f"节内容扫描：{shell[0]} @ 0x{shell[1]:x}",)))
 
     for index, candidate in enumerate(facts.win_functions):
+        arg_value = candidate.get("argument_address")
+        arg_note = (f"（参数 0x{int(arg_value):x}）" if arg_value is not None
+                    else "（参数地址未解析）")
+        evidence = [f"0x{int(candidate['call_address']):x}: call {candidate['callee']}"]
+        if arg_value is not None:
+            evidence.append(f"参数地址 0x{int(arg_value):x}")
         graph.add(PrimitiveNode(
             id=f"primitive:win_function:{index}", kind="callable",
-            detail=f"{candidate['function']} 调用 {candidate['callee']}"
-                   f"（参数 0x{int(candidate['argument_address']):x}）",
-            evidence=(f"0x{int(candidate['call_address']):x}: call {candidate['callee']}",
-                      f"参数地址 0x{int(candidate['argument_address']):x}"))
-        )
+            detail=f"{candidate['function']} 调用 {candidate['callee']}{arg_note}",
+            evidence=tuple(evidence)))
+        graph.link(f"primitive:win_function:{index}", "primitive:exec_command", "calls")
         graph.link(f"primitive:win_function:{index}", "primitive:exec_command", "calls")
 
     # --- 泄漏面 ----------------------------------------------------------
