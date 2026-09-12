@@ -1069,6 +1069,9 @@ class ElectronBridge:
         # UI 反汇编的 1000 函数上限，则让扫描器自行以 200000 上限恢复完整函数集。
         scan_functions = None if len(functions) >= 1000 else functions
         points = scan_vuln_points(binary, self._runner, functions=scan_functions)
+        from pwncraft.features.semantic_vuln import from_vuln_report
+        semantic_report = from_vuln_report(
+            points, runtime_observations=params.get("runtime_observations") or ())
         # 可选的本地运行时实证回灌：只接受结构化 finding，不执行其中任何命令。
         # 这样 staged WSL 探针（例如 fastbin 重用残留读取）可以与静态
         # 证据合并，并由同一套去重/利用链状态机处理。
@@ -1195,6 +1198,7 @@ class ElectronBridge:
         return {
             "binary": str(binary), "sha256": facts.sha256,
             "findings": findings,
+            "semantic_vulnerabilities": semantic_report,
             "summary": {**counts, "total": len(findings), "risk_score": score,
                          # 数据流扫描的 confirmed 与运行时回灌证据都纳入总数。
                          "confirmed": points.get("confirmed", 0) + runtime_confirmed},
