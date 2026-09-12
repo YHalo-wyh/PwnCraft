@@ -495,12 +495,16 @@ def build_strcpy_limit(lab: PatchLab, functions: list[dict], function: str,
             f"没有{'在该函数内的' if function else ''}strcpy 调用点"
             f"（全部 {len(sites)} 处在其它函数）")
     strncpy_v = stubs["strncpy"]["address"]
-    stub = b"\xf3\x0f\x1e\xfa\xba" + struct.pack("<I", limit)
-    # jmp rel32 的位移依赖 stub 终地址，cave 定位后回填
-    stub_len = len(stub) + 5
+    # 桩：mov edx,N(5) + call strncpy@plt(5) + ret(1) = 11 字节
+    # 调用点保持 call 语义（call 压返回地址 → 桩尾 ret 弹回 main）
+    stub = bytearray(b"\xba" + struct.pack("<I", limit)
+            + b"\xe8" + struct.pack("<i", 0)   # call strncpy@plt（占位，下面回填）
+            + b"\xc3")
+    stub_len = len(stub)
     cave = find_code_cave(lab.binary, stub_len, geometry=lab.geometry())
     cave_v = cave["vaddr"]
-    stub += rel32_jmp(cave_v + 9, strncpy_v)
+    call_disp = strncpy_v - (cave_v + 10)
+    stub[5:10] = b"\xe8" + struct.pack("<i", call_disp)
     cave_original = lab.read(cave["offset"], len(stub))
     if cave_original.strip(b"\x00"):
         raise ValueError("code cave 不再全零，文件已被修改")
@@ -518,7 +522,7 @@ def build_strcpy_limit(lab: PatchLab, functions: list[dict], function: str,
             kind="strcpy_limit", vaddr=insn["address"],
             file_offset=lab.offset_of(insn["address"]),
             original_bytes=original,
-            new_bytes=rel32_jmp(insn["address"], cave_v),
+            new_bytes=b"\xe8" + struct.pack("<i", cave_v - (insn["address"] + 5)),
             note=f"{site['function']}: strcpy → strncpy（N={limit:#x}）"))
     return {"ops": ops,
             "warnings": ["strncpy 不补 NUL 终止符；截断后的字符串下游使用需人工确认。",
