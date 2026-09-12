@@ -122,12 +122,14 @@ def verify_exploit(
                 menu_steps = prelude_script(menu) or None
                 # 静态漏洞点确认：read/fgets 长度 vs 栈缓冲 → ret 偏移 = 槽+8
                 vuln_report = scan_vuln_points(binary, runner, functions=fns)["points"]
+                bits_static = BinaryInspector().inspect(binary).bits
+                word = bits_static // 8
                 for point in vuln_report:
                     if (point.get("verdict") in ("overflow_confirmed", "unbounded_input")
                             and point.get("buffer", {}).get("kind") == "stack"):
                         slot = point["buffer"]["offset"]
                         static_stack_truth = {
-                            "offset": hex(slot + 8),
+                            "offset": hex(slot + word),
                             "method": "static_vuln_point",
                             "evidence": [point.get("reason") or "",
                                          point.get("length_evidence") or ""],

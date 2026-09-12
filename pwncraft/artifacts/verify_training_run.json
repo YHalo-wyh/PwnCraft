@@ -1,11 +1,12 @@
 {
  "verified": [
   "challenge_ret2win",
-  "challenge_ret2text"
+  "challenge_ret2text",
+  "challenge_x86_vuln"
  ],
  "stats": {
-  "VERIFIED_SHELL": 2,
-  "UNCONFIRMED": 1,
+  "VERIFIED_SHELL": 3,
+  "UNCONFIRMED": 0,
   "NOT_RUN": 20,
   "ERR": 0
  }
