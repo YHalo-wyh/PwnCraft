@@ -120,7 +120,13 @@ def discover_runtime_pair(binary_path: str | Path,
 
 def auto_patch_elf(binary_path: str | Path, runner: WslToolRunner | None = None,
                    extra_dirs: tuple[str | Path, ...] = ()) -> ElfPatchOutcome:
-    """Patch the original same-name ELF in place, with verified rollback."""
+    """Patch the runtime ELF in place, with verified rollback.
+
+    When the pair lives in the challenge directory but the ELF is a mutable
+    ``.pwncraft/runtime`` copy, materialize both loader and libc beside that
+    copy.  This makes ``ldd``/direct execution resolve the supplied challenge
+    libc instead of the host WSL libc.
+    """
     binary = Path(binary_path).resolve()
     runtime = discover_runtime_pair(binary, extra_dirs)
     runner = runner or WslToolRunner()
@@ -152,4 +158,11 @@ def auto_patch_elf(binary_path: str | Path, runner: WslToolRunner | None = None,
             if part
         )
         raise RuntimeError(f"patchelf 验证失败，已从 {backup.name} 回滚：\n{evidence}")
+    # $ORIGIN points at the runtime copy's directory.  Keep the original
+    # challenge artifacts immutable, but place exact-name copies next to the
+    # patched ELF so ldd and explicit loader runs use the intended pair.
+    for artifact in (runtime.loader, runtime.libc):
+        destination = binary.parent / artifact.name
+        if artifact.resolve() != destination.resolve():
+            shutil.copy2(artifact, destination)
     return ElfPatchOutcome(binary, runtime, backup, result, interpreter, rpath, needed)

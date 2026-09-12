@@ -71,6 +71,8 @@ class ElfToolingTests(unittest.TestCase):
             self.assertEqual(runner.calls[0][2], "$ORIGIN")
             self.assertTrue(binary.read_bytes().endswith(b"PATCHED"))
             self.assertTrue(outcome.backup.read_bytes().endswith(b"ORIGINAL"))
+            self.assertTrue((binary.parent / "ld-linux-x86-64.so.2").is_file())
+            self.assertTrue((binary.parent / "libc.so.6").is_file())
 
     def test_failed_verification_rolls_original_same_name_elf_back(self) -> None:
         with TemporaryDirectory() as temporary:
