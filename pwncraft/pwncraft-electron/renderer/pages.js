@@ -79,6 +79,7 @@
           ${(auto.report.pwn_profile?.routes || []).length ? `<div class="hint-dim">Pwn 路线候选：${auto.report.pwn_profile.routes.map((route) => esc(route.id)).join(' · ')}</div>` : ''}
           ${(auto.report.pwn_profile?.recommendations || []).length ? `<div class="hint-dim">建议：${auto.report.pwn_profile.recommendations.map(esc).join('；')}</div>` : ''}
           ${Object.keys(auto.report.semantic_summary || {}).length ? `<div class="hint-dim">语义行为：${Object.entries(auto.report.semantic_summary).map(([label, count]) => `${esc(label)} ${Number(count)}`).join(' · ')}</div>` : ''}
+          ${auto.report.semantic_vulnerabilities?.summary ? `<div class="hint-dim">漏洞语义：${Number(auto.report.semantic_vulnerabilities.summary.total || 0)} 项 · 高置信 ${Number(auto.report.semantic_vulnerabilities.summary.high_confidence || 0)} · Primitive ${(auto.report.semantic_vulnerabilities.primitives || []).map(esc).join(' / ') || '待补证'}</div>` : ''}
           ${(auto.report.strategies || []).length ? `<div class="hint-dim">利用策略：${auto.report.strategies.map((strategy) => `${esc(strategy.id || 'unknown')}=${esc(strategy.status || 'unknown')}`).join(' · ')}</div>` : ''}
           ${Object.keys(auto.report.gadgets || {}).length ? `<div class="hint-dim">关键 Gadget：${Object.entries(auto.report.gadgets).map(([role, address]) => `<span class="chip gadget-chip gadget-${esc(role)}">${esc(role)} ${esc(address)}</span>`).join(' ')}</div>` : ''}
           ${auto.report.gadget_error ? `<div class="hint-dim">Gadget 检测缺口：${esc(auto.report.gadget_error)}</div>` : ''}

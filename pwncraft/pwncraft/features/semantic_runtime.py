@@ -49,3 +49,47 @@ def observations_from_fmt(probe: Mapping[str, object]) -> list[dict]:
         "missing_conditions": ["确认栈参数 offset 和 %n 写入目标"],
         "next_steps": ["自动枚举 offset，测试 GOT/返回地址可写性"],
     }]
+
+
+def observations_from_heap_trace(trace: Mapping[str, object]) -> list[dict]:
+    """把菜单题生命周期回放压缩成可解释的堆 primitive 证据。
+
+    trace 由 UI/脚本提供结构化事件，不执行其中命令：
+    ``events=[{op,index,size,handle}]``，可附 ``stale_read``、``alias``、
+    ``double_free``、``overlap`` 和 ``write_target``。
+    """
+    events = list(trace.get("events") or [])
+    observations: list[dict] = []
+    if trace.get("double_free"):
+        observations.append({
+            "vuln_type": "double_free", "verdict": "double_free_observed",
+            "severity": "high", "confidence": "runtime_observed",
+            "primitives": ["tcache_poisoning_candidate"],
+            "trigger": {"events": events},
+            "evidence": list(trace.get("evidence") or []),
+            "missing_conditions": ["确认 allocator 版本和 freelist 校验"],
+            "next_steps": ["计算 safe-linking 编码并验证重分配目标"],
+        })
+    if trace.get("stale_read") or trace.get("alias"):
+        observations.append({
+            "vuln_type": "uaf", "verdict": "uaf_alias_observed",
+            "severity": "high", "confidence": "runtime_observed",
+            "primitives": ["UAF_read"] + (["UAF_write"] if trace.get("write_target") else []),
+            "trigger": {"events": events},
+            "controllables": ([{"kind": "write_target", "value": trace.get("write_target")} ]
+                            if trace.get("write_target") else []),
+            "evidence": list(trace.get("evidence") or []),
+            "missing_conditions": ["确认悬挂句柄可稳定复用目标 chunk"],
+            "next_steps": ["在 heap canvas 标记旧句柄与新 chunk 的别名关系"],
+        })
+    if trace.get("overlap"):
+        observations.append({
+            "vuln_type": "heap_overlap", "verdict": "heap_overlap_observed",
+            "severity": "critical", "confidence": "runtime_observed",
+            "primitives": ["arbitrary_write_candidate", "overlapping_chunks"],
+            "trigger": {"events": events},
+            "evidence": list(trace.get("evidence") or []),
+            "missing_conditions": ["确认重叠 chunk 对目标函数指针/GOT 的影响"],
+            "next_steps": ["导出 heap canvas 快照并规划写目标"],
+        })
+    return observations
