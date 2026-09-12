@@ -252,16 +252,43 @@ def _collect_annotations(functions: list[dict]) -> tuple[list[dict], list[dict],
             if callee not in EXEC_IMPORTS and callee not in LEAK_IMPORTS:
                 continue
             target = None
+            setup_address = None
             for candidate in reversed(instructions[max(0, index - 5):index]):
                 if str(candidate.get("text") or "").startswith("call"):
                     break
                 target = _argument_address(candidate)
                 if target is not None:
+                    setup_address = int(candidate["address"])
                     break
             if target is None:
                 continue
+            # 前置输入守卫语义：函数体内 system 之前存在 gets/read + 常量比较，
+            # 说明跳到函数入口还需先满足输入守卫（跳到参数装载点则可绕过）。
+            guard = None
+            for probe_index, probe in enumerate(instructions[:index]):
+                text_p = str(probe.get("text") or "")
+                # 输入原语在 system 之前 + 常量比较 → 输入守卫
+                # （中间的 puts/call 不截断——那是业务输出；ret/jmp 才截断）
+                if text_p.startswith(("gets", "read", "fgets", "scanf")) or (
+                        "call" in text_p and "gets" in text_p):
+                    m_guard = None
+                    for follow in instructions[probe_index + 1:index]:
+                        text_f = str(follow.get("text") or "")
+                        m_cmp = re.match(r"^cmp\s+\$0x([0-9a-fA-F]+),", text_f)
+                        if m_cmp:
+                            m_guard = m_cmp
+                            break
+                        if text_f.startswith(("ret", "jmp")):
+                            break
+                    if m_guard:
+                        guard = {"compare_value": int(m_guard.group(1), 16),
+                                 "compare_insn": text_f,
+                                 "input_insn": text_p}
+                    break
             record = {"function": name, "function_address": _int_address(fn.get("address")),
                       "call_address": int(insn["address"]),
+                      "argument_setup_address": setup_address,
+                      "input_guard": guard,
                       "callee": callee, "argument_address": target}
             (win if callee in EXEC_IMPORTS else leak).append(record)
     return win, leak, tuple(sorted(set(syscalls))), tuple(sorted(set(rets)))

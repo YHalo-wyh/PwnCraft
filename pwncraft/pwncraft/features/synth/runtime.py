@@ -271,6 +271,13 @@ def run_exp_source(
             else:
                 lines.append(line)
         text = "\n".join(lines) + "\n"
+    # 旗文件 fixture：win 调用形如 system("cat flag") 时，本地验证需要在
+    # 目标工作目录放置内容为 marker 的旗文件，使命中判定可执行（harness 部件）
+    cwd_flag = Path.cwd() / "flag"
+    flag_created = False
+    if not cwd_flag.is_file():
+        cwd_flag.write_text(marker)
+        flag_created = True
     feed = (command or f"echo {marker}; exit") + "\n"
     started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="pwncraft-synth-run-") as folder:
@@ -288,6 +295,11 @@ def run_exp_source(
             error = f"EXP 执行超时（{timeout}s）"
         except OSError as error_info:
             returncode, stdout, stderr, error = -1, b"", b"", str(error_info)
+    if flag_created:
+        try:
+            cwd_flag.unlink()
+        except OSError:
+            pass
     elapsed_ms = int((time.monotonic() - started) * 1000)
     out_text = stdout.decode("utf-8", "replace")
     err_text = stderr.decode("utf-8", "replace")

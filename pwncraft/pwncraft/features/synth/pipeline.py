@@ -62,7 +62,8 @@ def generate_exp(
     rendered: RenderedExp = render_exp(
         analysis["facts"], chosen, libc_symbols=analysis["libc_symbols"],
         stack_truth=analysis_options.get("stack_truth"),
-        gadgets=analysis_options.get("gadgets"))
+        gadgets=analysis_options.get("gadgets"),
+        extra_ret=bool(analysis_options.get("extra_ret")))
     verdict = verify_exp(rendered.source, bits=analysis["facts"].bits,
                          pie=analysis["facts"].is_pie())
     return {**analysis, "strategy": chosen, "rendered": rendered, "verdict": verdict}
@@ -199,16 +200,29 @@ def verify_exploit(
                             "note": "无候选策略：缺少可证明原语，未生成 EXP"},
                 "verification": {"status": "NOT_RUN",
                                  "summary": "无候选策略（缺可证明原语），未生成 EXP"}}
-    generated = generate_exp(binary, strategy=strategy, runner=runner, analysis=analysis,
-                             stack_truth=stack_truth, allow_missing=allow_missing,
-                             **analysis_options)
-    chosen: ExploitStrategy | None = generated.get("strategy")  # type: ignore[assignment]
-    execution = None
-    if (generated.get("rendered") is not None and chosen is not None
-            and chosen.status == "ready" and not generated["rendered"].unresolved
-            and generated["verdict"].get("verdict") == "ROUND_TRIP_CLEAN"):
-        execution = run_exp_source(generated["rendered"].source, runner=runner,
-                                   target_path=binary, marker=marker, timeout=timeout)
+    # EXP 候选组装多样化：常规 → +extra_ret（跳 win 中段的 16 字节对齐校正）
+    for extra_ret in (False, True):
+        options = dict(analysis_options)
+        options["extra_ret"] = extra_ret
+        generated = generate_exp(binary, strategy=strategy, runner=runner,
+                                 analysis=analysis, stack_truth=stack_truth,
+                                 allow_missing=allow_missing, **options)
+        chosen: ExploitStrategy | None = generated.get("strategy")  # type: ignore[assignment]
+        execution = None
+        if (generated.get("rendered") is not None and chosen is not None
+                and chosen.status == "ready"
+                and not generated["rendered"].unresolved
+                and generated["verdict"].get("verdict") == "ROUND_TRIP_CLEAN"):
+            execution = run_exp_source(generated["rendered"].source, runner=runner,
+                                       target_path=binary, marker=marker,
+                                       timeout=timeout)
+            if execution.get("verified"):
+                break
+            # 命中失败但目标干净退出（rc=0）→ 试对齐变体；否则当前结果即结论
+            if extra_ret or execution.get("returncode") != 0:
+                break
+        else:
+            break
     verification = summarize_runtime(runtime, execution)
     if chosen is not None and chosen.status != "ready" and execution is None:
         verification = {**verification,
