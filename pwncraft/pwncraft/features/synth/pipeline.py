@@ -179,7 +179,8 @@ def verify_exploit(
                              for item in review_items):
         try:
             from .runtime import probe_fmt_control
-            fmt_truth = probe_fmt_control(binary, runner=runner)
+            fmt_truth = probe_fmt_control(binary, runner=runner,
+                                          menu_steps=menu_steps)
         except Exception as error:
             fmt_truth = {"controlled": False, "reason": f"探针失败: {error}"}
     # 先拿到运行时证据再建图：偏移必须进入 graph/strategy，否则策略仍是 blocked

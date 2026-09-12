@@ -194,7 +194,8 @@ def discover_stack_offset(
 _PTR_ECHO = re.compile(rb"0x[0-9a-f]{6,12}")
 
 
-def probe_fmt_control(binary, *, runner, timeout: int = 12) -> dict:
+def probe_fmt_control(binary, *, runner, timeout: int = 12,
+                      menu_steps=None) -> dict:
     """fmt 探针实验：真跑目标送 %9$08x.%9$08x 样式输入，看回显是否含
     受控十六进制（同一值出现两次 = 格式串受输入控制，intelpwn 同款判据）。
 
@@ -203,6 +204,13 @@ def probe_fmt_control(binary, *, runner, timeout: int = 12) -> dict:
     """
     from pwncraft.core.wsl import prepare_windows_system_process
 
+    prelude = b""
+    if menu_steps:
+        for step in menu_steps:
+            if step.get("expect"):
+                prelude += step["expect"].encode() + b"\n"
+            elif step.get("send"):
+                prelude += step["send"].encode() + b"\n"
     probes = [b"%p.%p.%p.%p", b"AAAA%08x.%08x"]
     for probe in probes:
         try:
@@ -211,7 +219,7 @@ def probe_fmt_control(binary, *, runner, timeout: int = 12) -> dict:
             argv = [str(runner.to_wsl_path(Path(item))) for item in argv]
             proc = subprocess.run(
                 ["wsl.exe", "--exec", *argv],
-                input=probe + b"\n", capture_output=True, timeout=timeout)
+                input=prelude + probe + b"\n", capture_output=True, timeout=timeout)
         except (OSError, subprocess.TimeoutExpired):
             continue
         out = proc.stdout or b""
