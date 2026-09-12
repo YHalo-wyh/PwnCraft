@@ -1518,10 +1518,10 @@
 
   function quickChipHtml(block) {
     return `
-      <div class="pwncraft-code-chip" data-pwncraft-code="${esc(block.code)}">
+      <div class="pwncraft-code-chip code-block-card" data-pwncraft-code="${esc(block.code)}">
         <div class="pwncraft-chip-label">${esc(block.label)}</div>
         <pre class="pwncraft-chip-code">${esc(block.code)}</pre>
-        ${block.hint ? `<div class="pwncraft-chip-hint">${esc(block.hint)}</div>` : ''}
+        <div class="code-block-meta"><span>${esc(block.id || 'QUICK')}</span>${block.hint ? `<span>${esc(block.hint)}</span>` : ''}</div>
       </div>`;
   }
 
@@ -1569,10 +1569,11 @@
       }
       for (const [category, items] of groups) {
         const body = items.map((block) => `
-          <div class="block-row" data-id="${esc(block.id)}" data-pwncraft-code="${esc(block.snippet)}">
-            <div class="block-title">${esc(block.title)}<span class="block-cat">${esc(block.category)}</span>
-              <span class="block-drag-note">拖入编辑器 · 双击填参</span></div>
-            <div class="hint-dim">${esc(block.description)}</div>
+          <div class="block-row code-block-card" data-id="${esc(block.id)}" data-pwncraft-code="${esc(block.snippet)}">
+            <div class="code-block-head"><div class="block-title">${esc(block.title)}</div><span class="code-block-badge">${esc(block.category)}</span></div>
+            <pre class="code-block-preview">${esc(block.snippet)}</pre>
+            <div class="code-block-meta"><span>${esc(block.id)}</span><span>${(block.placeholders || []).length ? `${block.placeholders.length} 个参数` : '可直接插入'}</span><span>拖拽 · 双击编辑</span></div>
+            <div class="hint-dim code-block-desc">${esc(block.description)}</div>
           </div>`).join('');
         // 搜索时自动展开分组；浏览时默认收起，保持面板紧凑
         html += blockGroupHtml(category, items.length, body, !!needle);
