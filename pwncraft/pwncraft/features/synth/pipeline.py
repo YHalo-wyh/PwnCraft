@@ -104,23 +104,74 @@ def verify_exploit(
                      "notes": ["已由调用方提供偏移事实，跳过 gdb 测量"]}
     menu: dict = {}
     menu_steps = None
+    vuln_report: list = []
+    gadgets: dict = {}
+    static_stack_truth = None
     if stack_truth is None:
         from .menu import detect_menu, prelude_script
+        from .vuln_points import scan_vuln_points
         try:
-            result_objd = runner.run_tool("objdump", ["-d", "--", runner.to_wsl_path(binary)])
+            result_objd = runner.run_tool("objdump", ["-d", "--",
+                                                      runner.to_wsl_path(binary)])
             if result_objd.ok:
                 from pwncraft.core.code_analysis import parse_disassembly
-                fns = parse_disassembly(result_objd.stdout, max_functions=200000)["functions"]
+                fns = parse_disassembly(result_objd.stdout, max_functions=200000,
+                                        max_lines=200000)["functions"]
                 menu = detect_menu(binary, fns)
                 menu_steps = prelude_script(menu) or None
+                # 静态漏洞点确认：read/fgets 长度 vs 栈缓冲 → ret 偏移 = 槽+8
+                vuln_report = scan_vuln_points(binary, runner, functions=fns)["points"]
+                for point in vuln_report:
+                    if (point.get("verdict") in ("overflow_confirmed", "unbounded_input")
+                            and point.get("buffer", {}).get("kind") == "stack"):
+                        slot = point["buffer"]["offset"]
+                        static_stack_truth = {
+                            "offset": hex(slot + 8),
+                            "method": "static_vuln_point",
+                            "evidence": [point.get("reason") or "",
+                                         point.get("length_evidence") or ""],
+                        }
+                        break
         except Exception:
-            menu = {}
-        facts = BinaryInspector().inspect(binary)
-        runtime = discover_stack_offset(binary, runner=runner, bits=facts.bits,
-                                        timeout=timeout, menu_steps=menu_steps)
-        if runtime.get("offset") is not None and runtime.get("confidence") == "proven":
-            stack_truth = {"offset": hex(int(runtime["offset"])), "method": runtime["method"],
-                           "evidence": runtime["evidence"]}
+            vuln_report = vuln_report or []
+        # ROPgadget 证明 pop rdi/rsi/rdx/rax（graph 的 gadget:* 门禁）
+        try:
+            from pwncraft.core.gadgets import parse_ropgadget_output
+            gres = runner.run_tool("ropgadget", [
+                "--binary", runner.to_wsl_path(binary),
+                "--only", "pop|ret|syscall", "--depth", "10"], timeout=120)
+            for gadget in parse_ropgadget_output(gres.stdout or gres.stderr,
+                                                 source="verify", bits=64):
+                ins = " ; ".join(item.lower().replace(" ", "")
+                                 for item in gadget.instructions)
+                if not ins.endswith("ret"):
+                    continue
+                for role, pat in (("rdi", "poprdi"), ("rsi", "poprsi"),
+                                  ("rdx", "poprdx"), ("rax", "poprax")):
+                    if pat in ins and role not in gadgets:
+                        gadgets[role] = hex(gadget.address)
+        except Exception:
+            pass
+    if stack_truth is None:
+        if static_stack_truth is not None:
+            # 静态漏洞点优先：不依赖 gdb/程序崩溃，菜单题直接可用
+            stack_truth = static_stack_truth
+            runtime = {"offset": int(static_stack_truth["offset"], 16),
+                       "method": "static_vuln_point", "confidence": "conditional",
+                       "evidence": static_stack_truth["evidence"],
+                       "notes": ["偏移来自静态漏洞点证明（缓冲槽+8），未经运行时复核"]}
+        else:
+            facts = BinaryInspector().inspect(binary)
+            try:
+                runtime = discover_stack_offset(binary, runner=runner, bits=facts.bits,
+                                                timeout=timeout, menu_steps=menu_steps)
+            except Exception as error:
+                runtime = {"offset": None, "method": "none", "confidence": "none",
+                           "evidence": [], "notes": [f"gdb 不可用: {str(error)[:80]}"]}
+            if runtime.get("offset") is not None and runtime.get("confidence") == "proven":
+                stack_truth = {"offset": hex(int(runtime["offset"])),
+                               "method": runtime["method"],
+                               "evidence": runtime["evidence"]}
     # fmt 探针实验：存在格式串审计项时真跑目标验证可控性（修复③）
     fmt_truth = dict(analysis_options.pop("fmt_truth") or {})         if "fmt_truth" in analysis_options else {}
     review_items = list(analysis_options.get("patch_findings") or ())
@@ -132,6 +183,8 @@ def verify_exploit(
         except Exception as error:
             fmt_truth = {"controlled": False, "reason": f"探针失败: {error}"}
     # 先拿到运行时证据再建图：偏移必须进入 graph/strategy，否则策略仍是 blocked
+    if gadgets:
+        analysis_options.setdefault("gadgets", gadgets)
     analysis = analyze_target(binary, stack_truth=stack_truth, fmt_truth=fmt_truth or None,
                               **analysis_options)
     if not analysis.get("strategies"):
@@ -161,7 +214,8 @@ def verify_exploit(
                         "summary": f"策略 {chosen.id} 非 ready，未执行 EXP；缺口："
                                    f"{'；'.join(chosen.missing) or '无'}"}
     return {**generated, "runtime": runtime, "execution": execution,
-            "verification": verification, "menu": menu}
+            "verification": verification, "menu": menu,
+            "vuln_points": vuln_report}
 
 
 def verify_all_exploits(
