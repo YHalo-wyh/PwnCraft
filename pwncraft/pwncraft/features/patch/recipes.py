@@ -361,6 +361,108 @@ def build_ret_function(lab: PatchLab, functions: list[dict], function: str) -> d
     return {"ops": ops, "warnings": ["直接 ret 的返回值不可控；调用方若依赖返回值判断，需一并检查。"]}
 
 
+def find_callee_callsites(functions: list[dict], callee: str) -> list[dict]:
+    """全部 `call callee`/`call callee@plt` 调用点（不限 PLT 名后缀）。"""
+    sites = []
+    for fn in functions:
+        for insn in parse_instruction_lines(fn.get("assembly") or ""):
+            m = _CALL_PLT_RE.match(insn["text"] or "")
+            if m and (m[2] == callee or m[2] == f"{callee}@plt"
+                      or m[2].startswith(f"{callee}@")):
+                sites.append({"function": str(fn["name"]), "insn": insn})
+    return sites
+
+
+def build_nop_callsite(lab: PatchLab, functions: list[dict], callee: str) -> dict:
+    """NOP 掉指定函数的全部调用点（alarm/超时限制类通防，等长 5×0x90）。"""
+    sites = find_callee_callsites(functions, callee)
+    if not sites:
+        raise ValueError(f"反汇编中没有发现对 {callee} 的调用点")
+    ops = []
+    for site in sites:
+        insn = site["insn"]
+        if insn["bytes"][0] != 0xE8 or insn["size"] != 5:
+            raise ValueError(
+                f"0x{insn['address']:x} 的调用不是 5 字节 call rel32，无法 NOP")
+        original = lab.read_at(insn["address"], 5)
+        if original != insn["bytes"]:
+            raise ValueError(f"0x{insn['address']:x} 磁盘字节与反汇编不一致")
+        ops.append(PatchOp(
+            kind="nop_callsite", vaddr=insn["address"],
+            file_offset=lab.offset_of(insn["address"]),
+            original_bytes=original, new_bytes=b"\x90" * 5,
+            note=f"{site['function']}: call {callee} → NOP×5"))
+    return {"ops": ops,
+            "warnings": [f"共 NOP {len(ops)} 处 {callee} 调用；确认程序无其它依赖。"]}
+
+
+def build_uaf_nullify(lab: PatchLab, functions: list[dict], function: str) -> dict:
+    """UAF 修复（蚁景实战手法）：free 调用后把指针槽清零。
+
+    cave 写 `mov qword [rbp-off],0` + 被覆盖的后继指令 + 回跳；
+    free 后继指令 ≥5 字节才可放桩。槽位用 synth.vuln_points 的定义链回溯。
+    """
+    from pwncraft.features.patch.patch_core import find_code_cave, rel32_jmp
+    from pwncraft.features.synth.vuln_points import _backtrack
+    fn, instructions = _function_instructions(functions, function)
+    free_sites = [i for i, ins in enumerate(instructions)
+                  if _calls_callee(ins["text"], "free")]
+    if not free_sites:
+        raise ValueError(f"{function!r} 内没有 free 调用点")
+    geometry = lab.geometry()
+    ops = []
+    for site_idx in free_sites:
+        call_insn = instructions[site_idx]
+        covered = instructions[site_idx + 1:site_idx + 3]
+        covered_size = sum(ins["size"] for ins in covered)
+        if site_idx + 1 >= len(instructions) or covered_size < 5:
+            raise ValueError(
+                f"0x{call_insn['address']:x}: free 后继指令不足 5 字节，无处放桩")
+        chain = _backtrack(instructions, site_idx, "rdi")
+        if chain.get("kind") != "stack":
+            raise ValueError(
+                f"0x{call_insn['address']:x}: free 的指针来源不是栈槽"
+                f"（{chain.get('reason', '未知')}），置零桩无法定位槽位")
+        slot = chain["offset"]
+        disp8 = (-slot) & 0xFF
+        nullify = b"\x48\xc7\x45" + bytes([disp8]) + struct.pack("<I", 0)
+        after_bytes = b"".join(ins["bytes"] for ins in covered)
+        cave_need = len(nullify) + covered_size + 5
+        cave = find_code_cave(lab.binary, cave_need, geometry=geometry)
+        cave_v = cave["vaddr"]
+        after_addr = after["address"]
+        payload = (nullify + after_bytes
+                   + rel32_jmp(cave_v + len(nullify) + len(after_bytes),
+                               after_addr + covered_size))
+        cave_original = lab.read(cave["offset"], len(payload))
+        if cave_original.strip(b"\x00"):
+            raise ValueError("code cave 不再全零，文件已被修改")
+        original = lab.read_at(after_addr, covered_size)
+        ops.append(PatchOp(
+            kind="uaf_nullify", vaddr=after_addr,
+            file_offset=lab.offset_of(after_addr),
+            original_bytes=original,
+            new_bytes=rel32_jmp(after_addr, cave_v) + b"\x90" * (covered_size - 5),
+            note=f"{fn['name']}: free 后清零 [rbp-{slot:#x}]（UAF 修复桩）"))
+        ops.append(PatchOp(
+            kind="uaf_nullify_cave", vaddr=cave_v, file_offset=cave["offset"],
+            original_bytes=cave_original, new_bytes=payload,
+            note=f"UAF 置零桩（槽 rbp-{slot:#x}，{len(payload)} 字节）"))
+    return {"ops": ops,
+            "warnings": ["UAF 桩假设槽位在 rbp 负偏移帧内数组；堆元数据类 UAF 不适用。",
+                         "free 后被覆盖的后继指令已搬入 cave 原样执行。"]}
+
+
+def build_sprintf_rebind(lab: PatchLab, functions: list[dict], function: str,
+                         callsite: int) -> dict:
+    """格式串修复实战简版：printf(vuln) 调用点重定向到 puts@plt。
+
+    puts 无格式串风险（丢失格式化能力，AWDP 修复场景可接受）；
+    复用 plt_call 的 rel32 重定向。
+    """
+    return build_plt_call_redirect(lab, functions, "printf", "puts")
+
+
 def _prefix_region(instructions: list[dict], minimum: int) -> tuple[int, bytes]:
     """Return a whole-instruction function prefix large enough for a replacement."""
     selected: list[dict] = []
@@ -373,6 +475,118 @@ def _prefix_region(instructions: list[dict], minimum: int) -> tuple[int, bytes]:
     if size < minimum:
         raise ValueError(f"函数入口只有 {size} 字节，放不下 {minimum} 字节返回桩")
     return selected[0]["address"], b"".join(insn["bytes"] for insn in selected)
+
+
+def build_strcpy_limit(lab: PatchLab, functions: list[dict], function: str,
+                       limit: int) -> dict:
+    """strcpy 限长：cave 桩 `mov edx,N; jmp strncpy@plt`，调用点重定向。"""
+    from pwncraft.features.patch.patch_core import find_code_cave, rel32_jmp
+    stubs = extract_plt_stubs(functions)
+    for name in ("strcpy", "strncpy"):
+        if name not in stubs:
+            raise ValueError(f"PLT 里没有 {name}@plt（strncpy 未导入则无法限长改写）")
+    limit = int(limit)
+    if not 0 < limit <= 0xFFFFFFFF:
+        raise ValueError("限长超出 u32 范围")
+    sites = find_callee_callsites(functions, "strcpy")
+    scope = [s for s in sites if not function or s["function"] == function]
+    if not scope:
+        raise ValueError(
+            f"没有{'在该函数内的' if function else ''}strcpy 调用点"
+            f"（全部 {len(sites)} 处在其它函数）")
+    strncpy_v = stubs["strncpy"]["address"]
+    stub = b"\xf3\x0f\x1e\xfa\xba" + struct.pack("<I", limit)
+    # jmp rel32 的位移依赖 stub 终地址，cave 定位后回填
+    stub_len = len(stub) + 5
+    cave = find_code_cave(lab.binary, stub_len, geometry=lab.geometry())
+    cave_v = cave["vaddr"]
+    stub += rel32_jmp(cave_v + 9, strncpy_v)
+    cave_original = lab.read(cave["offset"], len(stub))
+    if cave_original.strip(b"\x00"):
+        raise ValueError("code cave 不再全零，文件已被修改")
+    ops = [PatchOp(kind="strcpy_limit_cave", vaddr=cave_v, file_offset=cave["offset"],
+                   original_bytes=cave_original, new_bytes=stub,
+                   note=f"strncpy 限长桩（N={limit:#x}）")]
+    for site in scope:
+        insn = site["insn"]
+        if insn["bytes"][0] != 0xE8 or insn["size"] != 5:
+            raise ValueError(f"0x{insn['address']:x} 的 strcpy 调用不是 5 字节 rel32")
+        original = lab.read_at(insn["address"], 5)
+        if original != insn["bytes"]:
+            raise ValueError(f"0x{insn['address']:x} 磁盘字节与反汇编不一致")
+        ops.append(PatchOp(
+            kind="strcpy_limit", vaddr=insn["address"],
+            file_offset=lab.offset_of(insn["address"]),
+            original_bytes=original,
+            new_bytes=rel32_jmp(insn["address"], cave_v),
+            note=f"{site['function']}: strcpy → strncpy（N={limit:#x}）"))
+    return {"ops": ops,
+            "warnings": ["strncpy 不补 NUL 终止符；截断后的字符串下游使用需人工确认。",
+                         "strcpy 调用点直接改跳桩，rdi/rsi 参数原样传递。"]}
+
+
+def build_setvbuf_unbuffered(lab: PatchLab, functions: list[dict], *,
+                             entry_lines: list[dict],
+                             got_stdout: int | None) -> dict:
+    """入口注入 setvbuf(stdout,0,_IONBF,0)（cave 桩 + 入口 trampoline）。
+
+    需要：setvbuf@plt 存在、重定位表解析出 stdout 的 GOT 槽（GLOB_DAT）。
+    桩语义：rdi = *(stdout@got)（FILE*），esi=0，edx=2（_IONBF），ecx=0。
+    """
+    from pwncraft.features.patch.patch_core import (
+        entry_prefix_bytes, find_code_cave, rel32_jmp)
+    stubs = extract_plt_stubs(functions)
+    if "setvbuf" not in stubs:
+        raise ValueError("PLT 里没有 setvbuf@plt（二进制未导入 setvbuf）")
+    if got_stdout is None:
+        raise ValueError(
+            "重定位表里没有 stdout（GLOB_DAT）；静态题或符号缺失时请用汇编补丁")
+    if not entry_lines:
+        raise ValueError("缺少入口指令序列")
+    prefix = entry_prefix_bytes(entry_lines)
+    prefix_len = len(prefix)
+    # 桩：mov rax,[rip+disp](7) mov rdi,rax(3) xor esi,esi(2) mov edx,2(5)
+    #     xor ecx,ecx(2) call setvbuf@plt(5) = 24 字节
+    stub_len = 28
+    cave_need = stub_len + prefix_len + 5
+    cave = find_code_cave(lab.binary, cave_need, geometry=lab.geometry())
+    cave_v = cave["vaddr"]
+    plt_v = stubs["setvbuf"]["address"]
+    got_disp = got_stdout - (cave_v + 9)
+    if not -0x80000000 <= got_disp < 0x80000000:
+        raise ValueError("stdout GOT 槽距 cave 过远，无法 RIP 相对寻址")
+    stub = bytearray()
+    stub += b"R"                                          # push rdx（保存 rtld_fini）
+    stub += b"R"                                          # push rdx（保持 16 对齐）
+    stub += b"\x48\x8b\x05" + struct.pack("<i", got_disp)   # mov rax,[rip+d]
+    stub += b"\x48\x89\xc7"                                  # mov rdi,rax
+    stub += b"\x31\xf6"                                      # xor esi,esi
+    stub += b"\xba\x02\x00\x00\x00"                          # mov edx,2 (_IONBF)
+    stub += b"\x31\xc9"                                      # xor ecx,ecx
+    stub += rel32_jmp(cave_v + 20, plt_v)                    # call setvbuf@plt
+    stub += b"Z"                                          # pop rdx（恢复 rtld_fini）
+    stub += b"Z"                                          # pop rdx（保持 16 对齐）
+    entry = int(lab.geometry()["entry"])
+    entry_original = lab.read_at(entry, prefix_len)
+    back_at = cave_v + stub_len + prefix_len
+    payload = bytes(stub) + prefix + rel32_jmp(back_at, entry + prefix_len)
+    cave_original = lab.read(cave["offset"], len(payload))
+    if cave_original.strip(b"\x00"):
+        raise ValueError("code cave 不再全零，文件已被修改")
+    if entry_original[:1] == b"\xe9":
+        raise ValueError("入口首字节已是 jmp rel32——可能已注入过 trampoline，先撤销旧补丁")
+    ops = [
+        PatchOp(kind="setvbuf_entry", vaddr=entry, file_offset=lab.offset_of(entry),
+                original_bytes=entry_original,
+                new_bytes=rel32_jmp(entry, cave_v) + b"\x90" * (prefix_len - 5),
+                note=f"setvbuf 无缓冲入口跳转（覆盖 {prefix_len} 字节前缀，已存 cave）"),
+        PatchOp(kind="setvbuf_cave", vaddr=cave_v, file_offset=cave["offset"],
+                original_bytes=cave_original, new_bytes=payload,
+                note="setvbuf(stdout,0,_IONBF,0) 安装桩"),
+    ]
+    return {"ops": ops,
+            "warnings": ["修复版输出即时刷新，行为与原版一致；与其它入口注入手法"
+                         "（seccomp）互斥——入口只能跳转一次，按需二选一。"]}
 
 
 def build_return_constant(lab: PatchLab, functions: list[dict], function: str, value: int) -> dict:
@@ -632,5 +846,71 @@ RECIPE_CATALOG: tuple[dict, ...] = (
             "适用：同 nop_function，但改动更小、更容易过尺寸/哈希校验。"),
         "fields": [{"key": "function", "label": "目标函数", "kind": "select", "dynamic": True}],
         "warnings": ("返回值 eax 为调用前残留值，不可控；调用方依赖返回值时需一并检查。",),
+    },
+    {
+        "id": "alarm_remove",
+        "name": "alarm / 超时限制移除",
+        "usage": (
+            "把反汇编中全部 call alarm@plt 改为 NOP×5。修复后的程序不再被比赛环境的"
+            "超时中断打断——很多真实赛题 timeout 3 起手，修复版跑长交互就被杀，"
+            "这一条是隐形必需品。\n"
+            "适用：任何导入了 alarm 的题目（checksec/readelf 看不到，看 PLT 列表）。"),
+        "fields": [{"key": "callee", "label": "目标调用", "kind": "select",
+                    "options": [{"value": "alarm", "label": "alarm"},
+                                {"value": "setrlimit", "label": "setrlimit"}]}],
+        "warnings": ("超时是赛题防资源滥用的设计，确认比赛规则允许移除。",),
+    },
+    {
+        "id": "uaf_free_null",
+        "name": "UAF 修复 · free 后指针置零",
+        "usage": (
+            "蚁景/intelpwn 实战手法：free 调用后在 code cave 放置"
+            "`mov qword [rbp-off],0` 桩并回跳——指针槽清零后 double free / UAF "
+            "路径被切断，业务逻辑不受影响（经典「UAF 的敌人」）。\n"
+            "适用：free(p) 后未置空 p 的堆题；要求指针槽在 rbp 负偏移帧内、"
+            "free 后继指令 ≥5 字节可搬。"),
+        "fields": [{"key": "function", "label": "目标函数（含 free 调用）",
+                    "kind": "select", "dynamic": True}],
+        "warnings": ("堆元数据类 UAF（tcache poison 等）不适用此桩；栈槽定位失败会明确报错。",
+                     "free 后被覆盖的后继指令会搬入 cave 原样执行。",),
+    },
+    {
+        "id": "fmt_puts",
+        "name": "格式串修复 · printf→puts",
+        "usage": (
+            "格式串漏洞最常用修复：printf(user_input) 把用户输入当格式串。"
+            "把全部 printf 调用点重定向到 puts@plt——puts 不解析格式串，漏洞根除；"
+            "代价是丢失 %d/%s 格式化输出，菜单类程序通常可接受。\n"
+            "适用：存在 printf/fprintf 且第一个参数来自用户输入（漏洞检测会给出候选）。\n"
+            "提示：需要保留格式化输出时，改用「汇编补丁」手工构造 printf(\"%s\", x)。"),
+        "fields": [{"key": "function", "label": "限定函数（空=全部调用点）",
+                    "kind": "select", "dynamic": True}],
+        "warnings": ("puts 自动附加换行；程序若按格式化输出解析（如对账菜单）需人工确认。",
+                     "只处理 printf；snprintf/fprintf 请用汇编补丁手工处理。",),
+    },
+    {
+        "id": "strcpy_limit",
+        "name": "strcpy 限长 · 改写 strncpy", "experimental": True,
+        "usage": (
+            "strcpy 无界复制 → cave 桩 `mov edx, N; jmp strncpy@plt`，调用点重定向："
+            "复制长度被硬限到 N（默认与目标缓冲一致）。\n"
+            "适用：strcpy/strcat 导致的栈/堆溢出，且二进制已导入 strncpy。"),
+        "fields": [{"key": "function", "label": "目标函数（含 strcpy 调用）",
+                    "kind": "select", "dynamic": True},
+                   {"key": "limit", "label": "复制上限（0x.. 或十进制）",
+                    "kind": "number", "default": "0x40"}],
+        "warnings": ("截断不复制 NUL 终止符，需确认下游字符串使用；"
+                     "strncpy 未导入时报错。",),
+    },
+    {
+        "id": "setvbuf_unbuffered",
+        "name": "输出即时刷新 · setvbuf 无缓冲", "experimental": True,
+        "usage": (
+            "入口 cave 注入 setvbuf(stdout,0,_IONBF,0)：修复后程序输出不再滞留"
+            "缓冲区——AWDP 攻击判定脚本常因修复版输出不及时而误判失败，这条让"
+            "修复版行为与原版一致。\n"
+            "适用：任何题目；与其它通防手法叠加时放最后应用。"),
+        "fields": [],
+        "warnings": ("要求二进制导入了 setvbuf；未导入时报错。",),
     },
 )

@@ -471,12 +471,14 @@
       ${cache.loading ? '<div class="analysis-hint" role="status">正在读取汇编函数…</div>' : ''}
       ${cache.functionsError ? `<div class="analysis-error">${esc(cache.functionsError)}</div>` : ''}
       <div class="analysis-layout"><aside class="analysis-function-sidebar">
-        <input id="patch-filter" type="search" placeholder="搜索函数名 / 地址" aria-label="搜索函数" value="${esc(cache.filter)}">
+        <input id="patch-jump" class="input mono" placeholder="跳转地址 0x…（回车定位函数）" aria-label="按地址跳转函数" value="${esc(cache.jumpAddr || '')}">
+        <input id="patch-filter" type="search" placeholder="搜索函数名 / 地址（共 ${functions.length} 个）" aria-label="搜索函数" value="${esc(cache.filter)}">
         <div id="patch-fn-list" aria-label="函数列表">
-          ${matches.map(({ fn: f, index }) => `
+          ${matches.slice(0, 300).map(({ fn: f, index }) => `
             <button class="analysis-function ${cache.selectedFn === index ? 'selected' : ''}" data-index="${index}" aria-pressed="${cache.selectedFn === index}">
               <span>${esc(f.name)}</span><code>${esc(f.address)}</code></button>`).join('') ||
             `<div class="analysis-empty">${cache.loading ? '读取中…' : needle ? '没有匹配的函数。' : '没有可展示的函数。'}</div>`}
+          ${matches.length > 300 ? `<div class="analysis-empty">共 ${matches.length} 个匹配，仅渲染前 300 个——继续输入缩小范围。</div>` : ''}
         </div>
       </aside><div class="analysis-function-detail">
         <div class="patch-ida-bar">
@@ -543,6 +545,22 @@
         const next = cache.functions?.[cache.selectedFn];
         if (next) loadInstructions(entry, next.name);
       }
+    };
+    const jump = query('#patch-jump');
+    if (jump) jump.onkeydown = async (event) => {
+      if (event.key !== 'Enter' || !jump.value.trim()) return;
+      try {
+        const result = await window.pwncraft.request('patch_instructions', { vaddr: jump.value.trim() });
+        cache.instructions = result;
+        cache.instructionsError = '';
+        const fnName = result.function;
+        const fnIndex = (cache.functions || []).findIndex(f => f.name === fnName);
+        if (fnIndex >= 0) { cache.selectedFn = fnIndex; cache.filter = fnName; }
+        cache.message = `已定位 ${jump.value.trim()} → ${fnName}`;
+      } catch (error) {
+        cache.error = error.message || String(error);
+      }
+      render();
     };
     panel.querySelectorAll('#patch-fn-list button').forEach((button) => {
       button.onclick = () => {
@@ -753,8 +771,12 @@
       <div class="patch-recipes">
         ${recipes.map(recipe => {
           const options = dynamicOptionsFor(cache, recipe);
+          const rankBadge = recipe.score > 0
+            ? `<span class="chip patch-rank" title="漏洞检测驱动排序">${esc(recipe.rank_reason || `候选 +${recipe.score}`)}</span>` : '';
+          const expBadge = recipe.experimental ? '<span class="chip patch-exp">实验性</span>' : '';
           return `<article class="recipe-card card">
-            <div class="card-title">${esc(recipe.name)}
+            <div class="card-title">${expBadge}${esc(recipe.name)}
+              ${rankBadge}
               <span class="flex-spacer"></span>
               <button class="mini-btn primary patch-recipe-preview" data-recipe="${esc(recipe.id)}" ${cache.busy ? 'disabled' : ''}>预览补丁</button>
             </div>

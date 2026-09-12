@@ -85,7 +85,9 @@ def parse_objdump_relocations(text: str) -> dict[str, int]:
         symbol = value_field.split("@")[0].strip()
         if not re.fullmatch(r"[A-Za-z_$][A-Za-z0-9_$]*", symbol):
             continue
-        if "GLOB_DAT" not in reloc_type and "JUMP_SLOT" not in reloc_type:
+        if "GLOB_DAT" not in reloc_type and "JUMP_SLOT" not in reloc_type                 and "COPY" not in reloc_type:
+            # COPY：符号本体被拷入 .bss，记录其 vaddr（setvbuf 注入要读
+            # stdout 变量内容——两种重定位下 [vaddr] 都是 FILE*）
             continue
         try:
             got[symbol] = int(raw_offset, 16)

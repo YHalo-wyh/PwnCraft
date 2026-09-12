@@ -9953,3 +9953,10 @@ select.input { font: inherit; }
 .pwncraft-chip-label { color: var(--text-strong); font-weight: 700; font-size: 12px; }
 .pwncraft-code-chip { padding: 10px 11px; border-radius: 9px; margin-bottom: 8px; background: #19222d; }
 .pwncraft-chip-hint { display: none; }
+
+.patch-rank { margin-left: 8px; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#patch-jump { margin-bottom: 6px; }
+
+.patch-rank { margin-left: 8px; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#patch-jump { margin-bottom: 6px; }
+.patch-exp { background: rgba(210, 153, 34, 0.2); color: var(--warning); }
