@@ -32,6 +32,7 @@ Surface map (v0.29):
 from __future__ import annotations
 
 import json
+import re
 import shlex
 import sys
 import threading
@@ -78,12 +79,14 @@ from pwncraft.features.heapviz.templates import HEAP_TEMPLATES
 from pwncraft.features.patch.patch_core import PatchLab, PatchOp, parse_instruction_lines
 from pwncraft.features.patch.recipes import (
     RECIPE_CATALOG, build_code_cave_hook, build_custom_bytes, build_instruction_patch,
-    build_jcc_mode, build_nop_function,
+    build_jcc_mode, build_nop_callsite, build_nop_function,
     build_nop_range, build_plt_call_redirect, build_plt_stub_redirect,
-    build_read_length, build_ret_function, build_return_constant, build_skip_call_result,
+    build_read_length, build_ret_function, build_return_constant, build_setvbuf_unbuffered,
+    build_skip_call_result, build_strcpy_limit, build_uaf_nullify,
     normalize_patch_arch)
 from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
 from pwncraft.features.patch.bytecode_catalog import assemble, catalog_entries, disasm_raw, encode_template
+from pwncraft.features.synth.vuln_points import scan_functions
 from pwncraft.features.patch.ida_link import IdaCliLink, IdaLinkError
 from pwncraft.features.patch.audit import audit_patch_surface
 from pwncraft.features.patch.exporters import (
@@ -356,7 +359,10 @@ class ElectronBridge:
         if not result.ok:
             return [], result.combined_output() or f"objdump 退出码 {result.returncode}"
         from pwncraft.core.code_analysis import parse_disassembly
-        functions = parse_disassembly(result.stdout)["functions"]
+        # 全量函数视图：不截断函数数与单函数行数（UI 渲染侧自行按需分页，
+        # 真值层永远给完整事实——用户要求"导入即显示所有函数与汇编"）
+        functions = parse_disassembly(
+            result.stdout, max_functions=200000, max_lines=200000)["functions"]
         if len(self._disasm_cache) >= 4:
             self._disasm_cache.clear()
         self._disasm_cache[key] = functions
@@ -485,7 +491,103 @@ class ElectronBridge:
                                        expected_size=(int(expected)
                                                       if expected is not None else None))
             return built["ops"], built["warnings"]
+        if kind == "alarm_remove":
+            built = build_nop_callsite(lab, functions(),
+                                       str(request.get("callee") or "alarm"))
+            return built["ops"], built["warnings"]
+        if kind == "uaf_free_null":
+            built = build_uaf_nullify(lab, functions(), pick_function(""))
+            return built["ops"], built["warnings"]
+        if kind == "fmt_puts":
+            scope_fn = str(request.get("function") or "").strip()
+            built = build_plt_call_redirect(lab, functions(), "printf", "puts",
+                                            function=scope_fn or "")
+            return built["ops"], built["warnings"]
+        if kind == "strcpy_limit":
+            built = build_strcpy_limit(lab, functions(), pick_function(""),
+                                       int(str(request.get("limit") or "0x40"), 0))
+            return built["ops"], built["warnings"]
+        if kind == "setvbuf_unbuffered":
+            from pwncraft.core.static_facts import parse_objdump_relocations
+            geometry = lab.geometry()
+            entry_result = self._runner.run_tool("objdump", [
+                "-d", f"--start-address={geometry['entry']}",
+                f"--stop-address={geometry['entry'] + 64}",
+                "--", self._runner.to_wsl_path(binary)])
+            if not entry_result.ok:
+                raise ValueError(f"入口反汇编失败: {entry_result.combined_output()}")
+            relocs_r = self._runner.run_tool("objdump", ["-R", "--",
+                                                    self._runner.to_wsl_path(binary)])
+            got = (parse_objdump_relocations(relocs_r.stdout).get("stdout")
+                   if relocs_r.ok else None)
+            built = build_setvbuf_unbuffered(
+                lab, functions(),
+                entry_lines=parse_instruction_lines(entry_result.stdout),
+                got_stdout=got)
+            return built["ops"], built["warnings"]
         raise ValueError(f"未知补丁类型: {kind or '(空)'}")
+
+    def _recipe_ranking(self, lab: PatchLab) -> dict[str, dict]:
+        """漏洞检测驱动排序：按真实调用点/导入/确认漏洞给每张卡打分。
+
+        分数来源（全部可验证证据）：确认漏洞点（vuln_points）、目标函数的
+        调用点数量、PLT 导入存在性。返回 {recipe_id: {score, reason}}。
+        """
+        try:
+            functions, error = self._disassemble_functions(lab.binary)
+            if error:
+                functions = []
+        except Exception:
+            functions = []
+        plt_names = {str(f["name"]).removesuffix("@plt")
+                     for f in functions if str(f["name"]).endswith("@plt")}
+        counts: dict[str, int] = {}
+        for f in functions:
+            for m in re.finditer(r"call\w*\s+[0-9a-fA-F]+\s+<([^>]+)>",
+                                 f.get("assembly") or ""):
+                name = m.group(1).split("@")[0]
+                counts[name] = counts.get(name, 0) + 1
+        try:
+            points = scan_functions(functions, binary_path=lab.binary)
+        except Exception:
+            points = []
+        confirmed_reads = [p for p in points
+                           if p["verdict"] in ("overflow_confirmed", "unbounded_input")
+                           and p["callee"] in ("read", "fgets")]
+        fmt_sites = counts.get("printf", 0) + counts.get("sprintf", 0)
+        free_sites = counts.get("free", 0)
+        score: dict[str, dict] = {}
+
+        def put(rid: str, s: int, reason: str):
+            score[rid] = {"score": s, "reason": reason}
+
+        if confirmed_reads:
+            put("readlen", 100,
+                f"检测到 {len(confirmed_reads)} 处已确认溢出的读入点")
+        if fmt_sites:
+            put("fmt_puts", 90, f"printf/sprintf 调用点 {fmt_sites} 处（格式串风险）")
+        if free_sites:
+            put("uaf_free_null", 80, f"free 调用点 {free_sites} 处（可置零指针槽）")
+        if counts.get("strcpy"):
+            put("strcpy_limit", 70, f"strcpy 调用点 {counts['strcpy']} 处（无界复制）")
+        if "system" in plt_names or "execve" in plt_names:
+            put("plt_call", 60, "PLT 存在 system/execve（危险调用点劫持）")
+            put("plt_stub", 55, "PLT 存在 system/execve（stub 级全局劫持）")
+        if "alarm" in plt_names:
+            put("alarm_remove", 50, "导入 alarm（防修复版被超时中断）")
+        if "setvbuf" in plt_names:
+            put("setvbuf_unbuffered", 40, "导入 setvbuf（输出即时刷新）")
+        put("seccomp", 30, "沙箱通防兜底（不依赖具体漏洞点）")
+        put("nop_function", 20, "")
+        put("ret_function", 20, "")
+        put("return_constant", 20, "")
+        put("jcc_mode", 20, "")
+        put("cave_hook", 20, "")
+        put("nop_range", 20, "")
+        put("nop_call", 20, "")
+        put("assembly", 20, "")
+        put("skip_call_result", 20, "")
+        return score
 
     def rpc_patch_recipes(self, params: dict) -> dict:
         def normalize(recipe: dict) -> dict:
@@ -494,7 +596,18 @@ class ElectronBridge:
             payload["warnings"] = list(warnings) if isinstance(warnings, (list, tuple)) \
                 else ([str(warnings)] if warnings else [])
             return payload
-        return {"recipes": [normalize(recipe) for recipe in RECIPE_CATALOG],
+        recipes = [normalize(recipe) for recipe in RECIPE_CATALOG]
+        try:
+            lab = self._patch_lab(params)
+            ranking = self._recipe_ranking(lab)
+        except Exception:
+            ranking = {}
+        for recipe in recipes:
+            info = ranking.get(str(recipe["id"])) or {}
+            recipe["score"] = int(info.get("score") or 0)
+            recipe["rank_reason"] = str(info.get("reason") or "")
+        recipes.sort(key=lambda r: -r["score"])
+        return {"recipes": recipes,
                 "seccomp_presets": {key: {k: v for k, v in conf.items() if k != "warnings"}
                                     for key, conf in SECCOMP_PRESETS.items()}}
 
@@ -735,12 +848,28 @@ class ElectronBridge:
 
     def rpc_patch_instructions(self, params: dict) -> dict:
         name = str(params.get("function") or "").strip()
-        if not name:
-            raise ValueError("未选择函数")
+        vaddr = str(params.get("vaddr") or "").strip()
         lab = self._patch_lab(params)
         functions, error = self._disassemble_functions(lab.binary)
         if error:
             raise ValueError(f"反汇编失败: {error}")
+        if not name and vaddr:
+            # Keypatch 式任意位置：按地址定位所属函数
+            target = int(vaddr, 0)
+            for f in functions:
+                insns = parse_instruction_lines(f.get("assembly") or "")
+                if not insns:
+                    continue
+                start = insns[0]["address"]
+                end = insns[-1]["address"] + insns[-1]["size"]
+                if start <= target < end:
+                    name = str(f.get("name"))
+                    break
+            if not name:
+                raise ValueError(
+                    f"地址 {vaddr} 不在任何函数范围内；请输入函数起始地址或从列表选择")
+        if not name:
+            raise ValueError("未选择函数")
         fn = next((f for f in functions if str(f.get("name")) == name), None)
         if fn is None:
             raise ValueError(f"函数 {name!r} 不在当前反汇编列表中")

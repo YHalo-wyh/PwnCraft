@@ -24,7 +24,7 @@ from pwncraft.features.synth.render import render_exp
 from pwncraft.features.synth.roundtrip import VERDICT_CLEAN, verify_exp
 from pwncraft.features.synth.runtime import (discover_stack_offset, resolve_offset,
                                              run_exp_source, summarize_runtime)
-from pwncraft.features.synth.strategy import plan_strategies
+from pwncraft.features.synth.strategy import ExploitStrategy, best_strategy, plan_strategies
 
 # objdump 行含 ASCII 列伪装成十六进制的真实踩坑样本（最后一段以 "652 i18n" 开头）
 DUMP_SAMPLE = (
@@ -238,6 +238,13 @@ class GraphTests(TestCase):
 
 
 class StrategyTests(TestCase):
+    def test_best_strategy_uses_stable_priority_over_missing_count(self):
+        candidates = [
+            ExploitStrategy("ret2csu-libc", "csu", "blocked", missing=("x",)),
+            ExploitStrategy("ret2libc", "libc", "blocked", missing=("x", "y")),
+        ]
+        self.assertEqual(best_strategy(candidates).id, "ret2libc")
+
     def test_ret2win_requires_observed_offset_and_alignment(self):
         facts = facts_for_tests()
         blocked = plan_strategies(facts, build_primitive_graph(facts))

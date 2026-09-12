@@ -118,7 +118,7 @@ def verify_exploit(
         facts = BinaryInspector().inspect(binary)
         runtime = discover_stack_offset(binary, runner=runner, bits=facts.bits,
                                         timeout=timeout, menu_steps=menu_steps)
-        if runtime.get("offset") is not None:
+        if runtime.get("offset") is not None and runtime.get("confidence") == "proven":
             stack_truth = {"offset": hex(int(runtime["offset"])), "method": runtime["method"],
                            "evidence": runtime["evidence"]}
     # fmt 探针实验：存在格式串审计项时真跑目标验证可控性（修复③）
@@ -150,7 +150,9 @@ def verify_exploit(
                              **analysis_options)
     chosen: ExploitStrategy | None = generated.get("strategy")  # type: ignore[assignment]
     execution = None
-    if generated.get("rendered") is not None and chosen is not None and chosen.status == "ready":
+    if (generated.get("rendered") is not None and chosen is not None
+            and chosen.status == "ready" and not generated["rendered"].unresolved
+            and generated["verdict"].get("verdict") == "ROUND_TRIP_CLEAN"):
         execution = run_exp_source(generated["rendered"].source, runner=runner,
                                    target_path=binary, marker=marker, timeout=timeout)
     verification = summarize_runtime(runtime, execution)
@@ -176,14 +178,60 @@ def verify_all_exploits(
     每个候选都独立执行，只有运行结果明确命中 marker 才算 VERIFIED；
     调用方可据此安全替换当前 EXP，失败候选不会被误标为可用。
     """
-    analysis = analyze_target(binary, runner=runner, patch_findings=patch_findings,
-                              **analysis_options)
+    options = dict(analysis_options)
+    initial = analyze_target(binary, runner=runner, patch_findings=patch_findings,
+                             **options)
+    stack_candidates = {"ret2win", "ret2plt", "ret2libc", "srop", "orw"}
+    needs_stack = any(item.id in stack_candidates for item in initial["strategies"])
+    if options.get("stack_truth") is None and needs_stack:
+        from pwncraft.core.workbench import BinaryInspector
+        from .menu import detect_menu, prelude_script
+        from .runtime import discover_stack_offset
+
+        menu_steps = None
+        try:
+            result_objd = runner.run_tool("objdump", ["-d", "--", runner.to_wsl_path(binary)])
+            if result_objd.ok:
+                from pwncraft.core.code_analysis import parse_disassembly
+                fns = parse_disassembly(result_objd.stdout, max_functions=200000)["functions"]
+                menu_steps = prelude_script(detect_menu(binary, fns)) or None
+        except Exception:
+            pass
+        facts = BinaryInspector().inspect(binary)
+        observed = discover_stack_offset(binary, runner=runner, bits=facts.bits,
+                                         timeout=timeout, menu_steps=menu_steps)
+        if observed.get("offset") is not None and observed.get("confidence") == "proven":
+            options["stack_truth"] = {
+                "offset": hex(int(observed["offset"])),
+                "method": observed.get("method", "observed"),
+                "evidence": list(observed.get("evidence") or []),
+            }
+    analysis = (analyze_target(binary, runner=runner, patch_findings=patch_findings,
+                               **options) if options != analysis_options else initial)
     results: list[dict] = []
+    # 只对 ready 路线启动目标。blocked/unknown 仍然出现在报告里，便于
+    # UI 展示缺口，但不会为每个占位候选重复执行一次 gdb/菜单探测。
+    ready = [item for item in analysis.get("strategies", ())
+             if item.status == "ready"]
+    runtime_truth = options.get("stack_truth")
     for item in analysis.get("strategies", ()):
+        if item.status != "ready":
+            results.append({
+                "strategy": item.id,
+                "status": "NOT_RUN",
+                "summary": f"策略 {item.id} 未执行：{'；'.join(item.missing) or '状态非 ready'}",
+                "verified": False,
+                "source": "",
+                "skipped": True,
+                "report": detection_report(analysis),
+            })
+            continue
+        candidate_options = dict(options)
+        if runtime_truth is not None:
+            candidate_options["stack_truth"] = runtime_truth
         result = verify_exploit(binary, runner=runner, strategy=item.id,
                                 timeout=timeout, marker=marker,
-                                patch_findings=patch_findings,
-                                **analysis_options)
+                                patch_findings=patch_findings, **candidate_options)
         verification = dict(result.get("verification") or {})
         results.append({
             "strategy": item.id,
@@ -192,11 +240,14 @@ def verify_all_exploits(
             "verified": verification.get("status") == "VERIFIED_SHELL",
             "source": (result.get("rendered").source
                         if result.get("rendered") is not None else ""),
+            "skipped": False,
             "report": detection_report(result),
         })
     winner = next((item for item in results if item["verified"]), None)
     return {"analysis": detection_report(analysis), "candidates": results,
-            "winner": winner, "verified_count": sum(1 for item in results if item["verified"])}
+            "winner": winner, "verified_count": sum(1 for item in results if item["verified"]),
+            "attempted_count": len(ready),
+            "skipped_count": len(results) - len(ready)}
 
 
 def detection_report(analysis: Mapping[str, object], *, include_facts: bool = False) -> dict:

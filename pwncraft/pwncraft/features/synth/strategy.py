@@ -20,6 +20,21 @@ STATUS_BLOCKED = "blocked"
 
 _STATUS_RANK = {STATUS_READY: 0, STATUS_UNKNOWN: 1, STATUS_BLOCKED: 2}
 
+# ``missing`` 的数量不能代表路线质量：一个 speculative 候选往往只写了
+# 一个占位缺口，却比已有完整泄漏链少不了多少字段。固定优先级保证输出
+# 在不同探测结果/候选插入顺序下仍然稳定，也让 CLI/UI 的 best 路线可解释。
+_STRATEGY_PRIORITY = {
+    "ret2win": 10,
+    "ret2plt": 20,
+    "ret2libc": 30,
+    "canary-leak-ret2libc": 35,
+    "ret2csu-libc": 40,
+    "fmt_write": 50,
+    "orw": 60,
+    "srop": 70,
+    "heap": 80,
+}
+
 
 @dataclass(frozen=True)
 class ExploitStrategy:
@@ -70,6 +85,8 @@ def plan_strategies(
     pie = facts.is_pie()
     nx = str(facts.security.get("NX") or "UNKNOWN").upper() == "ON"
     hijack_missing = ("控制流劫持偏移未证明（需要崩溃/调试证据）",) if hijack != CONFIDENCE_PROVEN else ()
+    canary_missing = ("Canary 已开启但没有泄漏与回填事实",) \
+        if str(facts.security.get("CANARY") or "").upper() == "ON" else ()
     pie_missing = ("PIE 已开启但无基址泄漏事实",) if pie else ()
     # x86-64：直接返回进函数需要 16 字节栈对齐，落一次裸 ret（由反汇编证明）
     align_missing = () if (facts.bits != 64 or graph.proven("gadget:ret")) else \
@@ -84,7 +101,7 @@ def plan_strategies(
 
     # 1) ret2win：程序内已有「以命令为参数」的调用点
     if wins:
-        missing = list(hijack_missing) + list(pie_missing) + list(align_missing)
+        missing = list(hijack_missing) + list(pie_missing) + list(canary_missing) + list(align_missing)
         strategies.append(ExploitStrategy(
             id="ret2win", name="ret2win（跳过程序内现成调用点）",
             status=STATUS_READY if not missing else STATUS_BLOCKED,
@@ -97,7 +114,7 @@ def plan_strategies(
     # 2) ret2plt：system@plt + /bin/sh + 溢出
     if "system" in facts.plt:
         missing = [] if shell else ["未找到壳字符串（/bin/sh、/bin/bash、/bin/cat）"]
-        missing += list(hijack_missing) + list(pie_missing) + list(align_missing)
+        missing += list(hijack_missing) + list(pie_missing) + list(canary_missing) + list(align_missing)
         if not graph.proven("gadget:rdi") and facts.bits == 64:
             missing.append("pop rdi 控制 gadget 未从 gadget shelf 证明")
         strategies.append(ExploitStrategy(
@@ -112,7 +129,8 @@ def plan_strategies(
 
     # 3) ret2libc：泄漏 + libc 偏移
     if leak is not None:
-        missing = list(hijack_missing) + list(align_missing)
+        missing = list(hijack_missing) + list(pie_missing) + list(canary_missing) + list(align_missing)
+        missing.append("两阶段 GOT 泄漏与重新进入输入点尚未由渲染器实现")
         if not libc_symbols:
             missing.append("libc 文件未提供或符号未解析（system/puts/str_bin_sh）")
         if not graph.proven("gadget:rdi") and facts.bits == 64:
@@ -125,6 +143,37 @@ def plan_strategies(
             steps=("泄漏 puts@got → libc base", "再次触发溢出",
                    "ret2libc：pop rdi + binsh@libc + system@libc"),
             renderer="ret2libc"))
+        # 变体链：Canary 题先走泄漏/回显，再回到同一输入点；即使尚未
+        # 证明完整偏移，也把“先泄漏 canary 再 ret2libc”作为独立候选，
+        # 便于自动验证器逐条尝试，而不是过早收敛到单一链。
+        if str(facts.security.get("CANARY") or "").upper() == "ON":
+            strategies.append(ExploitStrategy(
+                id="canary-leak-ret2libc",
+                name="Canary 泄漏 → ret2libc（两阶段）",
+                status=STATUS_BLOCKED,
+                requires=("primitive:leak", "primitive:control_flow_hijack", "primitive:libc_offsets"),
+                missing=tuple(list(hijack_missing) + ["Canary 泄漏原语未证明", "第二阶段输入点未证明",
+                                                     "两阶段 EXP 尚未实现"]),
+                evidence=_evidence(graph, "primitive:leak"),
+                steps=("第一阶段构造回显泄漏 canary/PIE", "恢复栈布局并重新进入输入点",
+                       "第二阶段 ret2libc"), renderer="ret2libc"))
+        # ret2csu 不是“缺少 pop rdi”时的通用兜底：没有两段 CSU gadget
+        # 的具体地址就无法构造链，继续展示它只会污染 best 选择。gadget
+        # shelf 可用 ``csu_pop/csu_call``（或 ``__libc_csu_init_*``）提供事实。
+        csu_pop = graph.proven("gadget:csu_pop", "gadget:csu_call") or \
+            graph.proven("gadget:__libc_csu_init_pop", "gadget:__libc_csu_init_call")
+        if csu_pop:
+            strategies.append(ExploitStrategy(
+                id="ret2csu-libc", name="ret2csu → ret2libc（三参数调用）",
+                status=STATUS_BLOCKED,
+                requires=("primitive:leak", "primitive:control_flow_hijack", "primitive:libc_offsets",
+                          "gadget:csu_pop", "gadget:csu_call"),
+                missing=tuple(list(hijack_missing) +
+                              ([] if libc_symbols else ["libc 文件未提供或符号未解析"]) +
+                              ["ret2csu 链渲染器尚未实现"]),
+                evidence=_evidence(graph, "primitive:leak", "gadget:csu_pop", "gadget:csu_call"),
+                steps=("ret2csu 调用 puts/read 完成泄漏或写入", "回到输入点",
+                       "使用 libc system('/bin/sh')"), renderer="ret2libc"))
 
     # 4) ORW：seccomp 场景，需运行时确认
     if syscall is not None:
@@ -149,9 +198,9 @@ def plan_strategies(
             missing.append("rax 控制 gadget 未证明（sigreturn 需要）")
         strategies.append(ExploitStrategy(
             id="srop", name="SROP（sigreturn 帧）",
-            status=STATUS_READY if not missing else STATUS_BLOCKED,
+            status=STATUS_BLOCKED,
             requires=("primitive:syscall", "gadget:rax", "primitive:control_flow_hijack"),
-            missing=tuple(missing), evidence=_evidence(graph, "primitive:syscall"),
+            missing=tuple(missing) + ("SROP 执行环境与帧返回链尚未验证",), evidence=_evidence(graph, "primitive:syscall"),
             steps=("构造 SigreturnFrame(execve) ", "syscall; ret 触发 rt_sigreturn",
                    "帧内寄存器完成 execve('/bin/sh')"),
             renderer="srop"))
@@ -161,9 +210,9 @@ def plan_strategies(
     if fmt_proven is not None:
         strategies.append(ExploitStrategy(
             id="fmt_write", name="格式化字符串写入（%n·探针已证明可控）",
-            status=STATUS_READY,
+            status=STATUS_BLOCKED,
             requires=("primitive:fmt_controlled", "primitive:input"),
-            missing=(), evidence=fmt_proven.evidence,
+            missing=("格式串参数偏移、写入目标与目标值尚未证明",), evidence=fmt_proven.evidence,
             steps=("fmt 偏移定位（Format 页 / %p 序列）", "确定目标地址与写入值",
                    "按 %hn/%n 分解写入"), renderer="fmt"))
     else:
@@ -196,5 +245,9 @@ def plan_strategies(
 
 
 def best_strategy(strategies: Sequence[ExploitStrategy]) -> ExploitStrategy | None:
-    ranked = sorted(strategies, key=lambda item: (_STATUS_RANK.get(item.status, 3), len(item.missing)))
+    ranked = sorted(
+        strategies,
+        key=lambda item: (_STATUS_RANK.get(item.status, 3),
+                          _STRATEGY_PRIORITY.get(item.id, 999), len(item.missing)),
+    )
     return ranked[0] if ranked else None
