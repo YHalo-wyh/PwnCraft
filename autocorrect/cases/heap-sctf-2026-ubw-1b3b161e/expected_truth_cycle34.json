@@ -1,0 +1,136 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-ubw-1b3b161e",
+  "domain": "control_flow",
+  "subdomains": [
+    "io_file",
+    "wide_data",
+    "wide_vtable",
+    "dispatch_target",
+    "setcontext_boundary"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_ubw_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+    "official_ubw_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153",
+    "official_same_event_apple2_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+  },
+  "truth_layers": {
+    "UPSTREAM_STDIO_PATH": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "reviewed_stdio_path_reachable",
+          "relation": "Cycle-33 proves stdout is rebound to the reviewed fake FILE object and the blade printf reaches the reviewed stdout stdio path",
+          "provenance": "CYCLE33"
+        }
+      ]
+    },
+    "FILE_TO_WIDE_BINDING": {
+      "status": "PROVEN_OFFICIAL_EXP",
+      "facts": [
+        {
+          "kind": "file_wide_data_binding",
+          "relation": "fake_file() writes FILE+0xa0 = widep",
+          "provenance": "OFFICIAL_UBW_EXP"
+        },
+        {
+          "kind": "file_vtable_binding",
+          "relation": "fake_file() writes FILE+0xd8 = libc+wfile",
+          "provenance": "OFFICIAL_UBW_EXP"
+        }
+      ]
+    },
+    "WIDE_VTABLE_GEOMETRY": {
+      "status": "PROVEN_OFFICIAL_EXP_PLUS_REVIEWED_GLIBC_LAYOUT",
+      "facts": [
+        {
+          "kind": "wide_vtable_pointer_binding",
+          "relation": "wide() writes widep+0xe0 = widep+0x100",
+          "provenance": "OFFICIAL_UBW_EXP"
+        },
+        {
+          "kind": "reviewed_wide_doallocate_slot_offset",
+          "relation": "the same-event official Apple2 implementation uses wide-data offset 0xe0 for the wide-vtable pointer and slot offset 0x68 for __doallocate",
+          "provenance": "OFFICIAL_SAME_EVENT_WRITEUP"
+        }
+      ]
+    },
+    "DISPATCH_TARGET": {
+      "status": "PROVEN_OFFICIAL_EXP_PLUS_REVIEWED_SLOT_GEOMETRY",
+      "facts": [
+        {
+          "kind": "reviewed_wide_dispatch_target",
+          "relation": "wide_vtable = widep+0x100 and __doallocate slot +0x68 therefore resolves to widep+0x168; wide() writes libc+setcontext at exactly widep+0x168",
+          "provenance": "OFFICIAL_UBW_EXP_PLUS_REVIEWED_SLOT_GEOMETRY"
+        },
+        {
+          "kind": "reviewed_dispatch_target_identity",
+          "relation": "the official UBW EXP names libc+0x4a960 as setcontext and stores that exact target in the reviewed wide-vtable dispatch slot",
+          "provenance": "OFFICIAL_UBW_EXP"
+        }
+      ]
+    },
+    "CONTEXT_RESTORE_AND_STACK_PIVOT": {
+      "status": "DEFER_UNTIL_TARGET_LIBC_INSTRUCTIONS_REVIEWED",
+      "facts": [
+        {
+          "kind": "setcontext_dispatch_is_not_context_restore_proof",
+          "relation": "reaching the setcontext symbol does not prove which input register is consumed, which frame offsets restore RSP/RIP, or that the later pop-rsp/ROP path is valid for the target libc",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "allocator_family": "glibc",
+    "allocator_version": "official-target-reviewed",
+    "pointer_width": 8,
+    "file_wide_data_offset": 160,
+    "file_vtable_offset": 216,
+    "wide_vtable_pointer_offset": 224,
+    "wide_vtable_relative_address": 256,
+    "dispatch_slot_offset": 104,
+    "dispatch_slot_relative_to_wide_data": 360,
+    "dispatch_target_symbol": "setcontext",
+    "dispatch_target_libc_offset": 305504
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "REVIEWED_FILE_WIDE_DATA_BINDING",
+      "REVIEWED_FILE_VTABLE_BINDING",
+      "REVIEWED_WIDE_VTABLE_BINDING",
+      "REVIEWED_WIDE_DISPATCH_TARGET"
+    ],
+    "required_capabilities": [
+      "reviewed_wide_vtable_dispatch_target",
+      "reviewed_stdio_dispatch_target_reachable"
+    ],
+    "forbidden_shortcuts": [
+      "do not infer a wide-vtable dispatch merely because a fake FILE or _IO_wfile_jumps-like value exists",
+      "do not infer the dispatch target unless FILE->_wide_data, wide->_wide_vtable and the reviewed slot geometry all resolve exactly",
+      "do not treat the string or variable name setcontext as proof of its target-libc register restore semantics",
+      "do not promote setcontext dispatch to valid fake-frame restoration, stack pivot, ROP/ORW execution, shell or flag retrieval"
+    ]
+  },
+  "unknown": [
+    "the target libc setcontext instruction semantics have not been independently inspected in this cycle",
+    "the meaning of wide()+0x38, +0x40 and later frame fields remains downstream",
+    "runtime ORW success is not established"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-ubw-reviewed-wide-setcontext-dispatch-v6",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 6,
+    "supersedes": "truth-sctf2026-ubw-reviewed-stdio-file-path-v5",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_ubw_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+      "official_ubw_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153",
+      "official_same_event_apple2_writeup_git_blob_sha1": "91e2229fe4cde6ab08ca5f7b714fcdccf3e0d7dd"
+    }
+  }
+}

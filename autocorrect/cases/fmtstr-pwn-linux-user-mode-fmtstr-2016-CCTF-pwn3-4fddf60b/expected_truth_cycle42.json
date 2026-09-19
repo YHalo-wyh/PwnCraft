@@ -1,0 +1,157 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "fmtstr-pwn-linux-user-mode-fmtstr-2016-CCTF-pwn3-4fddf60b",
+  "domain": "format_string",
+  "subdomains": [
+    "exact_artifact",
+    "got",
+    "relro",
+    "runtime_libc",
+    "modulo_write_plan"
+  ],
+  "source_repository": "https://github.com/ctf-wiki/ctf-challenges",
+  "source_commit": "047935a8cd4020c78bf84c36e761cf6d19421e1f",
+  "source_class": "registered_train_corpus",
+  "materials": {
+    "solution_exp_git_blob_sha1": "a3ee2f9dc614ab3b38303dbc747b6b5e137c0a9a",
+    "pwn3_git_blob_sha1": "92ecbbc32e79925f23bd25c141f273398e07068c",
+    "libc_git_blob_sha1": "c1d0cb429746f34465d174dfb7a8fd02832a9775",
+    "pwn3_sha256": "4fddf60b4838794808fe865579aa6416f53ba40c030dde3854ee63957930bfa5",
+    "libc_sha256": "e57fa6bf382a5c8d20895a434317f3f6767e7f5b6485bc47970bd9a1cc5d471d"
+  },
+  "truth_layers": {
+    "UPSTREAM_SYMBOLIC_BINDING": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "symbolic_format_target_binding",
+          "relation": "Cycle-30 records the EXP destination as pwn3.got['puts'] and fmtstr_payload pointer argument start as 7",
+          "provenance": "CYCLE30"
+        }
+      ]
+    },
+    "EXACT_MAIN_ARTIFACT": {
+      "status": "PROVEN_PINNED_ARTIFACT",
+      "facts": [
+        {
+          "kind": "exact_main_artifact_identity",
+          "relation": "pwn3 is the pinned ELF32 little-endian EXEC artifact with SHA256 4fddf60b4838794808fe865579aa6416f53ba40c030dde3854ee63957930bfa5",
+          "provenance": "PINNED_CORPUS_PWN3_LOCAL_BINUTILS"
+        }
+      ]
+    },
+    "PUTS_RELOCATION": {
+      "status": "PROVEN_PINNED_ARTIFACT",
+      "facts": [
+        {
+          "kind": "reviewed_import_relocation_target",
+          "relation": "the exact pwn3 relocation table contains one R_386_JUMP_SLOT for puts@GLIBC_2.0 at 0x0804a028",
+          "provenance": "PINNED_CORPUS_PWN3_READELF"
+        }
+      ]
+    },
+    "TARGET_WRITABILITY": {
+      "status": "PROVEN_PINNED_ARTIFACT",
+      "facts": [
+        {
+          "kind": "reviewed_relocation_runtime_writability",
+          "relation": "the RW LOAD covers 0x0804a028 while GNU_RELRO spans 0x08049f08..0x0804a000, so puts@GOT lies outside the RELRO interval",
+          "provenance": "PINNED_CORPUS_PWN3_READELF"
+        }
+      ]
+    },
+    "EXACT_LIBC_ARTIFACT": {
+      "status": "PROVEN_PINNED_ARTIFACT",
+      "facts": [
+        {
+          "kind": "exact_libc_artifact_identity",
+          "relation": "the paired libc.so SHA256 is e57fa6bf382a5c8d20895a434317f3f6767e7f5b6485bc47970bd9a1cc5d471d",
+          "provenance": "PINNED_CORPUS_LIBC_LOCAL_BINUTILS"
+        },
+        {
+          "kind": "exact_libc_symbol_offsets",
+          "relation": "the paired libc defines puts@@GLIBC_2.0 at 0x5fca0 and system@@GLIBC_2.0 at 0x3ada0",
+          "provenance": "PINNED_CORPUS_LIBC_READELF"
+        }
+      ]
+    },
+    "RUNTIME_LIBC_BINDING": {
+      "status": "RUNTIME_OBSERVATION_REQUIRED",
+      "facts": [
+        {
+          "kind": "observed_libc_symbol_base_derivation",
+          "relation": "after the EXP observes puts_addr via %8$s, libc_base = puts_addr - 0x5fca0 and system_addr = libc_base + 0x3ada0",
+          "provenance": "CORPUS_EXP_PLUS_PINNED_LIBC"
+        }
+      ]
+    },
+    "EXACT_FORMAT_PLAN": {
+      "status": "PROVEN_WHEN_RUNTIME_PUTS_OBSERVED",
+      "facts": [
+        {
+          "kind": "elf_bound_exact_format_got_rebind_plan",
+          "relation": "with one observed puts address, exact pwn3/libc artifacts and first pointer argument 7, PwnCraft may derive a 32-bit little-endian modulo plan that writes runtime system to 0x0804a028",
+          "provenance": "CYCLE38_PROVIDER_PLUS_PINNED_CCTF_ARTIFACTS"
+        }
+      ]
+    },
+    "PAYLOAD_REACHABILITY_AND_TRIGGER": {
+      "status": "DEFER_TO_NEXT_LAYER",
+      "facts": [
+        {
+          "kind": "exact_plan_is_not_execution",
+          "relation": "the exact GOT write plan does not by itself prove that put() content reaches the vulnerable formatter or that a later get/dir action invokes the rebound GOT entry",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "architecture_bits": 32,
+    "endianness": "little",
+    "main_elf_type": "EXEC",
+    "puts_got_address": 134520872,
+    "gnu_relro_start": 134520584,
+    "gnu_relro_end_exclusive": 134520832,
+    "puts_libc_offset": 392352,
+    "system_libc_offset": 241056,
+    "first_pointer_argument": 7,
+    "total_bits": 32,
+    "atom_bits": 16,
+    "initial_count": 0
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "REVIEWED_IMPORT_RELOCATION_TARGET",
+      "OBSERVED_LIBC_SYMBOL_BASE_DERIVATION",
+      "REVIEWED_DESIRED_LIBC_SYMBOL_ADDRESS"
+    ],
+    "required_capability": "elf_bound_exact_format_got_rebind_plan",
+    "forbidden_shortcuts": [
+      "do not use community/blog magic addresses in train truth when the exact corpus ELF/libc are available",
+      "do not emit a runtime system address before an observed puts address exists",
+      "do not treat a writable GOT relocation as proof that attacker-controlled format bytes reach the sink",
+      "do not promote an exact modulo write plan to GOT overwrite execution, system invocation, shell or flag retrieval"
+    ]
+  },
+  "unknown": [
+    "the concrete runtime puts address remains observation-dependent",
+    "format payload placement/reachability remains downstream",
+    "the later rebound puts/system call-site execution remains downstream"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-cctf-pwn3-exact-artifact-fmt-plan-v2",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 2,
+    "supersedes": "truth-cctf-pwn3-fmt-target-plan-gate-v1",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "solution_exp_git_blob_sha1": "a3ee2f9dc614ab3b38303dbc747b6b5e137c0a9a",
+      "pwn3_git_blob_sha1": "92ecbbc32e79925f23bd25c141f273398e07068c",
+      "libc_git_blob_sha1": "c1d0cb429746f34465d174dfb7a8fd02832a9775",
+      "pwn3_sha256": "4fddf60b4838794808fe865579aa6416f53ba40c030dde3854ee63957930bfa5",
+      "libc_sha256": "e57fa6bf382a5c8d20895a434317f3f6767e7f5b6485bc47970bd9a1cc5d471d"
+    }
+  }
+}
