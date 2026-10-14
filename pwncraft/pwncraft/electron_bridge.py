@@ -283,7 +283,8 @@ class ElectronBridge:
         for key, callback in (
             ("checksec", lambda: self._runner.checksec(binary)),
             ("file", lambda: self._runner.file(binary)),
-            ("ldd", lambda: self._runner.run_tool("ldd", [self._runner.to_wsl_path(binary)])),
+            # Static-only dependency listing: ldd may execute an untrusted ELF.
+            ("ldd", lambda: self._runner.run_tool("readelf", ["-d", "--", self._runner.to_wsl_path(binary)])),
         ):
             try:
                 result = callback()
@@ -296,6 +297,24 @@ class ElectronBridge:
             except Exception as error:
                 reports[key] = f"ERROR: {error}"
         return {"reports": reports, "diagnostics": diagnostics, "binary": str(binary)}
+
+    def rpc_autopwn_capabilities(self, params: dict) -> dict:
+        """Offline AutoPwn MVP capabilities; do not imply generic exploit success."""
+        return {
+            "offline": True, "version": "0.1.0",
+            "supported": ["read_only_elf_inspection", "cli_bounded_stdin_probe",
+                          "cli_parallel_exp_condition_check"],
+            "not_supported": ["automatic_exploit_generation", "coverage_guided_fuzz",
+                              "automatic_gdb_repair", "independent_exploitation_oracle"],
+            "execution_via_bridge": False,
+        }
+
+    def rpc_autopwn_inspect(self, params: dict) -> dict:
+        """Read ELF metadata only; never run an uploaded binary."""
+        from pwncraft.features.autopwn.engine import inspect_target
+        raw = str(params.get("path") or "").strip()
+        target = Path(raw) if raw else self._target_binary()
+        return inspect_target(target)
 
     def rpc_code_analysis(self, params: dict) -> dict:
         """Static disassembly and existing audit diagnostics for the selected workspace."""
