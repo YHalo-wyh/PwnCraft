@@ -23,6 +23,18 @@ class AutoPwnTests(unittest.TestCase):
         self.assertEqual(len(a), 30)
         self.assertTrue(all(len(item) <= 32 for item in a))
 
+    def test_bridge_capabilities_are_honest_and_read_only(self):
+        from pwncraft.electron_bridge import ElectronBridge
+        bridge = ElectronBridge()
+        capabilities = bridge.rpc_autopwn_capabilities({})
+        self.assertFalse(capabilities["execution_via_bridge"])
+        self.assertIn("automatic_exploit_generation", capabilities["not_supported"])
+        with tempfile.TemporaryDirectory() as tmp:
+            invalid = Path(tmp) / "untrusted.txt"
+            invalid.write_text("not an ELF", encoding="utf-8")
+            with self.assertRaises(ValueError):
+                bridge.rpc_autopwn_inspect({"path": str(invalid)})
+
     @unittest.skipUnless(Path("/bin/true").exists(), "Linux ELF required")
     def test_elf_inspect(self):
         info = inspect_target("/bin/true")
