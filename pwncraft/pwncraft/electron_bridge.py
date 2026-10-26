@@ -34,6 +34,7 @@ from __future__ import annotations
 import json
 import re
 import shlex
+import shutil
 import sys
 import threading
 import time
@@ -85,6 +86,7 @@ from pwncraft.features.patch.recipes import (
     build_skip_call_result, build_strcpy_limit, build_uaf_nullify,
     normalize_patch_arch)
 from pwncraft.features.patch.seccomp_inject import SECCOMP_PRESETS, build_seccomp_ops
+from pwncraft.features.patch import patchers
 from pwncraft.features.patch.bytecode_catalog import assemble, catalog_entries, disasm_raw, encode_template
 from pwncraft.features.synth.vuln_points import scan_functions
 from pwncraft.features.patch.ida_link import IdaCliLink, IdaLinkError
@@ -597,6 +599,7 @@ class ElectronBridge:
         if "setvbuf" in plt_names:
             put("setvbuf_unbuffered", 40, "导入 setvbuf（输出即时刷新）")
         put("seccomp", 30, "沙箱通防兜底（不依赖具体漏洞点）")
+        put("patcher", 29, "社区通防 Patcher：evilPatcher / elf-seccomp-patcher 沙箱注入")
         put("nop_function", 20, "")
         put("ret_function", 20, "")
         put("return_constant", 20, "")
@@ -628,7 +631,8 @@ class ElectronBridge:
         recipes.sort(key=lambda r: -r["score"])
         return {"recipes": recipes,
                 "seccomp_presets": {key: {k: v for k, v in conf.items() if k != "warnings"}
-                                    for key, conf in SECCOMP_PRESETS.items()}}
+                                    for key, conf in SECCOMP_PRESETS.items()},
+                "patchers": patchers.catalog()}
 
     def rpc_patch_audit(self, params: dict) -> dict:
         lab = self._patch_lab(params)
@@ -929,6 +933,72 @@ class ElectronBridge:
         bits = 64 if lab.geometry()["is64"] else 32
         vaddr = int(str(params.get("vaddr") or "0"), 0)
         return assemble(str(params.get("text") or ""), bits=bits, vaddr=vaddr)
+
+    # ------------------------------------------------------------------
+    # Seccomp 检测页 + evilPatcher 社区通防工具
+
+    def rpc_seccomp_scan(self, params: dict) -> dict:
+        """seccomp-tools dump 检测（Seccomp 检测页手动触发，同步返回）。"""
+        raw = Path(str(params.get("path") or "").strip() or self._target_binary())
+        if not is_elf_file(raw):
+            raise ValueError(f"不是有效的 ELF 文件: {raw}")
+        try:
+            timeout = int(params.get("timeout") or 12)
+        except (TypeError, ValueError):
+            timeout = 12
+        timeout = max(3, min(60, timeout))
+        return self._triage_seccomp(raw.resolve(), timeout=timeout)
+
+    def rpc_patcher_run(self, params: dict) -> dict:
+        """运行社区通防 Patcher（evilPatcher / elf-seccomp-patcher 等）。
+
+        产物默认落「源文件所在目录」（原始副本的题目目录；不可用时退工作副本
+        目录），文件名/目录均可在 UI 覆盖；scratch 与工作副本永远不被运行过程
+        直接修改，采纳需显式走 patcher_adopt。
+        """
+        lab = self._patch_lab(params)
+        patcher = patchers.get(str(params.get("patcher") or ""))
+        options = {key: value for key, value in params.items()
+                   if key in ("preset", "policy", "output_dir", "output_name",
+                              "protected_path", "allow_ro", "allow_rw", "extra_flags",
+                              "single_threaded", "deny_open", "allow_connect",
+                              "no_default_paths", "verbose")}
+        target = self._patch_target(lab)
+        original = str(target.get("original_binary") or "")
+        if options.get("output_dir"):
+            default_dir = ""
+        elif original and Path(original).is_file():
+            default_dir = str(Path(original).parent)
+        else:
+            default_dir = str(lab.binary.parent)
+        options.setdefault("output_dir", default_dir)
+        options["_protected"] = [str(lab.binary)] + ([original] if original else [])
+        try:
+            timeout = int(params.get("timeout") or 180)
+        except (TypeError, ValueError):
+            timeout = 180
+        result = patcher.run(lab.binary, options, self._runner, timeout=timeout)
+        self._log(f"{patcher.meta()['name']} 完成：{result.get('changed_bytes', '?')} 字节改动"
+                  f" → {result.get('output_path', '?')}")
+        return result
+
+    def rpc_patcher_adopt(self, params: dict) -> dict:
+        """把社区 Patcher 产物采纳为工作副本（先时间戳备份，同 PatchLab 约定）。"""
+        output = Path(str(params.get("output_path") or "").strip())
+        if not output.is_file():
+            raise ValueError("Patcher 产物不存在或已被移动，请重新运行")
+        lab = self._patch_lab(params)
+        binary = lab.binary
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        backup = binary.with_name(f"{binary.name}.patchbak.{stamp}")
+        shutil.copy2(binary, backup)
+        shutil.copy2(output, binary)
+        self._disasm_cache.clear()  # 副本已整体替换，反汇编/审计缓存全部作废
+        self._log(f"Patcher 产物已采纳为工作副本（备份: {backup.name}）；"
+                  "内部补丁记录如报不一致，用「清理已恢复记录」归零。")
+        return {"backup": str(backup), "binary": str(binary),
+                "adopted_from": str(output)}
+
 
     # ------------------------------------------------------------------
     # Exploit synthesis（检测 → 原语图 → 策略 → EXP 骨架 → 往返自检 → 评审区）
@@ -1761,12 +1831,12 @@ class ElectronBridge:
         })
         return summary
 
-    def _triage_seccomp(self, binary: Path) -> dict:
+    def _triage_seccomp(self, binary: Path, timeout: int = 12) -> dict:
         wsl_path = self._runner.to_wsl_path(binary)
         self._triage_event("seccomp", "running", binary)
         argv = ["seccomp-tools", "dump", wsl_path]
         command = "seccomp-tools dump " + wsl_path
-        result, timed_out = self._runner.run_target_capture(argv, stdin_data=b"", timeout=12)
+        result, timed_out = self._runner.run_target_capture(argv, stdin_data=b"", timeout=timeout)
         text = result.stdout or ""
         dump = parse_seccomp_tools_dump(text)
         found = int(dump.get("rows") or 0) > 0

@@ -1149,6 +1149,133 @@
   }
 
   // =====================================================================
+  // Seccomp 检测页（seccomp-tools dump · 独立菜单）
+
+  function seccompPageCache(entry) {
+    return entry.seccomp ||= { scanning: false, error: '', result: null, timeout: '12' };
+  }
+
+  // seccomp-tools dump 结果 → 结构化观察报告（自动检测与手动检测共用）。
+  // 只陈述 dump 字面事实：架构、默认动作、被比较的调用号；放行/拦截归属
+  // 取决于 jump 目标，页面只给方向性观察，不做 allow/deny 断言。
+  function seccompReportBody(info, idleText) {
+    if (!info) return `<div class="hint-dim">${esc(idleText || '尚未检测。')}</div>`;
+    if (info.status === 'failed') {
+      return `<div class="warn-line error">检测失败：${esc(info.error || '未知错误')}</div>`;
+    }
+    if (!info.found) {
+      return `<div class="hint-dim">${esc(info.error || '未捕获到 seccomp 过滤器：程序可能在安装过滤器前退出，或没有 seccomp（观察结论）。')}</div>`;
+    }
+    const compared = info.compared || [];
+    const names = compared.map((item) => item.name || item.nr).filter(Boolean);
+    const timedOut = info.timed_out ? '（程序超时被截停，dump 为部分输出）' : '';
+    const defaultAction = info.default_action || '?';
+    const denyish = ['kill', 'kill_process', 'trap', 'errno'].includes(defaultAction);
+    const verdict = denyish
+      ? '默认动作是<b>拒绝</b>：dump 中出现的比较项通常是<b>白名单</b>（放行）；'
+        + '未出现的系统调用大概率被拒，以人工核对 jump 目标为准。'
+      : '默认动作是<b>放行</b>：dump 中出现的比较项通常是<b>黑名单</b>（拦截候选）；'
+        + '需对照 jump 目标人工复核。';
+    return `
+      <div class="explain-line">✓ 发现 seccomp 过滤器 · 架构 <b>${esc(info.arch || '?')}</b>
+        · 默认动作 <b>${esc(defaultAction)}</b>${esc(timedOut)}</div>
+      <div class="explain-line">观察结论：${verdict}</div>
+      <div class="explain-line">dump 中比较的 syscall：${names.length
+        ? names.map((name) => `<span class="chip mono">${esc(name)}</span>`).join(' ')
+        : '<span class="hint-dim">（无显式比较）</span>'}</div>
+      ${info.command ? `<div class="hint-dim">命令（WSL 真实执行）：<span class="mono">${esc(info.command)}</span></div>` : ''}
+      ${info.raw ? `<details><summary style="cursor:pointer">seccomp-tools dump 原文</summary><pre class="report-pre" style="max-height:280px;overflow:auto">${esc(info.raw)}</pre></details>` : ''}`;
+  }
+
+  function renderSeccompPage() {
+    const host = $('#page-seccomp');
+    const state = app().state;
+    if (state.importState !== 'bound' || !state.context) {
+      host.innerHTML = '<div class="sidebar-empty" style="padding:26px">尚未绑定 Target。回欢迎页导入 ELF 后，这里自动跑 seccomp-tools dump。</div>';
+      return;
+    }
+    const entry = state.workspaces.get(state.activePath);
+    const working = state.context.working_binary || state.activePath;
+    const cache = seccompPageCache(entry);
+    const triage = state.triage;
+    const auto = triage && triage.stages ? triage.stages.seccomp : null;
+    const running = !auto && triage && triage.running;
+    const autoBody = running
+      ? '<div class="hint-dim">⏳ 正在 WSL 里执行 seccomp-tools dump…</div>'
+      : seccompReportBody(auto, '尚未检测：导入 ELF 后会自动在 WSL 里执行 seccomp-tools dump。');
+    const manualBody = cache.scanning
+      ? '<div class="hint-dim">⏳ seccomp-tools dump 运行中（WSL）…</div>'
+      : cache.error
+        ? `<div class="warn-line error">检测失败：${esc(cache.error)}</div>`
+        : seccompReportBody(cache.result, '点上方按钮立即检测（结果与导入时自动检测独立保存）。');
+    host.innerHTML = `
+      <div class="analysis-header"><div><h2>Seccomp 检测</h2>
+        <div class="analysis-path">${esc(working)}</div></div>
+        <div class="patch-arch-chips">
+          <span class="chip">${esc(state.context.architecture || '未知架构')}</span>
+          <span class="chip">${Number(state.context.bits || 0) || '?'} 位</span>
+        </div></div>
+      <div class="rop-grid">
+        <div class="card">
+          <div class="card-title">seccomp-tools dump 检测（WSL 执行）
+            <span class="flex-spacer"></span>
+            <button class="mini-btn" id="seccomp-term" title="把命令写进底部终端直接运行">在终端运行</button></div>
+          <div class="form-grid">
+            <label class="form-row"><span>超时（秒）</span>
+              <input id="seccomp-timeout" class="input" value="${esc(cache.timeout)}" /></label>
+          </div>
+          <div class="cli-row">
+            <button id="seccomp-run" class="btn primary" ${cache.scanning ? 'disabled' : ''}>${cache.scanning ? '检测中…' : '运行 seccomp-tools dump'}</button>
+          </div>
+          <div id="seccomp-report">${manualBody}</div>
+        </div>
+        <div class="card">
+          <div class="card-title">导入时自动检测（ELF 绑定后 · WSL）</div>
+          <div id="seccomp-auto">${autoBody}</div>
+        </div>
+        <div class="card">
+          <div class="card-title">结论解读与下一步</div>
+          <div class="hint-dim">· dump 只回答「程序装了什么过滤器」：默认动作 + 被比较的系统调用号；是否真的放行/拦截取决于 jump 目标，页面只给观察结论，不下断言。<br />
+            · 未检测到过滤器 ≠ 没有沙箱：也可能是程序在读到输入前就退出了（可调大超时重试）。<br />
+            · 确认沙箱规则后，到「AWDP Patch → 一键通防」选 seccomp 手法（内置注入）或
+            社区通防 Patcher（evilPatcher / elf-seccomp-patcher），把同类规则加固进修复版。</div>
+          <div class="cli-row">
+            <button id="seccomp-gopatch" class="btn primary">去一键通防配置 seccomp</button>
+            <button id="seccomp-gosyscall" class="btn">Syscall 表</button>
+          </div>
+        </div>
+      </div>`;
+    const timeoutInput = $('#seccomp-timeout');
+    if (timeoutInput) timeoutInput.oninput = (event) => { cache.timeout = event.target.value; };
+    $('#seccomp-run').onclick = () => runSeccompScan(entry, working);
+    $('#seccomp-term').onclick = () => runInTerminal(`seccomp-tools dump ${working}`);
+    $('#seccomp-gopatch').onclick = () => window.PwnPatch?.showAudit();
+    $('#seccomp-gosyscall').onclick = () => app().switchPage('syscall');
+  }
+
+  async function runSeccompScan(entry, working) {
+    if (!entry) return;
+    const cache = seccompPageCache(entry);
+    if (cache.scanning) return;
+    cache.scanning = true;
+    cache.error = '';
+    renderSeccompPage();
+    try {
+      cache.result = await window.pwncraft.request('seccomp_scan', {
+        path: working, timeout: Number(cache.timeout || 12),
+      });
+      log(cache.result.found
+        ? `seccomp 检测：发现过滤器（默认 ${cache.result.default_action || '?'}）`
+        : 'seccomp 检测：未见过滤器输出（观察结论）');
+    } catch (error) {
+      cache.error = error.message || String(error);
+    } finally {
+      cache.scanning = false;
+      if (app().state.page === 'seccomp') renderSeccompPage();
+    }
+  }
+
+  // =====================================================================
   // Stack page
 
   function renderStack() {
@@ -1752,6 +1879,7 @@
     renderDebug,
     renderFormat,
     renderSyscall,
+    renderSeccompPage,
     renderStack,
     renderTools,
     renderExpTools,

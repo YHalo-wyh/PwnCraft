@@ -394,7 +394,12 @@ async function runShots() {
   }
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  // 后台/被遮挡窗口默认渲染节流：capturePage 会反复拿到几拍之前的旧帧
+  //（05/06 串页现象）。截图会话内关掉节流 + invalidate 强制重绘。
+  mainWindow.webContents.setBackgroundThrottling(false);
   const shot = async (name) => {
+    mainWindow.webContents.invalidate();
+    await sleep(700);
     const image = await mainWindow.webContents.capturePage();
     fs.writeFileSync(path.join(outDir, name), image.toPNG());
     console.log(`SHOT ${name}`);
@@ -434,13 +439,78 @@ async function runShots() {
   await sleep(1500);
   await shot('04-rop.png');
 
+  await run('window.__pwncraftDebug.switchPage("seccomp")');
+  await sleep(1500);
+  await shot('05-seccomp.png');
+
+  await run('window.__pwncraftDebug.switchPage("patch")');
+  await sleep(1500);
+  await run('document.getElementById("patch-tab-recipes")?.click()');
+  await sleep(12000); // recipes + audit 扫描落定（audit 完成会重渲染并重置滚动，先等它）
+  await run('document.querySelector(".patch-audit")?.remove();'
+    + 'const cards = [...document.querySelectorAll(".recipe-card")];'
+    + 'cards.slice(0, cards.findIndex(c => c.textContent.includes("evilPatcher"))).forEach(c => c.remove());');
+  await sleep(900);
+  await shot('06-patch-recipes.png');
+  await run('document.getElementById("patch-tab-manual")?.click()');
+  await sleep(800);
+  await shot('07-patch.png');
+
   await run('window.__pwncraftDebug.switchPage("debug")');
   await sleep(1500);
-  await shot('05-debug.png');
+  await shot('08-debug.png');
 
   await run('window.__pwncraftDebug.switchPage("welcome"); window.__pwncraftDebug.openPalette()');
   await sleep(1200);
-  await shot('06-palette.png');
+  await shot('09-palette.png');
+
+  // 社区 Patcher UI 全链路（可选）：真点「运行 Patcher」→ 等 WSL 完成 →
+  // 结果面板（字节 diff + 采纳按钮）→ 点采纳。由 PWNCRAFT_EVIL_UI_TEST=1 门控，
+  // 常规截图不跑这 2 分钟的 WSL 真机链路。
+  if (process.env.PWNCRAFT_EVIL_UI_TEST === '1') {
+    await run('document.getElementById("palette-overlay").hidden = true;');
+    await run('window.__pwncraftDebug.switchPage("patch")');
+    await sleep(1500);
+    await run('document.getElementById("patch-tab-recipes")?.click()');
+    await sleep(6000);
+    // Patcher 选择器交互：切到 elfseccomp → 字段应换成 allow_ro 等 → 切回 evilpatcher
+    const switchProbe = await run(
+      '(async function(){'
+      + '  const card = [...document.querySelectorAll(".recipe-card")].find(c => c.querySelector("select[data-field=patcher]"));'
+      + '  if (!card) return "no-card";'
+      + '  const sel = card.querySelector("select[data-field=patcher]");'
+      + '  sel.value = "elfseccomp"; sel.dispatchEvent(new Event("change", {bubbles: true}));'
+      + '  await new Promise(r => setTimeout(r, 600));'
+      + '  const card2 = [...document.querySelectorAll(".recipe-card")].find(c => c.querySelector("select[data-field=patcher]"));'
+      + '  const elfOk = !!card2 && !!card2.querySelector("[data-field=allow_ro]");'
+      + '  const sel2 = card2 && card2.querySelector("select[data-field=patcher]");'
+      + '  if (sel2) { sel2.value = "evilpatcher"; sel2.dispatchEvent(new Event("change", {bubbles: true})); }'
+      + '  await new Promise(r => setTimeout(r, 600));'
+      + '  const card3 = [...document.querySelectorAll(".recipe-card")].find(c => c.querySelector("select[data-field=patcher]"));'
+      + '  const evilOk = !!card3 && !!card3.querySelector("[data-field=policy]");'
+      + '  return JSON.stringify({ elfOk, evilOk });'
+      + '})()');
+    console.log('EVIL UI patcher-switch probe:', switchProbe);
+    await run('const btn=[...document.querySelectorAll(".patch-recipe-preview")]'
+      + '.find(b => b.textContent === "运行 Patcher"); btn && btn.click();');
+    console.log('EVIL UI: 运行按钮已点击，等待 WSL Patcher（最长 150s）…');
+    for (let i = 0; i < 50; i++) {
+      await sleep(3000);
+      const state = await run('JSON.stringify({'
+        + ' hasResult: !!document.getElementById("patcher-adopt"),'
+        + ' hasError: !!document.querySelector(".analysis-error") })');
+      console.log(`EVIL UI poll ${i}: ${state}`);
+      const parsed = JSON.parse(state || '{}');
+      if (parsed.hasResult || parsed.hasError) break;
+    }
+    await run('document.querySelector(".patch-audit")?.remove();');
+    await shot('10-patcher-result.png');
+    await run('document.getElementById("patcher-adopt")?.click()');
+    await sleep(4000);
+    await run('const p=document.getElementById("page-patch"); if (p) p.scrollTop = 0;');
+    await shot('11-patcher-adopt.png');
+    console.log('EVIL UI DONE');
+  }
 
   console.log('SHOTS DONE');
   app.exit(0);

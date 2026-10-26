@@ -38,6 +38,7 @@
       decompiled: null,
       probeArgs: '', probeInput: '', probeTimeout: '5', probeCompare: true,
       probeResult: null, probeError: '', probeBusy: false,
+      patcherBusy: false, patcherError: '', patcherResult: null,
       busy: false, message: '', error: '',
     };
   }
@@ -743,6 +744,14 @@
       if (request.preset === 'custom') request.policy = form.policy || '';
       return request;
     }
+    if (recipe.id === 'patcher') {
+      const form2 = cache.forms[recipe.id] ||= {};
+      return { kind: 'patcher', patcher: form2.patcher || 'evilpatcher',
+        preset: form2.preset || '', policy: form2.policy || '',
+        protected_path: form2.protected_path || '', allow_ro: form2.allow_ro || '',
+        allow_rw: form2.allow_rw || '', extra_flags: form2.extra_flags || '',
+        output_dir: form2.output_dir || '', output_name: form2.output_name || '' };
+    }
     if (recipe.id === 'plt_call' || recipe.id === 'plt_stub') {
       return { kind: recipe.id, source: form.source || '', target: form.target || '',
         function: form.function || '', vaddr: form.vaddr || '' };
@@ -757,7 +766,9 @@
     if (recipe.id === 'jcc_mode') {
       return { kind: 'jcc_mode', vaddr: form.vaddr || '', mode: form.mode || 'invert' };
     }
-    return null;
+    // 其余卡片（alarm_remove / uaf_free_null / fmt_puts / strcpy_limit /
+    // setvbuf_unbuffered…）：字段名与桥端 builder 参数一一对应，直接透传表单
+    return { kind: recipe.id, ...form };
   }
 
   function renderRecipes(entry, cache) {
@@ -774,14 +785,16 @@
           const rankBadge = recipe.score > 0
             ? `<span class="chip patch-rank" title="漏洞检测驱动排序">${esc(recipe.rank_reason || `候选 +${recipe.score}`)}</span>` : '';
           const expBadge = recipe.experimental ? '<span class="chip patch-exp">实验性</span>' : '';
+          const actionLabel = recipe.id === 'patcher' ? '运行 Patcher' : '预览补丁';
+          const fields = patcherFieldsFor(cache, recipe);
           return `<article class="recipe-card card">
             <div class="card-title">${expBadge}${esc(recipe.name)}
               ${rankBadge}
               <span class="flex-spacer"></span>
-              <button class="mini-btn primary patch-recipe-preview" data-recipe="${esc(recipe.id)}" ${cache.busy ? 'disabled' : ''}>预览补丁</button>
+              <button class="mini-btn primary patch-recipe-preview" data-recipe="${esc(recipe.id)}" ${cache.busy ? 'disabled' : ''}>${actionLabel}</button>
             </div>
             <div class="recipe-fields">
-              ${recipe.fields.map(field => `
+              ${fields.map(field => `
                 <label class="form-row"><span class="k">${esc(field.label)}</span>
                   <span class="v">${fieldControl(cache, recipe, field, options)}</span></label>`).join('')}
             </div>
@@ -789,21 +802,30 @@
           </article>`;
         }).join('')}
       </div>
+      ${renderPatcherPanel(entry, cache)}
       ${renderPreviewBox(entry, cache)}`;
     panel.querySelectorAll('[data-field]').forEach((control) => {
       const card = control.closest('.recipe-card');
       const recipeId = card?.querySelector('.patch-recipe-preview')?.dataset.recipe;
       control.oninput = control.onchange = () => {
         (cache.forms[recipeId] ||= {})[control.dataset.field] = control.value;
+        if (control.dataset.field === 'patcher') {
+          // 切换 Patcher 后预设列表与可见字段都不同：清掉旧预设并整卡重渲染
+          delete cache.forms[recipeId].preset;
+          render();
+        }
       };
     });
     panel.querySelectorAll('.patch-recipe-preview').forEach((button) => {
       button.onclick = () => {
         const recipe = recipes.find(r => r.id === button.dataset.recipe);
         if (!recipe) return;
+        if (recipe.id === 'patcher') { runPatcher(entry, cache); return; }
         previewPatch(entry, buildRecipeRequest(cache, recipe), recipe.name);
       };
     });
+    const adopt = query('#patcher-adopt');
+    if (adopt) adopt.onclick = () => adoptPatcher(entry, cache, cache.patcherResult);
     const auditRun = query('#patch-audit-run');
     if (auditRun) auditRun.onclick = () => { cache.audit = null; cache.auditError = ''; ensureAudit(entry); };
     panel.querySelectorAll('.patch-audit-preview').forEach((button) => {
@@ -845,6 +867,103 @@
       render();
     };
     wirePreviewBox(entry, cache);
+  }
+
+  // ------------------------------------------------------------------
+  // 社区通防 Patcher（evilPatcher / elf-seccomp-patcher…）：
+  // 整文件补丁，不走 PatchOp 预览/应用流；输出目录/文件名可自定义
+
+  // 按 Patcher 过滤卡片字段：两个工具的选项集不同，输出目录/文件名共用
+  function patcherFieldsFor(cache, recipe) {
+    if (recipe.id !== 'patcher') return recipe.fields;
+    const patcher = formValue(cache, recipe.id, 'patcher', 'evilpatcher');
+    const allowed = new Set(patcher === 'elfseccomp'
+      ? ['patcher', 'preset', 'protected_path', 'allow_ro', 'allow_rw',
+         'extra_flags', 'output_dir', 'output_name']
+      : ['patcher', 'preset', 'policy', 'output_dir', 'output_name']);
+    return recipe.fields.filter(field => allowed.has(field.key));
+  }
+
+  async function runPatcher(entry, cache) {
+    if (cache.patcherBusy || cache.busy) return;
+    cache.patcherBusy = true;
+    cache.patcherError = '';
+    cache.patcherResult = null;
+    cache.message = '';
+    cache.error = '';
+    render();
+    try {
+      cache.patcherResult = await requestFor(entry, 'patcher_run',
+        buildRecipeRequest(cache, { id: 'patcher' }));
+      const result = cache.patcherResult;
+      app().log(`Patcher 完成：改动 ${result.changed_bytes} 字节 → ${result.output_path}（${result.elapsed_ms} ms，WSL）`);
+    } catch (error) {
+      cache.patcherError = error.message || String(error);
+      app().log(`Patcher 失败：${cache.patcherError}`, 'error');
+    } finally {
+      cache.patcherBusy = false;
+      if (entryNow() === entry && app().state.page === 'patch') render();
+    }
+  }
+
+  async function adoptPatcher(entry, cache, result) {
+    if (!result?.output_path || cache.busy) return;
+    cache.busy = true; cache.error = ''; cache.message = '';
+    render();
+    try {
+      const outcome = await requestFor(entry, 'patcher_adopt', { output_path: result.output_path });
+      const backupName = outcome.backup ? String(outcome.backup).split(/[\\/]/).pop() : '';
+      cache.message = `Patcher 产物已采纳为工作副本${backupName ? `（备份 ${backupName}）` : ''}；`
+        + '再到「补丁管理」做存活探测或导出补丁后 ELF。';
+      cache.patcherResult = null;
+      await refreshAfterMutation(entry);
+    } catch (error) {
+      cache.error = error.message || String(error);
+    } finally {
+      cache.busy = false;
+      if (entryNow() === entry) render();
+    }
+  }
+
+  function renderPatcherPanel(entry, cache) {
+    if (cache.patcherBusy) {
+      return `<div class="analysis-hint" role="status">⏳ Patcher 运行中（WSL 真实执行，约 10–60 秒）…</div>`;
+    }
+    if (cache.patcherError) {
+      return `<div class="analysis-error" role="alert">Patcher 失败：${esc(cache.patcherError)}</div>`;
+    }
+    const result = cache.patcherResult;
+    if (!result) return '';
+    const sizeNote = result.same_size
+      ? `等长替换 · 改动 <b>${result.changed_bytes}</b> 字节`
+      : `文件大小变化 ${result.source_size} → ${result.output_size} 字节（非等长补丁，请核对 diff）`;
+    const truncated = result.diff_truncated
+      ? `<div class="patch-warning">差异区间过多，仅展示前 ${result.diff.length} 段。</div>` : '';
+    const flags = result.flags && Object.values(result.flags).some(Boolean)
+      ? `<div class="hint-dim">生效 flag：${esc(Object.entries(result.flags)
+          .filter(([, on]) => on).map(([key]) => key).join(' · '))}</div>` : '';
+    const stdout = [result.stdout, result.stderr].filter(Boolean).join('\n').trim();
+    return `
+      <div class="patch-preview card">
+        <div class="card-title">Patcher 运行结果 · ${sizeNote}
+          <span class="flex-spacer"></span>
+          <button class="mini-btn primary" id="patcher-adopt">采纳为工作副本</button>
+        </div>
+        <div class="hint-dim">产物（输出目录）：<b>${esc(result.output_path)}</b> · ${result.elapsed_ms} ms（WSL）
+          · 尚未写入工作副本；采纳用同一份产物，也可先用文件管理器/diff 工具复核</div>
+        ${flags}
+        ${truncated}
+        ${result.diff.length ? `
+        <table class="data-table mono"><thead><tr>
+          <th>file offset</th><th>长度</th><th>原字节</th><th>新字节</th>
+        </tr></thead><tbody>
+          ${result.diff.map(run => `<tr>
+            <td>0x${Number(run.offset).toString(16)}</td><td>${run.length}</td>
+            <td class="patch-bytes-old">${esc(run.old)}</td>
+            <td class="patch-bytes-new">${esc(run.new)}</td></tr>`).join('')}
+        </tbody></table>` : ''}
+        ${stdout ? `<details><summary style="cursor:pointer">Patcher 工具输出</summary><pre class="report-pre" style="max-height:260px;overflow:auto">${esc(stdout)}</pre></details>` : ''}
+      </div>`;
   }
 
   function auditPicks(cache, findings) {
@@ -939,6 +1058,16 @@
       const options = Object.entries(presets).map(([key, conf]) => ({ value: key, label: conf.name }));
       options.push({ value: 'custom', label: '自定义规则…' });
       recipe.fields.find(f => f.key === 'preset').options = options;
+    }
+    if (recipe.id === 'patcher') {
+      const list = cache.recipes?.patchers || [];
+      const form = cache.forms[recipe.id] ||= {};
+      if (!form.patcher) form.patcher = list[0]?.id || 'evilpatcher';
+      recipe.fields.find(f => f.key === 'patcher').options =
+        list.map(item => ({ value: item.id, label: item.name }));
+      const current = list.find(item => item.id === form.patcher);
+      recipe.fields.find(f => f.key === 'preset').options =
+        (current?.presets || []).map(item => ({ value: item.id, label: item.name }));
     }
     if (recipe.id === 'plt_call' || recipe.id === 'plt_stub') {
       const options = pltOptions(cache);

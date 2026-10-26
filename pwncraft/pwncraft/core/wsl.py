@@ -135,6 +135,29 @@ class WslToolRunner:
         return ToolResult(command, proc.returncode,
                           decode_wsl_output(proc.stdout), decode_wsl_output(proc.stderr))
 
+    def run_wsl_argv(self, argv: list[str], timeout: int = 120) -> ToolResult:
+        """Run a fully-bridge-constructed WSL argv without shell parsing.
+
+        Unlike :meth:`run_tool` this bypasses the user-facing tool allowlist,
+        so it is only for module-internal, fixed-shape invocations (currently
+        the vendored evilPatcher wrapper, whose RPC surface accepts nothing
+        but preset ids / sandbox rule text from the renderer — every argv
+        component is decided inside ``pwncraft.features.patch.evilpatcher``).
+        """
+        if not argv:
+            raise ValueError("wsl argv 不能为空")
+        prepare_windows_system_process()
+        command = [self.wsl_exe, "--exec", *argv]
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            timeout=timeout,
+            stdin=subprocess.DEVNULL,
+            **hidden_windows_process_kwargs(),
+        )
+        return ToolResult(command, proc.returncode,
+                          decode_wsl_output(proc.stdout), decode_wsl_output(proc.stderr))
+
     def run_target_capture(
         self,
         argv: list[str],

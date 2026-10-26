@@ -1,0 +1,5 @@
+UPSTREAM_URL=https://github.com/TTY-flag/evilPatcher
+UPSTREAM_COMMIT=807bbeb677bccd465412edf2262df1d42b9608c7
+UPSTREAM_DATE=2023-12-17
+VENDORED=2026-09-17
+NOTE=git clone 后内置：移除 .git 与 picture/（README 截图），脚本与 sandboxs 未改动；上游无 LICENSE 文件，见 THIRD_PARTY_NOTICES.md

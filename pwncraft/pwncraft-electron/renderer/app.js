@@ -24,6 +24,7 @@
 
   const state = {
     page: 'welcome',
+    version: '',
     importState: 'empty',           // empty | importing | bound
     project: null,
     context: null,
@@ -154,6 +155,7 @@
     if (key === 'debug') window.PwnPages.renderDebug();
     if (key === 'format') window.PwnPages.renderFormat();
     if (key === 'syscall') window.PwnPages.renderSyscall();
+    if (key === 'seccomp') window.PwnPages.renderSeccompPage();
     if (key === 'stack') window.PwnPages.renderStack();
     if (key === 'tools') window.PwnPages.renderTools();
     // 调试页聚焦模式：侧栏收起、EXP 从左滑入占 1/4、命令栏贴右
@@ -185,6 +187,7 @@
     { key: 'debug', title: 'pwndbg-mogai 调试', icon: 'terminal' },
     { key: 'format', title: 'Format String', icon: 'command' },
     { key: 'syscall', title: 'Syscall / Seccomp', icon: 'shield' },
+    { key: 'seccomp', title: 'Seccomp 检测 · seccomp-tools', icon: 'shield-check' },
     { key: 'stack', title: 'Stack Offset / Leak', icon: 'import' },
     { key: 'tools', title: '工具箱', icon: 'folder-open' },
   ];
@@ -409,7 +412,7 @@
       await restartShellTerminal(entry.project && entry.project.project_path || '');
     }
     // 数据页跟着新 Target 重渲染；Heap 画布是独立仿真沙盘，保持原状
-    if (['binary', 'analysis', 'patch', 'rop', 'debug', 'format', 'syscall', 'stack', 'tools'].includes(state.page)) {
+    if (['binary', 'analysis', 'patch', 'rop', 'debug', 'format', 'syscall', 'seccomp', 'stack', 'tools'].includes(state.page)) {
       switchPage(state.page);
     }
     // ELF 拖入即自动分析：ROPgadget / seccomp-tools / fmt 探测在 WSL 后台
@@ -423,7 +426,7 @@
   // Auto triage — ELF 绑定后无需任何点击：WSL 里真实执行 ROPgadget /
   // seccomp-tools / fmt 探针，triage_stage 事件把结果逐段推回页面。
 
-  const TRIAGE_PAGE = { ropgadget: 'rop', seccomp: 'syscall', fmt: 'format' };
+  const TRIAGE_PAGE = { ropgadget: 'rop', seccomp: 'seccomp', fmt: 'format' };
 
   function triageStagePage(stage) {
     return TRIAGE_PAGE[stage] || null;
@@ -476,7 +479,10 @@
     // 只有受影响的页面在当前可见时才重渲染，避免打断别的页输入
     const targetPage = triageStagePage(stage);
     if (targetPage && state.page === targetPage && window.PwnPages) {
-      const renderer = { rop: 'renderRop', syscall: 'renderSyscall', format: 'renderFormat' }[targetPage];
+      const renderer = {
+        rop: 'renderRop', seccomp: 'renderSeccompPage',
+        syscall: 'renderSyscall', format: 'renderFormat',
+      }[targetPage];
       if (renderer && typeof window.PwnPages[renderer] === 'function') window.PwnPages[renderer]();
     }
   }
@@ -492,7 +498,10 @@
         entry.triage = { running: false, stages: result.result.stages || {} };
         state.triage = entry.triage;
         log('导入时自动分析（WSL）结果命中缓存，已直接回填。');
-        const renderer = { rop: 'renderRop', syscall: 'renderSyscall', format: 'renderFormat' }[state.page];
+        const renderer = {
+          rop: 'renderRop', seccomp: 'renderSeccompPage',
+          syscall: 'renderSyscall', format: 'renderFormat',
+        }[state.page];
         if (renderer && typeof window.PwnPages[renderer] === 'function') window.PwnPages[renderer]();
       } else if (result && result.started) {
         log('已启动导入时自动分析：ROPgadget / seccomp-tools / fmt 探针（WSL 后台执行）…');
@@ -1350,6 +1359,7 @@
     { id: 'rop', label: '转到 ROP / Gadget', icon: 'zap', run: () => switchPage('rop') },
     { id: 'format', label: '转到 Format String', icon: 'command', run: () => switchPage('format') },
     { id: 'syscall', label: '转到 Syscall / Seccomp', icon: 'shield', run: () => switchPage('syscall') },
+    { id: 'seccomp', label: '转到 Seccomp 检测（seccomp-tools）', icon: 'shield-check', run: () => switchPage('seccomp') },
     { id: 'stack', label: '转到 Stack / Leak', icon: 'import', run: () => switchPage('stack') },
     { id: 'tools', label: '转到工具箱', icon: 'folder-open', run: () => switchPage('tools') },
     { id: 'clib', label: 'C 函数速查（工具箱）', icon: 'scroll-text', run: () => {
@@ -1501,6 +1511,8 @@
     window.pwncraft.onBridgeEvent((payload) => {
       if (payload.event === 'log') log(payload.message);
       else if (payload.event === 'hello') {
+        state.version = String(payload.version || '');
+        updateStatusLeft();
         log(`Python 桥已连接 · ${payload.app} ${payload.version}`);
         $('#status-right').textContent = `WSL · ${payload.version} · Electron`;
       } else if (payload.event === 'triage_stage') {
@@ -1513,9 +1525,8 @@
 
   function updateStatusLeft() {
     const projectName = state.project && state.project.project_name;
-    $('#status-left').textContent = projectName
-      ? `PwnCraft v0.32.0 · Electron Workbench · ${projectName}`
-      : 'PwnCraft v0.32.0 · Electron Workbench · 尚未绑定 Target';
+    const appLabel = state.version ? `PwnCraft ${state.version}` : 'PwnCraft';
+    $('#status-left').textContent = `${appLabel} · Electron Workbench · ${projectName || '尚未绑定 Target'}`;
   }
 
   // ------------------------------------------------------------------
@@ -1539,6 +1550,9 @@
     updateStatusLeft();
     try {
       const pong = await window.pwncraft.request('ping');
+      state.version = String(pong.version || '');
+      updateStatusLeft();
+      $('#status-right').textContent = `WSL · ${state.version} · Electron`;
       log(`Python 桥 ping 成功 · ${pong.app} ${pong.version}`);
     } catch (error) {
       log(`Python 桥不可用：${error.message}`, 'error');

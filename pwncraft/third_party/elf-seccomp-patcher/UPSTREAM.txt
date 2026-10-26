@@ -1,0 +1,5 @@
+UPSTREAM_URL=https://github.com/gubaiovo/elf-seccomp-patcher
+UPSTREAM_COMMIT=97c5304e2353dbb42202e5ec454d78075fe1cf8f
+UPSTREAM_DATE=2026-07-12
+VENDORED=2026-09-17
+NOTE=git clone 后内置：移除 .git，脚本未改动；上游无 LICENSE 文件，见 THIRD_PARTY_NOTICES.md

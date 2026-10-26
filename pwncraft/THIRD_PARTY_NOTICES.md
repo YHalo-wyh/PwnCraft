@@ -23,6 +23,14 @@ PwnCraft 发行包内捆绑/依赖的第三方组件、版本、来源与许可�
 |---|---|---|
 | pypdf | BSD-3-Clause | WriteUp PDF 语料解析（AI 语料工具） |
 
+## 内置第三方工具（`third_party/`）
+
+| 组件 | 来源 | 许可证 | 用途 |
+|---|---|---|---|
+| evilPatcher | https://github.com/TTY-flag/evilPatcher （git clone，未改动上游脚本） | 仓库未附 LICENSE（上游保留所有权利，此处仅作本地工具调用集成） | 一键通防「社区通防 Patcher」选项：seccomp 沙箱 BPF 注入（依赖 WSL 内 python3 + pwntools + seccomp-tools） |
+| elf-seccomp-patcher | https://github.com/gubaiovo/elf-seccomp-patcher （git clone，未改动上游脚本，tests/.github 未内置） | 仓库未附 LICENSE（上游保留所有权利，此处仅作本地工具调用集成） | 一键通防「社区通防 Patcher」选项：LIEF 注入 Landlock + seccomp guard 段（依赖 WSL 内 python3 + LIEF + gcc + objcopy） |
+| pwndbg-mogai | 官方 pwndbg 的隔离 fork | MIT | 调试页 pwndbg 终端（官方 pwndbg 零改动） |
+
 ## 约定
 
 - 所有前端资产（JS/CSS/SVG）随应用本地打包；禁止 CDN、npm 运行时下载、在线字体与在线图标。

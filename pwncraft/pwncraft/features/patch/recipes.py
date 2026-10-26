@@ -907,6 +907,45 @@ RECIPE_CATALOG: tuple[dict, ...] = (
                      "strncpy 未导入时报错。",),
     },
     {
+        "id": "patcher",
+        "name": "社区通防 Patcher · seccomp 沙箱",
+        "usage": (
+            "内置的第三方社区通防工具集（每个工具独立目录 third_party/<名字>/，可扩展）：\n"
+            "· evilPatcher（TTY-flag）：seccomp-tools 把规则编译成 BPF，改写 _start 的 main "
+            "指针，把安装 shellcode 注入 .eh_frame 并提权 PT_LOAD；< 0x100 字节、文件大小不变，"
+            "支持 i386/amd64 与 PIE。\n"
+            "· elf-seccomp-patcher（gubaiovo）：LIEF 新增 RX guard 段，入口前装 Landlock 白名单"
+            "（默认禁 /flag）+ seccomp-BPF（禁 execve/connect/ptrace 等），不改 .eh_frame；仅 amd64，"
+            "目标环境需 Linux 5.13+ 启用 Landlock。\n"
+            "用法：选 Patcher → 选预设（或自定义规则/flag）→ 需要时改输出目录与文件名"
+            "（默认落在源文件所在目录）→ 点「运行 Patcher」。核对字节 diff 后点"
+            "「采纳为工作副本」替换当前副本（原文件自动备份 .patchbak.*），"
+            "再到「补丁管理」做存活探测 / 导出。\n"
+            "依赖：WSL 内 python3 + pwntools + seccomp-tools（evilPatcher）或 "
+            "python3 + LIEF + gcc + objcopy（elf-seccomp-patcher）。"),
+        "fields": [
+            {"key": "patcher", "label": "Patcher", "kind": "select", "dynamic": True},
+            {"key": "preset", "label": "预设", "kind": "select", "dynamic": True},
+            {"key": "policy", "label": "自定义规则（evilPatcher 选“自定义”后生效，seccomp-tools asm 语法）",
+             "kind": "policy"},
+            {"key": "protected_path", "label": "额外保护路径（elf-seccomp，逗号分隔；默认已含 /flag）",
+             "kind": "text"},
+            {"key": "allow_ro", "label": "只读放行目录（elf-seccomp，逗号分隔）", "kind": "text"},
+            {"key": "allow_rw", "label": "读写放行目录（elf-seccomp，逗号分隔）", "kind": "text"},
+            {"key": "extra_flags", "label": "附加 flag（elf-seccomp：--single-threaded / --deny-open / "
+             "--allow-connect / --no-default-paths）", "kind": "text"},
+            {"key": "output_dir", "label": "输出目录（留空 = 源文件所在目录）", "kind": "text"},
+            {"key": "output_name", "label": "输出文件名（留空 = 默认）", "kind": "text"},
+        ],
+        "warnings": ("两个 patcher 互斥且都与内置「seccomp 沙箱注入」互斥——都要改 _start/入口，"
+                     "同一份副本只能选一个；",
+                     "运行的是第三方脚本：evilPatcher 依赖 .eh_frame 且不支持 g++ 编译的程序；"
+                     "elf-seccomp-patcher 的产物必须在启用 Landlock 的内核上运行，"
+                     "否则程序启动即退出（退出码 121）；",
+                     "补丁不经 PatchOp 事务管理：采纳后内部补丁记录会标记不一致，"
+                     "按提示「清理已恢复记录」即可；输出路径永远不会覆盖原始副本或工作副本本身。"),
+    },
+    {
         "id": "setvbuf_unbuffered",
         "name": "输出即时刷新 · setvbuf 无缓冲", "experimental": True,
         "usage": (

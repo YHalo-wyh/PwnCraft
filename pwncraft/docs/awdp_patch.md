@@ -98,6 +98,45 @@ RIP 相对寻址需人工复核（`_start` 开头通常没有）。
    否则 R（只读不可执行）段尾的全零区会被误选为 cave，跳入即 SIGSEGV
    （32 位样本实测踩坑，已加双 LOAD 回归测试）。
 
+#### 1.1 社区通防 Patcher（evilPatcher / elf-seccomp-patcher，备选沙箱方案）
+
+一键通防目录里的「社区通防 Patcher · seccomp 沙箱」卡片聚合全部内置的第三方
+patcher。目录约定：**每个 patcher 一个独立目录** `third_party/<名字>/`（上游
+commit 记录在各目录 UPSTREAM.txt），对应 `features/patch/patchers/` 里的同名
+包装模块；新增 patcher = 克隆进 third_party + 写一个包装模块（meta/tool_dir/
+env_report/run）+ 注册表加一行。
+
+- **evilPatcher**（TTY-flag）：`seccomp-tools asm` 把沙箱规则编译成 BPF →
+  改写 `_start` 传给 `__libc_start_main` 的 main 指针 → prctl 安装 shellcode
+  注入 `.eh_frame` → 对应 PT_LOAD 段 R 提为 R+X。< 0x100 字节、文件大小不变，
+  i386/amd64 与 PIE 通吃。预设 = 工具自带 `sandboxs/*.asm`（mini_sandbox /
+  sandbox1-3），或按 seccomp-tools asm 语法自定义规则。
+- **elf-seccomp-patcher**（gubaiovo）：LIEF 新增一个 RX guard 段（不覆盖
+  `.eh_frame`、保留 C++ 异常与 notes），入口前装 Landlock 白名单（默认禁
+  `/flag`，只读放行 /lib /lib64 /usr /etc /dev 与输入目录、读写放行 /tmp）+
+  seccomp-BPF（禁 execve/connect/ptrace、内核模块、mount、BPF、io_uring），
+  并设 NO_NEW_PRIVS / PR_SET_DUMPABLE=0、清空 capabilities。仅 amd64 ELF64；
+  产物必须在 Linux 5.13+ 启用 Landlock 的内核上运行（否则启动即退出，
+  退出码 120-126 分档）。预设 default/strict/networked 对应 flag 组合
+  （`--single-threaded` / `--deny-open` / `--allow-connect` /
+  `--no-default-paths`），另有保护路径 / allow-ro / allow-rw 字段。
+
+**输出落盘**：产物默认写「源文件所在目录」（导入题目的原始目录；缺失时退
+工作副本目录），输出目录/文件名均可在卡片覆盖（evilPatcher 默认 `<名>.patch`，
+elf-seccomp 默认 `<名>.protected`）；输出路径永远拒绝覆盖原始副本与工作副本
+本身。运行流程：工作副本拷进 `.pwncraft/work/patchers/<id>/` 时间戳 scratch →
+WSL 真跑第三方脚本（argv 路径必须先 `to_wsl_path` 翻译）→ 字节 diff → 产物
+复制到输出路径 → UI 核对后 `patcher_adopt` 时间戳备份替换工作副本（此后内部
+补丁记录按「不一致」提示走 `patch_reconcile` 清理）。
+
+与内置注入互斥（都要改 `_start`/入口，同一份副本只能选一个）。
+
+真机验证（2026-09-17，WSL2 + Ubuntu gcc）：evilPatcher 对 hello64/
+hello64_nopie 改 91 字节、hello32 改 85 字节（等长），patch 后 `system("sh")`
+被 KILL、dump 可见注入 BPF；elf-seccomp-patcher 对 hello64 与探针程序（open
+/flag + execve）注入成功（+10KB guard 段），保护版 `open /flag` 返回 EACCES、
+execve 触发 SECCOMP_RET_KILL_PROCESS（进程当场终止），未保护版两者均成功。
+
 ### 2. 危险函数劫持（PLT / 调用点）
 
 - **调用点改写**（V1ct0r 手法）：扫描全部函数的 `call xxx@plt` 指令（E8 rel32），
