@@ -1,0 +1,166 @@
+{
+  "schema_version": "general-pwn-truth-1.0",
+  "case_id": "heap-sctf-2026-ubw-1b3b161e",
+  "domain": "control_flow",
+  "subdomains": [
+    "binary_semantics",
+    "setcontext",
+    "context_restore",
+    "shadow_stack_boundary"
+  ],
+  "source_repository": "https://github.com/SycloverTeam/SCTF-2026",
+  "source_commit": "6e9cc7e92ce1749080e9d11ee99b678493d6e2d9",
+  "source_class": "official_challenge_archive",
+  "materials": {
+    "official_ubw_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+    "official_ubw_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153",
+    "official_ubw_libc_git_blob_sha1": "c8b8655438083b0561974c5f857c7b3069af3d0f",
+    "official_ubw_binary_git_blob_sha1": "9c942f4bdf8d9f53e756b31f2a2f3dda7ade7380",
+    "official_ubw_libc_sha256": "d8db8739a1633c972cec6a4fe0566bdcec6fd088f98723492ab0361f66238f75",
+    "official_ubw_binary_sha256": "34ba9b25d40ce8ff2beacd236a30a5367c2cdfb5ba06618642e5980f8c2cdde0",
+    "official_ubw_binary_build_id": "0e7949dbe007419e"
+  },
+  "truth_layers": {
+    "UPSTREAM_SETCONTEXT_DISPATCH": {
+      "status": "PROVEN_PREVIOUS_CYCLE",
+      "facts": [
+        {
+          "kind": "reviewed_wide_dispatch_target",
+          "relation": "Cycle-34 resolves the reviewed wide-vtable slot to libc_base+0x4a960 and identifies that target as setcontext",
+          "provenance": "CYCLE34"
+        }
+      ]
+    },
+    "TARGET_LIBC_ARTIFACT": {
+      "status": "PROVEN_PINNED_OFFICIAL_ARTIFACT",
+      "facts": [
+        {
+          "kind": "exact_libc_artifact_identity",
+          "relation": "the official UBW libc SHA256 is d8db8739a1633c972cec6a4fe0566bdcec6fd088f98723492ab0361f66238f75",
+          "provenance": "PINNED_OFFICIAL_LIBC_LOCAL_BINUTILS"
+        },
+        {
+          "kind": "exact_setcontext_symbol",
+          "relation": "the target libc symbol table defines setcontext@@GLIBC_2.2.5 at offset 0x4a960",
+          "provenance": "PINNED_OFFICIAL_LIBC_READELF"
+        }
+      ]
+    },
+    "FRAME_BASE_TRANSFER": {
+      "status": "PROVEN_TARGET_LIBC_INSTRUCTIONS",
+      "facts": [
+        {
+          "kind": "setcontext_frame_base_from_original_dispatch_argument",
+          "relation": "setcontext+0x04 pushes the incoming rdi and setcontext+0x20 later pops it into rdx, so the original dispatch argument becomes the restore-frame base",
+          "provenance": "PINNED_OFFICIAL_LIBC_OBJDUMP"
+        }
+      ]
+    },
+    "RSP_RESTORE": {
+      "status": "PROVEN_TARGET_LIBC_INSTRUCTIONS_PLUS_OFFICIAL_EXP",
+      "facts": [
+        {
+          "kind": "setcontext_restores_rsp_from_frame",
+          "relation": "setcontext+0x3d executes mov rsp,[rdx+0xa0]; the reviewed fake FILE stores widep at FILE+0xa0, therefore the restored RSP value is widep",
+          "provenance": "PINNED_OFFICIAL_LIBC_OBJDUMP_PLUS_OFFICIAL_EXP"
+        }
+      ]
+    },
+    "SHADOW_STACK_BRANCH": {
+      "status": "STATIC_BRANCH_PROVEN_RUNTIME_SELECTION_UNKNOWN",
+      "facts": [
+        {
+          "kind": "setcontext_shadow_stack_runtime_branch",
+          "relation": "setcontext+0x5f tests fs:0x48 bit 1 and setcontext+0x6b branches to the ordinary path at +0x126 when that runtime feature bit is clear",
+          "provenance": "PINNED_OFFICIAL_LIBC_OBJDUMP"
+        },
+        {
+          "kind": "runtime_shadow_stack_path_unknown",
+          "relation": "the ordinary and shadow-stack-aware paths both exist in the target libc; this cycle does not infer the process runtime branch solely from ELF note absence",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    },
+    "ORDINARY_CONTINUATION": {
+      "status": "STATIC_ORDINARY_PATH_PROVEN_RUNTIME_SELECTION_UNKNOWN",
+      "facts": [
+        {
+          "kind": "setcontext_ordinary_path_continuation_from_frame",
+          "relation": "on the ordinary path setcontext+0x126 loads [rdx+0xa8] into rcx, +0x12d pushes rcx and +0x14e returns; fake_file() stores libc+0x12dfba at FILE+0xa8",
+          "provenance": "PINNED_OFFICIAL_LIBC_OBJDUMP_PLUS_OFFICIAL_EXP"
+        }
+      ]
+    },
+    "STACK_PIVOT_AND_ROP": {
+      "status": "DEFER_UNTIL_RUNTIME_MITIGATION_PATH_REVIEWED",
+      "facts": [
+        {
+          "kind": "restored_frame_values_are_not_ret_execution_proof",
+          "relation": "widep and libc+0x12dfba are now exact restored frame values, but ret-based add-rsp/pop-rsp/ROP execution remains conditional on the runtime mitigation path",
+          "provenance": "DETERMINISTIC_POLICY"
+        }
+      ]
+    }
+  },
+  "relative_policy": {
+    "artifact_sha256": "d8db8739a1633c972cec6a4fe0566bdcec6fd088f98723492ab0361f66238f75",
+    "setcontext_symbol": "setcontext",
+    "setcontext_libc_offset": 305504,
+    "dispatch_argument_register": "rdi",
+    "frame_register": "rdx",
+    "rsp_frame_offset": 160,
+    "continuation_frame_offset": 168,
+    "preserve_argument_instruction_offset": 4,
+    "restore_frame_register_instruction_offset": 32,
+    "restore_rsp_instruction_offset": 61,
+    "shadow_stack_test_instruction_offset": 95,
+    "ordinary_path_branch_instruction_offset": 107,
+    "ordinary_path_target_offset": 294,
+    "continuation_load_instruction_offset": 294,
+    "continuation_push_instruction_offset": 301,
+    "continuation_return_instruction_offset": 334,
+    "ordinary_path_runtime_resolved": false,
+    "continuation_libc_offset": 1236922,
+    "later_pop_rsp_libc_offset": 245864
+  },
+  "expected_pwncraft_semantics": {
+    "required_fact_kinds": [
+      "SETCONTEXT_FRAME_BASE_FROM_ORIGINAL_DISPATCH_ARGUMENT",
+      "SETCONTEXT_RESTORES_RSP_FROM_FRAME",
+      "SETCONTEXT_SHADOW_STACK_RUNTIME_BRANCH",
+      "SETCONTEXT_ORDINARY_PATH_CONTINUATION_FROM_FRAME",
+      "REVIEWED_SETCONTEXT_FRAME_VALUES"
+    ],
+    "required_capabilities": [
+      "reviewed_setcontext_frame_restore_semantics",
+      "reviewed_setcontext_frame_values_bound"
+    ],
+    "forbidden_shortcuts": [
+      "do not infer setcontext frame semantics from a symbol name without the exact target-libc instruction window",
+      "do not treat existence of the ordinary ret path as proof that the runtime selects it",
+      "do not infer runtime shadow-stack disablement solely from the absence of a GNU property note in the main executable",
+      "do not promote exact restored RSP/continuation values to stack pivot, ROP/ORW execution, shell or flag retrieval"
+    ]
+  },
+  "unknown": [
+    "the runtime setcontext shadow-stack branch selection remains unknown",
+    "the add-rsp/pop-rsp gadget chain is not yet promoted to executed control flow",
+    "runtime ORW success is not established"
+  ],
+  "truth_lock": {
+    "truth_id": "truth-sctf2026-ubw-artifact-setcontext-restore-v7",
+    "schema_version": "general-pwn-truth-1.0",
+    "locked_at": "2026-09-07",
+    "truth_revision": 7,
+    "supersedes": "truth-sctf2026-ubw-reviewed-wide-setcontext-dispatch-v6",
+    "superseded_by": null,
+    "analyst_input_hashes": {
+      "official_ubw_exp_git_blob_sha1": "1b3b161e9c96210b8d7769a3f5234c999061078b",
+      "official_ubw_writeup_git_blob_sha1": "88396d49a8a3bab8c71f9120ef48a5267e9ff153",
+      "official_ubw_libc_git_blob_sha1": "c8b8655438083b0561974c5f857c7b3069af3d0f",
+      "official_ubw_binary_git_blob_sha1": "9c942f4bdf8d9f53e756b31f2a2f3dda7ade7380",
+      "official_ubw_libc_sha256": "d8db8739a1633c972cec6a4fe0566bdcec6fd088f98723492ab0361f66238f75",
+      "official_ubw_binary_sha256": "34ba9b25d40ce8ff2beacd236a30a5367c2cdfb5ba06618642e5980f8c2cdde0"
+    }
+  }
+}
