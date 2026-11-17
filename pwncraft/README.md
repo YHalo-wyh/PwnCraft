@@ -1,5 +1,7 @@
 # PwnCraft
 
+运行界面与启动入口见[仓库首页](../README.md)，安装和操作步骤见 [GUI 使用说明](../docs/GUI_GUIDE.md)。
+
 > 当前版本：**Electron Workbench 为唯一主程序**
 
 PwnCraft是一个 Windows 优先的 CTF Pwn EXP 工作台，**当前主程序为 Electron Workbench**（`pwncraft-electron/`）：
